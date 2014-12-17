@@ -92,5 +92,4 @@ To be able to accomplish these goals, we support and promote:
   in all respects for all of the code used other than "OpenSSL".  If you
   modify this file, you may extend this exception to your version of the
   file, but you are not obligated to do so.  If you do not wish to do
-  so, delete this exception statement from your version.
-test
+  so, delete this exception statement from your
