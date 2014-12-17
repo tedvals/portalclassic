@@ -93,3 +93,4 @@ To be able to accomplish these goals, we support and promote:
   modify this file, you may extend this exception to your version of the
   file, but you are not obligated to do so.  If you do not wish to do
   so, delete this exception statement from your version.
+test
