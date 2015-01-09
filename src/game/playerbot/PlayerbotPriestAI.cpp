@@ -181,7 +181,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
         {
             if (CastSpell(FADE, m_bot))
             {
-                //m_ai->TellMaster("I'm casting fade.");
+                m_ai->TellMaster("I'm casting fade.");
                 return RETURN_CONTINUE;
             }
             else
@@ -192,7 +192,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
         // TODO: move to HealTarget code
         // TODO: you forgot to check for the 'temporarily immune to PW:S because you only just got it cast on you' effect
         //       - which is different effect from the actual shield.
-        if (m_ai->GetHealthPercent() < 25 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0))
+        if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0))
         {
             if (CastSpell(POWER_WORD_SHIELD) & RETURN_CONTINUE)
             {
@@ -202,6 +202,16 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
             else if (m_ai->IsHealer()) // Even if any other RETURN_ANY_OK - aside from RETURN_CONTINUE
                 m_ai->TellMaster("Your healer's about TO DIE. HELP ME.");
         }
+		if (m_ai->GetHealthPercent() < 75 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot) & RETURN_CONTINUE)
+		{
+			//m_ai->TellMaster("I'm casting RENEW.");
+			return RETURN_CONTINUE;
+		}
+		if (m_ai->GetHealthPercent() < 50 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot) & RETURN_CONTINUE)
+		{
+			//m_ai->TellMaster("I'm casting FLASH_HEAL.");
+			return RETURN_CONTINUE;
+		}
         if (m_ai->GetHealthPercent() < 35 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot,DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot) & RETURN_CONTINUE)
         {
             //m_ai->TellMaster("I'm casting desperate prayer.");
