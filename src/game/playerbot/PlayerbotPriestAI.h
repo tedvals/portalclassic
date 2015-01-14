@@ -103,23 +103,24 @@ private:
     static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
 
     // holy
-    uint32 BINDING_HEAL,
-           CIRCLE_OF_HEALING,
-           CLEARCASTING,
-           DESPERATE_PRAYER,
-           FLASH_HEAL,
-           GREATER_HEAL,
-           HEAL,
-           HOLY_FIRE,
-           HOLY_NOVA,
-           LESSER_HEAL,
-           MANA_BURN,
-           PRAYER_OF_HEALING,
-           PRAYER_OF_MENDING,
-           RENEW,
-           RESURRECTION,
-           SMITE,
-           CURE_DISEASE;
+	uint32 BINDING_HEAL,
+		CIRCLE_OF_HEALING,
+		CLEARCASTING,
+		DESPERATE_PRAYER,
+		FLASH_HEAL,
+		GREATER_HEAL,
+		HEAL,
+		HOLY_FIRE,
+		HOLY_NOVA,
+		LESSER_HEAL,
+		MANA_BURN,
+		PRAYER_OF_HEALING,
+		PRAYER_OF_MENDING,
+		RENEW,
+		RESURRECTION,
+		SMITE,
+		CURE_DISEASE,
+		DISPEL_MAGI;
            
     // ranged
     uint32 SHOOT;

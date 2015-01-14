@@ -353,22 +353,22 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
             if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && !newTarget && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
                 return RETURN_CONTINUE;
             // No way to tell if revenge is active (yet)
-            /*if (REVENGE > 0 && m_ai->CastSpell(REVENGE, *pTarget))
-                return RETURN_CONTINUE;*/
+            if (REVENGE > 0 && m_ai->CastSpell(REVENGE, *pTarget))
+                return RETURN_CONTINUE;
             if (REND > 0 && !pTarget->HasAura(REND, EFFECT_INDEX_0) && m_ai->CastSpell(REND, *pTarget))
                 return RETURN_CONTINUE;
-            if (THUNDER_CLAP > 0 && !pTarget->HasAura(THUNDER_CLAP) && m_ai->CastSpell(THUNDER_CLAP, *pTarget))
-                return RETURN_CONTINUE;
+            //if (THUNDER_CLAP > 0 && !pTarget->HasAura(THUNDER_CLAP) && m_ai->CastSpell(THUNDER_CLAP, *pTarget))
+               // return RETURN_CONTINUE;
             if (DEMORALIZING_SHOUT > 0 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
                 return RETURN_CONTINUE;
             if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
                 return RETURN_CONTINUE;
-            if (SHOCKWAVE > 0 && !m_bot->HasSpellCooldown(SHOCKWAVE) && m_ai->CastSpell(SHOCKWAVE, *pTarget))
-                return RETURN_CONTINUE;
+            //if (SHOCKWAVE > 0 && !m_bot->HasSpellCooldown(SHOCKWAVE) && m_ai->CastSpell(SHOCKWAVE, *pTarget))
+                //return RETURN_CONTINUE;
             if (SHIELD_SLAM > 0 && !m_bot->HasSpellCooldown(SHIELD_SLAM) && m_ai->CastSpell(SHIELD_SLAM, *pTarget))
                 return RETURN_CONTINUE;
-            /*if (SUNDER > 0 && !pTarget->HasAura(SUNDER_ARMOR) && m_ai->CastSpell(SUNDER, *pTarget))
-                return RETURN_CONTINUE;*/
+            if (SUNDER > 0 && m_ai->CastSpell(SUNDER, *pTarget))
+                return RETURN_CONTINUE;
             if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
                 return RETURN_CONTINUE;
 
@@ -502,11 +502,11 @@ bool PlayerbotWarriorAI::CanPull()
     {
         // Can't do this, CanPull CANNOT check for anything that requires a target
         //if (!m_ai->IsInRange(m_ai->GetCurrentTarget(), AUTO_SHOT))
-        //{
-        //    m_ai->TellMaster("I'm out of range.");
-        //    return false;
-        //}
-        return true;
+       // {
+      //      m_ai->TellMaster("I'm out of range.");
+       //     return false;
+      //  }
+      //  return true;
     }
 
     return false;

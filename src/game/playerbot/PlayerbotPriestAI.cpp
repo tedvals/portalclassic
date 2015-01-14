@@ -24,7 +24,7 @@ PlayerbotPriestAI::PlayerbotPriestAI(Player* const master, Player* const bot, Pl
     BINDING_HEAL                  = m_ai->initSpell(BINDING_HEAL_1);
     PRAYER_OF_MENDING             = m_ai->initSpell(PRAYER_OF_MENDING_1);
     CURE_DISEASE                  = m_ai->initSpell(CURE_DISEASE_1);
-
+	DISPEL_MAGI                   = m_ai->initSpell(DISPEL_MAGIC_1);
     // SHADOW
     FADE                          = m_ai->initSpell(FADE_1);
     SHADOW_WORD_PAIN              = m_ai->initSpell(SHADOW_WORD_PAIN_1);
@@ -397,6 +397,8 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
             }
         }
     }
+	
+	
 
     uint8 hp = target->GetHealthPercent();
     uint8 hpSelf = m_ai->GetHealthPercent();
