@@ -151,8 +151,8 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
         m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
     // if can't shoot OR have no ranged (wand) equipped
-    else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
-        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+    //else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
+        //m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 
     //Used to determine if this bot is highest on threat
     Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
@@ -211,32 +211,32 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
             break;
 
         case MAGE_SPEC_FIRE:
-            if (FIRE_WARD > 0 && m_ai->In_Reach(m_bot,FIRE_WARD) && !m_bot->HasAura(FIRE_WARD, EFFECT_INDEX_0) && CastSpell(FIRE_WARD, m_bot))
-                return RETURN_CONTINUE;
-            if (COMBUSTION > 0 && m_ai->In_Reach(m_bot,COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && CastSpell(COMBUSTION, m_bot))
-                return RETURN_CONTINUE;
-            if (FIREBALL > 0 && m_ai->In_Reach(pTarget,FIREBALL) && CastSpell(FIREBALL, pTarget))
-                return RETURN_CONTINUE;
-            if (FIRE_BLAST > 0 && m_ai->In_Reach(pTarget,FIRE_BLAST) && CastSpell(FIRE_BLAST, pTarget))
-                return RETURN_CONTINUE;
-            if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget,FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget))
-                return RETURN_CONTINUE;
-            if (SCORCH > 0 && m_ai->In_Reach(pTarget,SCORCH) && CastSpell(SCORCH, pTarget))
-                return RETURN_CONTINUE;
-            if (PYROBLAST > 0 && m_ai->In_Reach(pTarget,PYROBLAST) && !pTarget->HasAura(PYROBLAST, EFFECT_INDEX_0) && CastSpell(PYROBLAST, pTarget))
-                return RETURN_CONTINUE;
-            if (BLAST_WAVE > 0 && m_ai->GetAttackerCount() >= 3 && meleeReach && CastSpell(BLAST_WAVE, pTarget))
-                return RETURN_CONTINUE;
-            if (DRAGONS_BREATH > 0 && meleeReach && CastSpell(DRAGONS_BREATH, pTarget))
-                return RETURN_CONTINUE;
-            if (LIVING_BOMB > 0 && m_ai->In_Reach(pTarget,LIVING_BOMB) && !pTarget->HasAura(LIVING_BOMB, EFFECT_INDEX_0) && CastSpell(LIVING_BOMB, pTarget))
-                return RETURN_CONTINUE;
-            if (FROSTFIRE_BOLT > 0 && m_ai->In_Reach(pTarget,FROSTFIRE_BOLT) && !pTarget->HasAura(FROSTFIRE_BOLT, EFFECT_INDEX_0) && CastSpell(FROSTFIRE_BOLT, pTarget))
-                return RETURN_CONTINUE;
 
-            if (FIREBALL > 0 && m_ai->In_Reach(pTarget,FIREBALL))
-                return CastSpell(FIREBALL, pTarget);
-            break;
+			if (FIRE_WARD > 0 && m_ai->In_Reach(m_bot, FIRE_WARD) && !m_bot->HasAura(FIRE_WARD, EFFECT_INDEX_0) && CastSpell(FIRE_WARD, m_bot))
+				return RETURN_CONTINUE;
+			if (COMBUSTION > 0 && m_ai->In_Reach(m_bot, COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && CastSpell(COMBUSTION, m_bot))
+				return RETURN_CONTINUE;
+			if (FIRE_BLAST > 0 && m_ai->In_Reach(pTarget, FIRE_BLAST) && !m_bot->HasSpellCooldown(FIRE_BLAST) && CastSpell(FIRE_BLAST, pTarget))
+				return RETURN_CONTINUE;
+			if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && m_ai->GetAttackerCount() >= 5 && CastSpell(FLAMESTRIKE, pTarget))
+				return RETURN_CONTINUE;
+			if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL) && CastSpell(FIREBALL, pTarget))
+				return RETURN_CONTINUE;
+			if (SCORCH > 0 && m_ai->In_Reach(pTarget, SCORCH) && CastSpell(SCORCH, pTarget))
+				return RETURN_CONTINUE;
+			if (PYROBLAST > 0 && m_ai->In_Reach(pTarget, PYROBLAST) && !pTarget->HasAura(PYROBLAST, EFFECT_INDEX_0) && CastSpell(PYROBLAST, pTarget))
+				return RETURN_CONTINUE;
+			if (BLAST_WAVE > 0 && m_ai->GetAttackerCount() >= 3 && meleeReach && CastSpell(BLAST_WAVE, pTarget))
+				return RETURN_CONTINUE;
+			if (DRAGONS_BREATH > 0 && meleeReach && CastSpell(DRAGONS_BREATH, pTarget))
+				return RETURN_CONTINUE;
+			if (LIVING_BOMB > 0 && m_ai->In_Reach(pTarget, LIVING_BOMB) && !pTarget->HasAura(LIVING_BOMB, EFFECT_INDEX_0) && CastSpell(LIVING_BOMB, pTarget))
+				return RETURN_CONTINUE;
+			if (FROSTFIRE_BOLT > 0 && m_ai->In_Reach(pTarget, FROSTFIRE_BOLT) && !pTarget->HasAura(FROSTFIRE_BOLT, EFFECT_INDEX_0) && CastSpell(FROSTFIRE_BOLT, pTarget))
+				return RETURN_CONTINUE;
+			if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL))
+				return CastSpell(FIREBALL, pTarget);
+			break;
 
         case MAGE_SPEC_ARCANE:
             if (ARCANE_POWER > 0 && m_ai->In_Reach(pTarget,ARCANE_POWER) && CastSpell(ARCANE_POWER, pTarget))

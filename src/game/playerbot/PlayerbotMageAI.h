@@ -159,8 +159,12 @@ private:
            BERSERKING,
            WILL_OF_THE_FORSAKEN;
 
-    uint32 CONJURE_WATER,
-           CONJURE_FOOD;
+	uint32 CONJURE_WATER,
+		   CONJURE_FOOD,
+		   SpellSequence,
+		   LastSpellArcane,
+		   LastSpellFire,
+		   LastSpellFrost;
 };
 
 #endif
