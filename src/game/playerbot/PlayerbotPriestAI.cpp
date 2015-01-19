@@ -486,13 +486,11 @@ void PlayerbotPriestAI::DoNonCombatActions()
         return;
     if (Buff(&PlayerbotPriestAI::BuffHelper, SHADOW_PROTECTION, (JOB_TANK | JOB_HEAL)) & RETURN_CONTINUE)
         return;
-
-    // hp/mana check
+	if (EatDrinkBandage())
+        return;
+	// hp/mana check
     if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
         m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-    if (EatDrinkBandage())
-        return;
 } // end DoNonCombatActions
 
 // TODO: this and mage's BuffHelper are identical and thus could probably go in PlayerbotClassAI.cpp somewhere

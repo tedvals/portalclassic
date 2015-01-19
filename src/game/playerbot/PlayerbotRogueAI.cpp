@@ -362,12 +362,11 @@ void PlayerbotRogueAI::DoNonCombatActions()
     if (m_bot->HasAura(STEALTH))
         m_bot->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
-    // hp check
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-    if (EatDrinkBandage(false))
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 
     // Search and apply poisons to weapons
     // Mainhand ...

@@ -538,9 +538,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
         }
     }
 
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
+    
     // hp/mana check
     if (pet && DARK_PACT && (pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA)) > 40 && m_ai->GetManaPercent() <= 50)
         if (m_ai->CastSpell(DARK_PACT, *m_bot))
@@ -550,8 +548,11 @@ void PlayerbotWarlockAI::DoNonCombatActions()
         if (m_ai->CastSpell(LIFE_TAP, *m_bot))
             return;
 
-    if (EatDrinkBandage())
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 
     //Heal Voidwalker
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && CONSUME_SHADOWS && pet->GetHealthPercent() < 75 && !pet->HasAura(CONSUME_SHADOWS))

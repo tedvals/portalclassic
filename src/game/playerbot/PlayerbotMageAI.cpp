@@ -216,6 +216,8 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				return RETURN_CONTINUE;
 			if (COMBUSTION > 0 && m_ai->In_Reach(m_bot, COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && CastSpell(COMBUSTION, m_bot))
 				return RETURN_CONTINUE;
+			if (FROST_NOVA > 0 && meleeReach  && CastSpell(FROST_NOVA, pTarget))
+				return RETURN_CONTINUE;
 			if (FIRE_BLAST > 0 && m_ai->In_Reach(pTarget, FIRE_BLAST) && !m_bot->HasSpellCooldown(FIRE_BLAST) && CastSpell(FIRE_BLAST, pTarget))
 				return RETURN_CONTINUE;
 			if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && m_ai->GetAttackerCount() >= 5 && CastSpell(FLAMESTRIKE, pTarget))
@@ -316,9 +318,7 @@ void PlayerbotMageAI::DoNonCombatActions()
     if (Buff(&PlayerbotMageAI::BuffHelper, ARCANE_INTELLECT, (JOB_ALL | JOB_MANAONLY)) & RETURN_CONTINUE)
         return;
 
-    // conjure food & water + hp/mana check
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
+    
 
     // TODO: The beauty of a mage is not only its ability to supply itself with water, but to share its water
     // So, conjure at *least* 1.25 stacks, ready to trade a stack and still have some left for self
@@ -335,8 +335,11 @@ void PlayerbotMageAI::DoNonCombatActions()
         return;
     }
 
-    if (EatDrinkBandage())
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 } // end DoNonCombatActions
 
 // TODO: this and priest's BuffHelper are identical and thus could probably go in PlayerbotClassAI.cpp somewhere

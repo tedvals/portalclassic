@@ -359,8 +359,8 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				return RETURN_CONTINUE;
 			if (SHIELD_BLOCK > 0 && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
 				return RETURN_CONTINUE;
-            if (REND > 0 && !pTarget->HasAura(REND, EFFECT_INDEX_0) && m_ai->CastSpell(REND, *pTarget))
-                return RETURN_CONTINUE;
+            //if (REND > 0 && !pTarget->HasAura(REND, EFFECT_INDEX_0) && m_ai->CastSpell(REND, *pTarget))
+                //return RETURN_CONTINUE;
             //if (THUNDER_CLAP > 0 && !pTarget->HasAura(THUNDER_CLAP) && m_ai->CastSpell(THUNDER_CLAP, *pTarget))
                // return RETURN_CONTINUE;
             if (DEMORALIZING_SHOUT > 0 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
@@ -488,12 +488,11 @@ void PlayerbotWarriorAI::DoNonCombatActions()
     if (VIGILANCE > 0)
         (!GetMaster()->HasAura(VIGILANCE, EFFECT_INDEX_0) && m_ai->CastSpell(VIGILANCE, *GetMaster()));
 
-    // hp check
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-    if (EatDrinkBandage(false))
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 } // end DoNonCombatActions
 
 // Match up with "Pull()" below

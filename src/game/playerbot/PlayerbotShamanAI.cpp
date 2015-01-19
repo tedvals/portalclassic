@@ -530,12 +530,11 @@ void PlayerbotShamanAI::DoNonCombatActions()
             return;// RETURN_CONTINUE;
     }
 
-    // hp/mana check
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-    if (EatDrinkBandage())
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 } // end DoNonCombatActions
 
 bool PlayerbotShamanAI::CastHoTOnTank()

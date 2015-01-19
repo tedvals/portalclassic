@@ -341,12 +341,11 @@ void PlayerbotHunterAI::DoNonCombatActions()
     if (ASPECT_OF_THE_HAWK > 0 && !m_bot->HasAura(ASPECT_OF_THE_HAWK, EFFECT_INDEX_0))
         m_ai->CastSpell(ASPECT_OF_THE_HAWK, *m_bot);
 
-    // hp/mana check
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-    if (EatDrinkBandage())
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 
     // check for pet
     if (PET_SUMMON > 0 && !m_petSummonFailed && HasPet(m_bot))

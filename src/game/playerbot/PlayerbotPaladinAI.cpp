@@ -502,12 +502,11 @@ void PlayerbotPaladinAI::DoNonCombatActions()
     if (Buff(&PlayerbotPaladinAI::BuffHelper, 1) & RETURN_CONTINUE) // Paladin's BuffHelper takes care of choosing the specific Blessing so just pass along a non-zero value
         return;
 
-    // hp/mana check
-    if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-        m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-    if (EatDrinkBandage())
-        return;
+	if (EatDrinkBandage())
+		return;
+	// hp/mana check
+	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
     // m_ai->TellMaster("DoNonCombatActions() - 10. past EatDrinkBandage()"); // debug
 }
 
