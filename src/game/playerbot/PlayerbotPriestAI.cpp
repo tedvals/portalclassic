@@ -165,8 +165,8 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
     bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
     uint32 spec = m_bot->GetSpec();
 
-    if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
-        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
+    //if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
+    //    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
     // if in melee range OR can't shoot OR have no ranged (wand) equipped
     //else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE 
             //&& (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true))
@@ -232,7 +232,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
             // Not an elite. You could insert PSYCHIC SCREAM here but in any PvE situation that's 90-95% likely
             // to worsen the situation for the group. ... So please don't.
-            return CastSpell(SHOOT, pTarget);
+			return RETURN_NO_ACTION_OK;
         }
     }
 
@@ -258,7 +258,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
         //if (Any target is an Elite)
         //    return;
 
-        return CastSpell(SHOOT, pTarget);
+		return RETURN_NO_ACTION_OK;
     }
 
     // Damage Spells

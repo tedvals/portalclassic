@@ -353,9 +353,9 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
             if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && !newTarget && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
                 return RETURN_CONTINUE;
             // No way to tell if revenge is active (yet)
-            if (REVENGE > 0 && m_ai->CastSpell(REVENGE, *pTarget))
-                return RETURN_CONTINUE;
-			if (DISARM > 0 && !pTarget->HasAura(DISARM, EFFECT_INDEX_0) && m_ai->CastSpell(DISARM, *pTarget))
+			//if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE) && m_ai->CastSpell(REVENGE, *pTarget))
+                //return RETURN_CONTINUE;
+			if (DISARM > 0 && !pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
 				return RETURN_CONTINUE;
 			if (SHIELD_BLOCK > 0 && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
 				return RETURN_CONTINUE;
@@ -505,11 +505,11 @@ bool PlayerbotWarriorAI::CanPull()
     {
         // Can't do this, CanPull CANNOT check for anything that requires a target
         //if (!m_ai->IsInRange(m_ai->GetCurrentTarget(), AUTO_SHOT))
-       // {
-      //      m_ai->TellMaster("I'm out of range.");
-       //     return false;
-      //  }
-      //  return true;
+        //{
+        //    m_ai->TellMaster("I'm out of range.");
+        //    return false;
+       // }
+       // return true;
     }
 
     return false;

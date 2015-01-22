@@ -29,7 +29,7 @@ enum MageSpells
     CONJURE_FOOD_1                  = 587,
     CONJURE_MANA_GEM_1              = 759,
     CONJURE_REFRESHMENT_1           = 42955,
-    CONJURE_WATER_1                 = 5504,
+    CONJURE_WATER_1                 = 5506,
     COUNTERSPELL_1                  = 2139,
     DALARAN_BRILLIANCE_1            = 61316,
     DALARAN_INTELLECT_1             = 61024,
