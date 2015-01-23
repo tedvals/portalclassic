@@ -107,7 +107,7 @@ enum WarlockSpells
     IMMOLATION_AURA_1               = 50589,
     INCINERATE_1                    = 29722,
     INFERNO_1                       = 1122,
-    LIFE_TAP_1                      = 1454,
+    LIFE_TAP_1                      = 1456,
     METAMORPHOSIS_1                 = 59672,
     RAIN_OF_FIRE_1                  = 5740,
     RITUAL_OF_DOOM_1                = 18540,

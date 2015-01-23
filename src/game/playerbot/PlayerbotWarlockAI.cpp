@@ -501,6 +501,15 @@ void PlayerbotWarlockAI::DoNonCombatActions()
         }
     }
 
+	// hp/mana check
+	if (pet && DARK_PACT && (pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA)) > 40 && m_ai->GetManaPercent() <= 50)
+		if (m_ai->CastSpell(DARK_PACT, *m_bot))
+			return;
+
+	if (LIFE_TAP && m_ai->GetManaPercent() <= 60 && m_ai->GetHealthPercent() > 60)
+		if (m_ai->CastSpell(LIFE_TAP, *m_bot))
+			return;
+
     // Spellstone creation and use (Spellstone dominates firestone completely as I understand it)
     Item* const weapon = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
     if (weapon && weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0)
@@ -539,21 +548,13 @@ void PlayerbotWarlockAI::DoNonCombatActions()
     }
 
     
-    // hp/mana check
-    if (pet && DARK_PACT && (pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA)) > 40 && m_ai->GetManaPercent() <= 50)
-        if (m_ai->CastSpell(DARK_PACT, *m_bot))
-            return;
-
-    if (LIFE_TAP && m_ai->GetManaPercent() <= 60 && m_ai->GetHealthPercent() > 60)
-        if (m_ai->CastSpell(LIFE_TAP, *m_bot))
-            return;
-
+    
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
 	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
-
+    
     //Heal Voidwalker
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && CONSUME_SHADOWS && pet->GetHealthPercent() < 75 && !pet->HasAura(CONSUME_SHADOWS))
         m_ai->CastPetSpell(CONSUME_SHADOWS);
