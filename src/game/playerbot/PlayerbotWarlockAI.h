@@ -81,6 +81,7 @@ enum WarlockSpells
     CURSE_OF_THE_ELEMENTS_1         = 1490,
     CURSE_OF_TONGUES_1              = 1714,
     CURSE_OF_WEAKNESS_1             = 702,
+	CURSE_OF_RECKLESSNESS_1         = 704,
     DARK_PACT_1                     = 18220,
     DEATH_COIL_WARLOCK_1            = 6789,
     DEMON_ARMOR_1                   = 706,
@@ -107,7 +108,7 @@ enum WarlockSpells
     IMMOLATION_AURA_1               = 50589,
     INCINERATE_1                    = 29722,
     INFERNO_1                       = 1122,
-    LIFE_TAP_1                      = 1456,
+    LIFE_TAP_1                      = 1454,
     METAMORPHOSIS_1                 = 59672,
     RAIN_OF_FIRE_1                  = 5740,
     RITUAL_OF_DOOM_1                = 18540,
@@ -168,7 +169,8 @@ private:
            CURSE_OF_EXHAUSTION,
            CURSE_OF_TONGUES,
            CURSE_OF_THE_ELEMENTS,
-           CURSE_OF_DOOM;
+           CURSE_OF_DOOM,
+		   CURSE_OF_RECKLESSNESS;
            
     // RANGED
     uint32 SHOOT;

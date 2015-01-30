@@ -24,6 +24,7 @@ PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, 
     CURSE_OF_EXHAUSTION   = m_ai->initSpell(CURSE_OF_EXHAUSTION_1);
     CURSE_OF_TONGUES      = m_ai->initSpell(CURSE_OF_TONGUES_1);
     CURSE_OF_DOOM         = m_ai->initSpell(CURSE_OF_DOOM_1);
+	CURSE_OF_RECKLESSNESS = m_ai->initSpell(CURSE_OF_RECKLESSNESS_1);
     // AFFLICTION
     CORRUPTION            = m_ai->initSpell(CORRUPTION_1);
     DRAIN_SOUL            = m_ai->initSpell(DRAIN_SOUL_1);
@@ -224,7 +225,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
     switch (spec)
     {
         case WARLOCK_SPEC_AFFLICTION:
-            if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget,CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && CastSpell(CURSE_OF_AGONY, pTarget))
+			if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && CastSpell(CURSE_OF_AGONY, pTarget))
                 return RETURN_CONTINUE;
             if (CORRUPTION && m_ai->In_Reach(pTarget,CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
                 return RETURN_CONTINUE;
