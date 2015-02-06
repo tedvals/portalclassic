@@ -25,6 +25,7 @@ PlayerbotPriestAI::PlayerbotPriestAI(Player* const master, Player* const bot, Pl
     PRAYER_OF_MENDING             = m_ai->initSpell(PRAYER_OF_MENDING_1);
     CURE_DISEASE                  = m_ai->initSpell(CURE_DISEASE_1);
 	DISPEL_MAGI                   = m_ai->initSpell(DISPEL_MAGIC_1);
+	ABOLISH_DISEASE               = m_ai->initSpell(ABOLISH_DISEASE_1);
     // SHADOW
     FADE                          = m_ai->initSpell(FADE_1);
     SHADOW_WORD_PAIN              = m_ai->initSpell(SHADOW_WORD_PAIN_1);
@@ -219,12 +220,12 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
         }
 
         // Already healed self or tank. If healer, do nothing else to anger mob.
-        if (m_ai->IsHealer())
-            return RETURN_NO_ACTION_OK; // In a sense, mission accomplished.
+        //if (m_ai->IsHealer())
+            //return RETURN_NO_ACTION_OK; // In a sense, mission accomplished.
 
         // Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
-        if (newTarget->GetHealthPercent() > 25)
-        {
+        //if (newTarget->GetHealthPercent() > 25)
+        //{
             // If elite, do nothing and pray tank gets aggro off you
             // TODO: Is there an IsElite function? If so, find it and insert.
             //if (newTarget->IsElite())
@@ -232,8 +233,8 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
             // Not an elite. You could insert PSYCHIC SCREAM here but in any PvE situation that's 90-95% likely
             // to worsen the situation for the group. ... So please don't.
-			return RETURN_NO_ACTION_OK;
-        }
+			//return RETURN_NO_ACTION_OK;
+        //}
     }
 
     // Heal
@@ -380,7 +381,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
     }
 
-    if (CURE_DISEASE > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
+	if (ABOLISH_DISEASE > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
     {
         uint32 dispelMask  = GetDispellMask(DISPEL_DISEASE);
         Unit::SpellAuraHolderMap const& auras = target->GetSpellAuraHolderMap();
@@ -391,7 +392,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
             {
                 if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
                 {
-                    m_ai->CastSpell(CURE_DISEASE, *target);
+					m_ai->CastSpell(ABOLISH_DISEASE, *target);
                     return RETURN_CONTINUE;
                 }
             }
@@ -405,7 +406,9 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 
     if (hp >= 90)
         return RETURN_NO_ACTION_OK;
-
+	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && m_ai->CastSpell(RENEW, *target))
+        return RETURN_CONTINUE;
+	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && m_ai->CastSpell(POWER_WORD_SHIELD, *target))
     // TODO: Integrate shield here
     if (hp < 35 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && m_ai->CastSpell(FLASH_HEAL, *target))
         return RETURN_CONTINUE;
@@ -418,8 +421,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return RETURN_FINISHED_FIRST_MOVES;
     if (hp < 60 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
         return RETURN_CONTINUE;
-    if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && m_ai->CastSpell(RENEW, *target))
-        return RETURN_CONTINUE;
+    
 
     // Group heal. Not really useful until a group check is available?
     //if (hp < 40 && PRAYER_OF_HEALING > 0 && m_ai->CastSpell(PRAYER_OF_HEALING, *target) & RETURN_CONTINUE)

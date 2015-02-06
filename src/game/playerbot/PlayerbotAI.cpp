@@ -3966,8 +3966,8 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     else
     {
         // Check spell range
-        if (!In_Range(pTarget, spellId))
-            return false;
+        //if (!In_Range(pTarget, spellId))
+            //return false;
 
         // Check line of sight
         if (!m_bot->IsWithinLOSInMap(pTarget))
@@ -6317,7 +6317,7 @@ void PlayerbotAI::_HandleCommandPull(std::string &text, Player &fromPlayer)
        */
 
     // Need to have a group and a tank, both checked in "CanPull()" call above
-    //if (!(GetGroupTank()->GetPlayerbotAI()->GetClassAI()->Pull()))
+    if (!(GetGroupTank()->GetPlayerbotAI()->GetClassAI()->Pull()))
     // I've been told to pull and a check was done above whether I'm actually a tank, so *I* will try to pull:
     if (!CastPull())
     {

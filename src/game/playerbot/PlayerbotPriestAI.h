@@ -120,7 +120,8 @@ private:
 		RESURRECTION,
 		SMITE,
 		CURE_DISEASE,
-		DISPEL_MAGI;
+		DISPEL_MAGI,
+		ABOLISH_DISEASE;
            
     // ranged
     uint32 SHOOT;
