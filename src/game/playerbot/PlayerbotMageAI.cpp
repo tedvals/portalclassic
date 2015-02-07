@@ -49,7 +49,8 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
     ICE_ARMOR               = m_ai->initSpell(ICE_ARMOR_1);
     ICE_BLOCK               = m_ai->initSpell(ICE_BLOCK_1);
     COLD_SNAP               = m_ai->initSpell(COLD_SNAP_1);
-
+	CONJURE_MANA_GEM        = m_ai->initSpell(CONJURE_MANA_GEM_1);
+	EVOCATION               = m_ai->initSpell(EVOCATION_1);
     // RANGED COMBAT
     SHOOT                   = m_ai->initSpell(SHOOT_2);
 
@@ -153,13 +154,27 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     // if can't shoot OR have no ranged (wand) equipped
     //else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
         //m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
-
+	if (m_ai->GetManaPercent() < 15)
+	{
+		Item* ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);
+		if (ManaStone)
+		{
+			m_ai->UseItem(ManaStone);
+			return RETURN_CONTINUE;
+		}
+	}
+	
+	if (EVOCATION > 0 && m_ai->GetManaPercent() < 10 && !m_bot->HasSpellCooldown(EVOCATION) && CastSpell(EVOCATION, m_bot))
+	{
+		m_ai->SetIgnoreUpdateTime(8);
+		return RETURN_CONTINUE;
+	}
     //Used to determine if this bot is highest on threat
     Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
     if (newTarget) // TODO: && party has a tank
     {
         // Insert instant threat reducing spell (if a mage has one)
-		SpellSequence = 0;
+		
         // Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
         if (newTarget->GetHealthPercent() > 25)
         {
@@ -226,11 +241,9 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			if (SCORCH > 0 && m_ai->In_Reach(pTarget, SCORCH) && !pTarget->HasAura(22959) && CastSpell(SCORCH, pTarget))
 				{
 					SpellSequence = 0;
-					
 					return RETURN_CONTINUE;
 				}
-				
-			
+							
 			if (FIRE_BLAST > 0 && m_ai->In_Reach(pTarget, FIRE_BLAST) && !m_bot->HasSpellCooldown(FIRE_BLAST) && CastSpell(FIRE_BLAST, pTarget))
 				return RETURN_CONTINUE;
 			if (BLAST_WAVE > 0 && m_ai->GetAttackerCount() >= 3 && meleeReach &&!m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
@@ -301,7 +314,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVP(Unit* pTarget)
 void PlayerbotMageAI::DoNonCombatActions()
 {
     Player* master = GetMaster();
-	SpellSequence = 0;
+	
     if (!m_bot || !master)
         return;
 
@@ -347,6 +360,13 @@ void PlayerbotMageAI::DoNonCombatActions()
         m_ai->SetIgnoreUpdateTime(3);
         return;
     }
+
+	if (CONJURE_MANA_GEM)
+	{
+		Item* const ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);
+		if (!ManaStone && m_ai->CastSpell(CONJURE_MANA_GEM))
+			return;
+	}
 
 	if (EatDrinkBandage())
 		return;

@@ -1,6 +1,9 @@
 #ifndef _PlayerbotMageAI_H
 #define _PlayerbotMageAI_H
-
+#define  ManaAgate 5514
+#define  ManaJade 5513
+#define  ManaCitrine 8007
+#define  ManaRuby 8008
 #include "PlayerbotClassAI.h"
 
 enum
@@ -8,6 +11,12 @@ enum
     SPELL_FROST,
     SPELL_FIRE,
     SPELL_ARCANE
+};
+
+enum ManaStoneDisplayId
+{
+	
+	ManaAgateSTONE_DISPLAYID = 6851
 };
 
 enum MageSpells
@@ -102,7 +111,9 @@ private:
            ARCANE_BARRAGE,
            ARCANE_BLAST,
            MIRROR_IMAGE,
-           ARCANE_POWER;
+           ARCANE_POWER,
+		   CONJURE_MANA_GEM,
+		   EVOCATION;
     
     // RANGED
     uint32 SHOOT;
