@@ -154,6 +154,9 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     // if can't shoot OR have no ranged (wand) equipped
     //else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
         //m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
+		return RETURN_CONTINUE;
+	
 	if (m_ai->GetManaPercent() < 15)
 	{
 		Item* ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);

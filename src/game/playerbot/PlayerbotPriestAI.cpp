@@ -173,12 +173,13 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
             //&& (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true))
             //&& !m_ai->IsHealer())
         //m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
-
+	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
+		return RETURN_CONTINUE;
     //Used to determine if this bot is highest on threat
     Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
     if (newTarget) // TODO: && party has a tank
     {
-        if (newTarget && FADE > 0 && !m_bot->HasAura(FADE, EFFECT_INDEX_0))
+		if (newTarget && FADE > 0 && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
         {
             if (CastSpell(FADE, m_bot))
             {
@@ -193,29 +194,29 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
         // TODO: move to HealTarget code
         // TODO: you forgot to check for the 'temporarily immune to PW:S because you only just got it cast on you' effect
         //       - which is different effect from the actual shield.
-        if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0))
+		if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(6788))
         {
-            if (CastSpell(POWER_WORD_SHIELD) & RETURN_CONTINUE)
+            if (CastSpell(POWER_WORD_SHIELD) )
             {
-                //m_ai->TellMaster("I'm casting PW:S on myself.");
+                m_ai->TellMaster("I'm casting PW:S on myself.");
                 return RETURN_CONTINUE;
             }
             else if (m_ai->IsHealer()) // Even if any other RETURN_ANY_OK - aside from RETURN_CONTINUE
                 m_ai->TellMaster("Your healer's about TO DIE. HELP ME.");
         }
-		if (m_ai->GetHealthPercent() < 75 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot) & RETURN_CONTINUE)
+		if (m_ai->GetHealthPercent() < 75 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot) )
 		{
-			//m_ai->TellMaster("I'm casting RENEW.");
+			m_ai->TellMaster("I'm casting RENEW.");
 			return RETURN_CONTINUE;
 		}
-		if (m_ai->GetHealthPercent() < 50 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot) & RETURN_CONTINUE)
+		if (m_ai->GetHealthPercent() < 50 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot) )
 		{
-			//m_ai->TellMaster("I'm casting FLASH_HEAL.");
+			m_ai->TellMaster("I'm casting FLASH_HEAL.");
 			return RETURN_CONTINUE;
 		}
-        if (m_ai->GetHealthPercent() < 35 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot,DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot) & RETURN_CONTINUE)
+        if (m_ai->GetHealthPercent() < 35 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot,DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot) )
         {
-            //m_ai->TellMaster("I'm casting desperate prayer.");
+            m_ai->TellMaster("I'm casting desperate prayer.");
             return RETURN_CONTINUE;
         }
 
@@ -240,7 +241,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
     // Heal
     if (m_ai->IsHealer())
     {
-        if (HealPlayer(GetHealTarget()) & RETURN_CONTINUE)
+        if (HealPlayer(GetHealTarget()) )
             return RETURN_CONTINUE;
     }
     else
@@ -248,7 +249,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
         // Is this desirable? Debatable.
         // ... Certainly could be very detrimental to a shadow priest
         // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
-        if (HealPlayer(m_bot) & RETURN_CONTINUE)
+        if (HealPlayer(m_bot) )
             return RETURN_CONTINUE;
     }
 
@@ -408,19 +409,20 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return RETURN_NO_ACTION_OK;
 	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && m_ai->CastSpell(RENEW, *target))
         return RETURN_CONTINUE;
-	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && m_ai->CastSpell(POWER_WORD_SHIELD, *target))
-    // TODO: Integrate shield here
-    if (hp < 35 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && m_ai->CastSpell(FLASH_HEAL, *target))
+	if (hp < 60 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
         return RETURN_CONTINUE;
-    if (hp < 45 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target))
+	if (hp < 50 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target))
+        return RETURN_CONTINUE;
+	if (hp < 35 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && m_ai->CastSpell(FLASH_HEAL, *target))
         return RETURN_CONTINUE;
     // Heals target AND self for equal amount
-    if (hp < 60 && hpSelf < 80 && BINDING_HEAL > 0 && m_ai->In_Reach(target,BINDING_HEAL) && m_ai->CastSpell(BINDING_HEAL, *target))
+	if (hp < 60 && hpSelf < 60 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && m_ai->CastSpell(PRAYER_OF_HEALING, *target))
         return RETURN_CONTINUE;
-    if (hp < 60 && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(target,PRAYER_OF_MENDING) && !target->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, target))
-        return RETURN_FINISHED_FIRST_MOVES;
-    if (hp < 60 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
-        return RETURN_CONTINUE;
+	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !target->HasAura(6788) && m_ai->CastSpell(POWER_WORD_SHIELD, *target))
+		return RETURN_CONTINUE;
+    //if (hp < 60 && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(target,PRAYER_OF_MENDING) && !target->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, target))
+        //return RETURN_FINISHED_FIRST_MOVES;
+    
     
 
     // Group heal. Not really useful until a group check is available?
