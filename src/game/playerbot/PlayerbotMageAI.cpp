@@ -50,6 +50,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
     ICE_BLOCK               = m_ai->initSpell(ICE_BLOCK_1);
     COLD_SNAP               = m_ai->initSpell(COLD_SNAP_1);
 	CONJURE_MANA_GEM        = m_ai->initSpell(CONJURE_MANA_GEM_1);
+	CONJURE_MANA_JADE       = m_ai->initSpell(CONJURE_MANA_GEM_2);
 	EVOCATION               = m_ai->initSpell(EVOCATION_1);
     // RANGED COMBAT
     SHOOT                   = m_ai->initSpell(SHOOT_2);
@@ -160,11 +161,18 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (m_ai->GetManaPercent() < 15)
 	{
 		Item* ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);
-		if (ManaStone)
+		Item* ManaStone2 = m_ai->FindConsumable(ManaJadeSTONE_DISPLAYID);
+		if (ManaStone2 && !m_bot->HasSpellCooldown(10052))
+		{
+			m_ai->UseItem(ManaStone2);
+			return RETURN_CONTINUE;
+		}
+		if (ManaStone && !m_bot->HasSpellCooldown(5405))
 		{
 			m_ai->UseItem(ManaStone);
 			return RETURN_CONTINUE;
 		}
+
 	}
 	
 	if (EVOCATION > 0 && m_ai->GetManaPercent() < 10 && !m_bot->HasSpellCooldown(EVOCATION) && CastSpell(EVOCATION, m_bot))
@@ -367,7 +375,10 @@ void PlayerbotMageAI::DoNonCombatActions()
 	if (CONJURE_MANA_GEM)
 	{
 		Item* const ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);
+		Item* const ManaStone2 = m_ai->FindConsumable(ManaJadeSTONE_DISPLAYID);
 		if (!ManaStone && m_ai->CastSpell(CONJURE_MANA_GEM))
+			return;
+		if (!ManaStone2 && m_ai->CastSpell(CONJURE_MANA_JADE))
 			return;
 	}
 

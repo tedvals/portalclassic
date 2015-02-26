@@ -16,7 +16,9 @@ enum
 enum ManaStoneDisplayId
 {
 	
-	ManaAgateSTONE_DISPLAYID = 6851
+	ManaAgateSTONE_DISPLAYID = 6851,
+	ManaJadeSTONE_DISPLAYID  = 7393
+
 };
 
 enum MageSpells
@@ -37,6 +39,7 @@ enum MageSpells
     CONE_OF_COLD_1                  = 120,
     CONJURE_FOOD_1                  = 587,
     CONJURE_MANA_GEM_1              = 759,
+	CONJURE_MANA_GEM_2              = 3552,
     CONJURE_REFRESHMENT_1           = 42955,
     CONJURE_WATER_1                 = 6127,
     COUNTERSPELL_1                  = 2139,
@@ -113,6 +116,7 @@ private:
            MIRROR_IMAGE,
            ARCANE_POWER,
 		   CONJURE_MANA_GEM,
+		   CONJURE_MANA_JADE,
 		   EVOCATION;
     
     // RANGED
