@@ -306,10 +306,17 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
     // do shouts, berserker rage, etc...
-    if (BERSERKER_RAGE > 0 && !m_bot->HasAura(BERSERKER_RAGE, EFFECT_INDEX_0))
-        m_ai->CastSpell(BERSERKER_RAGE);
-    else if (BLOODRAGE > 0 && m_ai->GetRageAmount() <= 10)
-        m_ai->CastSpell(BLOODRAGE);
+	//if (BERSERKER_RAGE > 0 && !m_bot->HasAura(BERSERKER_RAGE, EFFECT_INDEX_0))
+	//{
+	//	m_ai->CastSpell(BERSERKER_RAGE); 
+		//return RETURN_CONTINUE;
+	//}
+	//else 
+		if (BLOODRAGE > 0 && m_ai->GetRageAmount() <= 10 && m_bot->HasSpellCooldown(BLOODRAGE))
+	{
+		m_ai->CastSpell(BLOODRAGE); 
+		return RETURN_CONTINUE;
+	}
 
     CheckShouts();
 
@@ -359,16 +366,16 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 //return RETURN_CONTINUE;
 			if (DISARM > 0 && !pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
 				return RETURN_CONTINUE;
-			if (SHIELD_BLOCK > 0 && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
+			if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+                return RETURN_CONTINUE;
+			if (DEMORALIZING_SHOUT > 0 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
+                return RETURN_CONTINUE;
+			if (SHIELD_BLOCK > 0 && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(SHIELD_BLOCK) &&m_ai->GetHealthPercent()<60 && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
 				return RETURN_CONTINUE;
             //if (REND > 0 && !pTarget->HasAura(REND, EFFECT_INDEX_0) && m_ai->CastSpell(REND, *pTarget))
                 //return RETURN_CONTINUE;
             //if (THUNDER_CLAP > 0 && !pTarget->HasAura(THUNDER_CLAP) && m_ai->CastSpell(THUNDER_CLAP, *pTarget))
                // return RETURN_CONTINUE;
-            if (DEMORALIZING_SHOUT > 0 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
-                return RETURN_CONTINUE;
-            if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
-                return RETURN_CONTINUE;
             //if (SHOCKWAVE > 0 && !m_bot->HasSpellCooldown(SHOCKWAVE) && m_ai->CastSpell(SHOCKWAVE, *pTarget))
                 //return RETURN_CONTINUE;
             if (SHIELD_SLAM > 0 && !m_bot->HasSpellCooldown(SHIELD_SLAM) && m_ai->CastSpell(SHIELD_SLAM, *pTarget))

@@ -66,7 +66,8 @@ enum DemonSpellIconIds
 
 enum WarlockSpells
 {
-    BANISH_1                        = 710,
+	Amplify_Curse_1                 =18288,  
+	BANISH_1                        = 710,
     CHALLENGING_HOWL_1              = 59671,
     CHAOS_BOLT_1                    = 50796,
     CONFLAGRATE_1                   = 17962,
@@ -133,7 +134,8 @@ enum WarlockSpells
     SUMMON_SUCCUBUS_1               = 712,
     SUMMON_VOIDWALKER_1             = 697,
     UNENDING_BREATH_1               = 5697,
-    UNSTABLE_AFFLICTION_1           = 30108
+    UNSTABLE_AFFLICTION_1           = 30108,
+	Siphon_Life_1                   = 18265      
 };
 
 //class Player;
@@ -186,7 +188,9 @@ private:
            SEED_OF_CORRUPTION,
            DARK_PACT,
            HOWL_OF_TERROR,
-           FEAR;
+           FEAR,
+		   Siphon_Life,
+		   Amplify_Curse;
 
     // DESTRUCTION
     uint32 SHADOW_BOLT,

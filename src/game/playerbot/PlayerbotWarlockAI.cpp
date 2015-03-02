@@ -37,6 +37,8 @@ PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, 
     DARK_PACT             = m_ai->initSpell(DARK_PACT_1);
     HOWL_OF_TERROR        = m_ai->initSpell(HOWL_OF_TERROR_1);
     FEAR                  = m_ai->initSpell(FEAR_1);
+	Siphon_Life           = m_ai->initSpell(Siphon_Life_1);
+	Amplify_Curse         = m_ai->initSpell(Amplify_Curse_1);
     // DEMONOLOGY
     DEMON_SKIN            = m_ai->initSpell(DEMON_SKIN_1);
     DEMON_ARMOR           = m_ai->initSpell(DEMON_ARMOR_1);
@@ -168,6 +170,10 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
     uint32 FIRE = (UNSTABLE_AFFLICTION > 0 ? UNSTABLE_AFFLICTION : IMMOLATE);
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
+	//get mana
+	if (pet && DARK_PACT && (pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA)) > 10 && m_ai->GetManaPercent() <= 20)
+		if (m_ai->CastSpell(DARK_PACT, *m_bot))
+			return RETURN_CONTINUE;
     // Voidwalker is near death - sacrifice it for a shield
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE) && pet->GetHealthPercent() < 10)
         m_ai->CastPetSpell(SACRIFICE);
@@ -226,14 +232,26 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
     switch (spec)
     {
         case WARLOCK_SPEC_AFFLICTION:
-			if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && CastSpell(CURSE_OF_AGONY, pTarget))
+			if (SHADOW_BOLT && m_ai->In_Reach(pTarget, SHADOW_BOLT) && m_bot->HasAura(17941))
+			{
+				CastSpell(SHADOW_BOLT, pTarget); 
+				return RETURN_CONTINUE;
+			}
+			if (Amplify_Curse && m_ai->In_Reach(m_bot, Amplify_Curse) && !m_bot->HasAura(Amplify_Curse) && !m_bot->HasSpellCooldown(Amplify_Curse) && CastSpell(Amplify_Curse, m_bot))
+				return RETURN_CONTINUE;
+			if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_THE_ELEMENTS) && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_TONGUES) && CastSpell(CURSE_OF_AGONY, pTarget))
                 return RETURN_CONTINUE;
             if (CORRUPTION && m_ai->In_Reach(pTarget,CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
                 return RETURN_CONTINUE;
             if (FIRE && m_ai->In_Reach(pTarget,FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
                 return RETURN_CONTINUE;
-            if (HAUNT && m_ai->In_Reach(pTarget,HAUNT) && !m_bot->HasSpellCooldown(HAUNT) && CastSpell(HAUNT, pTarget))
+			if (Siphon_Life && m_ai->In_Reach(pTarget, Siphon_Life) && !pTarget->HasAura(Siphon_Life) && CastSpell(Siphon_Life, pTarget))
                 return RETURN_CONTINUE;
+			if (DRAIN_LIFE && m_ai->In_Reach(pTarget, DRAIN_LIFE) && m_ai->GetHealthPercent() < 50 && CastSpell(DRAIN_LIFE, pTarget))
+			{   
+				m_ai->SetIgnoreUpdateTime(5);
+				return RETURN_CONTINUE;
+			}
             if (SHADOW_BOLT && m_ai->In_Reach(pTarget,SHADOW_BOLT) && CastSpell(SHADOW_BOLT, pTarget))
                 return RETURN_CONTINUE;
 

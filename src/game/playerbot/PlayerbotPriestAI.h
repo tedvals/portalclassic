@@ -68,6 +68,7 @@ enum PriestSpells
     SHOOT_1                         = 5019,
     SILENCE_1                       = 15487,
     SMITE_1                         = 585,
+	Touch_of_Weakness_1             =2652,
     VAMPIRIC_EMBRACE_1              = 15286,
     VAMPIRIC_TOUCH_1                = 34914
 };
@@ -127,20 +128,20 @@ private:
     uint32 SHOOT;
 
     // shadowmagic
-    uint32 FADE,
-           SHADOW_WORD_PAIN,
-           MIND_BLAST,
-           SCREAM,
-           MIND_FLAY,
-           DEVOURING_PLAGUE,
-           SHADOW_PROTECTION,
-           VAMPIRIC_TOUCH,
-           PRAYER_OF_SHADOW_PROTECTION,
-           SHADOWFIEND,
-           MIND_SEAR,
-           SHADOWFORM,
-           VAMPIRIC_EMBRACE;
-
+	uint32 FADE,
+		SHADOW_WORD_PAIN,
+		MIND_BLAST,
+		SCREAM,
+		MIND_FLAY,
+		DEVOURING_PLAGUE,
+		SHADOW_PROTECTION,
+		VAMPIRIC_TOUCH,
+		PRAYER_OF_SHADOW_PROTECTION,
+		SHADOWFIEND,
+		MIND_SEAR,
+		SHADOWFORM,
+		VAMPIRIC_EMBRACE,
+		Touch_of_Weakness;
     // discipline
     uint32 POWER_WORD_SHIELD,
            INNER_FIRE,

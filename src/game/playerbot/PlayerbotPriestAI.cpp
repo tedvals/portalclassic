@@ -8,11 +8,11 @@ PlayerbotPriestAI::PlayerbotPriestAI(Player* const master, Player* const bot, Pl
     RENEW                         = m_ai->initSpell(RENEW_1);
     LESSER_HEAL                   = m_ai->initSpell(LESSER_HEAL_1);
     FLASH_HEAL                    = m_ai->initSpell(FLASH_HEAL_1);
-    (FLASH_HEAL > 0) ? FLASH_HEAL : FLASH_HEAL = LESSER_HEAL;
+    //(FLASH_HEAL > 0) ? FLASH_HEAL : FLASH_HEAL = LESSER_HEAL;
     HEAL                          = m_ai->initSpell(HEAL_1);
-    (HEAL > 0) ? HEAL : HEAL = FLASH_HEAL;
+    //(HEAL > 0) ? HEAL : HEAL = FLASH_HEAL;
     GREATER_HEAL                  = m_ai->initSpell(GREATER_HEAL_1);
-    (GREATER_HEAL > 0) ? GREATER_HEAL : GREATER_HEAL = HEAL;
+    //(GREATER_HEAL > 0) ? GREATER_HEAL : GREATER_HEAL = HEAL;
     RESURRECTION                  = m_ai->initSpell(RESURRECTION_1);
     SMITE                         = m_ai->initSpell(SMITE_1);
     MANA_BURN                     = m_ai->initSpell(MANA_BURN_1);
@@ -39,6 +39,7 @@ PlayerbotPriestAI::PlayerbotPriestAI(Player* const master, Player* const bot, Pl
     SHADOWFIEND                   = m_ai->initSpell(SHADOWFIEND_1);
     MIND_SEAR                     = m_ai->initSpell(MIND_SEAR_1);
     SHADOWFORM                    = m_ai->initSpell(SHADOWFORM_1);
+	Touch_of_Weakness             = m_ai->initSpell(Touch_of_Weakness_1);
     VAMPIRIC_EMBRACE              = m_ai->initSpell(VAMPIRIC_EMBRACE_1);
 
     // RANGED COMBAT
@@ -409,7 +410,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return RETURN_NO_ACTION_OK;
 	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && m_ai->CastSpell(RENEW, *target))
         return RETURN_CONTINUE;
-	if (hp < 60 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
+	if (hp < 75 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
         return RETURN_CONTINUE;
 	if (hp < 50 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target))
         return RETURN_CONTINUE;
@@ -447,7 +448,8 @@ void PlayerbotPriestAI::DoNonCombatActions()
     // selfbuff goes first
     if (m_ai->SelfBuff(INNER_FIRE))
         return;
-
+	if  (m_ai->SelfBuff(Touch_of_Weakness))
+		return;
     // Revive
     if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
         return;
