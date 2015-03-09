@@ -110,8 +110,6 @@ class WaypointManager
 
             switch (wpOrigin)
             {
-                case PATH_NO_PATH:
-                    return NULL;
                 case PATH_FROM_GUID:
                     key = lowGuid;
                     wpMap = &m_pathMap;
@@ -122,13 +120,14 @@ class WaypointManager
                     break;
                 case PATH_FROM_EXTERNAL:
                     return NULL;
+                case PATH_NO_PATH:
+                default:
+                    return NULL;
             }
             WaypointPathMap::iterator find = wpMap->find(key);
             return find != wpMap->end() ? &find->second : NULL;
         }
 
-        void AddLastNode(uint32 id, float x, float y, float z, float o, uint32 delay, uint32 wpGuid);
-        uint32 GetLastPoint(uint32 id, uint32 default_notfound);
         void DeletePath(uint32 id);
         void CheckTextsExistance(std::set<int32>& ids);
 
