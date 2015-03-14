@@ -242,8 +242,8 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				return RETURN_CONTINUE;
 			if (COMBUSTION > 0 && m_ai->In_Reach(m_bot, COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(COMBUSTION) && CastSpell(COMBUSTION, m_bot))
 				return RETURN_CONTINUE;
-			if (FROST_NOVA > 0 && meleeReach   && !m_bot->HasSpellCooldown(FROST_NOVA)&& CastSpell(FROST_NOVA, pTarget))
-				return RETURN_CONTINUE;
+			//if (FROST_NOVA > 0 && meleeReach   && !m_bot->HasSpellCooldown(FROST_NOVA)&& CastSpell(FROST_NOVA, pTarget))
+				//return RETURN_CONTINUE;
 			if (SCORCH > 0 && m_ai->In_Reach(pTarget, SCORCH) && SpellSequence < 6 && CastSpell(SCORCH, pTarget))
 			{
 				SpellSequence = SpellSequence + 1;
@@ -350,9 +350,9 @@ void PlayerbotMageAI::DoNonCombatActions()
             return;
 
     // buff group
-    if (m_bot->GetGroup() && ARCANE_BRILLIANCE && m_ai->In_Reach(m_bot,ARCANE_BRILLIANCE) && m_ai->HasSpellReagents(ARCANE_BRILLIANCE) && m_ai->Buff(ARCANE_BRILLIANCE, m_bot))
+	if (m_bot->GetGroup() && m_ai->HasSpellReagents(ARCANE_BRILLIANCE) && Buff(&PlayerbotMageAI::BuffHelper, ARCANE_BRILLIANCE) & RETURN_CONTINUE)
         return;
-    if (Buff(&PlayerbotMageAI::BuffHelper, ARCANE_INTELLECT, (JOB_ALL | JOB_MANAONLY)) & RETURN_CONTINUE)
+	else if (Buff(&PlayerbotMageAI::BuffHelper, ARCANE_INTELLECT, JOB_ALL) & RETURN_CONTINUE)
         return;
 
     
@@ -385,8 +385,8 @@ void PlayerbotMageAI::DoNonCombatActions()
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
-	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
+	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 } // end DoNonCombatActions
 
 // TODO: this and priest's BuffHelper are identical and thus could probably go in PlayerbotClassAI.cpp somewhere

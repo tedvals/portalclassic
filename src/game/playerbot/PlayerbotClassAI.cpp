@@ -40,9 +40,9 @@ bool PlayerbotClassAI::EatDrinkBandage(bool bMana, unsigned char foodPercent, un
     if (drinkItem || foodItem)
     {
         // have it wait until drinks are finished and/or combat begins
-        m_ai->SetCombatOrder(PlayerbotAI::ORDERS_TEMP_WAIT_OOC);
+        //m_ai->SetCombatOrder(PlayerbotAI::ORDERS_TEMP_WAIT_OOC);
         //SetWait(25); // seconds
-		m_ai->SetIgnoreUpdateTime(25);
+		//m_ai->SetIgnoreUpdateTime(25);
         if (drinkItem)
         {
             m_ai->TellMaster("I could use a drink.");

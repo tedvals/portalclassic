@@ -28,7 +28,7 @@ enum PriestSpells
     FLASH_HEAL_1                    = 2061,
     GREATER_HEAL_1                  = 2060,
     GUARDIAN_SPIRIT_1               = 47788,
-    HEAL_1                          = 2054,
+    HEAL_1                          = 6064,
     HOLY_FIRE_1                     = 14914,
     HOLY_NOVA_1                     = 15237,
     HYMN_OF_HOPE_1                  = 64901,

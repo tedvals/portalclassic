@@ -344,8 +344,8 @@ void PlayerbotHunterAI::DoNonCombatActions()
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
-	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
+	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 
     // check for pet
     if (PET_SUMMON > 0 && !m_petSummonFailed && HasPet(m_bot))

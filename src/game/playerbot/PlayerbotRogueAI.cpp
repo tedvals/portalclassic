@@ -365,8 +365,8 @@ void PlayerbotRogueAI::DoNonCombatActions()
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
-	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
+	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 
     // Search and apply poisons to weapons
     // Mainhand ...

@@ -572,8 +572,8 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
-	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
+	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
+		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
     
     //Heal Voidwalker
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && CONSUME_SHADOWS && pet->GetHealthPercent() < 75 && !pet->HasAura(CONSUME_SHADOWS))
