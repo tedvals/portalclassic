@@ -205,12 +205,12 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
             else if (m_ai->IsHealer()) // Even if any other RETURN_ANY_OK - aside from RETURN_CONTINUE
                 m_ai->TellMaster("Your healer's about TO DIE. HELP ME.");
         }
-		if (m_ai->GetHealthPercent() < 75 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot) )
+		if (m_ai->GetHealthPercent() < 80 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot) )
 		{
 			m_ai->TellMaster("I'm casting RENEW.");
 			return RETURN_CONTINUE;
 		}
-		if (m_ai->GetHealthPercent() < 50 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot) )
+		if (m_ai->GetHealthPercent() < 60 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot))
 		{
 			m_ai->TellMaster("I'm casting FLASH_HEAL.");
 			return RETURN_CONTINUE;
@@ -410,17 +410,18 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return RETURN_NO_ACTION_OK;
 	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && m_ai->CastSpell(RENEW, *target))
         return RETURN_CONTINUE;
-	if (hp < 75 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
+	if (hp < 70 && hp>50 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
         return RETURN_CONTINUE;
-	if (hp < 50 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target))
-        return RETURN_CONTINUE;
-	if (hp < 35 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && m_ai->CastSpell(FLASH_HEAL, *target))
-        return RETURN_CONTINUE;
-    // Heals target AND self for equal amount
-	if (hp < 60 && hpSelf < 60 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && m_ai->CastSpell(PRAYER_OF_HEALING, *target))
+	if (hp < 50 && hp >30 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target))
         return RETURN_CONTINUE;
 	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !target->HasAura(6788) && m_ai->CastSpell(POWER_WORD_SHIELD, *target))
 		return RETURN_CONTINUE;
+	if (hp < 30 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && m_ai->CastSpell(FLASH_HEAL, *target))
+        return RETURN_CONTINUE;
+    // Heals target AND self for equal amount
+	//if (hp < 60 && hpSelf < 60 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && m_ai->CastSpell(PRAYER_OF_HEALING, *target))
+       // return RETURN_CONTINUE;
+	
     //if (hp < 60 && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(target,PRAYER_OF_MENDING) && !target->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, target))
         //return RETURN_FINISHED_FIRST_MOVES;
     
