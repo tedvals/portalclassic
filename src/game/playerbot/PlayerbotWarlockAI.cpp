@@ -25,6 +25,7 @@ PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, 
     CURSE_OF_TONGUES      = m_ai->initSpell(CURSE_OF_TONGUES_1);
     CURSE_OF_DOOM         = m_ai->initSpell(CURSE_OF_DOOM_1);
 	CURSE_OF_RECKLESSNESS = m_ai->initSpell(CURSE_OF_RECKLESSNESS_1);
+	CURSE_OF_SHADOW       = m_ai->initSpell(CURSE_OF_SHADOW_1);
     // AFFLICTION
     CORRUPTION            = m_ai->initSpell(CORRUPTION_1);
     DRAIN_SOUL            = m_ai->initSpell(DRAIN_SOUL_1);
@@ -171,9 +172,11 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
 	//get mana
-	if (pet && DARK_PACT && (pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA)) > 10 && m_ai->GetManaPercent() <= 20)
-		if (m_ai->CastSpell(DARK_PACT, *m_bot))
+	if (pet && DARK_PACT > 0 && ((pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA))*100) > 10 && m_ai->GetManaPercent() <= 20)
+	{
+		m_ai->CastSpell(DARK_PACT, *m_bot);
 			return RETURN_CONTINUE;
+	}
     // Voidwalker is near death - sacrifice it for a shield
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE) && pet->GetHealthPercent() < 10)
         m_ai->CastPetSpell(SACRIFICE);
@@ -239,7 +242,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			}
 			if (Amplify_Curse && m_ai->In_Reach(m_bot, Amplify_Curse) && !m_bot->HasAura(Amplify_Curse) && !m_bot->HasSpellCooldown(Amplify_Curse) && CastSpell(Amplify_Curse, m_bot))
 				return RETURN_CONTINUE;
-			if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_THE_ELEMENTS) && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_TONGUES) && CastSpell(CURSE_OF_AGONY, pTarget))
+			if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_THE_ELEMENTS) && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_TONGUES) && !pTarget->HasAura(CURSE_OF_SHADOW) && CastSpell(CURSE_OF_AGONY, pTarget))
                 return RETURN_CONTINUE;
             if (CORRUPTION && m_ai->In_Reach(pTarget,CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
                 return RETURN_CONTINUE;
@@ -522,10 +525,10 @@ void PlayerbotWarlockAI::DoNonCombatActions()
     }
 
 	// hp/mana check
-	if (pet && DARK_PACT && (pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA)) > 40 && m_ai->GetManaPercent() <= 50)
+	if (pet && DARK_PACT && ((pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA))*100) > 40 && m_ai->GetManaPercent() <= 50)
 		if (m_ai->CastSpell(DARK_PACT, *m_bot))
 			return;
-
+	
 	if (LIFE_TAP && m_ai->GetManaPercent() <= 60 && m_ai->GetHealthPercent() > 60)
 		if (m_ai->CastSpell(LIFE_TAP, *m_bot))
 			return;
@@ -572,8 +575,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
-	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
-		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
+	
     
     //Heal Voidwalker
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && CONSUME_SHADOWS && pet->GetHealthPercent() < 75 && !pet->HasAura(CONSUME_SHADOWS))

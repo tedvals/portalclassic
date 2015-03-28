@@ -83,6 +83,7 @@ enum WarlockSpells
     CURSE_OF_TONGUES_1              = 1714,
     CURSE_OF_WEAKNESS_1             = 702,
 	CURSE_OF_RECKLESSNESS_1         = 704,
+	CURSE_OF_SHADOW_1               = 17862,
     DARK_PACT_1                     = 18220,
     DEATH_COIL_WARLOCK_1            = 6789,
     DEMON_ARMOR_1                   = 706,
@@ -172,7 +173,8 @@ private:
            CURSE_OF_TONGUES,
            CURSE_OF_THE_ELEMENTS,
            CURSE_OF_DOOM,
-		   CURSE_OF_RECKLESSNESS;
+		   CURSE_OF_RECKLESSNESS,
+		   CURSE_OF_SHADOW;
            
     // RANGED
     uint32 SHOOT;
