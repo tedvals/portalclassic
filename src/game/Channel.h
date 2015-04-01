@@ -29,6 +29,9 @@
 #include <map>
 #include <string>
 
+#define SPEAK_IN_LOCALDEFENSE_RANK 0
+#define SPEAK_IN_WORLDDEFENSE_RANK 11
+
 enum ChatNotify
 {
     CHAT_JOINED_NOTICE                = 0x00,               //+ "%s joined channel.";
@@ -65,6 +68,17 @@ enum ChatNotify
     CHAT_PLAYER_INVITED_NOTICE        = 0x1D,               //+ "[%s] You invited %s to join the channel";
     CHAT_PLAYER_INVITE_BANNED_NOTICE  = 0x1E,               //+ "[%s] %s has been banned.";
     CHAT_THROTTLED_NOTICE             = 0x1F,               //+ "[%s] The number of messages that can be sent to this channel is limited, please wait to send another message.";
+};
+
+// DBC Channel ID's
+enum ChannelId
+{
+    CHANNEL_ID_GENERAL              = 1,
+    CHANNEL_ID_TRADE                = 2,
+    CHANNEL_ID_LOCAL_DEFENSE        = 22,
+    CHANNEL_ID_WORLD_DEFENSE        = 23,
+    CHANNEL_ID_GUILD_RECRUITMENT    = 25,
+    CHANNEL_ID_LOOKING_FOR_GROUP    = 26
 };
 
 class Channel
@@ -184,38 +198,38 @@ class Channel
         // initial packet data (notify type and channel name)
         void MakeNotifyPacket(WorldPacket* data, uint8 notify_type);
         // type specific packet data
-        void MakeJoined(WorldPacket* data, ObjectGuid guid);					//+ 0x00
-        void MakeLeft(WorldPacket* data, ObjectGuid guid);  					//+ 0x01
-        void MakeYouJoined(WorldPacket* data);              					//+ 0x02
-        void MakeYouLeft(WorldPacket* data);                					//+ 0x03
-        void MakeWrongPassword(WorldPacket* data);          					//? 0x04
-        void MakeNotMember(WorldPacket* data);              					//? 0x05
-        void MakeNotModerator(WorldPacket* data);           					//? 0x06
+        void MakeJoined(WorldPacket* data, ObjectGuid guid);                    //+ 0x00
+        void MakeLeft(WorldPacket* data, ObjectGuid guid);                      //+ 0x01
+        void MakeYouJoined(WorldPacket* data);                                  //+ 0x02
+        void MakeYouLeft(WorldPacket* data);                                    //+ 0x03
+        void MakeWrongPassword(WorldPacket* data);                              //? 0x04
+        void MakeNotMember(WorldPacket* data);                                  //? 0x05
+        void MakeNotModerator(WorldPacket* data);                               //? 0x06
         void MakePasswordChanged(WorldPacket* data, ObjectGuid guid);           //+ 0x07
         void MakeOwnerChanged(WorldPacket* data, ObjectGuid guid);              //? 0x08
         void MakePlayerNotFound(WorldPacket* data, const std::string& name);    //+ 0x09
-        void MakeNotOwner(WorldPacket* data);               					//? 0x0A
-        void MakeChannelOwner(WorldPacket* data);           					//? 0x0B
+        void MakeNotOwner(WorldPacket* data);                                   //? 0x0A
+        void MakeChannelOwner(WorldPacket* data);                               //? 0x0B
         void MakeModeChange(WorldPacket* data, ObjectGuid guid, uint8 oldflags);//+ 0x0C
         void MakeAnnouncementsOn(WorldPacket* data, ObjectGuid guid);           //+ 0x0D
         void MakeAnnouncementsOff(WorldPacket* data, ObjectGuid guid);          //+ 0x0E
         void MakeModerationOn(WorldPacket* data, ObjectGuid guid);              //+ 0x0F
         void MakeModerationOff(WorldPacket* data, ObjectGuid guid);             //+ 0x10
-        void MakeMuted(WorldPacket* data);                  					//? 0x11
+        void MakeMuted(WorldPacket* data);                                      //? 0x11
         void MakePlayerKicked(WorldPacket* data, ObjectGuid target, ObjectGuid source);//? 0x12
-        void MakeBanned(WorldPacket* data);                 					//? 0x13
+        void MakeBanned(WorldPacket* data);                                     //? 0x13
         void MakePlayerBanned(WorldPacket* data, ObjectGuid target, ObjectGuid source);//? 0x14
         void MakePlayerUnbanned(WorldPacket* data, ObjectGuid target, ObjectGuid source);//? 0x15
         void MakePlayerNotBanned(WorldPacket* data, const std::string& name);   //? 0x16
         void MakePlayerAlreadyMember(WorldPacket* data, ObjectGuid guid);       //+ 0x17
-        void MakeInvite(WorldPacket* data, ObjectGuid guid);					//? 0x18
-        void MakeInviteWrongFaction(WorldPacket* data);     					//? 0x19
-        void MakeWrongFaction(WorldPacket* data);           					//? 0x1A
-        void MakeInvalidName(WorldPacket* data);            					//? 0x1B
-        void MakeNotModerated(WorldPacket* data);          			 			//? 0x1C
+        void MakeInvite(WorldPacket* data, ObjectGuid guid);                    //? 0x18
+        void MakeInviteWrongFaction(WorldPacket* data);                         //? 0x19
+        void MakeWrongFaction(WorldPacket* data);                               //? 0x1A
+        void MakeInvalidName(WorldPacket* data);                                //? 0x1B
+        void MakeNotModerated(WorldPacket* data);                               //? 0x1C
         void MakePlayerInvited(WorldPacket* data, const std::string& name);     //+ 0x1D
         void MakePlayerInviteBanned(WorldPacket* data, const std::string& name);//? 0x1E
-        void MakeThrottled(WorldPacket* data);              					//? 0x1F
+        void MakeThrottled(WorldPacket* data);                                  //? 0x1F
 
         void SendToAll(WorldPacket* data, ObjectGuid guid = ObjectGuid());
         void SendToOne(WorldPacket* data, ObjectGuid who);

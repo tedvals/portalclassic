@@ -307,6 +307,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     {
         LearnPetPassives();
         CastPetAuras(current);
+        CastOwnerTalentAuras();
     }
 
     Powers powerType = GetPowerType();
@@ -535,6 +536,7 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
         CastPetAuras(true);
     }
+    CastOwnerTalentAuras();
 }
 
 void Pet::Update(uint32 update_diff, uint32 diff)
@@ -836,7 +838,7 @@ void Pet::SetTP(int32 TP)
 int32 Pet::GetDispTP()
 {
     if (getPetType() != HUNTER_PET)
-        return(0);
+        return (0);
     if (m_TrainingPoints < 0)
         return -m_TrainingPoints;
     else
@@ -1861,7 +1863,7 @@ void Pet::ToggleAutocast(uint32 spellid, bool apply)
         return;
 
     PetSpellMap::iterator itr = m_spells.find(spellid);
-    PetSpell &petSpell = itr->second;
+    PetSpell& petSpell = itr->second;
 
     uint32 i;
 
@@ -1908,8 +1910,8 @@ bool Pet::IsPermanentPetFor(Player* owner)
         case SUMMON_PET:
             switch (owner->getClass())
             {
-                    // oddly enough, Mage's Water Elemental is still treated as temporary pet with Glyph of Eternal Water
-                    // i.e. does not unsummon at mounting, gets dismissed at teleport etc.
+                // oddly enough, Mage's Water Elemental is still treated as temporary pet with Glyph of Eternal Water
+                // i.e. does not unsummon at mounting, gets dismissed at teleport etc.
                 case CLASS_WARLOCK:
                     return GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON;
                 default:
@@ -1993,6 +1995,16 @@ void Pet::CastPetAuras(bool current)
     }
 }
 
+void Pet::CastOwnerTalentAuras()
+{
+    if (!GetOwner() || GetOwner()->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* pOwner = static_cast<Player*>(GetOwner());
+
+    // Add below code handling spells cast by pet when owner/player has aura from talent
+}
+
 void Pet::CastPetAura(PetAura const* aura)
 {
     uint32 auraId = aura->GetAura(GetEntry());
@@ -2016,11 +2028,11 @@ void Pet::SynchronizeLevelWithOwner()
 
     switch (getPetType())
     {
-            // always same level
+        // always same level
         case SUMMON_PET:
             GivePetLevel(owner->getLevel());
             break;
-            // can't be greater owner level
+        // can't be greater owner level
         case HUNTER_PET:
             if (getLevel() > owner->getLevel())
                 GivePetLevel(owner->getLevel());

@@ -75,12 +75,12 @@ typedef enum
 
 template
 <
-uint32 N,
-       class ACTIVE_OBJECT,
-       class WORLD_OBJECT_TYPES,
-       class GRID_OBJECT_TYPES
-       >
-class MANGOS_DLL_DECL NGrid
+    uint32 N,
+    class ACTIVE_OBJECT,
+    class WORLD_OBJECT_TYPES,
+    class GRID_OBJECT_TYPES
+    >
+class NGrid
 {
     public:
 

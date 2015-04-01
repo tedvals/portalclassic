@@ -80,7 +80,7 @@ struct AreaTrigger
     {
         MANGOS_ASSERT(target_mapId == l->target_mapId);
         return requiredLevel <= l->requiredLevel && requiredItem <= l->requiredItem && requiredItem2 <= l->requiredItem2
-                && requiredQuest <= l->requiredQuest;
+               && requiredQuest <= l->requiredQuest;
     }
 };
 
@@ -260,19 +260,6 @@ typedef std::pair<GossipMenuItemsMap::const_iterator, GossipMenuItemsMap::const_
 struct PetCreateSpellEntry
 {
     uint32 spellid[4];
-};
-
-#define WEATHER_SEASONS 4
-struct WeatherSeasonChances
-{
-    uint32 rainChance;
-    uint32 snowChance;
-    uint32 stormChance;
-};
-
-struct WeatherZoneChances
-{
-    WeatherSeasonChances data[WEATHER_SEASONS];
 };
 
 struct GraveYardData
@@ -478,7 +465,6 @@ class ObjectMgr
 
         typedef UNORDERED_MAP<uint32, PointOfInterest> PointOfInterestMap;
 
-        typedef UNORDERED_MAP<uint32, WeatherZoneChances> WeatherZoneMap;
 
         typedef UNORDERED_MAP<uint32, PetCreateSpellEntry> PetCreateSpellMap;
 
@@ -685,7 +671,6 @@ class ObjectMgr
 
         void LoadCreatureTemplateSpells();
 
-        void LoadWeatherZoneChances();
         void LoadGameTele();
 
         void LoadNpcGossips();
@@ -755,15 +740,6 @@ class ObjectMgr
                 return "There is no info for this item";
         }
 
-        WeatherZoneChances const* GetWeatherChances(uint32 zone_id) const
-        {
-            WeatherZoneMap::const_iterator itr = mWeatherZoneMap.find(zone_id);
-            if (itr != mWeatherZoneMap.end())
-                return &itr->second;
-            else
-                return NULL;
-        }
-
         CreatureDataPair const* GetCreatureDataPair(uint32 guid) const
         {
             CreatureDataMap::const_iterator itr = mCreatureDataMap.find(guid);
@@ -830,7 +806,7 @@ class ObjectMgr
         }
 
         typedef std::string NpcTextArray[MAX_GOSSIP_TEXT_OPTIONS];
-        void GetNpcTextLocaleStringsAll(uint32 entry, int32 loc_idx, NpcTextArray *text0_Ptr, NpcTextArray* text1_Ptr) const;
+        void GetNpcTextLocaleStringsAll(uint32 entry, int32 loc_idx, NpcTextArray* text0_Ptr, NpcTextArray* text1_Ptr) const;
         void GetNpcTextLocaleStrings0(uint32 entry, int32 loc_idx, std::string* text0_0_Ptr, std::string* text1_0_Ptr) const;
 
         PageTextLocale const* GetPageTextLocale(uint32 entry) const
@@ -1092,8 +1068,6 @@ class ObjectMgr
         GossipMenusMap      m_mGossipMenusMap;
         GossipMenuItemsMap  m_mGossipMenuItemsMap;
         PointOfInterestMap  mPointsOfInterest;
-
-        WeatherZoneMap      mWeatherZoneMap;
 
         PetCreateSpellMap   mPetCreateSpell;
 
