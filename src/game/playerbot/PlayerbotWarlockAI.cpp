@@ -206,7 +206,17 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
         if (SOULSHATTER > 0 && shardCount > 0 && !m_bot->HasSpellCooldown(SOULSHATTER))
             if (CastSpell(SOULSHATTER, m_bot))
                 return RETURN_CONTINUE;
+		if (m_ai->GetAttackerCount() >= 5)
+		{
+			m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			if (HELLFIRE > 0 && meleeReach   && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE) && CastSpell(HELLFIRE, pTarget));
+			else if (RAIN_OF_FIRE > 0 && meleeReach && CastSpell(RAIN_OF_FIRE, pTarget))
+			{
+				m_ai->SetIgnoreUpdateTime(8);
+				return RETURN_CONTINUE;
+			}
 
+		}
         // Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
         if (newTarget->GetHealthPercent() > 25)
         {
@@ -239,6 +249,17 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			{
 				CastSpell(SHADOW_BOLT, pTarget); 
 				return RETURN_CONTINUE;
+			}
+			if (m_ai->GetAttackerCount() >= 5)
+			{
+				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (HELLFIRE > 0 && meleeReach   && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE) &&CastSpell(HELLFIRE, pTarget));
+				else if (RAIN_OF_FIRE > 0 && meleeReach && CastSpell(RAIN_OF_FIRE, pTarget))
+				{
+					m_ai->SetIgnoreUpdateTime(8);
+					return RETURN_CONTINUE;
+				}
+				
 			}
 			if (Amplify_Curse && m_ai->In_Reach(m_bot, Amplify_Curse) && !m_bot->HasAura(Amplify_Curse) && !m_bot->HasSpellCooldown(Amplify_Curse) && CastSpell(Amplify_Curse, m_bot))
 				return RETURN_CONTINUE;
@@ -525,7 +546,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
     }
 
 	// hp/mana check
-	if (pet && DARK_PACT && ((pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA))*100) > 40 && m_ai->GetManaPercent() <= 50)
+	if (pet && DARK_PACT && ((pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA))*100) > 40 && m_ai->GetManaPercent() <= 60)
 		if (m_ai->CastSpell(DARK_PACT, *m_bot))
 			return;
 	
