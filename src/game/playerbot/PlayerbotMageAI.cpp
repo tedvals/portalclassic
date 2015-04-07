@@ -187,13 +187,14 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
         // Insert instant threat reducing spell (if a mage has one)
 		if (m_ai->GetAttackerCount() >= 5)
 		{
-			if (FROST_NOVA > 0 && meleeReach   && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget));
-			if (BLAST_WAVE > 0 && m_ai->GetAttackerCount() >= 3 && meleeReach &&!m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+			m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			if (FROST_NOVA > 0 && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))RETURN_CONTINUE;
+			if (BLAST_WAVE > 0 && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))RETURN_CONTINUE;
 			//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
 			
-			m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			
 			//return RETURN_FINISHED_FIRST_MOVES;
-			if (meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
+			if (CastSpell(ARCANE_EXPLOSION, pTarget))
 			{
 				return RETURN_CONTINUE;
 			}
@@ -251,13 +252,14 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
         case MAGE_SPEC_FIRE:
 			if (m_ai->GetAttackerCount() >= 5)
 			{
-				if (FROST_NOVA > 0 && meleeReach   && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget));
-				if (BLAST_WAVE > 0 && meleeReach   && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget));
-					//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
+				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (FROST_NOVA > 0 && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))RETURN_CONTINUE;
+				if (BLAST_WAVE > 0 && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))RETURN_CONTINUE;
+				//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
 
-					m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+
 				//return RETURN_FINISHED_FIRST_MOVES;
-				if (meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
+				if (CastSpell(ARCANE_EXPLOSION, pTarget))
 				{
 					return RETURN_CONTINUE;
 				}

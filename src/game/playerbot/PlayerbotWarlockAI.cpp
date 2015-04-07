@@ -209,8 +209,8 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (m_ai->GetAttackerCount() >= 5)
 		{
 			m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-			if (HELLFIRE > 0 && meleeReach   && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE) && CastSpell(HELLFIRE, pTarget));
-			else if (RAIN_OF_FIRE > 0 && meleeReach && CastSpell(RAIN_OF_FIRE, pTarget))
+			if (HELLFIRE > 0  && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE) && CastSpell(HELLFIRE, pTarget));
+			else if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
 			{
 				m_ai->SetIgnoreUpdateTime(8);
 				return RETURN_CONTINUE;
@@ -253,8 +253,8 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			if (m_ai->GetAttackerCount() >= 5)
 			{
 				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (HELLFIRE > 0 && meleeReach   && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE) &&CastSpell(HELLFIRE, pTarget));
-				else if (RAIN_OF_FIRE > 0 && meleeReach && CastSpell(RAIN_OF_FIRE, pTarget))
+				if (HELLFIRE > 0 && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE) &&CastSpell(HELLFIRE, pTarget));
+				else if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
 				{
 					m_ai->SetIgnoreUpdateTime(8);
 					return RETURN_CONTINUE;
@@ -546,7 +546,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
     }
 
 	// hp/mana check
-	if (pet && DARK_PACT && ((pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA))*100) > 40 && m_ai->GetManaPercent() <= 60)
+	if (pet && DARK_PACT && pet->GetPower(POWER_MANA) > 100 && m_ai->GetManaPercent() <= 80)
 		if (m_ai->CastSpell(DARK_PACT, *m_bot))
 			return;
 	
