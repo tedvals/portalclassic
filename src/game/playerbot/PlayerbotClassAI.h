@@ -47,6 +47,7 @@ public:
 
     // all non combat actions go here, ex buffs, heals, rezzes
     virtual void DoNonCombatActions();
+	
     bool EatDrinkBandage(bool bMana = true, unsigned char foodPercent = 50, unsigned char drinkPercent = 50, unsigned char bandagePercent = 70);
 
     // Utilities

@@ -32,6 +32,7 @@
 #include "../Mail.h"
 #include "../Language.h"
 
+
 // returns a float in range of..
 float rand_float(float low, float high)
 {
@@ -2148,8 +2149,15 @@ void PlayerbotAI::DoCombatMovement()
     if (!m_targetCombat) return;
 
     bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
-
-    if (m_combatStyle == COMBAT_MELEE
+	
+	if (m_bot->HasAura(21070))
+	{
+		//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
+		m_bot->GetMotionMaster()->Clear(false);
+		m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat,2);
+		
+	}
+    else if (m_combatStyle == COMBAT_MELEE
         && !m_bot->hasUnitState(UNIT_STAT_CHASE)
         && ((m_movementOrder == MOVEMENT_STAY && meleeReach) || m_movementOrder != MOVEMENT_STAY)
         && GetClassAI()->GetWaitUntil() == 0 ) // Not waiting
@@ -2162,14 +2170,25 @@ void PlayerbotAI::DoCombatMovement()
              && m_movementOrder != MOVEMENT_STAY
              && GetClassAI()->GetWaitUntil() == 0 ) // Not waiting
     {
+		if (m_bot->HasAura(21070))
+		{
+			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
+			m_bot->GetMotionMaster()->Clear(false);
+			m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 2);
+
+		}
         // ranged combat - just move within spell range
-        if (!CanReachWithSpellAttack(m_targetCombat))
+        else if (!CanReachWithSpellAttack(m_targetCombat))
         {
             m_bot->GetMotionMaster()->Clear(false);
             m_bot->GetMotionMaster()->MoveChase(m_targetCombat);
+			//m_bot->GetMotionMaster()->MoveConfused();
+			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 5.0f, 0.0f);
+
         }
-        else
-            MovementClear();
+		//else if(m_bot->HasAura(21070))m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
+		else
+			 MovementClear();
     }
 }
 

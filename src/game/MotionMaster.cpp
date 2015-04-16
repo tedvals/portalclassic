@@ -231,6 +231,7 @@ void MotionMaster::MoveRandomAroundPoint(float x, float y, float z, float radius
     if (m_owner->GetTypeId() == TYPEID_PLAYER)
     {
         sLog.outError("%s attempt to move random.", m_owner->GetGuidStr().c_str());
+		
     }
     else
     {
