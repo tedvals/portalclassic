@@ -162,7 +162,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget
             return RETURN_FINISHED_FIRST_MOVES;
     }
 
-    if (BERSERKER_STANCE)
+   /* if (BERSERKER_STANCE)
     {
         if (!m_bot->HasAura(BERSERKER_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(BERSERKER_STANCE))
             return RETURN_CONTINUE;
@@ -202,7 +202,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget
                 return RETURN_FINISHED_FIRST_MOVES;
             }
         }
-    }
+    }*/
 
     return RETURN_NO_ACTION_OK;
 }

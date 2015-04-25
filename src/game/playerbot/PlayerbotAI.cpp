@@ -2154,7 +2154,7 @@ void PlayerbotAI::DoCombatMovement()
 	{
 		//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
 		m_bot->GetMotionMaster()->Clear(false);
-		m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat,2);
+		m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat,1);
 		
 	}
     else if (m_combatStyle == COMBAT_MELEE
@@ -2174,7 +2174,7 @@ void PlayerbotAI::DoCombatMovement()
 		{
 			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
 			m_bot->GetMotionMaster()->Clear(false);
-			m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 2);
+			m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 1);
 
 		}
         // ranged combat - just move within spell range
