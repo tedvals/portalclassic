@@ -4017,7 +4017,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
             m_bot->CastSpell(pTarget, pSpellInfo, false);      // uni-cast spell
     }
 
-    SetIgnoreUpdateTime(CastTime + 1);
+    //SetIgnoreUpdateTime(CastTime + 1);
     
     return true;
 }

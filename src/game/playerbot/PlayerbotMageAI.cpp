@@ -226,24 +226,22 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
         case MAGE_SPEC_FROST:
             //if (ICY_VEINS > 0 && m_ai->In_Reach(m_bot,ICY_VEINS) && !m_bot->HasAura(ICY_VEINS, EFFECT_INDEX_0) && CastSpell(ICY_VEINS, m_bot))
                 //return RETURN_CONTINUE;
-			if (ICE_BLOCK > 0 && m_ai->In_Reach(m_bot, ICE_BLOCK) && pVictim == m_bot && !m_bot->HasAura(ICE_BLOCK, EFFECT_INDEX_0) && m_ai->GetHealthPercent() < 50 && CastSpell(ICE_BLOCK, m_bot))
+			if (ICE_BLOCK > 0 && m_ai->In_Reach(m_bot, ICE_BLOCK) && !m_bot->HasAura(ICE_BLOCK, EFFECT_INDEX_0) && m_ai->GetHealthPercent() < 30 && !m_bot->HasSpellCooldown(ICE_BLOCK) && CastSpell(ICE_BLOCK, m_bot))
                 return RETURN_CONTINUE;
-            if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot,ICE_BARRIER)  && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0)  && CastSpell(ICE_BARRIER, m_bot))
+			if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
                 return RETURN_CONTINUE;
             //if (DEEP_FREEZE > 0 && m_ai->In_Reach(pTarget,DEEP_FREEZE) && pTarget->HasAura(AURA_STATE_FROZEN, EFFECT_INDEX_0) && !pTarget->HasAura(DEEP_FREEZE, EFFECT_INDEX_0) && CastSpell(DEEP_FREEZE, pTarget))
                 //return RETURN_CONTINUE;
-            if (BLIZZARD > 0 && m_ai->In_Reach(pTarget,BLIZZARD) && m_ai->GetAttackerCount() >= 5 && CastSpell(BLIZZARD, pTarget))
+            /*if (BLIZZARD > 0 && m_ai->In_Reach(pTarget,BLIZZARD) && m_ai->GetAttackerCount() >= 5 && CastSpell(BLIZZARD, pTarget))
             {
                 m_ai->SetIgnoreUpdateTime(8);
                 return RETURN_CONTINUE;
             }
             if (CONE_OF_COLD > 0 && meleeReach &&  CastSpell(CONE_OF_COLD, pTarget))
+                return RETURN_CONTINUE;*/
+			if (FROST_WARD > 0 && m_ai->In_Reach(m_bot, FROST_WARD) && !m_bot->HasAura(FROST_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FROST_WARD) && CastSpell(FROST_WARD, m_bot))
                 return RETURN_CONTINUE;
-            if (FROST_WARD > 0 && m_ai->In_Reach(m_bot,FROST_WARD) && !m_bot->HasAura(FROST_WARD, EFFECT_INDEX_0) && CastSpell(FROST_WARD, m_bot))
-                return RETURN_CONTINUE;
-			if (FROST_NOVA > 0 && meleeReach  &&!m_bot->HasSpellCooldown(FROST_NOVA)&& CastSpell(FROST_NOVA, pTarget))
-                return RETURN_CONTINUE;
-			if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0) && CastSpell(FROSTBOLT, pTarget))
+			if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT) && CastSpell(FROSTBOLT, pTarget))
                 return RETURN_CONTINUE;
             //if (ICE_LANCE > 0 && m_ai->In_Reach(pTarget,ICE_LANCE) && CastSpell(ICE_LANCE, pTarget))
                // return RETURN_CONTINUE;
@@ -271,7 +269,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 					return RETURN_CONTINUE;
 				}
 			}
-			if (FIRE_WARD > 0 && m_ai->In_Reach(m_bot, FIRE_WARD) && !m_bot->HasAura(FIRE_WARD, EFFECT_INDEX_0) && CastSpell(FIRE_WARD, m_bot))
+			if (FIRE_WARD > 0 && m_ai->In_Reach(m_bot, FIRE_WARD) && !m_bot->HasAura(FIRE_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FIRE_WARD) && CastSpell(FIRE_WARD, m_bot))
 				return RETURN_CONTINUE;
 			if (COMBUSTION > 0 && m_ai->In_Reach(m_bot, COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(COMBUSTION) && CastSpell(COMBUSTION, m_bot))
 				return RETURN_CONTINUE;
