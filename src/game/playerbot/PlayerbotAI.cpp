@@ -3916,6 +3916,11 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     ObjectGuid targetGUID = m_bot->GetSelectionGuid();
     Unit* pTarget = ObjectAccessor::GetUnit(*m_bot, targetGUID);
 
+	Spell *spell = new Spell(m_bot, pSpellInfo, false);
+	SpellCastTargets targets;
+	targets.setUnitTarget(pTarget);
+	WorldObject* faceTo = pTarget;
+
     if (!pTarget)
         pTarget = m_bot;
 
@@ -3932,7 +3937,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         m_bot->SetInFront(pTarget);
     }
 
-    float CastTime = 0.0f;
+    /*float CastTime = 0.0f;
 
     // stop movement to prevent cancel spell casting
     SpellCastTimesEntry const * castTimeEntry = sSpellCastTimesStore.LookupEntry(pSpellInfo->CastingTimeIndex);
@@ -3943,7 +3948,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         DEBUG_LOG ("[PlayerbotAI]: CastSpell - Bot movement reset for casting %s (%u)", pSpellInfo->SpellName[0], spellId);
         MovementClear();
     }
-
+	*/
     uint16 target_type = TARGET_FLAG_UNIT;
 
     if (pSpellInfo->Effect[0] == SPELL_EFFECT_OPEN_LOCK)
@@ -4006,15 +4011,18 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         // Check spell range
         //if (!In_Range(pTarget, spellId))
             //return false;
-
-        // Check line of sight
+		
+       
+		// Check line of sight
         if (!m_bot->IsWithinLOSInMap(pTarget))
             return false;
-
+		spell->prepare(&targets);
+/*
         if (IsAutoRepeatRangedSpell(pSpellInfo))
             m_bot->CastSpell(pTarget, pSpellInfo, true);       // cast triggered spell
         else
             m_bot->CastSpell(pTarget, pSpellInfo, false);      // uni-cast spell
+			*/
     }
 
     //SetIgnoreUpdateTime(CastTime + 1);

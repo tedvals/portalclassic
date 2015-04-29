@@ -457,7 +457,7 @@ class Spell
         int32 m_duration;
         bool m_canReflect;                                  // can reflect this spell?
         bool m_autoRepeat;
-
+		
         uint8 m_delayAtDamageCount;
         int32 GetNextDelayAtDamageMsTime() { return m_delayAtDamageCount < 5 ? 1000 - (m_delayAtDamageCount++) * 200 : 200; }
 
