@@ -3937,7 +3937,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         m_bot->SetInFront(pTarget);
     }
 
-    /*float CastTime = 0.0f;
+    float CastTime = 0.0f;
 
     // stop movement to prevent cancel spell casting
     SpellCastTimesEntry const * castTimeEntry = sSpellCastTimesStore.LookupEntry(pSpellInfo->CastingTimeIndex);
@@ -3948,7 +3948,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         DEBUG_LOG ("[PlayerbotAI]: CastSpell - Bot movement reset for casting %s (%u)", pSpellInfo->SpellName[0], spellId);
         MovementClear();
     }
-	*/
+	
     uint16 target_type = TARGET_FLAG_UNIT;
 
     if (pSpellInfo->Effect[0] == SPELL_EFFECT_OPEN_LOCK)

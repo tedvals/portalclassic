@@ -241,7 +241,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return RETURN_CONTINUE;*/
 			if (FROST_WARD > 0 && m_ai->In_Reach(m_bot, FROST_WARD) && !m_bot->HasAura(FROST_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FROST_WARD) && CastSpell(FROST_WARD, m_bot))
                 return RETURN_CONTINUE;
-			if (FROSTBOLT > 0 && m_ai->In_Reach(m_bot, FROSTBOLT) && CastSpell(FROSTBOLT, pTarget))
+			if (FROSTBOLT > 0 && CastSpell(FROSTBOLT, pTarget))
                 return RETURN_CONTINUE;
             //if (ICE_LANCE > 0 && m_ai->In_Reach(pTarget,ICE_LANCE) && CastSpell(ICE_LANCE, pTarget))
                // return RETURN_CONTINUE;
