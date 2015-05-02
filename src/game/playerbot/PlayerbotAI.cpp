@@ -3916,10 +3916,10 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     ObjectGuid targetGUID = m_bot->GetSelectionGuid();
     Unit* pTarget = ObjectAccessor::GetUnit(*m_bot, targetGUID);
 
-	Spell *spell = new Spell(m_bot, pSpellInfo, false);
-	SpellCastTargets targets;
-	targets.setUnitTarget(pTarget);
-	WorldObject* faceTo = pTarget;
+	//Spell *spell = new Spell(m_bot, pSpellInfo, false);
+	//SpellCastTargets targets;
+	//targets.setUnitTarget(pTarget);
+	//WorldObject* faceTo = pTarget;
 
     if (!pTarget)
         pTarget = m_bot;
@@ -4016,13 +4016,13 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
 		// Check line of sight
         if (!m_bot->IsWithinLOSInMap(pTarget))
             return false;
-		spell->prepare(&targets);
-/*
+		//spell->prepare(&targets);
+
         if (IsAutoRepeatRangedSpell(pSpellInfo))
             m_bot->CastSpell(pTarget, pSpellInfo, true);       // cast triggered spell
         else
             m_bot->CastSpell(pTarget, pSpellInfo, false);      // uni-cast spell
-			*/
+			
     }
 
     //SetIgnoreUpdateTime(CastTime + 1);
