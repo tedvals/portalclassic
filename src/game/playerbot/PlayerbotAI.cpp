@@ -31,6 +31,7 @@
 #include "../AuctionHouseMgr.h"
 #include "../Mail.h"
 #include "../Language.h"
+#include "../CreatureAI.h"
 
 
 // returns a float in range of..
@@ -4019,7 +4020,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
 		//spell->prepare(&targets);
 
         if (IsAutoRepeatRangedSpell(pSpellInfo))
-            m_bot->CastSpell(pTarget, pSpellInfo, true);       // cast triggered spell
+			m_bot->CastSpell(pTarget, pSpellInfo, true);       // cast triggered spell
         else
             m_bot->CastSpell(pTarget, pSpellInfo, false);      // uni-cast spell
 			

@@ -191,92 +191,121 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
     if (newTarget) // TODO: && party has a tank
     {
-        // Insert instant threat reducing spell (if a mage has one)
-		if (m_ai->GetAttackerCount() >= 5)
+		switch (spec)
 		{
-			m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-			if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))RETURN_CONTINUE;
-			if (BLAST_WAVE > 0 && meleeReach && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))RETURN_CONTINUE;
-			//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
-			
-			
-			//return RETURN_FINISHED_FIRST_MOVES;
-			if (CastSpell(ARCANE_EXPLOSION, pTarget))
+		case MAGE_SPEC_FIRE:
+			// Insert instant threat reducing spell (if a mage has one)
+			if (m_ai->GetAttackerCount() >= 5)
 			{
+				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+					return RETURN_CONTINUE;
+				if (BLAST_WAVE > 0 && meleeReach && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+					return RETURN_CONTINUE;
+				//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
+				if (ARCANE_EXPLOSION>0 && CastSpell(ARCANE_EXPLOSION, pTarget))
+				{
+					return RETURN_CONTINUE;
+				}
+			}
+			// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
+			if (newTarget->GetHealthPercent() > 25)
+			{
+				// If elite, do nothing and pray tank gets aggro off you
+				// TODO: Is there an IsElite function? If so, find it and insert.
+				//if (newTarget->IsElite())
+				//    return;
+
+				// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
+				// to worsen the situation for the group. ... So please don't.
+				CastSpell(SHOOT, pTarget);
 				return RETURN_CONTINUE;
 			}
-		}
-        // Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
-        if (newTarget->GetHealthPercent() > 25)
-        {
-            // If elite, do nothing and pray tank gets aggro off you
-            // TODO: Is there an IsElite function? If so, find it and insert.
-            //if (newTarget->IsElite())
-            //    return;
+			break;
+		case MAGE_SPEC_FROST:
+			if (m_ai->GetAttackerCount() >= 5)
+			{
+				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+					return RETURN_CONTINUE;
+				if (CONE_OF_COLD > 0 && meleeReach && !m_bot->HasSpellCooldown(CONE_OF_COLD) && CastSpell(CONE_OF_COLD, pTarget))
+					return RETURN_CONTINUE;
+				if (ARCANE_EXPLOSION > 0 && meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
+					return RETURN_CONTINUE;
+				if (BLIZZARD>0 && CastSpell(BLIZZARD, pTarget))
+				{
+					m_ai->SetIgnoreUpdateTime(8);
+					return RETURN_CONTINUE;
+				}
+			}
+			if (newTarget->GetHealthPercent() > 25)
+			{
+				// If elite, do nothing and pray tank gets aggro off you
+				// TODO: Is there an IsElite function? If so, find it and insert.
+				//if (newTarget->IsElite())
+				//    return;
 
-            // Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
-            // to worsen the situation for the group. ... So please don't.
-            CastSpell(SHOOT, pTarget);
-            return RETURN_CONTINUE;
-        }
+				// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
+				// to worsen the situation for the group. ... So please don't.
+				CastSpell(SHOOT, pTarget);
+				return RETURN_CONTINUE;
+			}
+			break;
+		}
+
     }
 
     switch (spec)
     {
         case MAGE_SPEC_FROST:
-            //if (ICY_VEINS > 0 && m_ai->In_Reach(m_bot,ICY_VEINS) && !m_bot->HasAura(ICY_VEINS, EFFECT_INDEX_0) && CastSpell(ICY_VEINS, m_bot))
-                //return RETURN_CONTINUE;
+            if (COLD_SNAP > 0 && m_ai->In_Reach(m_bot, COLD_SNAP) && m_ai->GetHealthPercent() < 30 && m_bot->HasSpellCooldown(ICE_BLOCK) && CastSpell(COLD_SNAP, m_bot))
+				return RETURN_CONTINUE;
 			if (ICE_BLOCK > 0 && m_ai->In_Reach(m_bot, ICE_BLOCK) && !m_bot->HasAura(ICE_BLOCK, EFFECT_INDEX_0) && m_ai->GetHealthPercent() < 30 && !m_bot->HasSpellCooldown(ICE_BLOCK) && CastSpell(ICE_BLOCK, m_bot))
-                return RETURN_CONTINUE;
+			{
+				m_ai->SetIgnoreUpdateTime(10);
+				return RETURN_CONTINUE;
+			}
 			if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
                 return RETURN_CONTINUE;
-            //if (DEEP_FREEZE > 0 && m_ai->In_Reach(pTarget,DEEP_FREEZE) && pTarget->HasAura(AURA_STATE_FROZEN, EFFECT_INDEX_0) && !pTarget->HasAura(DEEP_FREEZE, EFFECT_INDEX_0) && CastSpell(DEEP_FREEZE, pTarget))
-                //return RETURN_CONTINUE;
-            /*if (BLIZZARD > 0 && m_ai->In_Reach(pTarget,BLIZZARD) && m_ai->GetAttackerCount() >= 5 && CastSpell(BLIZZARD, pTarget))
-            {
-                m_ai->SetIgnoreUpdateTime(8);
-                return RETURN_CONTINUE;
-            }
-            if (CONE_OF_COLD > 0 && meleeReach &&  CastSpell(CONE_OF_COLD, pTarget))
-                return RETURN_CONTINUE;*/
+			if (m_ai->GetAttackerCount() >= 5)
+			{
+				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+					return RETURN_CONTINUE;
+				if (CONE_OF_COLD > 0 && meleeReach && !m_bot->HasSpellCooldown(CONE_OF_COLD) && CastSpell(CONE_OF_COLD, pTarget))
+					return RETURN_CONTINUE;
+				if (ARCANE_EXPLOSION > 0 && meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
+					return RETURN_CONTINUE;
+				if (BLIZZARD>0 && CastSpell(BLIZZARD, pTarget))
+				{
+					m_ai->SetIgnoreUpdateTime(8);
+					return RETURN_CONTINUE;
+				}
+			}
 			if (FROST_WARD > 0 && m_ai->In_Reach(m_bot, FROST_WARD) && !m_bot->HasAura(FROST_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FROST_WARD) && CastSpell(FROST_WARD, m_bot))
                 return RETURN_CONTINUE;
-			if (FROSTBOLT > 0 && CastSpell(FROSTBOLT, pTarget))
-                return RETURN_CONTINUE;
-            //if (ICE_LANCE > 0 && m_ai->In_Reach(pTarget,ICE_LANCE) && CastSpell(ICE_LANCE, pTarget))
-               // return RETURN_CONTINUE;
-           // if (SUMMON_WATER_ELEMENTAL > 0 && CastSpell(SUMMON_WATER_ELEMENTAL))
-              //  return RETURN_CONTINUE;
-            //if (COLD_SNAP > 0 && m_ai->In_Reach(m_bot,COLD_SNAP) && CastSpell(COLD_SNAP, m_bot))
-               // return RETURN_CONTINUE;
-
-            //if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT))
-                //return CastSpell(FROSTBOLT, pTarget);
+			//if (FROSTBOLT > 0 && CastSpell(FROSTBOLT, pTarget))
+                //return RETURN_CONTINUE;
+           if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT))
+           return CastSpell(FROSTBOLT, pTarget);
             break;
 
         case MAGE_SPEC_FIRE:
 			if (m_ai->GetAttackerCount() >= 5)
 			{
 				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))RETURN_CONTINUE;
-				if (BLAST_WAVE > 0 && meleeReach && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))RETURN_CONTINUE;
+				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+					return RETURN_CONTINUE;
+				if (BLAST_WAVE > 0 && meleeReach && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+					return RETURN_CONTINUE;
 				//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
-
-
-				//return RETURN_FINISHED_FIRST_MOVES;
-				if (CastSpell(ARCANE_EXPLOSION, pTarget))
+				if (ARCANE_EXPLOSION>0 && CastSpell(ARCANE_EXPLOSION, pTarget))
 				{
 					return RETURN_CONTINUE;
 				}
 			}
 			if (FIRE_WARD > 0 && m_ai->In_Reach(m_bot, FIRE_WARD) && !m_bot->HasAura(FIRE_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FIRE_WARD) && CastSpell(FIRE_WARD, m_bot))
 				return RETURN_CONTINUE;
-			if (COMBUSTION > 0 && m_ai->In_Reach(m_bot, COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(COMBUSTION) && CastSpell(COMBUSTION, m_bot))
-				return RETURN_CONTINUE;
-			if (PYROBLAST > 0 && m_ai->In_Reach(pTarget, PYROBLAST) && m_bot->HasAura(12536) && CastSpell(PYROBLAST, pTarget))
-				return RETURN_CONTINUE;
-			//if (FROST_NOVA > 0 && meleeReach   && !m_bot->HasSpellCooldown(FROST_NOVA)&& CastSpell(FROST_NOVA, pTarget))
-				//return RETURN_CONTINUE;
 			if (SCORCH > 0 && m_ai->In_Reach(pTarget, SCORCH) && SpellSequence < 6 && CastSpell(SCORCH, pTarget))
 			{
 				SpellSequence = SpellSequence + 1;
@@ -287,27 +316,16 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 					SpellSequence = 0;
 					return RETURN_CONTINUE;
 				}
-							
+			if (COMBUSTION > 0 && m_ai->In_Reach(m_bot, COMBUSTION) && !m_bot->HasAura(COMBUSTION, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(COMBUSTION) && CastSpell(COMBUSTION, m_bot))
+				return RETURN_CONTINUE;
+			if (PYROBLAST > 0 && m_ai->In_Reach(pTarget, PYROBLAST) && m_bot->HasAura(12536) && CastSpell(PYROBLAST, pTarget))
+				return RETURN_CONTINUE;
 			if (FIRE_BLAST > 0 && m_ai->In_Reach(pTarget, FIRE_BLAST) && !m_bot->HasSpellCooldown(FIRE_BLAST) && CastSpell(FIRE_BLAST, pTarget))
 				return RETURN_CONTINUE;
-			//if (BLAST_WAVE > 0 && m_ai->GetAttackerCount() >= 3 && meleeReach &&!m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+			//if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL) && CastSpell(FIREBALL, pTarget))
 				//return RETURN_CONTINUE;
-			//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && m_ai->GetAttackerCount() >= 5 && CastSpell(FLAMESTRIKE, pTarget))
-				//return RETURN_CONTINUE;
-			if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL) && CastSpell(FIREBALL, pTarget))
-				return RETURN_CONTINUE;
-			//if (PYROBLAST > 0 && m_ai->In_Reach(pTarget, PYROBLAST) && !pTarget->HasAura(PYROBLAST, EFFECT_INDEX_0) && CastSpell(PYROBLAST, pTarget))
-				//return RETURN_CONTINUE;
-			
-			//if (DRAGONS_BREATH > 0 && meleeReach && CastSpell(DRAGONS_BREATH, pTarget))
-				//return RETURN_CONTINUE;
-			//if (LIVING_BOMB > 0 && m_ai->In_Reach(pTarget, LIVING_BOMB) && !pTarget->HasAura(LIVING_BOMB, EFFECT_INDEX_0) && CastSpell(LIVING_BOMB, pTarget))
-				//return RETURN_CONTINUE;
-			//if (FROSTFIRE_BOLT > 0 && m_ai->In_Reach(pTarget, FROSTFIRE_BOLT) && !pTarget->HasAura(FROSTFIRE_BOLT, EFFECT_INDEX_0) && CastSpell(FROSTFIRE_BOLT, pTarget))
-				//return RETURN_CONTINUE;
-			//if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL))
-				//return CastSpell(FIREBALL, pTarget);
-			
+			if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL))
+				return CastSpell(FIREBALL, pTarget);
 			break;
 			
         case MAGE_SPEC_ARCANE:
