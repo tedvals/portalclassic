@@ -181,6 +181,7 @@ private:
 	uint32 CONJURE_WATER,
 		   CONJURE_FOOD,
 		   SpellSequence,
+		   SpellSequence1,
 		   LastSpellArcane,
 		   LastSpellFire,
 		   LastSpellFrost;
