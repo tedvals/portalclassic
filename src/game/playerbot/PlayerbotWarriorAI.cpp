@@ -362,8 +362,9 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
             if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && !newTarget && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
                 return RETURN_CONTINUE;
             // No way to tell if revenge is active (yet)
-			//if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE) && m_ai->CastSpell(REVENGE, *pTarget))
-                //return RETURN_CONTINUE;
+			if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE) && (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_PARRY | pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_DODGE | pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_BLOCK | 
+				(pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_PARRY | pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_DODGE | pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_BLOCK)) && m_ai->CastSpell(REVENGE, *pTarget))
+                return RETURN_CONTINUE;
 			if (DISARM > 0 && !pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
 				return RETURN_CONTINUE;
 			if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
@@ -382,8 +383,8 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return RETURN_CONTINUE;
             if (SUNDER > 0 && m_ai->CastSpell(SUNDER, *pTarget))
                 return RETURN_CONTINUE;
-            if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
-                return RETURN_CONTINUE;
+            //if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
+                //return RETURN_CONTINUE;
 
         /*case WarriorSpellPreventing:
             if (SHIELD_BASH > 0 && m_ai->CastSpell(SHIELD_BASH, *pTarget))
