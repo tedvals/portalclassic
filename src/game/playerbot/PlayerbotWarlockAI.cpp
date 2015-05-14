@@ -172,11 +172,14 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
 	//get mana
-	if (pet && DARK_PACT > 0 && ((pet->GetPower(POWER_MANA) / pet->GetMaxPower(POWER_MANA))*100) > 10 && m_ai->GetManaPercent() <= 20)
+	if (pet && DARK_PACT > 0 &&  pet->GetPower(POWER_MANA) > 100 && m_ai->GetManaPercent() <= 50)
 	{
 		m_ai->CastSpell(DARK_PACT, *m_bot);
 			return RETURN_CONTINUE;
 	}
+	if (LIFE_TAP && m_ai->GetManaPercent() <= 30 && m_ai->GetHealthPercent() > 80)
+		if (m_ai->CastSpell(LIFE_TAP, *m_bot))
+			return RETURN_CONTINUE;
     // Voidwalker is near death - sacrifice it for a shield
     if (pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE) && pet->GetHealthPercent() < 10)
         m_ai->CastPetSpell(SACRIFICE);
@@ -201,7 +204,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
     //Used to determine if this bot is highest on threat
     Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-    if (newTarget) // TODO: && party has a tank
+	if (newTarget && (((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS)) // TODO: && party has a tank
     {
         if (SOULSHATTER > 0 && shardCount > 0 && !m_bot->HasSpellCooldown(SOULSHATTER))
             if (CastSpell(SOULSHATTER, m_bot))
