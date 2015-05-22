@@ -195,19 +195,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		{
 		case MAGE_SPEC_FIRE:
 			// Insert instant threat reducing spell (if a mage has one)
-			if (m_ai->GetAttackerCount() >= 5)
-			{
-				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
-					return RETURN_CONTINUE;
-				if (BLAST_WAVE > 0 && meleeReach && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
-					return RETURN_CONTINUE;
-				//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
-				if (ARCANE_EXPLOSION>0 && CastSpell(ARCANE_EXPLOSION, pTarget))
-				{
-					return RETURN_CONTINUE;
-				}
-			}
+			
 			// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
 			if (newTarget->GetHealthPercent() > 25)
 			{
@@ -232,21 +220,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			}
 			if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
 				return RETURN_CONTINUE;
-			if (m_ai->GetAttackerCount() >= 5)
-			{
-				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
-					return RETURN_CONTINUE;
-				if (CONE_OF_COLD > 0 && meleeReach && !m_bot->HasSpellCooldown(CONE_OF_COLD) && CastSpell(CONE_OF_COLD, pTarget))
-					return RETURN_CONTINUE;
-				if (ARCANE_EXPLOSION > 0 && meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
-					return RETURN_CONTINUE;
-				if (BLIZZARD>0 && CastSpell(BLIZZARD, pTarget))
-				{
-					m_ai->SetIgnoreUpdateTime(8);
-					return RETURN_CONTINUE;
-				}
-			}
+			
 			if (newTarget->GetHealthPercent() > 25 )
 			{
 				// If elite, do nothing and pray tank gets aggro off you
@@ -278,15 +252,24 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return RETURN_CONTINUE;
 			if (COUNTERSPELL > 0 && pTarget->IsNonMeleeSpellCasted(true) && !m_bot->HasSpellCooldown(COUNTERSPELL) && CastSpell(COUNTERSPELL, pTarget))
 				return RETURN_CONTINUE;
-			if (m_ai->GetAttackerCount() >= 5)
+			if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			{
 				
 				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget,0.3);
 					return RETURN_CONTINUE;
-				if (CONE_OF_COLD > 0 && meleeReach && !m_bot->HasSpellCooldown(CONE_OF_COLD) && CastSpell(CONE_OF_COLD, pTarget))
+				}
+				if (CONE_OF_COLD > 0 && !m_bot->HasSpellCooldown(CONE_OF_COLD) && m_bot->GetCombatDistance(pTarget,false) <8.0f && CastSpell(CONE_OF_COLD, pTarget))
+				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3); 
+						return RETURN_CONTINUE;
+				}
+				if (ARCANE_EXPLOSION > 0  && m_bot->GetCombatDistance(pTarget, false) <8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
+				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					return RETURN_CONTINUE;
-				if (ARCANE_EXPLOSION > 0 && meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
-					return RETURN_CONTINUE;
+				}
 				if (BLIZZARD>0 && CastSpell(BLIZZARD, pTarget))
 				{
 					m_ai->SetIgnoreUpdateTime(8);
@@ -302,28 +285,32 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
         case MAGE_SPEC_FIRE:
 			if (COUNTERSPELL > 0 && pTarget->IsNonMeleeSpellCasted(true) && !m_bot->HasSpellCooldown(COUNTERSPELL) && CastSpell(COUNTERSPELL, pTarget))
 				return RETURN_CONTINUE;
-			if (m_ai->GetAttackerCount() >= 5)
+			if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			{
 				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+				if (FROST_NOVA > 0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					return RETURN_CONTINUE;
-				if (BLAST_WAVE > 0 && meleeReach && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+				}
+				if (BLAST_WAVE > 0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					return RETURN_CONTINUE;
-				if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && SpellSequence1 < 2 && CastSpell(FLAMESTRIKE, pTarget))
+				}
+				if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && SpellSequence1 < 1 && CastSpell(FLAMESTRIKE, pTarget))
 				{
 					SpellSequence1 = SpellSequence1 + 1;
-					if (SpellSequence1 >= 2 )
+					return RETURN_CONTINUE;
+				}
+				if (ARCANE_EXPLOSION>0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
 				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					SpellSequence1 = 0;
 					return RETURN_CONTINUE;
-				}
-					return RETURN_CONTINUE;
+					
 				}
 				
-				if (ARCANE_EXPLOSION>0 && CastSpell(ARCANE_EXPLOSION, pTarget))
-				{
-					return RETURN_CONTINUE;
-				}
 			}
 			if (FIRE_WARD > 0 && m_ai->In_Reach(m_bot, FIRE_WARD) && !m_bot->HasAura(FIRE_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FIRE_WARD) && CastSpell(FIRE_WARD, m_bot))
 				return RETURN_CONTINUE;
@@ -408,7 +395,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 	
     if (!m_bot || !master)
         return;
-
+	
     // Buff armor
     if (MOLTEN_ARMOR)
     {
@@ -464,6 +451,8 @@ void PlayerbotMageAI::DoNonCombatActions()
 		if (!ManaStone3 && m_ai->CastSpell(CONJURE_MANA_CITRINE))
 			return;
 	}
+	if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
+		return;
 
 	if (EatDrinkBandage())
 		return;

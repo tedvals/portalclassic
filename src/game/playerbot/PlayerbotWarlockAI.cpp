@@ -209,22 +209,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
         if (SOULSHATTER > 0 && shardCount > 0 && !m_bot->HasSpellCooldown(SOULSHATTER))
             if (CastSpell(SOULSHATTER, m_bot))
                 return RETURN_CONTINUE;
-		if (m_ai->GetAttackerCount() >= 5)
-		{
-			m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-			if (HELLFIRE > 0 && meleeReach&& m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
-			{
-				CastSpell(HELLFIRE, pTarget);
-				//m_ai->SetIgnoreUpdateTime(8);
-				RETURN_CONTINUE;
-			}
-			if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
-			{
-				m_ai->SetIgnoreUpdateTime(8);
-				return RETURN_CONTINUE;
-			}
-
-		}
+		
         // Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
         if (newTarget->GetHealthPercent() > 25)
         {
@@ -258,10 +243,10 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				CastSpell(SHADOW_BOLT, pTarget); 
 				return RETURN_CONTINUE;
 			}
-			if (m_ai->GetAttackerCount() >= 5)
+			if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			{
-				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (HELLFIRE > 0 && meleeReach && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
+				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
 				{
 					CastSpell(HELLFIRE, pTarget);
 					//m_ai->SetIgnoreUpdateTime(8);
