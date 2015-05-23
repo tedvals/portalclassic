@@ -3589,7 +3589,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
         return;
 
     // default updates occur every two seconds
-    SetIgnoreUpdateTime(2);
+   // SetIgnoreUpdateTime(2);
 
     if (!m_bot->isAlive())
     {
