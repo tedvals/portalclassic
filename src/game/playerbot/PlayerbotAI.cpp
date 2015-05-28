@@ -1125,7 +1125,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     return;
 
                 WorldPacket p;
-                if (!canObeyCommandFrom(*inviter))
+                /*if (!canObeyCommandFrom(*inviter))
                 {
                     std::string buf = "I can't accept your invite unless you first invite my master ";
                     buf += GetMaster()->GetName();
@@ -1133,7 +1133,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     SendWhisper(buf, *inviter);
                     m_bot->GetSession()->HandleGroupDeclineOpcode(p); // packet not used
                 }
-                else
+                else*/
                     m_bot->GetSession()->HandleGroupAcceptOpcode(p);  // packet not used
             }
             return;
@@ -5907,7 +5907,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
         return;
 
     // if message is not from a player in the masters account auto reply and ignore
-    if (!canObeyCommandFrom(fromPlayer))
+    /*if (!canObeyCommandFrom(fromPlayer))
     {
         // only tell the player once instead of endlessly nagging them
         if (m_ignorePlayersChat.find(fromPlayer.GetObjectGuid()) == m_ignorePlayersChat.end())
@@ -5919,7 +5919,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
             m_ignorePlayersChat.insert(fromPlayer.GetObjectGuid());
         }
         return;
-    }
+    }*/
 
     // Passed along to ExtractCommand, if (sub)command is found "input" will only contain the rest of the string (or "")
     std::string input = text.c_str();
