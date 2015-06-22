@@ -2151,7 +2151,7 @@ void PlayerbotAI::DoCombatMovement()
 
     bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
 	
-	if (m_bot->HasAura(21070))
+	if (m_bot->HasAura(21070) || m_bot->HasAura(17742))
 	{
 		//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
 		m_bot->GetMotionMaster()->Clear(false);
@@ -2171,7 +2171,7 @@ void PlayerbotAI::DoCombatMovement()
              && m_movementOrder != MOVEMENT_STAY
              && GetClassAI()->GetWaitUntil() == 0 ) // Not waiting
     {
-		if (m_bot->HasAura(21070))
+		if (m_bot->HasAura(21070)||m_bot->HasAura(17742))
 		{
 			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
 			m_bot->GetMotionMaster()->Clear(false);
@@ -3440,8 +3440,8 @@ void PlayerbotAI::MovementReset()
         WorldObject* distTarget = m_followTarget;   // target to distance check
 
         // don't follow while in combat
-        if (m_bot->isInCombat())
-            return;
+        //if (m_bot->isInCombat())
+            //return;
 
         Player* pTarget;                            // target is player
         if (m_followTarget->GetTypeId() == TYPEID_PLAYER)

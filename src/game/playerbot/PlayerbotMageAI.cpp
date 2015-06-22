@@ -262,12 +262,12 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				}
 				if (CONE_OF_COLD > 0 && !m_bot->HasSpellCooldown(CONE_OF_COLD) && m_bot->GetCombatDistance(pTarget,false) <8.0f && CastSpell(CONE_OF_COLD, pTarget))
 				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3); 
+					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3); 
 						return RETURN_CONTINUE;
 				}
 				if (ARCANE_EXPLOSION > 0  && m_bot->GetCombatDistance(pTarget, false) <8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
 				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					return RETURN_CONTINUE;
 				}
 				if (BLIZZARD>0 && CastSpell(BLIZZARD, pTarget))
@@ -295,7 +295,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				}
 				if (BLAST_WAVE > 0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
 				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					return RETURN_CONTINUE;
 				}
 				if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && SpellSequence1 < 1 && CastSpell(FLAMESTRIKE, pTarget))
@@ -305,7 +305,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				}
 				if (ARCANE_EXPLOSION>0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
 				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					SpellSequence1 = 0;
 					return RETURN_CONTINUE;
 					
