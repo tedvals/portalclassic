@@ -7132,7 +7132,7 @@ bool Unit::SelectHostileTarget()
 
     if (target)
     {
-        if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED))
+		if (!hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
         {
             SetInFront(target);
             if (oldTarget != target)
@@ -8343,7 +8343,9 @@ void Unit::InterruptMoving(bool forceSendStop /*=false*/)
     {
         Movement::Location loc = movespline->ComputePosition();
         movespline->_Interrupt();
-        Relocate(loc.x, loc.y, loc.z, loc.orientation);
+		// loc.orientation may be wrong if creature shouldn't be able to turn (i.e. stunned);
+		// use current orientation instead.
+		Relocate(loc.x, loc.y, loc.z, hasUnitState(UNIT_STAT_STUNNED) ? GetOrientation() : loc.orientation);
         isMoving = true;
     }
 

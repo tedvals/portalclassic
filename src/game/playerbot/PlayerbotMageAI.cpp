@@ -52,6 +52,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
 	CONJURE_MANA_GEM        = m_ai->initSpell(CONJURE_MANA_GEM_1);
 	CONJURE_MANA_JADE       = m_ai->initSpell(CONJURE_MANA_GEM_2);
 	CONJURE_MANA_CITRINE    = m_ai->initSpell(CONJURE_MANA_GEM_3);
+	Conjure_MANA_RUBY       = m_ai->initSpell(CONJURE_MANA_GEM_4);
 	EVOCATION               = m_ai->initSpell(EVOCATION_1);
     // RANGED COMBAT
     SHOOT                   = m_ai->initSpell(SHOOT_2);
@@ -164,6 +165,12 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		Item* ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);
 		Item* ManaStone2 = m_ai->FindConsumable(ManaJadeSTONE_DISPLAYID);
 		Item* ManaStone3 = m_ai->FindConsumable(ManaCitrineSTONE_DISPLAYID);
+		Item* ManaStone4 = m_ai->FindConsumable(ManaRubySTONE_DISPLAYID);
+		if (ManaStone4 && !m_bot->HasSpellCooldown(10058))
+		{
+			m_ai->UseItem(ManaStone4);
+			return RETURN_CONTINUE;
+		}
 		if (ManaStone3 && !m_bot->HasSpellCooldown(10057))
 		{
 			m_ai->UseItem(ManaStone3);
@@ -444,17 +451,21 @@ void PlayerbotMageAI::DoNonCombatActions()
 		Item* const ManaStone = m_ai->FindConsumable(ManaAgateSTONE_DISPLAYID);
 		Item* const ManaStone2 = m_ai->FindConsumable(ManaJadeSTONE_DISPLAYID);
 		Item* const ManaStone3 = m_ai->FindConsumable(ManaCitrineSTONE_DISPLAYID);
+		Item* const ManaStone4 = m_ai->FindConsumable(ManaRubySTONE_DISPLAYID);
 		if (!ManaStone && m_ai->CastSpell(CONJURE_MANA_GEM))
 			return;
 		if (!ManaStone2 && m_ai->CastSpell(CONJURE_MANA_JADE))
 			return;
 		if (!ManaStone3 && m_ai->CastSpell(CONJURE_MANA_CITRINE))
 			return;
+		if (!ManaStone4 && m_ai->CastSpell(Conjure_MANA_RUBY))
+			return;
 	}
-	if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
-		return;
+	
 
 	if (EatDrinkBandage())
+		return;
+	if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
 		return;
 	// hp/mana check
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)

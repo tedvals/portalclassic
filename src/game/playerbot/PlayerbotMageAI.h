@@ -18,7 +18,8 @@ enum ManaStoneDisplayId
 	
 	ManaAgateSTONE_DISPLAYID = 6851,
 	ManaJadeSTONE_DISPLAYID  = 7393,
-	ManaCitrineSTONE_DISPLAYID  = 6496
+	ManaCitrineSTONE_DISPLAYID  = 6496,
+	ManaRubySTONE_DISPLAYID  = 7045
 
 
 };
@@ -43,6 +44,7 @@ enum MageSpells
     CONJURE_MANA_GEM_1              = 759,
 	CONJURE_MANA_GEM_2              = 3552,
 	CONJURE_MANA_GEM_3              = 10053,
+	CONJURE_MANA_GEM_4              = 10054,
     CONJURE_REFRESHMENT_1           = 42955,
     CONJURE_WATER_1                 = 10139,
     COUNTERSPELL_1                  = 2139,
@@ -121,6 +123,7 @@ private:
 		   CONJURE_MANA_GEM,
 		   CONJURE_MANA_JADE,
 		   CONJURE_MANA_CITRINE,
+		   Conjure_MANA_RUBY,
 		   EVOCATION;
     
     // RANGED
