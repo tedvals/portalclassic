@@ -73,6 +73,7 @@ protected:
     CombatManeuverReturns Buff(bool (*BuffHelper)(PlayerbotAI*, uint32, Unit*), uint32 spellId, uint32 type = JOB_ALL, bool bMustBeOOC = true);
     Player* GetHealTarget(JOB_TYPE type = JOB_ALL);
     Player* GetResurrectionTarget(JOB_TYPE type = JOB_ALL, bool bMustBeOOC = true);
+	Player* GetDispalTarget(JOB_TYPE type = JOB_ALL, bool bMustBeOOC = true);
     JOB_TYPE GetTargetJob(Player* target);
 
     // These values are used in GetHealTarget and can be overridden per class (to accomodate healing spell health checks)

@@ -106,6 +106,7 @@ private:
     CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
     CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+	CombatManeuverReturns HealPlayer(Player* target);
 
     CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = NULL) { return CastSpellWand(nextAction, pTarget, SHOOT); }
 
@@ -124,8 +125,8 @@ private:
 		   CONJURE_MANA_JADE,
 		   CONJURE_MANA_CITRINE,
 		   Conjure_MANA_RUBY,
-		   EVOCATION;
-    
+		   EVOCATION,
+	       Remove_Lesser_Curse;
     // RANGED
     uint32 SHOOT;
 

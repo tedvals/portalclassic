@@ -1,6 +1,6 @@
 
 #include "PlayerbotMageAI.h"
-
+#include "../SpellAuras.h"
 class PlayerbotAI;
 
 PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, PlayerbotAI* const ai) : PlayerbotClassAI(master, bot, ai)
@@ -54,6 +54,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
 	CONJURE_MANA_CITRINE    = m_ai->initSpell(CONJURE_MANA_GEM_3);
 	Conjure_MANA_RUBY       = m_ai->initSpell(CONJURE_MANA_GEM_4);
 	EVOCATION               = m_ai->initSpell(EVOCATION_1);
+	Remove_Lesser_Curse     = m_ai->initSpell(REMOVE_CURSE_MAGE_1);
     // RANGED COMBAT
     SHOOT                   = m_ai->initSpell(SHOOT_2);
 
@@ -245,6 +246,18 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
     }
 
+	// Disp
+	
+	
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return RETURN_CONTINUE;
+	}
+	else
+	{ 
+	
+
     switch (spec)
     {
         case MAGE_SPEC_FROST:
@@ -378,7 +391,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return CastSpell(FIREBALL, pTarget);
             break;
     }
-
+	}
     // No spec due to low level OR no spell found yet
     //if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0))
        // return CastSpell(FROSTBOLT, pTarget);
@@ -429,7 +442,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 	else if (Buff(&PlayerbotMageAI::BuffHelper, ARCANE_INTELLECT, JOB_ALL) & RETURN_CONTINUE)
         return;
 
-    
+	
 
     // TODO: The beauty of a mage is not only its ability to supply itself with water, but to share its water
     // So, conjure at *least* 1.25 stacks, ready to trade a stack and still have some left for self
@@ -467,6 +480,10 @@ void PlayerbotMageAI::DoNonCombatActions()
 		return;
 	if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
 		return;
+	// Disp
+
+	if (HealPlayer(GetDispalTarget()) & RETURN_CONTINUE)
+		return;// RETURN_CONTINUE;
 	// hp/mana check
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
@@ -487,4 +504,32 @@ bool PlayerbotMageAI::BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target)
         return true;
 
     return false;
+}
+
+CombatManeuverReturns PlayerbotMageAI::HealPlayer(Player* target)
+{
+	CombatManeuverReturns r = PlayerbotClassAI::HealPlayer(target);
+	if (r != RETURN_NO_ACTION_OK)
+		return r;
+
+	
+
+	if (Remove_Lesser_Curse > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
+	{
+		uint32 dispelMask = GetDispellMask(DISPEL_CURSE);
+		Unit::SpellAuraHolderMap const& auras = target->GetSpellAuraHolderMap();
+		for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+		{
+			SpellAuraHolder *holder = itr->second;
+			if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
+			{
+				if (holder->GetSpellProto()->Dispel == DISPEL_CURSE)
+				{
+					m_ai->CastSpell(Remove_Lesser_Curse, *target);
+					return RETURN_CONTINUE;
+				}
+			}
+		}
+	}
+	return RETURN_NO_ACTION_OK;
 }

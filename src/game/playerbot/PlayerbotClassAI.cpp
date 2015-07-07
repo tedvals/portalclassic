@@ -1,5 +1,6 @@
 #include "PlayerbotClassAI.h"
 #include "Common.h"
+#include "../SpellAuras.h"
 
 PlayerbotClassAI::PlayerbotClassAI(Player* const master, Player* const bot, PlayerbotAI* const ai)
 {
@@ -275,7 +276,7 @@ Player* PlayerbotClassAI::GetResurrectionTarget(JOB_TYPE type, bool bMustBeOOC)
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
             Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
-            if (!groupMember || groupMember->isAlive())
+			if (!groupMember || groupMember->isAlive())
                 continue;
             JOB_TYPE job = GetTargetJob(groupMember);
             if (job & type)
@@ -292,6 +293,110 @@ Player* PlayerbotClassAI::GetResurrectionTarget(JOB_TYPE type, bool bMustBeOOC)
         return m_master;
 
     return NULL;
+}
+
+Player* PlayerbotClassAI::GetDispalTarget(JOB_TYPE type, bool bMustBeOOC)
+{
+	if (!m_ai)  return NULL;
+	if (!m_bot) return NULL;
+	if (!m_bot->isAlive()) return NULL;
+	//if (bMustBeOOC && m_bot->isInCombat()) return NULL;
+
+	// First, fill the list of targets
+	if (m_bot->GetGroup())
+	{
+		// define seperately for sorting purposes - DO NOT CHANGE ORDER!
+		std::vector<heal_priority> targets;
+		std::vector<heal_priority> targets1;
+		std::vector<heal_priority> targets2;
+		std::vector<heal_priority> targets3;
+
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
+			if (!groupMember)
+				continue;
+			uint32 dispelMask = GetDispellMask(DISPEL_CURSE);
+			uint32 dispelMask1 = GetDispellMask(DISPEL_DISEASE);
+			uint32 dispelMask2 = GetDispellMask(DISPEL_POISON);
+			uint32 dispelMask3 = GetDispellMask(DISPEL_MAGIC);
+
+			Unit::SpellAuraHolderMap const& auras = groupMember->GetSpellAuraHolderMap();
+
+			for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+			{
+				SpellAuraHolder *holder = itr->second;
+
+
+				if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_CURSE)
+					{
+
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets.push_back(heal_priority(groupMember, 0, job));
+					}
+
+				}
+				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask1)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
+					{
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets1.push_back(heal_priority(groupMember, 0, job));
+					}
+				}
+				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask2)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_POISON)
+					{
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets2.push_back(heal_priority(groupMember, 0, job));
+					}
+				}
+				else continue;
+			}
+			std::sort(targets.begin(), targets.end());
+			std::sort(targets1.begin(), targets1.end());
+			std::sort(targets2.begin(), targets2.end());
+
+			uint8 pClass = m_bot->getClass();
+
+			if (pClass == CLASS_MAGE || pClass == CLASS_DRUID || pClass == CLASS_SHAMAN)
+			{
+				if (targets.size())
+					return targets.at(0).p;
+			}
+			if (pClass == CLASS_PRIEST || pClass == CLASS_PALADIN || pClass == CLASS_SHAMAN)
+			{
+				if (targets1.size())
+					return targets1.at(0).p;
+			}
+			if (pClass == CLASS_DRUID || pClass == CLASS_PALADIN || pClass == CLASS_SHAMAN)
+			{
+				if (targets2.size())
+					return targets2.at(0).p;
+			}
+		}
+
+
+
+
+
+
+	}
+
+		// Sorts according to type: Healers first, tanks next, then master followed by DPS, thanks to the order of the TYPE enum
+		
+	
+	else if (!m_master->isAlive())
+		return m_master;
+
+	return NULL;
 }
 
 JOB_TYPE PlayerbotClassAI::GetTargetJob(Player* target)
