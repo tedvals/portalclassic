@@ -238,95 +238,101 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			//return RETURN_NO_ACTION_OK;
         //}
     }
+	
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return RETURN_CONTINUE;
+	}
+	
+		// Heal
+		if (m_ai->IsHealer())
+		{
+			if (HealPlayer(GetHealTarget()))
+				return RETURN_CONTINUE;
+		}
+		else
+		{
+			// Is this desirable? Debatable.
+			// ... Certainly could be very detrimental to a shadow priest
+			// TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
+			if (HealPlayer(m_bot))
+				return RETURN_CONTINUE;
+		}
 
-    // Heal
-    if (m_ai->IsHealer())
-    {
-        if (HealPlayer(GetHealTarget()) )
-            return RETURN_CONTINUE;
-    }
-    else
-    {
-        // Is this desirable? Debatable.
-        // ... Certainly could be very detrimental to a shadow priest
-        // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
-        if (HealPlayer(m_bot) )
-            return RETURN_CONTINUE;
-    }
+		// Do damage tweaking for healers here
+		if (m_ai->IsHealer())
+		{
+			// TODO: elite exception
+			//if (Any target is an Elite)
+			//    return;
 
-    // Do damage tweaking for healers here
-    if (m_ai->IsHealer())
-    {
-        // TODO: elite exception
-        //if (Any target is an Elite)
-        //    return;
+			return RETURN_NO_ACTION_OK;
+		}
 
-		return RETURN_NO_ACTION_OK;
-    }
+		// Damage Spells
 
-    // Damage Spells
+		switch (spec)
+		{
+		case PRIEST_SPEC_HOLY:
+			if (HOLY_FIRE > 0 && m_ai->In_Reach(pTarget, HOLY_FIRE) && !pTarget->HasAura(HOLY_FIRE, EFFECT_INDEX_0) && CastSpell(HOLY_FIRE, pTarget))
+				return RETURN_CONTINUE;
+			if (SMITE > 0 && m_ai->In_Reach(pTarget, SMITE) && CastSpell(SMITE, pTarget))
+				return RETURN_CONTINUE;
+			//if (HOLY_NOVA > 0 && m_ai->In_Reach(pTarget,HOLY_NOVA) && meleeReach && m_ai->CastSpell(HOLY_NOVA))
+			//    return RETURN_CONTINUE;
+			break;
 
-    switch (spec)
-    {
-        case PRIEST_SPEC_HOLY:
-            if (HOLY_FIRE > 0 && m_ai->In_Reach(pTarget,HOLY_FIRE) && !pTarget->HasAura(HOLY_FIRE, EFFECT_INDEX_0) && CastSpell(HOLY_FIRE, pTarget))
-                return RETURN_CONTINUE;
-            if (SMITE > 0 && m_ai->In_Reach(pTarget,SMITE) && CastSpell(SMITE, pTarget))
-                return RETURN_CONTINUE;
-            //if (HOLY_NOVA > 0 && m_ai->In_Reach(pTarget,HOLY_NOVA) && meleeReach && m_ai->CastSpell(HOLY_NOVA))
-            //    return RETURN_CONTINUE;
-            break;
+		case PRIEST_SPEC_SHADOW:
+			if (DEVOURING_PLAGUE > 0 && m_ai->In_Reach(pTarget, DEVOURING_PLAGUE) && !pTarget->HasAura(DEVOURING_PLAGUE, EFFECT_INDEX_0) && CastSpell(DEVOURING_PLAGUE, pTarget))
+				return RETURN_CONTINUE;
+			if (VAMPIRIC_TOUCH > 0 && m_ai->In_Reach(pTarget, VAMPIRIC_TOUCH) && !pTarget->HasAura(VAMPIRIC_TOUCH, EFFECT_INDEX_0) && CastSpell(VAMPIRIC_TOUCH, pTarget))
+				return RETURN_CONTINUE;
+			if (SHADOW_WORD_PAIN > 0 && m_ai->In_Reach(pTarget, SHADOW_WORD_PAIN) && !pTarget->HasAura(SHADOW_WORD_PAIN, EFFECT_INDEX_0) && CastSpell(SHADOW_WORD_PAIN, pTarget))
+				return RETURN_CONTINUE;
+			if (MIND_BLAST > 0 && m_ai->In_Reach(pTarget, MIND_BLAST) && (!m_bot->HasSpellCooldown(MIND_BLAST)) && CastSpell(MIND_BLAST, pTarget))
+				return RETURN_CONTINUE;
+			if (MIND_FLAY > 0 && m_ai->In_Reach(pTarget, MIND_FLAY) && CastSpell(MIND_FLAY, pTarget))
+			{
+				m_ai->SetIgnoreUpdateTime(3);
+				return RETURN_CONTINUE;
+			}
+			if (SHADOWFIEND > 0 && m_ai->In_Reach(pTarget, SHADOWFIEND) && !m_bot->GetPet() && CastSpell(SHADOWFIEND))
+				return RETURN_CONTINUE;
+			/*if (MIND_SEAR > 0 && m_ai->GetAttackerCount() >= 3 && CastSpell(MIND_SEAR, pTarget))
+			{
+			m_ai->SetIgnoreUpdateTime(5);
+			return RETURN_CONTINUE;
+			}*/
+			if (SHADOWFORM == 0 && MIND_FLAY == 0 && SMITE > 0 && m_ai->In_Reach(pTarget, SMITE) && CastSpell(SMITE, pTarget)) // low levels
+				return RETURN_CONTINUE;
+			break;
 
-        case PRIEST_SPEC_SHADOW:
-            if (DEVOURING_PLAGUE > 0 && m_ai->In_Reach(pTarget,DEVOURING_PLAGUE) && !pTarget->HasAura(DEVOURING_PLAGUE, EFFECT_INDEX_0) && CastSpell(DEVOURING_PLAGUE, pTarget))
-                return RETURN_CONTINUE;
-            if (VAMPIRIC_TOUCH > 0 && m_ai->In_Reach(pTarget,VAMPIRIC_TOUCH) && !pTarget->HasAura(VAMPIRIC_TOUCH, EFFECT_INDEX_0) && CastSpell(VAMPIRIC_TOUCH, pTarget))
-                return RETURN_CONTINUE;
-            if (SHADOW_WORD_PAIN > 0 && m_ai->In_Reach(pTarget,SHADOW_WORD_PAIN) && !pTarget->HasAura(SHADOW_WORD_PAIN, EFFECT_INDEX_0) && CastSpell(SHADOW_WORD_PAIN, pTarget))
-                return RETURN_CONTINUE;
-            if (MIND_BLAST > 0 && m_ai->In_Reach(pTarget,MIND_BLAST) && (!m_bot->HasSpellCooldown(MIND_BLAST)) && CastSpell(MIND_BLAST, pTarget))
-                return RETURN_CONTINUE;
-            if (MIND_FLAY > 0 && m_ai->In_Reach(pTarget,MIND_FLAY) && CastSpell(MIND_FLAY, pTarget))
-            {
-                m_ai->SetIgnoreUpdateTime(3);
-                return RETURN_CONTINUE;
-            }
-            if (SHADOWFIEND > 0 && m_ai->In_Reach(pTarget,SHADOWFIEND) && !m_bot->GetPet() && CastSpell(SHADOWFIEND))
-                return RETURN_CONTINUE;
-            /*if (MIND_SEAR > 0 && m_ai->GetAttackerCount() >= 3 && CastSpell(MIND_SEAR, pTarget))
-            {
-                m_ai->SetIgnoreUpdateTime(5);
-                return RETURN_CONTINUE;
-            }*/
-            if (SHADOWFORM == 0 && MIND_FLAY == 0 && SMITE > 0 && m_ai->In_Reach(pTarget,SMITE) && CastSpell(SMITE, pTarget)) // low levels
-                return RETURN_CONTINUE;
-            break;
+		case PRIEST_SPEC_DISCIPLINE:
+			if (POWER_INFUSION > 0 && m_ai->In_Reach(GetMaster(), POWER_INFUSION) && CastSpell(POWER_INFUSION, GetMaster())) // TODO: just master?
+				return RETURN_CONTINUE;
+			if (INNER_FOCUS > 0 && m_ai->In_Reach(m_bot, INNER_FOCUS) && !m_bot->HasAura(INNER_FOCUS, EFFECT_INDEX_0) && CastSpell(INNER_FOCUS, m_bot))
+				return RETURN_CONTINUE;
+			if (PENANCE > 0 && CastSpell(PENANCE))
+				return RETURN_CONTINUE;
+			if (SMITE > 0 && m_ai->In_Reach(pTarget, SMITE) && CastSpell(SMITE, pTarget))
+				return RETURN_CONTINUE;
+			break;
+		}
 
-        case PRIEST_SPEC_DISCIPLINE:
-            if (POWER_INFUSION > 0 && m_ai->In_Reach(GetMaster(),POWER_INFUSION) && CastSpell(POWER_INFUSION, GetMaster())) // TODO: just master?
-                return RETURN_CONTINUE;
-            if (INNER_FOCUS > 0 && m_ai->In_Reach(m_bot,INNER_FOCUS) && !m_bot->HasAura(INNER_FOCUS, EFFECT_INDEX_0) && CastSpell(INNER_FOCUS, m_bot))
-                return RETURN_CONTINUE;
-            if (PENANCE > 0 && CastSpell(PENANCE))
-                return RETURN_CONTINUE;
-            if (SMITE > 0 && m_ai->In_Reach(pTarget,SMITE) && CastSpell(SMITE, pTarget))
-                return RETURN_CONTINUE;
-            break;
-    }
-
-    // No spec due to low level OR no spell found yet
-    if (MIND_BLAST > 0 && m_ai->In_Reach(pTarget,MIND_BLAST) && (!m_bot->HasSpellCooldown(MIND_BLAST)) && CastSpell(MIND_BLAST, pTarget))
-        return RETURN_CONTINUE;
-    if (SHADOW_WORD_PAIN > 0 && m_ai->In_Reach(pTarget,SHADOW_WORD_PAIN) && !pTarget->HasAura(SHADOW_WORD_PAIN, EFFECT_INDEX_0) && CastSpell(SHADOW_WORD_PAIN, pTarget))
-        return RETURN_CONTINUE;
-    if (MIND_FLAY > 0 && m_ai->In_Reach(pTarget,MIND_FLAY) && CastSpell(MIND_FLAY, pTarget))
-    {
-        m_ai->SetIgnoreUpdateTime(3);
-        return RETURN_CONTINUE;
-    }
-    if (SHADOWFORM == 0 && SMITE > 0 && m_ai->In_Reach(pTarget,SMITE) && CastSpell(SMITE, pTarget))
-        return RETURN_CONTINUE;
-
+		// No spec due to low level OR no spell found yet
+		if (MIND_BLAST > 0 && m_ai->In_Reach(pTarget, MIND_BLAST) && (!m_bot->HasSpellCooldown(MIND_BLAST)) && CastSpell(MIND_BLAST, pTarget))
+			return RETURN_CONTINUE;
+		if (SHADOW_WORD_PAIN > 0 && m_ai->In_Reach(pTarget, SHADOW_WORD_PAIN) && !pTarget->HasAura(SHADOW_WORD_PAIN, EFFECT_INDEX_0) && CastSpell(SHADOW_WORD_PAIN, pTarget))
+			return RETURN_CONTINUE;
+		if (MIND_FLAY > 0 && m_ai->In_Reach(pTarget, MIND_FLAY) && CastSpell(MIND_FLAY, pTarget))
+		{
+			m_ai->SetIgnoreUpdateTime(3);
+			return RETURN_CONTINUE;
+		}
+		if (SHADOWFORM == 0 && SMITE > 0 && m_ai->In_Reach(pTarget, SMITE) && CastSpell(SMITE, pTarget))
+			return RETURN_CONTINUE;
+	
     return RETURN_NO_ACTION_OK;
 } // end DoNextCombatManeuver
 
@@ -383,24 +389,46 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
     }
 
-	if (ABOLISH_DISEASE > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
-    {
-        uint32 dispelMask  = GetDispellMask(DISPEL_DISEASE);
-        Unit::SpellAuraHolderMap const& auras = target->GetSpellAuraHolderMap();
-        for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-        {
-            SpellAuraHolder *holder = itr->second;
-            if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
-            {
-                if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
-                {
-					m_ai->CastSpell(ABOLISH_DISEASE, *target);
-                    return RETURN_CONTINUE;
-                }
-            }
-        }
-    }
 	
+	if ((ABOLISH_DISEASE > 0 || DISPEL_MAGI > 0) && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
+	{
+		uint32 dispelMask = GetDispellMask(DISPEL_DISEASE);
+		uint32 dispelMask1 = GetDispellMask(DISPEL_MAGIC);
+		Unit::SpellAuraHolderMap const& auras = target->GetSpellAuraHolderMap();
+		for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+		{
+			SpellAuraHolder *holder = itr->second;
+			if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
+			{
+				if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
+				{
+
+					m_ai->CastSpell(ABOLISH_DISEASE, *target);
+					return RETURN_CONTINUE;
+				}
+			}
+			else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask1)
+			{
+				if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
+				{
+					bool positive = true;
+					if (!holder->IsPositive())
+						positive = false;
+					else
+						positive = (holder->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) == 0;
+
+					// do not remove positive auras if friendly target
+					//               negative auras if non-friendly target
+					if (positive == target->IsFriendlyTo(m_bot))
+						continue;
+
+					if (m_ai->CastSpell(DISPEL_MAGI, *target))
+						return RETURN_CONTINUE;
+					return RETURN_NO_ACTION_ERROR;
+				}
+			}
+		}
+	}
 	
 
     uint8 hp = target->GetHealthPercent();
@@ -437,8 +465,8 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
     return RETURN_NO_ACTION_OK;
 } // end HealTarget
 
-void PlayerbotPriestAI::DoNonCombatActions()
-{
+	void PlayerbotPriestAI::DoNonCombatActions()
+	{
     if (!m_ai)   return;
     if (!m_bot)  return;
 
@@ -462,19 +490,25 @@ void PlayerbotPriestAI::DoNonCombatActions()
         m_ai->SelfBuff(VAMPIRIC_EMBRACE);
 
     // Heal
-    if (m_ai->IsHealer())
-    {
-        if (HealPlayer(GetHealTarget()) & RETURN_CONTINUE)
-            return;// RETURN_CONTINUE;
-    }
-    else
-    {
-        // Is this desirable? Debatable.
-        // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
-        if (HealPlayer(m_bot) & RETURN_CONTINUE)
-            return;// RETURN_CONTINUE;
-    }
-
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return;
+	}
+	
+		if (m_ai->IsHealer())
+		{
+			if (HealPlayer(GetHealTarget()) & RETURN_CONTINUE)
+				return;// RETURN_CONTINUE;
+		}
+		else
+		{
+			// Is this desirable? Debatable.
+			// TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
+			if (HealPlayer(m_bot) & RETURN_CONTINUE)
+				return;// RETURN_CONTINUE;
+		}
+	
     // Buff
 	if (m_bot->GetGroup() && m_ai->HasSpellReagents(PRAYER_OF_FORTITUDE))
     {

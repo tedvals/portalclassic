@@ -254,8 +254,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		HealPlayer(GetDispalTarget());
 		return RETURN_CONTINUE;
 	}
-	else
-	{ 
+
 	
 
     switch (spec)
@@ -391,7 +390,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return CastSpell(FIREBALL, pTarget);
             break;
     }
-	}
+	
     // No spec due to low level OR no spell found yet
     //if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0))
        // return CastSpell(FROSTBOLT, pTarget);
@@ -416,6 +415,12 @@ void PlayerbotMageAI::DoNonCombatActions()
     if (!m_bot || !master)
         return;
 	
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return;
+	}
+
     // Buff armor
     if (MOLTEN_ARMOR)
     {
@@ -482,8 +487,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 		return;
 	// Disp
 
-	if (HealPlayer(GetDispalTarget()) & RETURN_CONTINUE)
-		return;// RETURN_CONTINUE;
+	
 	// hp/mana check
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);

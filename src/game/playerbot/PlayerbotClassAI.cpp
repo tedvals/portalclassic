@@ -358,15 +358,35 @@ Player* PlayerbotClassAI::GetDispalTarget(JOB_TYPE type, bool bMustBeOOC)
 							targets2.push_back(heal_priority(groupMember, 0, job));
 					}
 				}
+				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask3)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
+					{
+						bool positive = true;
+						if (!holder->IsPositive())
+							positive = false;
+						else
+							positive = (holder->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) == 0;
+
+						// do not remove positive auras if friendly target
+						//               negative auras if non-friendly target
+						if (positive == groupMember->IsFriendlyTo(m_bot))
+							continue;
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets3.push_back(heal_priority(groupMember, 0, job));
+					}
+				}
 				else continue;
 			}
 			std::sort(targets.begin(), targets.end());
 			std::sort(targets1.begin(), targets1.end());
 			std::sort(targets2.begin(), targets2.end());
+			std::sort(targets3.begin(), targets3.end());
 
 			uint8 pClass = m_bot->getClass();
 
-			if (pClass == CLASS_MAGE || pClass == CLASS_DRUID || pClass == CLASS_SHAMAN)
+			if (pClass == CLASS_MAGE || pClass == CLASS_DRUID)
 			{
 				if (targets.size())
 					return targets.at(0).p;
@@ -380,6 +400,11 @@ Player* PlayerbotClassAI::GetDispalTarget(JOB_TYPE type, bool bMustBeOOC)
 			{
 				if (targets2.size())
 					return targets2.at(0).p;
+			}
+			if (pClass == CLASS_PRIEST || pClass == CLASS_PALADIN)
+			{
+				if (targets3.size())
+					return targets3.at(0).p;
 			}
 		}
 
