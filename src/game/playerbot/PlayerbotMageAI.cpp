@@ -392,7 +392,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				}
 
 			}
-			if (ARCANE_POWER > 0  && !m_bot->HasSpellCooldown(ARCANE_POWER) && CastSpell(ARCANE_POWER, m_bot))
+			if (ARCANE_POWER > 0 && !m_bot->HasSpellCooldown(ARCANE_POWER) && CastSpell(ARCANE_POWER, pTarget))
                 return RETURN_CONTINUE;
 			if (PRESENCE_OF_MIND > 0 && !m_bot->HasSpellCooldown(PRESENCE_OF_MIND) && CastSpell(PRESENCE_OF_MIND, m_bot))
 				return RETURN_CONTINUE;

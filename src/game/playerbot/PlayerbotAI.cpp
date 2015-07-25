@@ -2182,12 +2182,12 @@ void PlayerbotAI::DoCombatMovement()
         else if (!CanReachWithSpellAttack(m_targetCombat))
         {
             m_bot->GetMotionMaster()->Clear(false);
-            m_bot->GetMotionMaster()->MoveChase(m_targetCombat);
+            m_bot->GetMotionMaster()->MoveChase(m_targetCombat,15.0f,0.0f);
 			//m_bot->GetMotionMaster()->MoveConfused();
 			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 5.0f, 0.0f);
 
         }
-		//else if(m_bot->HasAura(21070))m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
+		
 		else
 			 MovementClear();
     }

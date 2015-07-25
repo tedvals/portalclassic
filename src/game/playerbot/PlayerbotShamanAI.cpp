@@ -182,10 +182,10 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
     uint32 spec = m_bot->GetSpec();
 
     // Make sure healer stays put, don't even melee (aggro) if in range.
-    //if (m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED)
-       // m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
-    //else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
-    //    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+    if (m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED)
+        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
+    else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
+        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 	UseCooldowns();
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);

@@ -312,12 +312,14 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		//return RETURN_CONTINUE;
 	//}
 	//else 
-		if (BLOODRAGE > 0 && m_ai->GetRageAmount() <= 10 && m_bot->HasSpellCooldown(BLOODRAGE))
+		/*if (BLOODRAGE > 0 && m_ai->GetRageAmount() <= 10 && !m_bot->HasSpellCooldown(BLOODRAGE))
 	{
 		m_ai->CastSpell(BLOODRAGE); 
 		return RETURN_CONTINUE;
-	}
-
+	}*/
+		if (WAR_STOMP > 0 && !m_bot->HasSpellCooldown(WAR_STOMP) && m_ai->CastSpell(WAR_STOMP, *pTarget))
+			return RETURN_CONTINUE;
+			
     CheckShouts();
 
     switch (spec)
