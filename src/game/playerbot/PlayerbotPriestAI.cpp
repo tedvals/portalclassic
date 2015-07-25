@@ -122,7 +122,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoFirstCombatManeuverPVE(Unit* /*pTarge
     if (!m_ai)  return RETURN_NO_ACTION_ERROR;
     if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
-    if (m_ai->IsHealer())
+    /*if (m_ai->IsHealer())
     {
         // TODO: This must be done with toggles: FullHealth allowed
         Unit* healTarget = GetHealTarget(JOB_TANK);
@@ -130,7 +130,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoFirstCombatManeuverPVE(Unit* /*pTarge
         // Mana efficient even at one use
         if (healTarget && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(healTarget,PRAYER_OF_MENDING) && !healTarget->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, healTarget) & RETURN_CONTINUE)
             return RETURN_FINISHED_FIRST_MOVES;
-    }
+    }*/
     return RETURN_NO_ACTION_OK;
 }
 
@@ -174,7 +174,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
             //&& (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true))
             //&& !m_ai->IsHealer())
         //m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
-	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
+	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && CastSpell(WILL_OF_THE_FORSAKEN, m_bot))
 		return RETURN_CONTINUE;
     //Used to determine if this bot is highest on threat
     Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
@@ -210,12 +210,18 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			m_ai->TellMaster("I'm casting RENEW.");
 			return RETURN_CONTINUE;
 		}
-		if (m_ai->GetHealthPercent() < 60 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot))
+		if (m_ai->GetHealthPercent() < 60 && SCREAM > 0 && m_ai->In_Reach(m_bot, SCREAM) && !m_bot->HasSpellCooldown(SCREAM) && CastSpell(SCREAM, m_bot))
+		{
+			m_ai->TellMaster("I'm casting SCREAM.");
+			return RETURN_CONTINUE;
+		}
+		if (m_ai->GetHealthPercent() < 40 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot))
 		{
 			m_ai->TellMaster("I'm casting FLASH_HEAL.");
 			return RETURN_CONTINUE;
 		}
-        if (m_ai->GetHealthPercent() < 35 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot,DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot) )
+		
+        if (m_ai->GetHealthPercent() < 20 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot,DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot) )
         {
             m_ai->TellMaster("I'm casting desperate prayer.");
             return RETURN_CONTINUE;
@@ -379,7 +385,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 
     if (!target->isAlive())
     {
-        if (RESURRECTION && m_ai->In_Reach(target,RESURRECTION) && m_ai->CastSpell(RESURRECTION, *target))
+        if (RESURRECTION && m_ai->In_Reach(target,RESURRECTION) && CastSpell(RESURRECTION, target))
         {
             std::string msg = "Resurrecting ";
             msg += target->GetName();
@@ -403,7 +409,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 				if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
 				{
 
-					m_ai->CastSpell(ABOLISH_DISEASE, *target);
+					CastSpell(ABOLISH_DISEASE, target);
 					return RETURN_CONTINUE;
 				}
 			}
@@ -422,7 +428,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 					if (positive == target->IsFriendlyTo(m_bot))
 						continue;
 
-					if (m_ai->CastSpell(DISPEL_MAGI, *target))
+					if (CastSpell(DISPEL_MAGI, target))
 						return RETURN_CONTINUE;
 					return RETURN_NO_ACTION_ERROR;
 				}
@@ -433,22 +439,26 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 
     uint8 hp = target->GetHealthPercent();
     uint8 hpSelf = m_ai->GetHealthPercent();
+	uint8 hpmaster = m_master->GetHealthPercent();
 
+	if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
+		return RETURN_CONTINUE;
+	if (hp < 50 && hpSelf < 50 && hpmaster < 50 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && CastSpell(PRAYER_OF_HEALING, target))
+        return RETURN_CONTINUE;
     if (hp >= 90)
         return RETURN_NO_ACTION_OK;
-	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && m_ai->CastSpell(RENEW, *target))
+	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target,RENEW) && !target->HasAura(RENEW) && CastSpell(RENEW, target))
         return RETURN_CONTINUE;
-	if (hp < 70 && hp>50 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && m_ai->CastSpell(HEAL, *target))
+	if (hp < 70 && hp>50 && HEAL > 0 && m_ai->In_Reach(target,HEAL) && CastSpell(HEAL, target))
         return RETURN_CONTINUE;
-	if (hp < 50 && hp >30 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target))
+	if (hp < 50 && hp >30 && GREATER_HEAL > 0 && m_ai->In_Reach(target,GREATER_HEAL) && CastSpell(GREATER_HEAL, target))
         return RETURN_CONTINUE;
-	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !target->HasAura(6788) && m_ai->CastSpell(POWER_WORD_SHIELD, *target))
+	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !target->HasAura(6788) && CastSpell(POWER_WORD_SHIELD, target))
 		return RETURN_CONTINUE;
-	if (hp < 30 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && m_ai->CastSpell(FLASH_HEAL, *target))
+	if (hp < 30 && FLASH_HEAL > 0 && m_ai->In_Reach(target,FLASH_HEAL) && CastSpell(FLASH_HEAL, target))
         return RETURN_CONTINUE;
     // Heals target AND self for equal amount
-	//if (hp < 60 && hpSelf < 60 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && m_ai->CastSpell(PRAYER_OF_HEALING, *target))
-       // return RETURN_CONTINUE;
+	
 	
     //if (hp < 60 && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(target,PRAYER_OF_MENDING) && !target->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, target))
         //return RETURN_FINISHED_FIRST_MOVES;
@@ -512,6 +522,9 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
     // Buff
 	if (m_bot->GetGroup() && m_ai->HasSpellReagents(PRAYER_OF_FORTITUDE))
     {
+		if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
+			return;
+		
 		if (Buff(&PlayerbotPriestAI::BuffHelper, PRAYER_OF_FORTITUDE) & RETURN_CONTINUE)
             return;
 

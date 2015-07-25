@@ -112,7 +112,7 @@ private:
     CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
 
-    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = NULL) { return CastSpellNoRanged(nextAction, pTarget); }
+	CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = NULL) { return CastSpellWand(nextAction, pTarget,SHOOT); }
 
     // Combat Maneuver helper functions
     CombatManeuverReturns _DoNextPVECombatManeuverBear(Unit* pTarget);
@@ -203,7 +203,9 @@ private:
            REVIVE,
            REBIRTH,
            REMOVE_CURSE,
-           ABOLISH_POISON;
+           ABOLISH_POISON,
+		   NATURES_SWIFTNESS,
+		   SHOOT;
 
     // racial
     uint32 ARCANE_TORRENT,

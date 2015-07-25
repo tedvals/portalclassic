@@ -1,7 +1,7 @@
 /*
     Name    : PlayerbotDruidAI.cpp
     Complete: maybe around 33%
-    Authors : rrtn, Natsukawa
+    Authors : rrtn, Natsukawa, yyhhrr
     Version : 0.42
  */
 #include "PlayerbotDruidAI.h"
@@ -38,6 +38,7 @@ PlayerbotDruidAI::PlayerbotDruidAI(Player* const master, Player* const bot, Play
     REBIRTH                       = m_ai->initSpell(REBIRTH_1);
     REMOVE_CURSE                  = m_ai->initSpell(REMOVE_CURSE_DRUID_1);
     ABOLISH_POISON                = m_ai->initSpell(ABOLISH_POISON_1);
+	NATURES_SWIFTNESS             = m_ai->initSpell(NATURES_SWIFTNESS_DRUID_1);
     // Druid Forms
     MOONKIN_FORM                  = m_ai->initSpell(MOONKIN_FORM_1);
     DIRE_BEAR_FORM                = m_ai->initSpell(DIRE_BEAR_FORM_1);
@@ -69,7 +70,7 @@ PlayerbotDruidAI::PlayerbotDruidAI(Player* const master, Player* const bot, Play
     LACERATE                      = m_ai->initSpell(LACERATE_1);
 
     RECENTLY_BANDAGED             = 11196; // first aid check
-
+	SHOOT                         = 5019;
     // racial
     SHADOWMELD                    = m_ai->initSpell(SHADOWMELD_ALL);
     WAR_STOMP                     = m_ai->initSpell(WAR_STOMP_ALL); // tauren
@@ -100,7 +101,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoFirstCombatManeuver(Unit* pTarget)
                     // Clear their TEMP_WAIT_TANKAGGRO flag
                     m_ai->ClearGroupCombatOrder(PlayerbotAI::ORDERS_TEMP_WAIT_TANKAGGRO);
                     // Start attacking, force target on current target
-                    m_ai->Attack(m_ai->GetCurrentTarget());
+                    //m_ai->Attack(m_ai->GetCurrentTarget());
 
                     // While everyone else is waiting 2 second, we need to build up aggro, so don't return
                 }
@@ -111,7 +112,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoFirstCombatManeuver(Unit* pTarget)
                 }
             }
             else if (PlayerbotAI::ORDERS_HEAL & m_ai->GetCombatOrder())
-               return _DoNextPVECombatManeuverHeal();
+				return HealPlayer(GetHealTarget());
             else
                 return RETURN_NO_ACTION_OK; // wait it out
         }
@@ -183,16 +184,16 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
     if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
     //uint32 masterHP = GetMaster()->GetHealth() * 100 / GetMaster()->GetMaxHealth();
-
+	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
     uint32 spec = m_bot->GetSpec();
-    if (spec == 0) // default to spellcasting or healing for healer
-        spec = (PlayerbotAI::ORDERS_HEAL & m_ai->GetCombatOrder() ? DRUID_SPEC_RESTORATION : DRUID_SPEC_BALANCE);
+    //if (spec == 0) // default to spellcasting or healing for healer
+     //   spec = (PlayerbotAI::ORDERS_HEAL & m_ai->GetCombatOrder() ? DRUID_SPEC_RESTORATION : DRUID_SPEC_BALANCE);
 
     // Make sure healer stays put, don't even melee (aggro) if in range.
-    if (m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED)
+	if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED  && !meleeReach)
         m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
-    else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
-        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+   // else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
+    //    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 
     //Unit* pVictim = pTarget->getVictim();
     uint32 BEAR = (DIRE_BEAR_FORM > 0 ? DIRE_BEAR_FORM : BEAR_FORM);
@@ -215,10 +216,18 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
             break;
     }
 
+	if (m_ai->GetManaPercent()<10 && INNERVATE > 0 && !m_bot->HasSpellCooldown(INNERVATE) && CastSpell(INNERVATE, m_bot))
+		return RETURN_CONTINUE;
+	if (INSECT_SWARM > 0 && !pTarget->HasAura(INSECT_SWARM, EFFECT_INDEX_0) && CastSpell(INSECT_SWARM, pTarget))
+		return RETURN_CONTINUE;
+	if (FAERIE_FIRE  > 0 && !pTarget->HasAura(FAERIE_FIRE, EFFECT_INDEX_0) && CastSpell(FAERIE_FIRE, pTarget))
+		return RETURN_CONTINUE;
     //Used to determine if this bot is highest on threat
     Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-    if (newTarget) // TODO: && party has a tank
-    {
+	if (newTarget && (((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS)) // TODO: && party has a tank
+    {   
+		if (BARKSKIN > 0 && !m_bot->HasAura(BARKSKIN, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(BARKSKIN) && CastSpell(BARKSKIN, m_bot))
+			return RETURN_CONTINUE;
         if (HealPlayer(m_bot) == RETURN_CONTINUE)
             return RETURN_CONTINUE;
 
@@ -231,9 +240,37 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
         // We have no shoot spell; Assume auto-attack is on
         return RETURN_NO_ACTION_OK;
     }
+	
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return RETURN_CONTINUE;
+	}
 
-    if (m_ai->IsHealer())
-       return _DoNextPVECombatManeuverHeal();
+	// Heal
+	if (m_ai->IsHealer())
+	{
+		if (HealPlayer(GetHealTarget()))
+			return RETURN_CONTINUE;
+	}
+	else
+	{
+		// Is this desirable? Debatable.
+		// ... Certainly could be very detrimental to a shadow priest
+		// TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
+		if (HealPlayer(m_bot))
+			return RETURN_CONTINUE;
+	}
+
+	// Do damage tweaking for healers here
+	if (m_ai->IsHealer())
+	{
+		// TODO: elite exception
+		//if (Any target is an Elite)
+		//    return;
+
+		return RETURN_NO_ACTION_OK;
+	}
 
     switch (spec)
     {
@@ -244,7 +281,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
                 return _DoNextPVECombatManeuverCat(pTarget);
             // NO break - failover to DRUID_SPEC_BALANCE
 
-        case DRUID_SPEC_RESTORATION: // There is no Resto DAMAGE rotation. If you insist, go Balance...
+        //case DRUID_SPEC_RESTORATION: // There is no Resto DAMAGE rotation. If you insist, go Balance...
         case DRUID_SPEC_BALANCE:
             if (m_bot->HasAura(BEAR) || m_bot->HasAura(CAT_FORM) || m_bot->HasAura(TREE_OF_LIFE))
                 return RETURN_NO_ACTION_UNKNOWN; // Didn't shift out of inappropriate form
@@ -267,11 +304,11 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
         if (BARKSKIN > 0 && pVictim == m_bot && m_ai->GetHealthPercent() < 75 && !m_bot->HasAura(BARKSKIN, EFFECT_INDEX_0) && CastSpell(BARKSKIN, m_bot))
             return RETURN_CONTINUE;
         if (INNERVATE > 0 && ai->In_Reach(m_bot,INNERVATE) && !m_bot->HasAura(INNERVATE, EFFECT_INDEX_0) && CastSpell(INNERVATE, m_bot))
-            return RETURN_CONTINUE;
-        */
+            return RETURN_CONTINUE;*/
+        
     }
 
-    return RETURN_NO_ACTION_UNKNOWN;
+	return RETURN_NO_ACTION_OK;
 } // end DoNextCombatManeuver
 
 CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVP(Unit* pTarget)
@@ -475,7 +512,7 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverHeal()
     if (HealPlayer(GetHealTarget()) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
         return RETURN_CONTINUE;
 
-    return RETURN_NO_ACTION_UNKNOWN;
+	return RETURN_NO_ACTION_OK;
 }
 
 CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
@@ -484,12 +521,12 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
     if (r != RETURN_NO_ACTION_OK)
         return r;
 
-    if (!target->isAlive())
+    /*if (!target->isAlive())
     {
         if (m_bot->isInCombat())
         {
             // TODO: Add check for cooldown
-            if (REBIRTH && m_ai->In_Reach(target,REBIRTH) && m_ai->CastSpell(REBIRTH, *target))
+			if (REBIRTH && m_ai->In_Reach(target, REBIRTH) && !m_bot->HasSpellCooldown(REBIRTH) && m_ai->CastSpell(REBIRTH, *target))
             {
                 std::string msg = "Resurrecting ";
                 msg += target->GetName();
@@ -509,7 +546,7 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
         }
         return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
     }
-
+	*/
     //If spell exists and orders say we should be dispelling
     if ((REMOVE_CURSE > 0 || ABOLISH_POISON > 0) && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
     {
@@ -545,8 +582,10 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
         }
     }
 
-    uint8 hp = target->GetHealthPercent();
-
+	uint8 hp = target->GetHealthPercent();
+	uint8 hpSelf = m_ai->GetHealthPercent();
+	uint8 hpmaster = m_master->GetHealthPercent();
+	
     // Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
     if (hp >= 90)
         return RETURN_NO_ACTION_OK;
@@ -555,33 +594,42 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
     if (!m_bot->HasAura(TREE_OF_LIFE) || TREE_OF_LIFE == 0)
         GoBuffForm(GetPlayerBot());
 
+	
+	if (hp < 45 && hpSelf < 45 && hpmaster < 45 && TRANQUILITY > 0 && !m_bot->HasSpellCooldown(TRANQUILITY) && CastSpell(TRANQUILITY, target))
+	{
+		m_ai->SetIgnoreUpdateTime(10);
+		return RETURN_CONTINUE;
+	}
     // Start heals. Do lowest HP checks at the top
+	if (hp < 90 && REJUVENATION > 0 && m_ai->In_Reach(target,REJUVENATION) && !target->HasAura(REJUVENATION) && CastSpell(REJUVENATION, target))
+        return RETURN_CONTINUE;
     if (hp < 30)
     {
         // TODO: Use in conjunction with Nature's Swiftness
-        if (HEALING_TOUCH > 0 && m_ai->In_Reach(target,HEALING_TOUCH) && (NOURISH == 0 /*|| CastSpell(NATURES_SWIFTNESS)*/ ) && CastSpell(HEALING_TOUCH, target))
+		if (NATURES_SWIFTNESS > 0 && m_ai->In_Reach(target, NATURES_SWIFTNESS) && !m_bot->HasSpellCooldown(NATURES_SWIFTNESS) && CastSpell(NATURES_SWIFTNESS, m_bot))
+			return RETURN_CONTINUE;
+        if (HEALING_TOUCH > 0 && m_ai->In_Reach(target,HEALING_TOUCH) /*&& (NOURISH == 0 ||   && CastSpell(NATURES_SWIFTNESS)*/ && CastSpell(HEALING_TOUCH, target))
             return RETURN_CONTINUE;
 
-        if (NOURISH > 0 && m_ai->In_Reach(target,NOURISH) && CastSpell(NOURISH, target))
-            return RETURN_CONTINUE;
+        //if (NOURISH > 0 && m_ai->In_Reach(target,NOURISH) && CastSpell(NOURISH, target))
+            //return RETURN_CONTINUE;
     }
 
-    if (hp < 45 && WILD_GROWTH > 0 && m_ai->In_Reach(target,WILD_GROWTH) && !target->HasAura(WILD_GROWTH) && CastSpell(WILD_GROWTH, target))
+   // if (hp < 45 && WILD_GROWTH > 0 && m_ai->In_Reach(target,WILD_GROWTH) && !target->HasAura(WILD_GROWTH) && CastSpell(WILD_GROWTH, target))
+    //    return RETURN_CONTINUE;
+
+	if (hp < 40 && SWIFTMEND > 0 && m_ai->In_Reach(target, SWIFTMEND) && (target->HasAura(REJUVENATION) || target->HasAura(REGROWTH)) && !m_bot->HasSpellCooldown(SWIFTMEND) && CastSpell(SWIFTMEND, target))
         return RETURN_CONTINUE;
 
-    if (hp < 50 && SWIFTMEND > 0 && m_ai->In_Reach(target,SWIFTMEND) && (target->HasAura(REJUVENATION) || target->HasAura(REGROWTH)) && CastSpell(SWIFTMEND, target))
+    if (hp < 50 && REGROWTH > 0 && m_ai->In_Reach(target,REGROWTH) && !target->HasAura(REGROWTH) && CastSpell(REGROWTH, target))
         return RETURN_CONTINUE;
 
-    if (hp < 60 && REGROWTH > 0 && m_ai->In_Reach(target,REGROWTH) && !target->HasAura(REGROWTH) && CastSpell(REGROWTH, target))
-        return RETURN_CONTINUE;
+    //if (hp < 65 && LIFEBLOOM > 0 && m_ai->In_Reach(target,LIFEBLOOM) && !target->HasAura(LIFEBLOOM) && CastSpell(LIFEBLOOM, target))
+       // return RETURN_CONTINUE;
 
-    if (hp < 65 && LIFEBLOOM > 0 && m_ai->In_Reach(target,LIFEBLOOM) && !target->HasAura(LIFEBLOOM) && CastSpell(LIFEBLOOM, target))
-        return RETURN_CONTINUE;
-
-    if (hp < 90 && REJUVENATION > 0 && m_ai->In_Reach(target,REJUVENATION) && !target->HasAura(REJUVENATION) && CastSpell(REJUVENATION, target))
-        return RETURN_CONTINUE;
-
-    return RETURN_NO_ACTION_UNKNOWN;
+    
+	
+	return RETURN_NO_ACTION_OK;
 } // end HealTarget
 
 /**
@@ -684,9 +732,14 @@ void PlayerbotDruidAI::DoNonCombatActions()
     if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
     // Revive
-    if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
-        return;
+    ///if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
+       // return;
 
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return;
+	}
     // Heal
     if (m_ai->IsHealer())
     {
@@ -718,8 +771,8 @@ void PlayerbotDruidAI::DoNonCombatActions()
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		//m_bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-    if (INNERVATE && m_ai->In_Reach(m_bot,INNERVATE) && !m_bot->HasAura(INNERVATE) && m_ai->GetManaPercent() <= 20 && CastSpell(INNERVATE, m_bot))
-        return;
+    //if (INNERVATE && m_ai->In_Reach(m_bot,INNERVATE) && !m_bot->HasAura(INNERVATE) && m_ai->GetManaPercent() <= 10 && CastSpell(INNERVATE, m_bot))
+      //  return;
 } // end DoNonCombatActions
 
 bool PlayerbotDruidAI::BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit* target)

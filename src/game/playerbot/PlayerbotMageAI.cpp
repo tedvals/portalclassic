@@ -55,6 +55,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
 	Conjure_MANA_RUBY       = m_ai->initSpell(CONJURE_MANA_GEM_4);
 	EVOCATION               = m_ai->initSpell(EVOCATION_1);
 	Remove_Lesser_Curse     = m_ai->initSpell(REMOVE_CURSE_MAGE_1);
+	PRESENCE_OF_MIND        = m_ai->initSpell(PRESENCE_OF_MIND_1);
     // RANGED COMBAT
     SHOOT                   = m_ai->initSpell(SHOOT_2);
 
@@ -160,6 +161,8 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
         //m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
+	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
+		return RETURN_CONTINUE;
 	
 	if (m_ai->GetManaPercent() < 30)
 	{
@@ -242,6 +245,23 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				
 			}
 			break;
+		case MAGE_SPEC_ARCANE:
+			// Insert instant threat reducing spell (if a mage has one)
+
+			// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
+			if (newTarget->GetHealthPercent() > 25)
+			{
+				// If elite, do nothing and pray tank gets aggro off you
+				// TODO: Is there an IsElite function? If so, find it and insert.
+				//if (newTarget->IsElite())
+				//    return;
+
+				// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
+				// to worsen the situation for the group. ... So please don't.
+				CastSpell(SHOOT, pTarget);
+				return RETURN_CONTINUE;
+			}
+			break;
 		}
 
     }
@@ -307,7 +327,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			{
 				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
 				{
 					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 					return RETURN_CONTINUE;
@@ -354,41 +374,36 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			break;
 			
         case MAGE_SPEC_ARCANE:
-            if (ARCANE_POWER > 0 && m_ai->In_Reach(pTarget,ARCANE_POWER) && CastSpell(ARCANE_POWER, pTarget))
+			if (COUNTERSPELL > 0 && pTarget->IsNonMeleeSpellCasted(true) && !m_bot->HasSpellCooldown(COUNTERSPELL) && CastSpell(COUNTERSPELL, pTarget))
+				return RETURN_CONTINUE;
+			if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
+			{
+				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+				{
+					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+					return RETURN_CONTINUE;
+				}
+				if (ARCANE_EXPLOSION>0 && m_bot->GetCombatDistance(pTarget, false) <8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
+				{
+					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+					return RETURN_CONTINUE;
+
+				}
+
+			}
+			if (ARCANE_POWER > 0  && !m_bot->HasSpellCooldown(ARCANE_POWER) && CastSpell(ARCANE_POWER, m_bot))
                 return RETURN_CONTINUE;
+			if (PRESENCE_OF_MIND > 0 && !m_bot->HasSpellCooldown(PRESENCE_OF_MIND) && CastSpell(PRESENCE_OF_MIND, m_bot))
+				return RETURN_CONTINUE;
+			if (PYROBLAST > 0 && m_ai->In_Reach(pTarget, PYROBLAST) && m_bot->HasAura(12536) && m_bot->HasAura(12043) && CastSpell(PYROBLAST, pTarget))
+				return RETURN_CONTINUE;
             if (ARCANE_MISSILES > 0 && m_ai->In_Reach(pTarget,ARCANE_MISSILES) && CastSpell(ARCANE_MISSILES, pTarget))
             {
                 m_ai->SetIgnoreUpdateTime(3);
                 return RETURN_CONTINUE;
             }
-			if (m_ai->GetAttackerCount() >= 5)
-			{
-				if (FROST_NOVA > 0 && meleeReach   && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget));
-				//if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget));
-
-				m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				//return RETURN_FINISHED_FIRST_MOVES;
-				if (meleeReach && CastSpell(ARCANE_EXPLOSION, pTarget))
-				{
-					return RETURN_CONTINUE;
-				}
-			}
-            if (COUNTERSPELL > 0 && pTarget->IsNonMeleeSpellCasted(true) && CastSpell(COUNTERSPELL, pTarget))
-                return RETURN_CONTINUE;
-            if (SLOW > 0 && m_ai->In_Reach(pTarget,SLOW) && !pTarget->HasAura(SLOW, EFFECT_INDEX_0) && CastSpell(SLOW, pTarget))
-                return RETURN_CONTINUE;
-            if (ARCANE_BARRAGE > 0 && m_ai->In_Reach(pTarget,ARCANE_BARRAGE) && CastSpell(ARCANE_BARRAGE, pTarget))
-                return RETURN_CONTINUE;
-            if (ARCANE_BLAST > 0 && m_ai->In_Reach(pTarget,ARCANE_BLAST) && CastSpell(ARCANE_BLAST, pTarget))
-                return RETURN_CONTINUE;
-            if (MIRROR_IMAGE > 0 && m_ai->In_Reach(pTarget,MIRROR_IMAGE) && CastSpell(MIRROR_IMAGE))
-                return RETURN_CONTINUE;
-            if (MANA_SHIELD > 0 && m_ai->GetHealthPercent() < 70 && pVictim == m_bot && !m_bot->HasAura(MANA_SHIELD, EFFECT_INDEX_0) && CastSpell(MANA_SHIELD, m_bot))
-                return RETURN_CONTINUE;
-
-            if (FIREBALL > 0 && m_ai->In_Reach(pTarget,FIREBALL))
-                return CastSpell(FIREBALL, pTarget);
-            break;
+			break;
     }
 	
     // No spec due to low level OR no spell found yet

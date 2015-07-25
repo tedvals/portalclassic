@@ -24,6 +24,7 @@ enum
     CLEANSE_SPIRIT_1                = 51886,
     CLEANSING_TOTEM_1               = 8170,
     CURE_TOXINS_1                   = 526,
+	CURE_DISEASE_shaman             = 2870,
     EARTH_ELEMENTAL_TOTEM_1         = 2062,
     EARTH_SHIELD_1                  = 974,
     EARTH_SHOCK_1                   = 8042,
@@ -77,7 +78,7 @@ enum
     WIND_SHEAR_1                    = 57994,
     WINDFURY_TOTEM_1                = 8512,
     WINDFURY_WEAPON_1               = 8232,
-    WRATH_OF_AIR_TOTEM_1            = 3738,
+    WRATH_OF_AIR_TOTEM_1            = 8835,
 
     //Totem Buffs
     STRENGTH_OF_EARTH_EFFECT_1      = 8076,
@@ -128,10 +129,10 @@ private:
     CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
     CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
-
+	//CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = NULL) { return CastSpellNoRanged(nextAction, pTarget); }
     // Heals the target based off its hps
     CombatManeuverReturns HealPlayer(Player* target);
-    Player* GetHealTarget() { return PlayerbotClassAI::GetHealTarget(); }
+    //Player* GetHealTarget() { return PlayerbotClassAI::GetHealTarget(); }
     void DropTotems();
     void CheckShields();
     void UseCooldowns();
@@ -175,6 +176,7 @@ private:
            EARTHLIVING_WEAPON,
            RIPTIDE,
            CURE_TOXINS,
+		   CURE_DISEASE,
            CLEANSE_SPIRIT,
            NATURES_SWIFTNESS_SHAMAN,
            TIDAL_FORCE;

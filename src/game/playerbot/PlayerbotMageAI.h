@@ -108,7 +108,7 @@ private:
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
 	CombatManeuverReturns HealPlayer(Player* target);
 
-    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = NULL) { return CastSpellWand(nextAction, pTarget, SHOOT); }
+	CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = NULL) { return CastSpellWand(nextAction, pTarget, SHOOT); }
 
     static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
 
@@ -126,7 +126,8 @@ private:
 		   CONJURE_MANA_CITRINE,
 		   Conjure_MANA_RUBY,
 		   EVOCATION,
-	       Remove_Lesser_Curse;
+	       Remove_Lesser_Curse,
+		   PRESENCE_OF_MIND;
     // RANGED
     uint32 SHOOT;
 

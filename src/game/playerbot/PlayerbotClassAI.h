@@ -90,6 +90,7 @@ protected:
 
     // first aid
     uint32 RECENTLY_BANDAGED;
+	
 };
 
 #endif

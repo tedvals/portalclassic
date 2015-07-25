@@ -19,6 +19,7 @@ PlayerbotShamanAI::PlayerbotShamanAI(Player* const master, Player* const bot, Pl
     MANA_SPRING_TOTEM        = m_ai->initSpell(MANA_SPRING_TOTEM_1);
     MANA_TIDE_TOTEM          = m_ai->initSpell(MANA_TIDE_TOTEM_1);
     CURE_TOXINS              = m_ai->initSpell(CURE_TOXINS_1);
+	CURE_DISEASE             = m_ai->initSpell(CURE_DISEASE_shaman);
     CLEANSE_SPIRIT           = m_ai->initSpell(CLEANSE_SPIRIT_1);
     NATURES_SWIFTNESS_SHAMAN = m_ai->initSpell(NATURES_SWIFTNESS_SHAMAN_1);
     TIDAL_FORCE              = m_ai->initSpell(TIDAL_FORCE_1);
@@ -181,12 +182,37 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
     uint32 spec = m_bot->GetSpec();
 
     // Make sure healer stays put, don't even melee (aggro) if in range.
-    if (m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED)
-        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
-    else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
-        m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+    //if (m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED)
+       // m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
+    //else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
+    //    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+	UseCooldowns();
+	//Used to determine if this bot is highest on threat
+	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
+	if (newTarget && (((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS)) // TODO: && party has a tank
+	{
+		
+		if (HealPlayer(m_bot) == RETURN_CONTINUE)
+			return RETURN_CONTINUE;
 
-    // Heal
+		// TODO: Heal tank
+
+		// We have aggro, don't need to heal self or tank, wait for aggro to subside
+		//if (m_ai->IsHealer()) // Commented out: not necessary because of below. Leave code here in case below ever changes.
+		//    return RETURN_NO_ACTION_OK;
+
+		// We have no shoot spell; Assume auto-attack is on
+		return RETURN_NO_ACTION_OK;
+	}
+    DropTotems();
+    //CheckShields();
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return RETURN_CONTINUE;
+	}
+    
+	// Heal
     if (m_ai->IsHealer())
     {
         if (HealPlayer(GetHealTarget()) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
@@ -201,9 +227,8 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
     }
 
     // Damage Spells
-    DropTotems();
-    CheckShields();
-    UseCooldowns();
+    
+    
     switch (spec)
     {
         case SHAMAN_SPEC_ENHANCEMENT:
@@ -221,7 +246,7 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return RETURN_CONTINUE;*/
             break;
 
-        case SHAMAN_SPEC_RESTORATION:
+        //case SHAMAN_SPEC_RESTORATION:
             // fall through to elemental
 
         case SHAMAN_SPEC_ELEMENTAL:
@@ -280,12 +305,12 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
     }
 
     // Dispel if necessary
-    if (CURE_TOXINS > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
+	if ((CURE_TOXINS > 0 || CURE_DISEASE > 0 ) && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0)
     {
-        uint32 DISPEL = CLEANSE_SPIRIT > 0 ? CLEANSE_SPIRIT : CURE_TOXINS; 
+        //uint32 DISPEL = CLEANSE_SPIRIT > 0 ? CLEANSE_SPIRIT : CURE_TOXINS; 
         uint32 dispelMask  = GetDispellMask(DISPEL_POISON);
         uint32 dispelMask2  = GetDispellMask(DISPEL_DISEASE);
-        uint32 dispelMask3  = GetDispellMask(DISPEL_CURSE);
+        //uint32 dispelMask3  = GetDispellMask(DISPEL_CURSE);
         Unit::SpellAuraHolderMap const& auras = target->GetSpellAuraHolderMap();
         for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
         {
@@ -294,7 +319,7 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
             {
                 if (holder->GetSpellProto()->Dispel == DISPEL_POISON)
                 {
-                    if (m_ai->CastSpell(DISPEL, *target))
+					if (m_ai->CastSpell(CURE_TOXINS, *target))
                         return RETURN_CONTINUE;
                     return RETURN_NO_ACTION_ERROR;
                 }
@@ -303,12 +328,12 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
             {
                 if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
                 {
-                    if (m_ai->CastSpell(DISPEL, *target))
+					if (m_ai->CastSpell(CURE_DISEASE, *target))
                         return RETURN_CONTINUE;
                     return RETURN_NO_ACTION_ERROR;
                 }
             }
-            else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask3 & (DISPEL == CLEANSE_SPIRIT))
+            /*else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask3 & (DISPEL == CLEANSE_SPIRIT))
             {
                 if (holder->GetSpellProto()->Dispel == DISPEL_CURSE)
                 {
@@ -316,25 +341,38 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
                         return RETURN_CONTINUE;
                     return RETURN_NO_ACTION_ERROR;
                 }
-            }
+            }*/
         }
     }
+
+	uint8 hp = target->GetHealthPercent();
+	uint8 hpSelf = m_ai->GetHealthPercent();
+	uint8 hpmaster = m_master->GetHealthPercent();
 
     // Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
     if (target->GetHealthPercent() >= 80)
         return RETURN_NO_ACTION_OK;
 
     // Technically the best rotation is CHAIN + LHW + LHW, or RIPTIDE + LHW + LHW (proc Tidal Waves then two short LHW), subbing in HW for trouble (bad mana efficiency)
-    if (target->GetHealthPercent() < 30 && HEALING_WAVE > 0 && m_ai->CastSpell(HEALING_WAVE, *target))
-        return RETURN_CONTINUE;
+	if (hp < 30)
+	{
+		// TODO: Use in conjunction with Nature's Swiftness
+		if (NATURES_SWIFTNESS_SHAMAN > 0 && m_ai->In_Reach(target, NATURES_SWIFTNESS_SHAMAN) && !m_bot->HasSpellCooldown(NATURES_SWIFTNESS_SHAMAN) && m_ai->CastSpell(NATURES_SWIFTNESS_SHAMAN,*m_bot))
+			return RETURN_CONTINUE;
+		if (HEALING_WAVE > 0 && m_ai->In_Reach(target, HEALING_WAVE) /*&& (NOURISH == 0 ||   && CastSpell(NATURES_SWIFTNESS)*/ && m_ai->CastSpell(HEALING_WAVE, *target))
+			return RETURN_CONTINUE;
+
+		//if (NOURISH > 0 && m_ai->In_Reach(target,NOURISH) && CastSpell(NOURISH, target))
+		//return RETURN_CONTINUE;
+	}
     if (target->GetHealthPercent() < 50 && LESSER_HEALING_WAVE > 0 && m_ai->CastSpell(LESSER_HEALING_WAVE, *target))
         return RETURN_CONTINUE;
-    if (target->GetHealthPercent() < 60 && RIPTIDE > 0 && !target->HasAura(RIPTIDE, EFFECT_INDEX_0) && m_ai->CastSpell(RIPTIDE, *target))
-        return RETURN_CONTINUE;
-    if (target->GetHealthPercent() < 80 && CHAIN_HEAL > 0 && m_ai->CastSpell(CHAIN_HEAL, *target))
+   // if (target->GetHealthPercent() < 60 && RIPTIDE > 0 && !target->HasAura(RIPTIDE, EFFECT_INDEX_0) && m_ai->CastSpell(RIPTIDE, *target))
+       // return RETURN_CONTINUE;
+    if (target->GetHealthPercent() < 70 && CHAIN_HEAL > 0 && m_ai->CastSpell(CHAIN_HEAL, *target))
         return RETURN_CONTINUE;
 
-    return RETURN_NO_ACTION_UNKNOWN;
+	return RETURN_NO_ACTION_OK;
 } // end HealTarget
 
 void PlayerbotShamanAI::DropTotems()
@@ -373,16 +411,12 @@ void PlayerbotShamanAI::DropTotems()
     {
         if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_NATURE && NATURE_RESISTANCE_TOTEM > 0 && m_ai->CastSpell(NATURE_RESISTANCE_TOTEM))
             return;
-        else if (spec == SHAMAN_SPEC_ENHANCEMENT)
+        else 
         {
             if (WIND_FURY_TOTEM > 0 /*&& !m_bot->HasAura(IMPROVED_ICY_TALONS)*/ && m_ai->CastSpell(WIND_FURY_TOTEM))
             return;
         }
-        else
-        {
-            if (WRATH_OF_AIR_TOTEM > 0 && m_ai->CastSpell(WRATH_OF_AIR_TOTEM))
-            return;
-        }
+        
     }
 
     // Water Totems
@@ -440,10 +474,10 @@ void PlayerbotShamanAI::UseCooldowns()
 
     uint32 spec = m_bot->GetSpec();
 
-    if (BLOODLUST > 0 && (!GetMaster()->HasAura(BLOODLUST, EFFECT_INDEX_0)) && m_ai->CastSpell(BLOODLUST))
-        return;
-    else if (HEROISM > 0 && (!GetMaster()->HasAura(HEROISM, EFFECT_INDEX_0)) && m_ai->CastSpell(HEROISM))
-        return;
+   // if (BLOODLUST > 0 && (!GetMaster()->HasAura(BLOODLUST, EFFECT_INDEX_0)) && m_ai->CastSpell(BLOODLUST))
+     //   return;else
+    // if (HEROISM > 0 && (!GetMaster()->HasAura(HEROISM, EFFECT_INDEX_0)) && m_ai->CastSpell(HEROISM))
+      //  return;
 
     switch(spec)
     {
@@ -462,12 +496,12 @@ void PlayerbotShamanAI::UseCooldowns()
             break;
 
         case SHAMAN_SPEC_RESTORATION:
-            if (MANA_TIDE_TOTEM > 0 && m_ai->GetManaPercent() < 50 && m_ai->CastSpell(MANA_TIDE_TOTEM))
+			if (MANA_TIDE_TOTEM > 0 && m_ai->GetManaPercent() < 20 && !m_bot->HasSpellCooldown(MANA_TIDE_TOTEM) && m_ai->CastSpell(MANA_TIDE_TOTEM))
                 return;
-            else if (NATURES_SWIFTNESS_SHAMAN > 0 && m_ai->CastSpell(NATURES_SWIFTNESS_SHAMAN))
+            /*else if (NATURES_SWIFTNESS_SHAMAN > 0 && m_ai->CastSpell(NATURES_SWIFTNESS_SHAMAN))
                 return;
             else if (TIDAL_FORCE > 0 && m_ai->CastSpell(TIDAL_FORCE))
-                return;
+                return;*/
 
         default:
             break;
@@ -483,7 +517,7 @@ void PlayerbotShamanAI::DoNonCombatActions()
 
     uint32 spec = m_bot->GetSpec();
 
-    CheckShields();
+    //CheckShields();
 /*
        // buff myself weapon
        if (ROCKBITER_WEAPON > 0)
@@ -516,6 +550,11 @@ void PlayerbotShamanAI::DoNonCombatActions()
     if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
         return;
 
+	if (GetDispalTarget() != NULL)
+	{
+		HealPlayer(GetDispalTarget());
+		return;
+	}
     // Heal
     if (m_ai->IsHealer())
     {
