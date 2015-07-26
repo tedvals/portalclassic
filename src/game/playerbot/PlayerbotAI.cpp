@@ -2148,7 +2148,7 @@ void PlayerbotAI::DoNextCombatManeuver()
 void PlayerbotAI::DoCombatMovement()
 {
     if (!m_targetCombat) return;
-
+	uint8 pClass = m_bot->getClass();
     bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
 	
 	if (m_bot->HasAura(21070) || m_bot->HasAura(17742))
@@ -2179,10 +2179,10 @@ void PlayerbotAI::DoCombatMovement()
 
 		}
         // ranged combat - just move within spell range
-        else if (!CanReachWithSpellAttack(m_targetCombat))
+		else if (!CanReachWithSpellAttack(m_targetCombat) && (pClass == CLASS_MAGE | pClass == CLASS_PRIEST | pClass == CLASS_WARLOCK))
         {
             m_bot->GetMotionMaster()->Clear(false);
-            m_bot->GetMotionMaster()->MoveChase(m_targetCombat,15.0f,0.0f);
+            m_bot->GetMotionMaster()->MoveChase(m_targetCombat);
 			//m_bot->GetMotionMaster()->MoveConfused();
 			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 5.0f, 0.0f);
 

@@ -214,7 +214,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVP(Unit *pTarget
     if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
     float fTargetDist = m_bot->GetCombatDistance(pTarget, true);
-
+	
     if (DEFENSIVE_STANCE && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK))
     {
         if (!m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(DEFENSIVE_STANCE))
@@ -296,7 +296,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
     //Unit* pVictim = pTarget->getVictim();
     //float fTargetDist = m_bot->GetCombatDistance(pTarget, true);
     uint32 spec = m_bot->GetSpec();
-
+	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
     //If we have devastate it will replace SA in our rotation
     uint32 SUNDER = (DEVASTATE > 0 ? DEVASTATE : SUNDER_ARMOR);
 
@@ -317,7 +317,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		m_ai->CastSpell(BLOODRAGE); 
 		return RETURN_CONTINUE;
 	}*/
-		if (WAR_STOMP > 0 && !m_bot->HasSpellCooldown(WAR_STOMP) && m_ai->CastSpell(WAR_STOMP, *pTarget))
+	if (WAR_STOMP > 0 && !m_bot->HasSpellCooldown(WAR_STOMP) && meleeReach && m_ai->CastSpell(WAR_STOMP, *pTarget))
 			return RETURN_CONTINUE;
 			
     CheckShouts();
