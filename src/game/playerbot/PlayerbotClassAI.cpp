@@ -360,7 +360,7 @@ Player* PlayerbotClassAI::GetDispalTarget(JOB_TYPE type, bool bMustBeOOC)
 				}
 				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask3)
 				{
-					if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
+					if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC && (holder->GetSpellProto()->Id != 6136 & holder->GetSpellProto()->Id != 7321 & holder->GetSpellProto()->Id != 12484 & holder->GetSpellProto()->Id != 12485 & holder->GetSpellProto()->Id != 12486 & holder->GetSpellProto()->Id != 15850 & holder->GetSpellProto()->Id != 16927 & holder->GetSpellProto()->Id != 18101 & holder->GetSpellProto()->Id != 20005))
 					{
 						bool positive = true;
 						if (!holder->IsPositive())
