@@ -591,7 +591,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 			m_ai->EquipItem(stone);
 			return;
 		}
-		else
+		else if (stone2)
 		{
 			m_ai->EquipItem(stone2);
 			return;
