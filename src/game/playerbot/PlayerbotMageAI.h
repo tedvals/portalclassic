@@ -46,7 +46,7 @@ enum MageSpells
 	CONJURE_MANA_GEM_3              = 10053,
 	CONJURE_MANA_GEM_4              = 10054,
     CONJURE_REFRESHMENT_1           = 42955,
-    CONJURE_WATER_1                 = 10139,
+    CONJURE_WATER_1                 = 5504,
     COUNTERSPELL_1                  = 2139,
     DALARAN_BRILLIANCE_1            = 61316,
     DALARAN_INTELLECT_1             = 61024,

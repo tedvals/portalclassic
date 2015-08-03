@@ -306,7 +306,8 @@ uint32 PlayerbotAI::initSpell(uint32 spellId)
 	for (SpellChainMapNext::const_iterator itr = nextMap.lower_bound(spellId); itr != nextMap.upper_bound(spellId); ++itr)
 	{
 		// Work around buggy chains
-		if (sSpellStore.LookupEntry(spellId)->SpellIconID != sSpellStore.LookupEntry(itr->second)->SpellIconID)
+		if (sSpellStore.LookupEntry(spellId)->SpellIconID != sSpellStore.LookupEntry(itr->second)->SpellIconID && (spellId != 5504 && spellId != 5505 && spellId != 5506 && spellId != 6127 && spellId != 10138 && spellId != 10139 && spellId != 10140)
+			&& (spellId != 587 && spellId != 597 && spellId != 990 && spellId != 6129 && spellId != 8736 && spellId != 10144 && spellId != 10145 && spellId != 28612))
 			continue;
 
 		SpellChainNode const* node = sSpellMgr.GetSpellChainNode(itr->second);
