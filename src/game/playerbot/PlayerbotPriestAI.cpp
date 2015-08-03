@@ -176,9 +176,15 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	//m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && CastSpell(WILL_OF_THE_FORSAKEN, m_bot))
 		return RETURN_CONTINUE;
+	if (m_ai->GetManaPercent() < 10)
+	{
+		Item* manaPosion = m_ai->FindManaPoison();
+		if (manaPosion)
+			m_ai->UseItem(manaPosion);
+	}
 	//Used to determine if this bot is highest on threat
 	Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && (((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS)) // TODO: && party has a tank
+	if (newTarget && (((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS) && m_ai->GetHealthPercent() < 80 ) // TODO: && party has a tank
 	{
 		if (newTarget && FADE > 0 && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
 		{
@@ -195,8 +201,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		// TODO: move to HealTarget code
 		// TODO: you forgot to check for the 'temporarily immune to PW:S because you only just got it cast on you' effect
 		//       - which is different effect from the actual shield.
-		if (m_ai->GetHealthPercent() < 80)
-		{
+		
 			if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(6788))
 			{
 				if (CastSpell(POWER_WORD_SHIELD))
@@ -228,12 +233,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				m_ai->TellMaster("I'm casting desperate prayer.");
 				return RETURN_CONTINUE;
 			}
-		}
-		else
-		{
-			if (HealPlayer(GetHealTarget()))
-				return RETURN_CONTINUE;
-		}
+		
 		// Already healed self or tank. If healer, do nothing else to anger mob.
 		//if (m_ai->IsHealer())
 		//return RETURN_NO_ACTION_OK; // In a sense, mission accomplished.
