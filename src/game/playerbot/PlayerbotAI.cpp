@@ -1832,7 +1832,7 @@ Item* PlayerbotAI::FindConsumable(uint32 displayId) const
 			if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
 				continue;
 
-			if ((pItemProto->Class == ITEM_CLASS_CONSUMABLE || (pItemProto->Class == ITEM_CLASS_ARMOR & pItemProto->SubClass == ITEM_SUBCLASS_CONSUMABLE)) && pItemProto->DisplayInfoID == displayId)
+			if ((pItemProto->Class == ITEM_CLASS_CONSUMABLE || (pItemProto->Class == ITEM_CLASS_ARMOR && pItemProto->SubClass == ITEM_SUBCLASS_CONSUMABLE)) && pItemProto->DisplayInfoID == displayId)
 				return pItem;
 		}
 	}
@@ -1851,7 +1851,7 @@ Item* PlayerbotAI::FindConsumable(uint32 displayId) const
 					if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
 						continue;
 
-					if ((pItemProto->Class == ITEM_CLASS_CONSUMABLE || (pItemProto->Class == ITEM_CLASS_ARMOR & pItemProto->SubClass == ITEM_SUBCLASS_CONSUMABLE)) && pItemProto->DisplayInfoID == displayId)
+					if ((pItemProto->Class == ITEM_CLASS_CONSUMABLE || (pItemProto->Class == ITEM_CLASS_ARMOR && pItemProto->SubClass == ITEM_SUBCLASS_CONSUMABLE)) && pItemProto->DisplayInfoID == displayId)
 						return pItem;
 				}
 			}
@@ -2182,7 +2182,7 @@ void PlayerbotAI::DoCombatMovement()
 
 		}
 		// ranged combat - just move within spell range
-		else if (!CanReachWithSpellAttack(m_targetCombat) && (pClass == CLASS_MAGE | pClass == CLASS_PRIEST | pClass == CLASS_WARLOCK))
+		else if (!CanReachWithSpellAttack(m_targetCombat) && (pClass == CLASS_MAGE || pClass == CLASS_PRIEST || pClass == CLASS_WARLOCK))
 		{
 			m_bot->GetMotionMaster()->Clear(false);
 			m_bot->GetMotionMaster()->MoveChase(m_targetCombat);
