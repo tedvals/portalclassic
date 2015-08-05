@@ -165,7 +165,13 @@ CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuver(Unit *pTarget)
 
     Unit* pVictim = pTarget->getVictim();
     bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
-
+	//use healing posion
+	if (m_ai->GetHealthPercent() < 20)
+	{
+		Item* healingPosion = m_ai->FindHealingPoison;
+		if (healingPosion)
+			m_ai->UseItem(healingPosion);
+	}
     // TODO: make this work better...
     /*if (pVictim)
        {

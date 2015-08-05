@@ -1790,7 +1790,7 @@ Item* PlayerbotAI::FindManaPoison() const
 			if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
 				continue;
 
-			if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 2455 || pItemProto->ItemId == 3385 || pItemProto->ItemId == 3827 || pItemProto->ItemId == 6149 || pItemProto->ItemId == 13443 || pItemProto->ItemId == 13444)
+			if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 2455 || pItemProto->ItemId == 3385 || pItemProto->ItemId == 3827 || pItemProto->ItemId == 6149 || pItemProto->ItemId == 13443 || pItemProto->ItemId == 13444 || pItemProto->ItemId == 18841)
 				&& (!m_bot->HasSpellCooldown(437) && !m_bot->HasSpellCooldown(438) && !m_bot->HasSpellCooldown(2023) && !m_bot->HasSpellCooldown(11903) && !m_bot->HasSpellCooldown(17530) && !m_bot->HasSpellCooldown(17531)))
 				return pItem;
 		}
@@ -1810,8 +1810,50 @@ Item* PlayerbotAI::FindManaPoison() const
 					if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
 						continue;
 
-					if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 2455 || pItemProto->ItemId == 3385 || pItemProto->ItemId == 3827 || pItemProto->ItemId == 6149 || pItemProto->ItemId == 13443 || pItemProto->ItemId == 13444)
+					if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 2455 || pItemProto->ItemId == 3385 || pItemProto->ItemId == 3827 || pItemProto->ItemId == 6149 || pItemProto->ItemId == 13443 || pItemProto->ItemId == 13444 || pItemProto->ItemId == 18841)
 						&& (!m_bot->HasSpellCooldown(437) && !m_bot->HasSpellCooldown(438) && !m_bot->HasSpellCooldown(2023) && !m_bot->HasSpellCooldown(11903) && !m_bot->HasSpellCooldown(17530) && !m_bot->HasSpellCooldown(17531)))
+						return pItem;
+				}
+			}
+	}
+	return NULL;
+}
+
+Item* PlayerbotAI::FindHealingPoison() const
+{
+	// list out items in main backpack
+	for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; slot++)
+	{
+		Item* const pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+		if (pItem)
+		{
+			const ItemPrototype* const pItemProto = pItem->GetProto();
+
+			if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
+				continue;
+
+			if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 13446 || pItemProto->ItemId == 3928 || pItemProto->ItemId == 1710 || pItemProto->ItemId == 929 || pItemProto->ItemId == 858 || pItemProto->ItemId == 118 || pItemProto->ItemId == 18839)
+				&& (!m_bot->HasSpellCooldown(17534) && !m_bot->HasSpellCooldown(4042) && !m_bot->HasSpellCooldown(2024) && !m_bot->HasSpellCooldown(441) && !m_bot->HasSpellCooldown(440) && !m_bot->HasSpellCooldown(439)))
+				return pItem;
+		}
+	}
+	// list out items in other removable backpacks
+	for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
+	{
+		const Bag* const pBag = (Bag *)m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+		if (pBag)
+			for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
+			{
+				Item* const pItem = m_bot->GetItemByPos(bag, slot);
+				if (pItem)
+				{
+					const ItemPrototype* const pItemProto = pItem->GetProto();
+
+					if (!pItemProto || m_bot->CanUseItem(pItemProto) != EQUIP_ERR_OK)
+						continue;
+
+					if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 13446 || pItemProto->ItemId == 3928 || pItemProto->ItemId == 1710 || pItemProto->ItemId == 929 || pItemProto->ItemId == 858 || pItemProto->ItemId == 118 || pItemProto->ItemId == 18839)
+						&& (!m_bot->HasSpellCooldown(17534) && !m_bot->HasSpellCooldown(4042) && !m_bot->HasSpellCooldown(2024) && !m_bot->HasSpellCooldown(441) && !m_bot->HasSpellCooldown(440) && !m_bot->HasSpellCooldown(439)))
 						return pItem;
 				}
 			}

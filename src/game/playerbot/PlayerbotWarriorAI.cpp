@@ -317,6 +317,14 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 m_ai->CastSpell(BLOODRAGE);
 return RETURN_CONTINUE;
 }*/
+	//use healing posion
+	if (m_ai->GetHealthPercent() < 20)
+	{
+		Item* healingPosion = m_ai->FindHealingPoison;
+		if (healingPosion)
+			m_ai->UseItem(healingPosion);
+	}
+
 	if (WAR_STOMP > 0 && !m_bot->HasSpellCooldown(WAR_STOMP) && meleeReach && m_ai->CastSpell(WAR_STOMP, *pTarget))
 		return RETURN_CONTINUE;
 
