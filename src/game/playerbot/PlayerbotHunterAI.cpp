@@ -201,6 +201,14 @@ CombatManeuverReturns PlayerbotHunterAI::DoNextCombatManeuverPVE(Unit *pTarget)
     // check if ranged combat is possible
     bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 
+	//use healing posion
+	if (m_ai->GetHealthPercent() < 20)
+	{
+		Item* healingPosion = m_ai->FindHealingPoison;
+		if (healingPosion)
+			m_ai->UseItem(healingPosion);
+	}
+
     if (meleeReach || !m_has_ammo)
     {
         // switch to melee combat (target in melee range, out of ammo)

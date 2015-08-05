@@ -205,6 +205,15 @@ CombatManeuverReturns PlayerbotPaladinAI::DoNextCombatManeuverPVE(Unit *pTarget)
     else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
         m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 
+	
+	//use mana posion
+	if (m_ai->GetManaPercent() < 10)
+	{
+		Item* manaPosion = m_ai->FindManaPoison();
+		if (manaPosion)
+			m_ai->UseItem(manaPosion);
+	}
+
     // Heal
     if (m_ai->IsHealer())
     {

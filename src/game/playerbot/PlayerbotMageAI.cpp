@@ -198,6 +198,15 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		m_ai->SetIgnoreUpdateTime(8);
 		return RETURN_CONTINUE;
 	}
+
+	//use healing posion
+	if (m_ai->GetHealthPercent() < 20)
+	{
+		Item* healingPosion = m_ai->FindHealingPoison;
+		if (healingPosion)
+			m_ai->UseItem(healingPosion);
+	}
+	//use mana posion
 	if (m_ai->GetManaPercent() < 10)
 	{
 		Item* manaPosion = m_ai->FindManaPoison();

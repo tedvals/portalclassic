@@ -197,6 +197,13 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (m_ai->GetHealthPercent() < 20 && pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE))
 		m_ai->CastPetSpell(SACRIFICE);
 
+	//use healing posion
+	if (m_ai->GetHealthPercent() < 20)
+	{
+		Item* healingPosion = m_ai->FindHealingPoison;
+		if (healingPosion)
+			m_ai->UseItem(healingPosion);
+	}
 	//use mana posion
 	if (m_ai->GetManaPercent() < 10)
 	{

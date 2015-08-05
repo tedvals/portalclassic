@@ -186,6 +186,8 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+	
+	//use mana posion
 	if (m_ai->GetManaPercent() < 10)
 	{
 		Item* manaPosion = m_ai->FindManaPoison();
