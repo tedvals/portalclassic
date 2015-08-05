@@ -320,7 +320,7 @@ return RETURN_CONTINUE;
 	//use healing posion
 	if (m_ai->GetHealthPercent() < 20)
 	{
-		Item* healingPosion = m_ai->FindHealingPoison;
+		Item* healingPosion = m_ai->FindHealingPoison();
 		if (healingPosion)
 			m_ai->UseItem(healingPosion);
 	}
