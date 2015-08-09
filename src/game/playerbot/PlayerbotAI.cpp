@@ -1791,7 +1791,7 @@ Item* PlayerbotAI::FindManaPoison() const
 				continue;
 
 			if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 2455 || pItemProto->ItemId == 3385 || pItemProto->ItemId == 3827 || pItemProto->ItemId == 6149 || pItemProto->ItemId == 13443 || pItemProto->ItemId == 13444 || pItemProto->ItemId == 18841)
-				&& (!m_bot->HasSpellCooldown(437) && !m_bot->HasSpellCooldown(438) && !m_bot->HasSpellCooldown(2023) && !m_bot->HasSpellCooldown(11903) && !m_bot->HasSpellCooldown(17530) && !m_bot->HasSpellCooldown(17531)))
+				&& (!m_bot->HasSpellCooldown(pItemProto->Spells[0].SpellId))/*(!m_bot->HasSpellCooldown(437) && !m_bot->HasSpellCooldown(438) && !m_bot->HasSpellCooldown(2023) && !m_bot->HasSpellCooldown(11903) && !m_bot->HasSpellCooldown(17530) && !m_bot->HasSpellCooldown(17531))*/)
 				return pItem;
 		}
 	}
@@ -1811,7 +1811,7 @@ Item* PlayerbotAI::FindManaPoison() const
 						continue;
 
 					if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 2455 || pItemProto->ItemId == 3385 || pItemProto->ItemId == 3827 || pItemProto->ItemId == 6149 || pItemProto->ItemId == 13443 || pItemProto->ItemId == 13444 || pItemProto->ItemId == 18841)
-						&& (!m_bot->HasSpellCooldown(437) && !m_bot->HasSpellCooldown(438) && !m_bot->HasSpellCooldown(2023) && !m_bot->HasSpellCooldown(11903) && !m_bot->HasSpellCooldown(17530) && !m_bot->HasSpellCooldown(17531)))
+						&& (!m_bot->HasSpellCooldown(pItemProto->Spells[0].SpellId))/*(!m_bot->HasSpellCooldown(437) && !m_bot->HasSpellCooldown(438) && !m_bot->HasSpellCooldown(2023) && !m_bot->HasSpellCooldown(11903) && !m_bot->HasSpellCooldown(17530) && !m_bot->HasSpellCooldown(17531))*/)
 						return pItem;
 				}
 			}
@@ -1833,7 +1833,7 @@ Item* PlayerbotAI::FindHealingPoison() const
 				continue;
 
 			if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 13446 || pItemProto->ItemId == 3928 || pItemProto->ItemId == 1710 || pItemProto->ItemId == 929 || pItemProto->ItemId == 858 || pItemProto->ItemId == 118 || pItemProto->ItemId == 18839)
-				&& (!m_bot->HasSpellCooldown(17534) && !m_bot->HasSpellCooldown(4042) && !m_bot->HasSpellCooldown(2024) && !m_bot->HasSpellCooldown(441) && !m_bot->HasSpellCooldown(440) && !m_bot->HasSpellCooldown(439)))
+				&& (!m_bot->HasSpellCooldown(pItemProto->Spells[0].SpellId))/*(!m_bot->HasSpellCooldown(17534) && !m_bot->HasSpellCooldown(4042) && !m_bot->HasSpellCooldown(2024) && !m_bot->HasSpellCooldown(441) && !m_bot->HasSpellCooldown(440) && !m_bot->HasSpellCooldown(439))*/)
 				return pItem;
 		}
 	}
@@ -1853,7 +1853,7 @@ Item* PlayerbotAI::FindHealingPoison() const
 						continue;
 
 					if (pItemProto->Class == ITEM_CLASS_CONSUMABLE && pItemProto->SubClass == 3 && (pItemProto->ItemId == 13446 || pItemProto->ItemId == 3928 || pItemProto->ItemId == 1710 || pItemProto->ItemId == 929 || pItemProto->ItemId == 858 || pItemProto->ItemId == 118 || pItemProto->ItemId == 18839)
-						&& (!m_bot->HasSpellCooldown(17534) && !m_bot->HasSpellCooldown(4042) && !m_bot->HasSpellCooldown(2024) && !m_bot->HasSpellCooldown(441) && !m_bot->HasSpellCooldown(440) && !m_bot->HasSpellCooldown(439)))
+						&& (!m_bot->HasSpellCooldown(pItemProto->Spells[0].SpellId))/*(!m_bot->HasSpellCooldown(17534) && !m_bot->HasSpellCooldown(4042) && !m_bot->HasSpellCooldown(2024) && !m_bot->HasSpellCooldown(441) && !m_bot->HasSpellCooldown(440) && !m_bot->HasSpellCooldown(439))*/)
 						return pItem;
 				}
 			}
