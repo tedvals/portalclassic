@@ -221,6 +221,53 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 		if (manaPosion)
 			m_ai->UseItem(manaPosion);
 	}
+	//use TRINKET
+	Item *Trinkets1, *Trinkets2;
+	Trinkets1 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET1);
+	Trinkets2 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET2);
+	const ItemPrototype* const pItemProto1 = Trinkets1->GetProto();
+	const ItemPrototype* const pItemProto2 = Trinkets2->GetProto();
+	if ((Trinkets1 || Trinkets2))
+	{
+		for (int32 Index1 = 0; Index1 < MAX_ITEM_PROTO_SPELLS; ++Index1)
+		{
+
+			if (pItemProto1->Spells[Index1].SpellTrigger != 0)
+				continue;
+			if (pItemProto1->Spells[Index1].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto1->Spells[Index1].SpellId)))
+			{
+				if (pItemProto1->ItemId == 11832 && m_ai->GetManaPercent() < 90)
+				{
+					m_ai->UseItem(Trinkets1);
+				}
+				else if (pItemProto1->ItemId == 11819 && m_ai->GetManaPercent() < 80)
+				{
+					m_ai->UseItem(Trinkets1);
+				}
+
+			}
+		}
+		for (int32 Index2 = 0; Index2 < MAX_ITEM_PROTO_SPELLS; ++Index2)
+		{
+
+			if (pItemProto2->Spells[Index2].SpellTrigger != 0)
+				continue;
+			if (pItemProto2->Spells[Index2].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto2->Spells[Index2].SpellId)))
+			{
+				if (pItemProto2->ItemId == 11832 && m_ai->GetManaPercent() < 90)
+				{
+					m_ai->UseItem(Trinkets2);
+				}
+				else if (pItemProto2->ItemId == 11819 && m_ai->GetManaPercent() < 80)
+				{
+					m_ai->UseItem(Trinkets2);
+				}
+
+
+			}
+		}
+	}
+
 	if (m_ai->GetManaPercent() < 10 && INNERVATE > 0 && !m_bot->HasSpellCooldown(INNERVATE) && CastSpell(INNERVATE, m_bot))
 		return RETURN_CONTINUE;
 	if (INSECT_SWARM > 0 && m_ai->In_Reach(pTarget, INSECT_SWARM) && !pTarget->HasAura(INSECT_SWARM, EFFECT_INDEX_0) && CastSpell(INSECT_SWARM, pTarget))
