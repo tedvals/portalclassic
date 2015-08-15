@@ -187,10 +187,11 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Item *Trinkets1, *Trinkets2;
 	Trinkets1 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET1);
 	Trinkets2 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET2);
-	const ItemPrototype* const pItemProto1 = Trinkets1->GetProto();
-	const ItemPrototype* const pItemProto2 = Trinkets2->GetProto();
-	if ((Trinkets1 || Trinkets2))
+
+	if (Trinkets1)
 	{
+		const ItemPrototype* const pItemProto1 = Trinkets1->GetProto();
+
 		for (int32 Index1 = 0; Index1 < MAX_ITEM_PROTO_SPELLS; ++Index1)
 		{
 
@@ -209,6 +210,11 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 			}
 		}
+	}
+
+	if (Trinkets2)
+	{
+		const ItemPrototype* const pItemProto2 = Trinkets2->GetProto();
 		for (int32 Index2 = 0; Index2 < MAX_ITEM_PROTO_SPELLS; ++Index2)
 		{
 
