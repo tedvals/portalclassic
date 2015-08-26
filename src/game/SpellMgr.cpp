@@ -353,6 +353,7 @@ bool IsPassiveSpell(SpellEntry const* spellInfo)
 	case 24158:
 	case 24159:
 	case 24148:
+	case 15345:
 	case 15388:
 	case 15390:
 	case 15393:
