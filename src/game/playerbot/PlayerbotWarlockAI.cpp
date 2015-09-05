@@ -297,6 +297,12 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		return RETURN_CONTINUE;
 	}
 
+	//special tactic
+	if (pTarget->GetEntry() == 14862 && m_ai->GetManaPercent(*pTarget) > 95)
+	{
+		CastSpell(DRAIN_MANA, pTarget);
+		return RETURN_CONTINUE;
+	}
 
 	// Damage Spells
 	switch (spec)

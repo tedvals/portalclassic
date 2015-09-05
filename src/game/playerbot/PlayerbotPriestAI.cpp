@@ -305,6 +305,13 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		//return RETURN_NO_ACTION_OK;
 		//}
 	}
+	
+	//special tactic
+	if (pTarget->GetEntry() == 14862 && m_ai->GetManaPercent(*pTarget) > 95)
+	{
+		CastSpell(MANA_BURN, pTarget);
+		return RETURN_CONTINUE;
+	}
 
 	if (GetDispalTarget() != NULL)
 	{
@@ -501,11 +508,30 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 	uint8 hp = target->GetHealthPercent();
 	uint8 hpSelf = m_ai->GetHealthPercent();
 	uint8 hpmaster = m_master->GetHealthPercent();
+	uint8 ghp = 0;
+
+	//get aoe heal count must in same subgroup because PRAYER_OF_HEALING can only heal in same subgroup
+	if (m_bot->GetGroup())
+	{
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		uint8 subgroup = m_bot->GetSubGroup();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
+			
+			if (!groupMember || !groupMember->isAlive() || groupMember->IsInDuel() || itr->group != subgroup)
+				continue;
+			if ((groupMember->GetMaxHealth()-groupMember->GetHealth()) >1200)
+				ghp++;
+		}
+	}
 
 	if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
 		return RETURN_CONTINUE;
-	if (hp < 50 && hpSelf < 50 && hpmaster < 50 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && CastSpell(PRAYER_OF_HEALING, target))
+	if (ghp >= 3 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && CastSpell(PRAYER_OF_HEALING, target))
+	{
 		return RETURN_CONTINUE;
+	}
 	if (hp >= 90)
 		return RETURN_NO_ACTION_OK;
 	if (hp < 90 && RENEW > 0 && m_ai->In_Reach(target, RENEW) && !target->HasAura(RENEW) && CastSpell(RENEW, target))
