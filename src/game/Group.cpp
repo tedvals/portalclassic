@@ -31,23 +31,9 @@
 #include "MapManager.h"
 #include "MapPersistentStateMgr.h"
 #include "Util.h"
-<<<<<<< HEAD
+
 #include "playerbot/PlayerbotMgr.h"
-#include "LootMgr.h"
 
-#define LOOT_ROLL_TIMEOUT  (1*MINUTE*IN_MILLISECONDS)
-
-//===================================================
-//============== Roll ===============================
-//===================================================
-
-void Roll::targetObjectBuildLink()
-{
-    // called from link()
-    getTarget()->addLootValidatorRef(this);
-}
-=======
->>>>>>> cmangos/master
 
 //===================================================
 //============== Group ==============================

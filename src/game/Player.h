@@ -2069,8 +2069,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         GridReference<Player>& GetGridRef() { return m_gridRef; }
         MapReference& GetMapRef() { return m_mapRef; }
 
-<<<<<<< HEAD
-        bool isAllowedToLoot(Creature* creature);
+
 
 
         // Playerbot mod:
@@ -2083,8 +2082,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetBotDeathTimer() { m_deathTimer = 0; }
         bool IsInDuel() const { return duel && duel->startTime != 0; }
 
-=======
->>>>>>> cmangos/master
+
     protected:
 
         uint32 m_contestedPvPTimer;
