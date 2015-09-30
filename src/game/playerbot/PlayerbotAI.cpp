@@ -4364,18 +4364,28 @@ bool PlayerbotAI::PickPocket(Unit* pTarget)
 	Creature *c = m_bot->GetMap()->GetCreature(markGuid);
 	if (c)
 	{
-		c->loot = new Loot(m_bot, c, LOOT_PICKPOCKETING);
+		Loot*& loot = c->loot;
+		if (!loot)
+			 loot = new Loot(m_bot, c, LOOT_PICKPOCKETING);
+		else
+			 {
+			if (loot->GetLootType() != LOOT_PICKPOCKETING)
+				 {
+				delete loot;
+				loot = new Loot(m_bot, c, LOOT_PICKPOCKETING);
+				}
+			}
 
-		if (c->loot->GetGoldAmount())
+		if (loot->GetGoldAmount())
 		{
-			m_bot->ModifyMoney(c->loot->GetGoldAmount());
+			m_bot->ModifyMoney(loot->GetGoldAmount());
 
 			if (m_mgr->m_confDebugWhisper)
 				 {
 				std::ostringstream out;
 
 				// calculate how much money bot loots
-				uint32 copper = c->loot->GetGoldAmount();
+				uint32 copper = loot->GetGoldAmount();
 				uint32 gold = uint32(copper / 10000);
 				copper -= (gold * 10000);
 				uint32 silver = uint32(copper / 100);
@@ -4392,14 +4402,14 @@ bool PlayerbotAI::PickPocket(Unit* pTarget)
 			}
 			
 				            // send the money to the bot and remove it from the creature
-				c->loot->SendGold(m_bot);
+			loot->SendGold(m_bot);
 		}
 
-		if (!c->loot->AutoStore(m_bot, false, NULL_BAG, NULL_SLOT))
+		if (!loot->AutoStore(m_bot, false, NULL_BAG, NULL_SLOT))
 			 sLog.outDebug("PLAYERBOT Debug: Failed to get loot from pickpocketed NPC");
 
 		// release the loot whatever happened
-		c->loot->Release(m_bot);
+		loot->Release(m_bot);
 	}
 	return false; // ensures that the rogue only pick pockets target once
 }
