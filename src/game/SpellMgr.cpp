@@ -1569,6 +1569,7 @@ void SpellMgr::LoadSpellBonuses()
 
 bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellProcEvent, uint32 EventProcFlag, SpellEntry const* procSpell, uint32 procFlags, uint32 procExtra)
 {
+<<<<<<< HEAD
 	// No extra req need
 	uint32 procEvent_procEx = PROC_EX_NONE;
 
@@ -1625,6 +1626,64 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellPr
 			return true;
 	}
 	return false;
+=======
+    // No extra req need
+    uint32 procEvent_procEx = PROC_EX_NONE;
+
+    // check prockFlags for condition
+    if ((procFlags & EventProcFlag) == 0)
+        return false;
+
+    // Always trigger for this
+    if (EventProcFlag & (PROC_FLAG_KILLED | PROC_FLAG_KILL | PROC_FLAG_ON_TRAP_ACTIVATION))
+        return true;
+
+    if (spellProcEvent)     // Exist event data
+    {
+        // Store extra req
+        procEvent_procEx = spellProcEvent->procEx;
+
+        // For melee triggers
+        if (procSpell == nullptr)
+        {
+            // Check (if set) for school (melee attack have Normal school)
+            if (spellProcEvent->schoolMask && (spellProcEvent->schoolMask & SPELL_SCHOOL_MASK_NORMAL) == 0)
+                return false;
+        }
+        else // For spells need check school/spell family/family mask
+        {
+            // Check (if set) for school
+            if (spellProcEvent->schoolMask && (spellProcEvent->schoolMask & GetSchoolMask(procSpell->School)) == 0)
+                return false;
+
+            // Check (if set) for spellFamilyName
+            if (spellProcEvent->spellFamilyName && (spellProcEvent->spellFamilyName != procSpell->SpellFamilyName))
+                return false;
+        }
+    }
+
+    // Check for extra req (if none) and hit/crit
+    if (procEvent_procEx == PROC_EX_NONE)
+    {
+        // Don't allow proc from periodic heal if no extra requirement is defined
+        if (EventProcFlag & (PROC_FLAG_ON_DO_PERIODIC | PROC_FLAG_ON_TAKE_PERIODIC) && (procExtra & PROC_EX_PERIODIC_POSITIVE))
+            return false;
+
+        // No extra req, so can trigger for (damage/healing present) and hit/crit
+        if (procExtra & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT))
+            return true;
+    }
+    else // all spells hits here only if resist/reflect/immune/evade
+    {
+        // Exist req for PROC_EX_EX_TRIGGER_ALWAYS
+        if (procEvent_procEx & PROC_EX_EX_TRIGGER_ALWAYS)
+            return true;
+        // Check Extra Requirement like (hit/crit/miss/resist/parry/dodge/block/immune/reflect/absorb and other)
+        if (procEvent_procEx & procExtra)
+            return true;
+    }
+    return false;
+>>>>>>> cmnew/master
 }
 
 void SpellMgr::LoadSpellElixirs()
@@ -2273,6 +2332,7 @@ bool SpellMgr::IsSkillBonusSpell(uint32 spellId) const
 
 SpellEntry const* SpellMgr::SelectAuraRankForLevel(SpellEntry const* spellInfo, uint32 level) const
 {
+<<<<<<< HEAD
 	// fast case
 	if (level + 10 >= spellInfo->spellLevel)
 		return spellInfo;
@@ -2316,6 +2376,50 @@ SpellEntry const* SpellMgr::SelectAuraRankForLevel(SpellEntry const* spellInfo, 
 
 	// not found
 	return NULL;
+=======
+    // fast case
+    if (level + 10 >= spellInfo->spellLevel)
+        return spellInfo;
+
+    // ignore selection for passive spells
+    if (IsPassiveSpell(spellInfo))
+        return spellInfo;
+
+    bool needRankSelection = false;
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        // for simple aura in check apply to any non caster based targets, in rank search mode to any explicit targets
+        if (((spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AURA &&
+                (IsExplicitPositiveTarget(spellInfo->EffectImplicitTargetA[i]) ||
+                 IsAreaEffectPossitiveTarget(Targets(spellInfo->EffectImplicitTargetA[i])))) ||
+                spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AREA_AURA_PARTY) &&
+                IsPositiveEffect(spellInfo, SpellEffectIndex(i)))
+        {
+            needRankSelection = true;
+            break;
+        }
+    }
+
+    // not required (rank check more slow so check it here)
+    if (!needRankSelection || GetSpellRank(spellInfo->Id) == 0)
+        return spellInfo;
+
+    for (uint32 nextSpellId = spellInfo->Id; nextSpellId != 0; nextSpellId = GetPrevSpellInChain(nextSpellId))
+    {
+        SpellEntry const* nextSpellInfo = sSpellStore.LookupEntry(nextSpellId);
+        if (!nextSpellInfo)
+            break;
+
+        // if found appropriate level
+        if (level + 10 >= nextSpellInfo->spellLevel)
+            return nextSpellInfo;
+
+        // one rank less then
+    }
+
+    // not found
+    return nullptr;
+>>>>>>> cmnew/master
 }
 
 typedef UNORDERED_MAP<uint32, uint32> AbilitySpellPrevMap;
@@ -3842,6 +3946,7 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
 
 bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32 newArea) const
 {
+<<<<<<< HEAD
 	if (conditionId)
 	{
 		if (!player || !sObjectMgr.IsPlayerMeetToCondition(conditionId, player, player->GetMap(), NULL, CONDITION_FROM_SPELL_AREA))
@@ -3899,6 +4004,65 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
 	}
 
 	return true;
+=======
+    if (conditionId)
+    {
+        if (!player || !sObjectMgr.IsPlayerMeetToCondition(conditionId, player, player->GetMap(), nullptr, CONDITION_FROM_SPELL_AREA))
+            return false;
+    }
+    else                                                    // This block will be removed
+    {
+        if (gender != GENDER_NONE)
+        {
+            // not in expected gender
+            if (!player || gender != player->getGender())
+                return false;
+        }
+
+        if (raceMask)
+        {
+            // not in expected race
+            if (!player || !(raceMask & player->getRaceMask()))
+                return false;
+        }
+
+        if (questStart)
+        {
+            // not in expected required quest state
+            if (!player || (!questStartCanActive || !player->IsActiveQuest(questStart)) && !player->GetQuestRewardStatus(questStart))
+                return false;
+        }
+
+        if (questEnd)
+        {
+            // not in expected forbidden quest state
+            if (!player || player->GetQuestRewardStatus(questEnd))
+                return false;
+        }
+    }
+
+    if (areaId)
+    {
+        // not in expected zone
+        if (newZone != areaId && newArea != areaId)
+            return false;
+    }
+
+    if (auraSpell)
+    {
+        // not have expected aura
+        if (!player)
+            return false;
+        if (auraSpell > 0)
+            // have expected aura
+            return player->HasAura(auraSpell);
+        else
+            // not have expected aura
+            return !player->HasAura(-auraSpell);
+    }
+
+    return true;
+>>>>>>> cmnew/master
 }
 
 void SpellArea::ApplyOrRemoveSpellIfCan(Player* player, uint32 newZone, uint32 newArea, bool onlyApply) const
