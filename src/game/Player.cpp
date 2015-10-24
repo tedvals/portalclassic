@@ -4690,7 +4690,7 @@ float Player::GetMeleeCritFromAgility()
 
 float Player::GetDodgeFromAgility()
 {
-<<<<<<< HEAD
+
 	// from mangos 3462 for 1.12
 	float val = 0, classrate = 0, levelrate = 0;
 
@@ -4722,21 +4722,7 @@ float Player::GetDodgeFromAgility()
 	}
 
 	return val;
-=======
-    // from mangos 3462 for 1.12
-    float val = 0, classrate = 0;
 
-    // dodge
-    if (getClass() == CLASS_HUNTER) classrate = 26.5;
-    else if (getClass() == CLASS_ROGUE)  classrate = 14.5;
-    else classrate = 20;
-    ///*+(Defense*0,04);
-    if (getRace() == RACE_NIGHTELF)
-        val = GetStat(STAT_AGILITY) / classrate + 1;
-    else
-        val = GetStat(STAT_AGILITY) / classrate;
-
-    return val;
 
     /* [-ZERO]
     // Table for base dodge values
@@ -4782,7 +4768,7 @@ float Player::GetDodgeFromAgility()
 
     float dodge=dodge_base[pclass-1] + GetStat(STAT_AGILITY) * dodgeRatio->ratio * crit_to_dodge[pclass-1];
     return dodge*100.0f; */
->>>>>>> cmnew/master
+
 }
 
 float Player::GetSpellCritFromIntellect()
