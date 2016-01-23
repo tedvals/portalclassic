@@ -158,6 +158,7 @@ public:
         ORDERS_RESIST_NATURE        = 0x0200,   // resist nature
         ORDERS_RESIST_FROST         = 0x0400,   // resist frost
         ORDERS_RESIST_SHADOW        = 0x0800,   // resist shadow
+		ORDERS_AOE                  = 0x1000,   // SET AOE MODE
 
         // Cumulative orders
         ORDERS_PRIMARY              = 0x0007,
@@ -343,7 +344,7 @@ public:
     void findNearbyGO();
     // finds nearby creatures, whose UNIT_NPC_FLAGS match the flags specified in item list m_itemIds
     void findNearbyCreature();
-
+	bool IsElite(Unit* pTarget) const;
     void MakeSpellLink(const SpellEntry *sInfo, std::ostringstream &out);
     void MakeWeaponSkillLink(const SpellEntry *sInfo, std::ostringstream &out, uint32 skillid);
 
@@ -492,6 +493,7 @@ public:
     CombatOrderType GetCombatOrder() { return this->m_combatOrder; }
     bool IsTank() { return (m_combatOrder & ORDERS_TANK) ? true : false; }
     bool IsHealer() { return (m_combatOrder & ORDERS_HEAL) ? true : false; }
+	bool CanAoe() { return (m_combatOrder & ORDERS_AOE) ? true : false; }
     bool IsDPS() { return (m_combatOrder & ORDERS_ASSIST) ? true : false; }
     bool Impulse() { srand ( time(nullptr) ); return(((rand() % 100) > 50) ? true : false); }
     void SetMovementOrder(MovementOrderType mo, Unit *followTarget = 0);

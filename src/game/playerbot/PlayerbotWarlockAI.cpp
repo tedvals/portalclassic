@@ -269,7 +269,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && (((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE || ((Creature*)newTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
+	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
 	{
 		if (SOULSHATTER > 0 && shardCount > 0 && !m_bot->HasSpellCooldown(SOULSHATTER))
 			if (CastSpell(SOULSHATTER, m_bot))
@@ -314,21 +314,24 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			CastSpell(SHADOW_BOLT, pTarget);
 			return RETURN_CONTINUE;
 		}
-		if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
+		if (m_ai->CanAoe())
 		{
-			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
-			{
-				CastSpell(HELLFIRE, pTarget);
-				//m_ai->SetIgnoreUpdateTime(8);
-				RETURN_CONTINUE;
-			}
-			if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
-			{
-				m_ai->SetIgnoreUpdateTime(8);
-				return RETURN_CONTINUE;
-			}
+			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
+			//{
+				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+				if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
+				{
+					CastSpell(HELLFIRE, pTarget);
+					//m_ai->SetIgnoreUpdateTime(8);
+					RETURN_CONTINUE;
+				}
+				if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
+				{
+					m_ai->SetIgnoreUpdateTime(8);
+					return RETURN_CONTINUE;
+				}
 
+			//}
 		}
 		if (Amplify_Curse && m_ai->In_Reach(m_bot, Amplify_Curse) && !m_bot->HasAura(Amplify_Curse) && !m_bot->HasSpellCooldown(Amplify_Curse) && CastSpell(Amplify_Curse, m_bot))
 			return RETURN_CONTINUE;
@@ -631,7 +634,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 	Item* const weapon = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
 	if (weapon && weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0)
 	{
-		Item* const stone = m_ai->FindConsumable(SPELLSTONE_DISPLAYID);
+		//Item* const stone = m_ai->FindItem(13603);
 		Item* const stone2 = m_ai->FindConsumable(FIRESTONE_DISPLAYID);
 		uint8 spellstone_count = m_bot->GetItemCount(SPELLSTONE, false, nullptr);
 		if (spellstone_count == 0)
@@ -652,7 +655,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 			else if (CREATE_SPELLSTONE == 0 && CREATE_FIRESTONE > 0 && shardCount > 0 && m_ai->CastSpell(CREATE_FIRESTONE))
 				return;
 		}
-		else if (stone)
+		/*else if (stone)
 		{
 			m_ai->EquipItem(stone);
 			return;
@@ -661,7 +664,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 		{
 			m_ai->EquipItem(stone2);
 			return;
-		}
+		}*/
 	}
 
 

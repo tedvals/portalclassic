@@ -3382,6 +3382,7 @@ void PlayerbotAI::SetCombatOrderByStr(std::string str, Unit *target)
 	else if (str == "resistnature") co = ORDERS_RESIST_NATURE;
 	else if (str == "resistfire")   co = ORDERS_RESIST_FIRE;
 	else if (str == "resistshadow") co = ORDERS_RESIST_SHADOW;
+	else if (str == "aoe")          co = ORDERS_AOE;
 	else                            co = ORDERS_RESET;
 
 	SetCombatOrder(co, target);
@@ -5088,6 +5089,22 @@ void PlayerbotAI::findNearbyCreature()
 		}
 	}
 }
+// Playerbot wrapper to know if a target is elite or not
+// This is used by the AI to switch from one action to another
+// if creature is dangerous (elite)
+bool PlayerbotAI::IsElite(Unit* pTarget) const
+ {
+	if (!pTarget)
+		 return false;
+	
+		if (Creature * pCreature = (Creature*)pTarget)
+		 {
+		return (pCreature->IsElite() || pCreature->IsWorldBoss());
+		}
+	
+		return false;
+	}
+
 
 bool PlayerbotAI::CanStore()
 {
