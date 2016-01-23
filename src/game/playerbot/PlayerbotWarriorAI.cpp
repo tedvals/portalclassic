@@ -411,8 +411,15 @@ return RETURN_CONTINUE;
 			return RETURN_CONTINUE;
 
 	case WARRIOR_SPEC_PROTECTION:
-		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && !newTarget && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
-			return RETURN_CONTINUE;
+		if (!newTarget)
+			 {
+			                // Cast taunt on bot current target if the mob is targeting someone else
+				if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
+				 return RETURN_CONTINUE;
+			                // for some reason bot can't taunt: try to hamstring the target to give some time to the tank and the new victim of the target
+				else if (HAMSTRING > 0 && !pTarget->HasAura(HAMSTRING, EFFECT_INDEX_0) && m_ai->CastSpell(HAMSTRING, *pTarget))
+				 return RETURN_CONTINUE;
+			}
 		// No way to tell if revenge is active (can do but still not complete)
 		if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE) && ((pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_BLOCK) |
 			(pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_BLOCK)) && m_ai->CastSpell(REVENGE, *pTarget))

@@ -122,15 +122,16 @@ CombatManeuverReturns PlayerbotPriestAI::DoFirstCombatManeuverPVE(Unit* /*pTarge
 	if (!m_ai)  return RETURN_NO_ACTION_ERROR;
 	if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
-	/*if (m_ai->IsHealer())
+	if (m_ai->IsHealer())
 	{
 	// TODO: This must be done with toggles: FullHealth allowed
-	Unit* healTarget = GetHealTarget(JOB_TANK);
+	//Unit* healTarget = GetHealTarget(JOB_TANK);
 	// This is cast on a target, which activates (and switches to another target within the group) upon receiving+healing damage
 	// Mana efficient even at one use
-	if (healTarget && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(healTarget,PRAYER_OF_MENDING) && !healTarget->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, healTarget) & RETURN_CONTINUE)
-	return RETURN_FINISHED_FIRST_MOVES;
-	}*/
+	//if (healTarget && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(healTarget,PRAYER_OF_MENDING) && !healTarget->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, healTarget) & RETURN_CONTINUE)
+		if (CastHoTOnTank())
+		return RETURN_FINISHED_FIRST_MOVES;
+	}
 	return RETURN_NO_ACTION_OK;
 }
 
@@ -166,7 +167,8 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 	uint32 spec = m_bot->GetSpec();
-
+	// Define a tank bot will look at
+	Unit* pMainTank = GetHealTarget(JOB_TANK);
 	//if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
 	//    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	// if in melee range OR can't shoot OR have no ranged (wand) equipped
@@ -256,7 +258,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		// TODO: you forgot to check for the 'temporarily immune to PW:S because you only just got it cast on you' effect
 		//       - which is different effect from the actual shield.
 		
-			if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(6788))
+		if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(WEAKNED_SOUL, EFFECT_INDEX_0))
 			{
 				if (CastSpell(POWER_WORD_SHIELD))
 				{
@@ -509,6 +511,18 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 	uint8 hpSelf = m_ai->GetHealthPercent();
 	uint8 hpmaster = m_master->GetHealthPercent();
 	uint8 ghp = 0;
+	// Define a tank bot will look at
+	Unit* pMainTank = GetHealTarget(JOB_TANK);
+
+	// If target is out of range (40 yards) and is a tank: move towards it
+	    // Other classes have to adjust their position to the healers
+		   // TODO: This code should be common to all healers and will probably
+		    // move to a more suitable place
+		if (pMainTank && !m_ai->In_Reach(pMainTank, FLASH_HEAL))
+		 {
+		m_bot->GetMotionMaster()->MoveFollow(target, 39.0f, m_bot->GetOrientation());
+		return RETURN_CONTINUE;
+		}
 
 	//get aoe heal count must in same subgroup because PRAYER_OF_HEALING can only heal in same subgroup
 	if (m_bot->GetGroup())
@@ -540,7 +554,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 		return RETURN_CONTINUE;
 	if (hp < 50 && hp >30 && GREATER_HEAL > 0 && m_ai->In_Reach(target, GREATER_HEAL) && CastSpell(GREATER_HEAL, target))
 		return RETURN_CONTINUE;
-	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !target->HasAura(6788) && CastSpell(POWER_WORD_SHIELD, target))
+	if (hp < 30 && POWER_WORD_SHIELD>0 && m_ai->In_Reach(target, POWER_WORD_SHIELD) && !target->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !target->HasAura(WEAKNED_SOUL, EFFECT_INDEX_0) && CastSpell(POWER_WORD_SHIELD, target))
 		return RETURN_CONTINUE;
 	if (hp < 30 && FLASH_HEAL > 0 && m_ai->In_Reach(target, FLASH_HEAL) && CastSpell(FLASH_HEAL, target))
 		return RETURN_CONTINUE;

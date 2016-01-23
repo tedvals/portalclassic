@@ -70,7 +70,8 @@ enum PriestSpells
     SMITE_1                         = 585,
 	Touch_of_Weakness_1             =2652,
     VAMPIRIC_EMBRACE_1              = 15286,
-    VAMPIRIC_TOUCH_1                = 34914
+    VAMPIRIC_TOUCH_1                = 34914,
+	WEAKNED_SOUL                    = 6788
 };
 //class Player;
 
