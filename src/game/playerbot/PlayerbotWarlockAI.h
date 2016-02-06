@@ -163,7 +163,7 @@ private:
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
 
     CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = nullptr) { return CastSpellWand(nextAction, pTarget, SHOOT); }
-
+	bool CheckCurse(Unit* pTarget);
     void CheckDemon();
 
     // CURSES
@@ -209,7 +209,9 @@ private:
            SHADOWBURN;
 
     // DEMONOLOGY
-    uint32 DEMON_SKIN,
+	uint32 BANISH,
+		   ENSLAVE_DEMON,
+		   DEMON_SKIN,
            DEMON_ARMOR,
            DEMONIC_EMPOWERMENT,
            SHADOW_WARD,
@@ -265,6 +267,7 @@ private:
     uint32 m_lastDemon;      // Last demon entry used for spell initialization
     uint32 m_demonOfChoice;  // Preferred demon entry
     bool m_isTempImp;        // True if imp summoned temporarily until soul shard acquired for demon of choice.
+	uint32 m_CurrentCurse;  // Curse currently active on bot's target
 };
 
 #endif

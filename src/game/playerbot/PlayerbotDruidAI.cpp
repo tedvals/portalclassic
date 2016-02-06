@@ -47,6 +47,7 @@ PlayerbotDruidAI::PlayerbotDruidAI(Player* const master, Player* const bot, Play
 	TREE_OF_LIFE = m_ai->initSpell(TREE_OF_LIFE_1);
 	TRAVEL_FORM = m_ai->initSpell(TRAVEL_FORM_1);
 	// Cat Attack type's
+	SHRED = m_ai->initSpell(SHRED_1);
 	RAKE = m_ai->initSpell(RAKE_1);
 	CLAW = m_ai->initSpell(CLAW_1); // 45
 	COWER = m_ai->initSpell(COWER_1); // 20
@@ -346,7 +347,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 
 		//case DRUID_SPEC_RESTORATION: // There is no Resto DAMAGE rotation. If you insist, go Balance...
 	case DRUID_SPEC_BALANCE:
-		if (m_bot->HasAura(BEAR) || m_bot->HasAura(CAT_FORM) || m_bot->HasAura(TREE_OF_LIFE))
+		if (m_bot->HasAura(BEAR) || m_bot->HasAura(CAT_FORM))
 			return RETURN_NO_ACTION_UNKNOWN; // Didn't shift out of inappropriate form
 
 		return _DoNextPVECombatManeuverSpellDPS(pTarget);
@@ -417,13 +418,6 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverBear(Unit* pTarg
 
 	if (DEMORALIZING_ROAR > 0 && !pTarget->HasAura(DEMORALIZING_ROAR, EFFECT_INDEX_0) && CastSpell(DEMORALIZING_ROAR, pTarget))
 		return RETURN_CONTINUE;
-
-	if (MANGLE_BEAR > 0 && !pTarget->HasAura(MANGLE_BEAR) && CastSpell(MANGLE_BEAR, pTarget))
-		return RETURN_CONTINUE;
-
-	if (LACERATE > 0 && !pTarget->HasAura(LACERATE, EFFECT_INDEX_0) && CastSpell(LACERATE, pTarget))
-		return RETURN_CONTINUE;
-
 	if (MAUL > 0 && CastSpell(MAUL, pTarget))
 		return RETURN_CONTINUE;
 
@@ -452,14 +446,7 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverCat(Unit* pTarge
 	// Attempt to do a finishing move
 	if (m_bot->GetComboPoints() >= 5)
 	{
-		// 25 Energy
-		if (SAVAGE_ROAR > 0 && !m_bot->HasAura(SAVAGE_ROAR))
-		{
-			if (CastSpell(SAVAGE_ROAR, pTarget))
-				return RETURN_CONTINUE;
-		}
-		// 30 Energy
-		else if (RIP > 0 && !pTarget->HasAura(RIP, EFFECT_INDEX_0))
+		if (RIP > 0 && !pTarget->HasAura(RIP, EFFECT_INDEX_0))
 		{
 			if (CastSpell(RIP, pTarget))
 				return RETURN_CONTINUE;
@@ -480,10 +467,6 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverCat(Unit* pTarge
 
 	if (TIGERS_FURY > 0 && !m_bot->HasSpellCooldown(TIGERS_FURY) && CastSpell(TIGERS_FURY))
 		return RETURN_CONTINUE;
-
-	if (MANGLE_CAT > 0 && !pTarget->HasAura(MANGLE_CAT) && CastSpell(MANGLE_CAT))
-		return RETURN_CONTINUE;
-
 	if (RAKE > 0 && !pTarget->HasAura(RAKE) && CastSpell(RAKE, pTarget))
 		return RETURN_CONTINUE;
 
@@ -508,18 +491,6 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverSpellDPS(Unit* p
 
 	if (INSECT_SWARM > 0 && m_ai->In_Reach(pTarget, INSECT_SWARM) && !pTarget->HasAura(INSECT_SWARM, EFFECT_INDEX_0) && CastSpell(INSECT_SWARM, pTarget))
 		return RETURN_CONTINUE;
-
-	// TODO: Doesn't work, I can't seem to nail the aura/effect index that would make this work properly
-	if (ECLIPSE_SOLAR > 0 && WRATH > 0 && m_ai->In_Reach(pTarget, WRATH) && m_bot->HasAura(ECLIPSE_SOLAR) && CastSpell(WRATH, pTarget))
-		return RETURN_CONTINUE;
-
-	// TODO: Doesn't work, I can't seem to nail the aura/effect index that would make this work properly
-	if (ECLIPSE_LUNAR > 0 && m_ai->In_Reach(pTarget, STARFIRE) && STARFIRE > 0 && m_bot->HasAura(ECLIPSE_LUNAR) && CastSpell(STARFIRE, pTarget))
-		return RETURN_CONTINUE;
-
-	if (FORCE_OF_NATURE > 0 && m_ai->In_Reach(pTarget, FORCE_OF_NATURE) && CastSpell(FORCE_OF_NATURE))
-		return RETURN_CONTINUE;
-
 	if (NATURE > 0 && CastSpell(NATURE, pTarget))
 		return RETURN_CONTINUE;
 
@@ -540,12 +511,7 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverHeal()
 {
 	if (!m_ai)  return RETURN_NO_ACTION_ERROR;
 	if (!m_bot) return RETURN_NO_ACTION_ERROR;
-
-	// (un)Shapeshifting is considered one step closer so will return true (and have the bot wait a bit for the GCD)
-	if (TREE_OF_LIFE > 0 && !m_bot->HasAura(TREE_OF_LIFE, EFFECT_INDEX_0))
-		if (CastSpell(TREE_OF_LIFE, m_bot))
-			return RETURN_CONTINUE;
-
+	
 	if (m_bot->HasAura(CAT_FORM, EFFECT_INDEX_0))
 	{
 		m_bot->RemoveAurasDueToSpell(CAT_FORM_1);
@@ -653,12 +619,6 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 	// Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
 	if (hp >= 90)
 		return RETURN_NO_ACTION_OK;
-
-	// Reset form if needed
-	if (!m_bot->HasAura(TREE_OF_LIFE) || TREE_OF_LIFE == 0)
-		GoBuffForm(GetPlayerBot());
-
-
 	if (hp < 45 && hpSelf < 45 && hpmaster < 45 && TRANQUILITY > 0 && !m_bot->HasSpellCooldown(TRANQUILITY) && CastSpell(TRANQUILITY, target))
 	{
 		m_ai->SetIgnoreUpdateTime(10);
@@ -674,13 +634,7 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 			return RETURN_CONTINUE;
 		if (HEALING_TOUCH > 0 && m_ai->In_Reach(target, HEALING_TOUCH) /*&& (NOURISH == 0 ||   && CastSpell(NATURES_SWIFTNESS)*/ && CastSpell(HEALING_TOUCH, target))
 			return RETURN_CONTINUE;
-
-		//if (NOURISH > 0 && m_ai->In_Reach(target,NOURISH) && CastSpell(NOURISH, target))
-		//return RETURN_CONTINUE;
 	}
-
-	// if (hp < 45 && WILD_GROWTH > 0 && m_ai->In_Reach(target,WILD_GROWTH) && !target->HasAura(WILD_GROWTH) && CastSpell(WILD_GROWTH, target))
-	//    return RETURN_CONTINUE;
 
 	if (hp < 40 && SWIFTMEND > 0 && m_ai->In_Reach(target, SWIFTMEND) && (target->HasAura(REJUVENATION) || target->HasAura(REGROWTH)) && !m_bot->HasSpellCooldown(SWIFTMEND) && CastSpell(SWIFTMEND, target))
 		return RETURN_CONTINUE;
@@ -688,8 +642,7 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 	if (hp < 50 && REGROWTH > 0 && m_ai->In_Reach(target, REGROWTH) && !target->HasAura(REGROWTH) && CastSpell(REGROWTH, target))
 		return RETURN_CONTINUE;
 
-	//if (hp < 65 && LIFEBLOOM > 0 && m_ai->In_Reach(target,LIFEBLOOM) && !target->HasAura(LIFEBLOOM) && CastSpell(LIFEBLOOM, target))
-	// return RETURN_CONTINUE;
+	
 
 
 
@@ -771,18 +724,7 @@ uint8 PlayerbotDruidAI::CheckForms()
 	}
 
 	if (spec == DRUID_SPEC_RESTORATION)
-	{
-		if (m_bot->HasAura(TREE_OF_LIFE))
-			return RETURN_OK_NOCHANGE;
-
-		if (!TREE_OF_LIFE)
-			return RETURN_OK_CANNOTSHIFT;
-
-		if (CastSpell(TREE_OF_LIFE))
-			return RETURN_OK_SHIFTING;
-		else
-			return RETURN_FAIL;
-	}
+		return RETURN_OK_CANNOTSHIFT;
 
 	// Unknown Spec
 	return RETURN_FAIL;

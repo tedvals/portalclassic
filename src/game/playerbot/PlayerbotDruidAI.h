@@ -149,7 +149,9 @@ private:
            TRAVEL_FORM;
 
     // druid cat attacks
-    uint32 CLAW,
+    uint32 
+		   SHRED,
+		   CLAW,
            COWER,
            TIGERS_FURY,
            RAKE,

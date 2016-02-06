@@ -10,7 +10,9 @@
 class PlayerbotAI;
 PlayerbotWarriorAI::PlayerbotWarriorAI(Player* const master, Player* const bot, PlayerbotAI* const ai) : PlayerbotClassAI(master, bot, ai)
 {
-	AUTO_SHOT = m_ai->initSpell(AUTO_SHOT_2); // GENERAL
+	SHOOT_BOW = m_ai->initSpell(SHOOT_BOW_1); // GENERAL
+	SHOOT_GUN = m_ai->initSpell(SHOOT_GUN_1); // GENERAL
+	SHOOT_XBOW = m_ai->initSpell(SHOOT_XBOW_1); // GENERAL
 
 	BATTLE_STANCE = m_ai->initSpell(BATTLE_STANCE_1); //ARMS
 	CHARGE = m_ai->initSpell(CHARGE_1); //ARMS
@@ -377,18 +379,14 @@ return RETURN_CONTINUE;
 	case WARRIOR_SPEC_ARMS:
 		// Execute doesn't scale too well with extra rage and uses up *all* rage preventing use of other skills
 		//Haven't found a way to make sudden death work yet, either wrong spell or it needs an effect index(probably)
-		if (EXECUTE > 0 && (pTarget->GetHealthPercent() < 20 || m_bot->HasAura(SUDDEN_DEATH)) && m_ai->GetRageAmount() < 30 && m_ai->CastSpell(EXECUTE, *pTarget))
+		if (EXECUTE > 0 && pTarget->GetHealthPercent() < 20 && m_ai->CastSpell(EXECUTE, *pTarget))
 			return RETURN_CONTINUE;
 		if (REND > 0 && !pTarget->HasAura(REND, EFFECT_INDEX_0) && m_ai->CastSpell(REND, *pTarget))
 			return RETURN_CONTINUE;
 		if (MORTAL_STRIKE > 0 && !m_bot->HasSpellCooldown(MORTAL_STRIKE) && m_ai->CastSpell(MORTAL_STRIKE, *pTarget))
 			return RETURN_CONTINUE;
-		if (SHATTERING_THROW > 0 && !pTarget->HasAura(SHATTERING_THROW, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(SHATTERING_THROW) && m_ai->CastSpell(SHATTERING_THROW, *pTarget))
-			return RETURN_CONTINUE;
-		if (BLADESTORM > 0 && !m_bot->HasSpellCooldown(BLADESTORM) /*&& m_ai->GetAttackerCount() >= 3*/ && m_ai->CastSpell(BLADESTORM, *pTarget))
-			return RETURN_CONTINUE;
 		// No way to tell if overpower is active (yet), however taste for blood works
-		if (OVERPOWER > 0 && m_bot->HasAura(TASTE_FOR_BLOOD) && m_ai->CastSpell(OVERPOWER, *pTarget))
+		if (OVERPOWER > 0 && m_ai->CastSpell(OVERPOWER, *pTarget))
 			return RETURN_CONTINUE;
 		if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
 			return RETURN_CONTINUE;
@@ -405,8 +403,6 @@ return RETURN_CONTINUE;
 			return RETURN_CONTINUE;
 		if (WHIRLWIND > 0 && !m_bot->HasSpellCooldown(WHIRLWIND) && m_ai->CastSpell(WHIRLWIND, *pTarget))
 			return RETURN_CONTINUE;
-		if (SLAM > 0 && m_bot->HasAura(BLOODSURGE, EFFECT_INDEX_0) && m_ai->CastSpell(SLAM, *pTarget))
-			return RETURN_CONTINUE;
 		if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
 			return RETURN_CONTINUE;
 
@@ -416,23 +412,21 @@ return RETURN_CONTINUE;
 			                // Cast taunt on bot current target if the mob is targeting someone else
 				if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
 				 return RETURN_CONTINUE;
-			                // for some reason bot can't taunt: try to hamstring the target to give some time to the tank and the new victim of the target
-				else if (HAMSTRING > 0 && !pTarget->HasAura(HAMSTRING, EFFECT_INDEX_0) && m_ai->CastSpell(HAMSTRING, *pTarget))
+			                // for some reason bot can't taunt: try to CONCUSSION_BLOW the target to give some time to the tank and the new victim of the target
+				else if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
 				 return RETURN_CONTINUE;
 			}
 		// No way to tell if revenge is active (can do but still not complete)
-		if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE) && ((pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_BLOCK) |
+		if (REVENGE > 0 && m_ai->GetRageAmount()>=5 && !m_bot->HasSpellCooldown(REVENGE) && ((pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_BLOCK) |
 			(pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_BLOCK)) && m_ai->CastSpell(REVENGE, *pTarget))
 			return RETURN_CONTINUE;
-		if (DISARM > 0 && !pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
+		if (DISARM > 0 &&  m_ai->GetRageAmount() >= 20 &&!pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
 			return RETURN_CONTINUE;
-		if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+		if (DEMORALIZING_SHOUT > 0 && m_ai->GetRageAmount() >= 10 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
 			return RETURN_CONTINUE;
-		if (DEMORALIZING_SHOUT > 0 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
+		if (SHIELD_BLOCK > 0 && m_ai->GetRageAmount() >= 10 && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(SHIELD_BLOCK) && m_ai->GetHealthPercent() < 80 && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
 			return RETURN_CONTINUE;
-		if (SHIELD_BLOCK > 0 && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(SHIELD_BLOCK) && m_ai->GetHealthPercent() < 80 && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
-			return RETURN_CONTINUE;
-		if (SHIELD_SLAM > 0 && !m_bot->HasSpellCooldown(SHIELD_SLAM) && m_ai->CastSpell(SHIELD_SLAM, *pTarget))
+		if (SHIELD_SLAM > 0 && m_ai->GetRageAmount() >= 20 && !m_bot->HasSpellCooldown(SHIELD_SLAM) && m_ai->CastSpell(SHIELD_SLAM, *pTarget))
 			return RETURN_CONTINUE;
 		if (SUNDER > 0 && m_ai->CastSpell(SUNDER, *pTarget))
 			return RETURN_CONTINUE;
@@ -520,16 +514,10 @@ void PlayerbotWarriorAI::CheckShouts()
 	if (!m_ai)  return;
 	if (!m_bot) return;
 
-	if (m_bot->GetSpec() == WARRIOR_SPEC_PROTECTION && COMMANDING_SHOUT > 0)
-	{
-		if (!m_bot->HasAura(COMMANDING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(COMMANDING_SHOUT))
-			return;
-	}
-	else // Not prot, or prot but no Commanding Shout yet
-	{
+	
 		if (!m_bot->HasAura(BATTLE_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(BATTLE_SHOUT))
 			return;
-	}
+	
 }
 
 void PlayerbotWarriorAI::DoNonCombatActions()
@@ -546,11 +534,7 @@ void PlayerbotWarriorAI::DoNonCombatActions()
 		m_ai->CastSpell(BERSERKER_STANCE);
 	else if (spec == WARRIOR_SPEC_PROTECTION && !m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0))
 		m_ai->CastSpell(DEFENSIVE_STANCE);
-
-	// buff master with VIGILANCE
-	if (VIGILANCE > 0)
-		(!GetMaster()->HasAura(VIGILANCE, EFFECT_INDEX_0) && m_ai->CastSpell(VIGILANCE, *GetMaster()));
-
+		
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
@@ -583,21 +567,50 @@ bool PlayerbotWarriorAI::Pull()
 {
 	if (!m_bot) return false;
 	if (!m_ai)  return false;
+	// In Classic, Warriors had 3 differents spells for shooting with range weapons
+	    // So we need to determine which one to use
+		    // First step: look for the item equiped in range slot
+		Item* pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
+	if (!pItem)
+		 {
+		m_ai->TellMaster("I don't have ranged weapon equiped.");
+		return false;
+		}
+	
+		ItemPrototype const* pProto = pItem->GetProto();
+	if (pProto && pProto->Class == ITEM_CLASS_WEAPON)
+		 {
+		switch (pProto->SubClass)
+			 {
+			case ITEM_SUBCLASS_WEAPON_BOW:
+				SHOOT = SHOOT_BOW;
+				break;
+				case ITEM_SUBCLASS_WEAPON_GUN:
+					SHOOT = SHOOT_GUN;
+					break;
+					case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+						SHOOT = SHOOT_XBOW;
+						break;
+						default:
+							m_ai->TellMaster("Can't pull: equiped range item is neither a gun, bow or crossbow.");
+							return false;
+							}
+		}
+	else
+		 return false;
 
 	if (m_bot->GetCombatDistance(m_ai->GetCurrentTarget(), true) > ATTACK_DISTANCE)
 	{
-		if (!m_ai->In_Range(m_ai->GetCurrentTarget(), AUTO_SHOT))
+		if (!m_ai->In_Reach(m_ai->GetCurrentTarget(), SHOOT))
 		{
 			m_ai->TellMaster("I'm out of range.");
 			return false;
 		}
 
-		// activate auto shot: Reworked to account for AUTO_SHOT being a triggered spell
-		if (AUTO_SHOT && m_ai->GetCurrentSpellId() != AUTO_SHOT)
-		{
-			m_bot->CastSpell(m_ai->GetCurrentTarget(), AUTO_SHOT, true);
-			return true;
-		}
+		// shoot at the target
+		m_bot->CastSpell(m_ai->GetCurrentTarget(), SHOOT, true);
+		m_ai->TellMaster("I'm PULLING %s.", m_ai->GetCurrentTarget()->GetName());
+		return true;
 	}
 	else // target is in melee range
 	{
