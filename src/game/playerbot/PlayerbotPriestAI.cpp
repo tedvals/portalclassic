@@ -61,6 +61,7 @@ PlayerbotPriestAI::PlayerbotPriestAI(Player* const master, Player* const bot, Pl
 	RECENTLY_BANDAGED = 11196; // first aid check
 
 	// racial
+	ELUNES_GRACE = m_ai->initSpell(ELUNES_GRACE_1);
 	ARCANE_TORRENT = m_ai->initSpell(ARCANE_TORRENT_MANA_CLASSES);
 	GIFT_OF_THE_NAARU = m_ai->initSpell(GIFT_OF_THE_NAARU_PRIEST); // draenei
 	STONEFORM = m_ai->initSpell(STONEFORM_ALL); // dwarf
@@ -242,7 +243,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
 	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
 	{
-		if (newTarget && FADE > 0 && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
+		if (FADE > 0 && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
 		{
 			if (CastSpell(FADE, m_bot))
 			{
@@ -290,22 +291,9 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				return RETURN_CONTINUE;
 			}
 		
-		// Already healed self or tank. If healer, do nothing else to anger mob.
-		//if (m_ai->IsHealer())
-		//return RETURN_NO_ACTION_OK; // In a sense, mission accomplished.
-
-		// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
-		//if (newTarget->GetHealthPercent() > 25)
-		//{
-		// If elite, do nothing and pray tank gets aggro off you
-		// TODO: Is there an IsElite function? If so, find it and insert.
-		//if (newTarget->IsElite())
-		//    return;
-
-		// Not an elite. You could insert PSYCHIC SCREAM here but in any PvE situation that's 90-95% likely
-		// to worsen the situation for the group. ... So please don't.
-		//return RETURN_NO_ACTION_OK;
-		//}
+			// Night Elves priest bot can also cast Elune's Grace to improve his/her dodge rating
+			if (ELUNES_GRACE && !m_bot->HasAura(ELUNES_GRACE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ELUNES_GRACE) && CastSpell(ELUNES_GRACE, m_bot))
+				 return RETURN_CONTINUE;
 	}
 	
 	//special tactic

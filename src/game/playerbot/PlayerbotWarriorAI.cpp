@@ -416,10 +416,16 @@ return RETURN_CONTINUE;
 				else if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
 				 return RETURN_CONTINUE;
 			}
-		// No way to tell if revenge is active (can do but still not complete)
-		if (REVENGE > 0 && m_ai->GetRageAmount()>=5 && !m_bot->HasSpellCooldown(REVENGE) && ((pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK) == MELEE_HIT_BLOCK) |
-			(pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_PARRY) | (pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_DODGE) | (pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK) == MELEE_HIT_BLOCK)) && m_ai->CastSpell(REVENGE, *pTarget))
-			return RETURN_CONTINUE;
+		
+		if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE))
+			            {
+						 uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK);
+		uint8 off = pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK);
+		if (base == MELEE_HIT_PARRY || base == MELEE_HIT_DODGE || base == MELEE_HIT_BLOCK || off == MELEE_HIT_PARRY || off == MELEE_HIT_DODGE || off == MELEE_HIT_BLOCK)
+			 if (m_ai->CastSpell(REVENGE, *pTarget))
+			 return RETURN_CONTINUE;
+		
+	}
 		if (DISARM > 0 &&  m_ai->GetRageAmount() >= 20 &&!pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
 			return RETURN_CONTINUE;
 		if (DEMORALIZING_SHOUT > 0 && m_ai->GetRageAmount() >= 10 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
