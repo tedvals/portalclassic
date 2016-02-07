@@ -2113,7 +2113,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
 	}
 
 	m_bot->SetSelectionGuid((m_targetCombat->GetObjectGuid()));
-	SetIgnoreUpdateTime(1);
+	//SetIgnoreUpdateTime(1);
 
 	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		m_bot->SetStandState(UNIT_STAND_STATE_STAND);

@@ -294,6 +294,42 @@ Player* PlayerbotClassAI::GetResurrectionTarget(JOB_TYPE type, bool bMustBeOOC)
 
     return nullptr;
 }
+//get target by job
+Player* PlayerbotClassAI::GetTarget(JOB_TYPE type)
+{
+	if (!m_ai)  return nullptr;
+	if (!m_bot) return nullptr;
+	//if (!m_bot->isAlive() || m_bot->IsInDuel()) return nullptr;
+	//if (bMustBeOOC && m_bot->isInCombat()) return nullptr;
+
+	// First, fill the list of targets
+	if (m_bot->GetGroup())
+	{
+		// define seperately for sorting purposes - DO NOT CHANGE ORDER!
+		std::vector<heal_priority> targets;
+
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
+			if (!groupMember /*|| groupMember->isAlive()*/)
+				continue;
+			JOB_TYPE job = GetTargetJob(groupMember);
+			if (job & type)
+				targets.push_back(heal_priority(groupMember, 0, job));
+		}
+
+		// Sorts according to type: Healers first, tanks next, then master followed by DPS, thanks to the order of the TYPE enum
+		std::sort(targets.begin(), targets.end());
+
+		if (targets.size())
+			return targets.at(0).p;
+	}
+	else if (!m_master->isAlive())
+		return m_master;
+
+	return nullptr;
+}
 
 Player* PlayerbotClassAI::GetDispalTarget(JOB_TYPE type, bool bMustBeOOC)
 {

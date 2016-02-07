@@ -299,7 +299,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 									}
 				
 					}
-			                // if aggroed mob is a demon or an elemental: banish it
+			                // if aggroed mob is a demon or an elemental: banish it (but world boss can't be cc)
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
 				 {
 				if (BANISH && !newTarget->HasAura(BANISH) && CastSpell(BANISH, newTarget))
@@ -315,7 +315,36 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return CastSpell(SHOOT, pTarget);
 		}
 	}
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1)
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
 
+		//world boss can not cc
+		if (pet)
+		{
+			switch (pet->GetEntry())
+			{
+				// taunt the elite and tank it
+			case DEMON_VOIDWALKER:
+				if (TORMENT && !m_ai->IsNeutralized(newTarget1) && m_ai->CastPetSpell(TORMENT, newTarget1))
+					return RETURN_NO_ACTION_OK;
+				// maybe give it some love?
+			case DEMON_SUCCUBUS:
+				if (pCreature1 && pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
+					if (SEDUCTION && !m_ai->IsNeutralized(newTarget1) && m_ai->CastPetSpell(SEDUCTION, newTarget1))
+						return RETURN_NO_ACTION_OK;
+			}
+
+		}
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
+		{
+			if (BANISH && !m_ai->IsNeutralized(newTarget1)&& CastSpell(BANISH, newTarget1))
+				return RETURN_CONTINUE;
+		}
+
+	}
 	// Create soul shard 
 	uint8 freeSpace = m_ai->GetFreeBagSpace();
 	uint8 HPThreshold = (m_ai->IsElite(pTarget) ? 10 : 25);
@@ -366,10 +395,6 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 			//}
 		}
-		//if (Amplify_Curse && m_ai->In_Reach(m_bot, Amplify_Curse) && !m_bot->HasAura(Amplify_Curse) && !m_bot->HasSpellCooldown(Amplify_Curse) && CastSpell(Amplify_Curse, m_bot))
-			//return RETURN_CONTINUE;
-		//if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_THE_ELEMENTS) && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_TONGUES) && !pTarget->HasAura(CURSE_OF_SHADOW) && CastSpell(CURSE_OF_AGONY, pTarget))
-			//return RETURN_CONTINUE;
 		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
 		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))

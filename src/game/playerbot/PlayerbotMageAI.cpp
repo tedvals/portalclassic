@@ -56,6 +56,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
 	EVOCATION = m_ai->initSpell(EVOCATION_1);
 	Remove_Lesser_Curse = m_ai->initSpell(REMOVE_CURSE_MAGE_1);
 	PRESENCE_OF_MIND = m_ai->initSpell(PRESENCE_OF_MIND_1);
+	Polymorph = m_ai->initSpell(Polymorph_1);
 	// RANGED COMBAT
 	SHOOT = m_ai->initSpell(SHOOT_2);
 
@@ -264,25 +265,22 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
+	if (newTarget && m_ai->IsElite(newTarget)) // TODO: && party has a tank
 	{
+		Creature * pCreature = (Creature*)newTarget;
 		switch (spec)
 		{
 		case MAGE_SPEC_FIRE:
-			// Insert instant threat reducing spell (if a mage has one)
-
-			// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
-			if (newTarget->GetHealthPercent() > 25)
+			if (newTarget->GetHealthPercent() > 50)
 			{
-				// If elite, do nothing and pray tank gets aggro off you
-				// TODO: Is there an IsElite function? If so, find it and insert.
-				//if (newTarget->IsElite())
-				//    return;
+				
+				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
+				{
+					if (Polymorph && !m_ai->IsNeutralized(newTarget) && CastSpell(Polymorph, newTarget))
+						return RETURN_CONTINUE;
+				}
 
-				// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
-				// to worsen the situation for the group. ... So please don't.
-				CastSpell(SHOOT, pTarget);
-				return RETURN_CONTINUE;
+				return RETURN_NO_ACTION_OK;
 			}
 			break;
 		case MAGE_SPEC_FROST:
@@ -296,43 +294,53 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
 				return RETURN_CONTINUE;
 
-			if (newTarget->GetHealthPercent() > 25)
+			if (newTarget->GetHealthPercent() > 50)
 			{
-				// If elite, do nothing and pray tank gets aggro off you
-				// TODO: Is there an IsElite function? If so, find it and insert.
+				
+				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
+				{
+					if (Polymorph && !newTarget->HasAura(Polymorph) && CastSpell(Polymorph, newTarget))
+						return RETURN_CONTINUE;
+				}
 
-
-				// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
-				// to worsen the situation for the group. ... So please don't.
-				CastSpell(SHOOT, pTarget);
-				return RETURN_CONTINUE;
+				return RETURN_NO_ACTION_OK;
 
 			}
 			break;
 		case MAGE_SPEC_ARCANE:
-			// Insert instant threat reducing spell (if a mage has one)
-
-			// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
-			if (newTarget->GetHealthPercent() > 25)
+			if (newTarget->GetHealthPercent() > 50)
 			{
-				// If elite, do nothing and pray tank gets aggro off you
-				// TODO: Is there an IsElite function? If so, find it and insert.
-				//if (newTarget->IsElite())
-				//    return;
+				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
+				{
+					if (Polymorph && !newTarget->HasAura(Polymorph) && CastSpell(Polymorph, newTarget))
+						return RETURN_CONTINUE;
+				}
 
-				// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
-				// to worsen the situation for the group. ... So please don't.
-				CastSpell(SHOOT, pTarget);
-				return RETURN_CONTINUE;
+				return RETURN_NO_ACTION_OK;
 			}
 			break;
 		}
 
 	}
+	
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1)
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
+		
+		//world boss can not cc
+				if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
+				{
+					if (Polymorph && !m_ai->IsNeutralized(newTarget1)&&  CastSpell(Polymorph, newTarget1))
+						return RETURN_CONTINUE;
+				}
+				//return RETURN_NO_ACTION_OK;
+				
 
+	}
+	
 	// Disp
-
-
 	if (GetDispalTarget() != NULL)
 	{
 		HealPlayer(GetDispalTarget());

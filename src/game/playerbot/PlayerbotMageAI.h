@@ -84,7 +84,8 @@ enum MageSpells
     SLOW_1                          = 31589,
     SLOW_FALL_1                     = 130,
     SPELLSTEAL_1                    = 30449,
-    SUMMON_WATER_ELEMENTAL_1        = 31687
+    SUMMON_WATER_ELEMENTAL_1        = 31687,
+	Polymorph_1                     = 118
 };
 //class Player;
 
@@ -129,7 +130,8 @@ private:
 		   Conjure_MANA_RUBY,
 		   EVOCATION,
 	       Remove_Lesser_Curse,
-		   PRESENCE_OF_MIND;
+		   PRESENCE_OF_MIND,
+		   Polymorph;
     // RANGED
     uint32 SHOOT;
 
