@@ -294,7 +294,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 							                        // maybe give it some love?
 								case DEMON_SUCCUBUS:
 									if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
-										 if (SEDUCTION && !newTarget->HasAura(SEDUCTION) && m_ai->CastPetSpell(SEDUCTION, newTarget))
+										if (SEDUCTION && !m_ai->IsNeutralized(newTarget) && m_ai->CastPetSpell(SEDUCTION, newTarget))
 										 return RETURN_NO_ACTION_OK;
 									}
 				
@@ -302,10 +302,13 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			                // if aggroed mob is a demon or an elemental: banish it (but world boss can't be cc)
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
 				 {
-				if (BANISH && !newTarget->HasAura(BANISH) && CastSpell(BANISH, newTarget))
+					 if (BANISH && !m_ai->IsNeutralized(newTarget) && CastSpell(BANISH, newTarget))
 					 return RETURN_CONTINUE;
 				}
-			
+				if (FEAR && !m_ai->IsNeutralized(newTarget) && CastSpell(FEAR, newTarget))
+					return RETURN_CONTINUE;
+				if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget) && m_ai->GetHealthPercent() <50 && CastSpell(HOWL_OF_TERROR, newTarget))
+					return RETURN_CONTINUE;
 				return RETURN_NO_ACTION_OK; // do nothing and pray tank gets aggro off you
 			
 		}
@@ -343,7 +346,10 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			if (BANISH && !m_ai->IsNeutralized(newTarget1)&& CastSpell(BANISH, newTarget1))
 				return RETURN_CONTINUE;
 		}
-
+		if (FEAR && !m_ai->IsNeutralized(newTarget1) && CastSpell(FEAR, newTarget1))
+			return RETURN_CONTINUE;
+		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetHealthPercent() <50 && CastSpell(HOWL_OF_TERROR, newTarget1))
+			return RETURN_CONTINUE;
 	}
 	// Create soul shard 
 	uint8 freeSpace = m_ai->GetFreeBagSpace();

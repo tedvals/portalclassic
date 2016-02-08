@@ -299,7 +299,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
-					if (Polymorph && !newTarget->HasAura(Polymorph) && CastSpell(Polymorph, newTarget))
+					if (Polymorph && !m_ai->IsNeutralized(newTarget) && CastSpell(Polymorph, newTarget))
 						return RETURN_CONTINUE;
 				}
 
@@ -312,7 +312,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			{
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
-					if (Polymorph && !newTarget->HasAura(Polymorph) && CastSpell(Polymorph, newTarget))
+					if (Polymorph && !m_ai->IsNeutralized(newTarget) && CastSpell(Polymorph, newTarget))
 						return RETURN_CONTINUE;
 				}
 

@@ -145,6 +145,7 @@ private:
 		MIND_SEAR,
 		SHADOWFORM,
 		VAMPIRIC_EMBRACE,
+		SHACKLE_UNDEAD,
 		Touch_of_Weakness;
     // discipline
     uint32 POWER_WORD_SHIELD,

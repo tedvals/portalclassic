@@ -41,6 +41,7 @@ PlayerbotPriestAI::PlayerbotPriestAI(Player* const master, Player* const bot, Pl
 	SHADOWFORM = m_ai->initSpell(SHADOWFORM_1);
 	Touch_of_Weakness = m_ai->initSpell(Touch_of_Weakness_1);
 	VAMPIRIC_EMBRACE = m_ai->initSpell(VAMPIRIC_EMBRACE_1);
+	SHACKLE_UNDEAD = m_ai->initSpell(SHACKLE_UNDEAD_1);
 
 	// RANGED COMBAT
 	SHOOT = m_ai->initSpell(SHOOT_1);
@@ -177,6 +178,24 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	//&& (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true))
 	//&& !m_ai->IsHealer())
 	//m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+
+	// Dwarves priests will try to buff with Fear Ward
+	if (FEAR_WARD > 0 && !m_bot->HasSpellCooldown(FEAR_WARD))
+		 {
+		        // Buff tank first
+			if (pMainTank)
+			{
+			if (m_ai->In_Reach(pMainTank, FEAR_WARD) && !pMainTank->HasAura(FEAR_WARD, EFFECT_INDEX_0) && CastSpell(FEAR_WARD, pMainTank))
+				 return RETURN_CONTINUE;
+			}
+		        // Else try to buff master
+			else if (GetMaster())
+			 {
+			if (m_ai->In_Reach(GetMaster(), FEAR_WARD) && !GetMaster()->HasAura(FEAR_WARD, EFFECT_INDEX_0) && CastSpell(FEAR_WARD, GetMaster()))
+				 return RETURN_CONTINUE;
+			}
+		}
+
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && CastSpell(WILL_OF_THE_FORSAKEN, m_bot))
 		return RETURN_CONTINUE;
 	if (m_ai->GetManaPercent() < 10)
@@ -243,6 +262,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
 	if (newTarget && m_ai->IsElite(newTarget)) // TODO: && party has a tank
 	{
+		Creature * pCreature = (Creature*)newTarget;
 		if (FADE && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
 		{
 			if (CastSpell(FADE, m_bot))
@@ -261,6 +281,11 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		// Night Elves priest bot can also cast Elune's Grace to improve his/her dodge rating
 		if (ELUNES_GRACE && !m_bot->HasAura(ELUNES_GRACE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ELUNES_GRACE) && CastSpell(ELUNES_GRACE, m_bot))
 			return RETURN_CONTINUE;
+		if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
+		{
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget) && CastSpell(SHACKLE_UNDEAD, newTarget))
+				return RETURN_CONTINUE;
+		}
 		if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(WEAKNED_SOUL, EFFECT_INDEX_0))
 			{
 				if (CastSpell(POWER_WORD_SHIELD))
@@ -296,6 +321,22 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			
 	}
 	
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1)
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
+
+		//world boss can not cc
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
+		{
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget1) && CastSpell(SHACKLE_UNDEAD, newTarget1))
+				return RETURN_CONTINUE;
+		}
+		//return RETURN_NO_ACTION_OK;
+
+
+	}
 	//special tactic
 	/*if (pTarget->GetEntry() == 14862 && m_ai->GetManaPercent(*pTarget) > 95)
 	{

@@ -40,6 +40,7 @@ PlayerbotDruidAI::PlayerbotDruidAI(Player* const master, Player* const bot, Play
 	REMOVE_CURSE = m_ai->initSpell(REMOVE_CURSE_DRUID_1);
 	ABOLISH_POISON = m_ai->initSpell(ABOLISH_POISON_1);
 	NATURES_SWIFTNESS = m_ai->initSpell(NATURES_SWIFTNESS_DRUID_1);
+	HIBERNATE = m_ai->initSpell(HIBERNATE_1);
 	// Druid Forms
 	MOONKIN_FORM = m_ai->initSpell(MOONKIN_FORM_1);
 	DIRE_BEAR_FORM = m_ai->initSpell(DIRE_BEAR_FORM_1);
@@ -285,35 +286,53 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 		return RETURN_CONTINUE;
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
+	if (newTarget && m_ai->IsElite(newTarget)) // TODO: && party has a tank
 	{
 		bool meleeReach1 = m_bot->CanReachWithMeleeAttack(newTarget);
+		Creature * pCreature = (Creature*)newTarget;
+
 		if (WAR_STOMP > 0 && !m_bot->HasSpellCooldown(WAR_STOMP) && meleeReach1 && CastSpell(WAR_STOMP, pTarget))
 			return RETURN_CONTINUE;
-
-		if (HealPlayer(m_bot) == RETURN_CONTINUE)
-			return RETURN_CONTINUE;
-
-
-		        // Aggroed by an elite
-		if (m_ai->IsElite(newTarget))
-		{
-			// protect the bot with barkskin: the increased casting time is meaningless
-			// because bot will then avoid to cast to not angry mob further
-			if (m_ai->IsHealer() || spec == DRUID_SPEC_RESTORATION || spec == DRUID_SPEC_BALANCE)
+    if (m_ai->IsHealer() || spec == DRUID_SPEC_RESTORATION || spec == DRUID_SPEC_BALANCE)
 			{
 				if (BARKSKIN > 0 && !m_bot->HasAura(BARKSKIN, EFFECT_INDEX_0) && CastSpell(BARKSKIN, m_bot))
 					return RETURN_CONTINUE;
-				return RETURN_NO_ACTION_OK;
 			}
-		}
+		
+	if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DRAGONKIN))
+	{
+		if (HIBERNATE && !m_ai->IsNeutralized(newTarget) && CastSpell(HIBERNATE, newTarget))
+			return RETURN_CONTINUE;
 	}
 
+    if (HealPlayer(m_bot) == RETURN_CONTINUE)
+			return RETURN_CONTINUE;
+	return RETURN_NO_ACTION_OK;
+	}
+
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1)
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
+
+		//world boss can not cc
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DRAGONKIN))
+		{
+			if (HIBERNATE && !m_ai->IsNeutralized(newTarget1) && CastSpell(HIBERNATE, newTarget1))
+				return RETURN_CONTINUE;
+		}
+		//return RETURN_NO_ACTION_OK;
+
+
+	}
 	if (GetDispalTarget() != NULL)
 	{
 		HealPlayer(GetDispalTarget());
 		return RETURN_CONTINUE;
 	}
+
+	
 
 	// Heal
 	if (m_ai->IsHealer())

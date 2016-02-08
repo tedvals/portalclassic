@@ -2032,9 +2032,41 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 
 	if (!m_targetCombat)
 		return;
-
+	/*uint32 uSpec = m_bot->GetSpec();
+	switch (m_bot->getClass())
+	{
+	case CLASS_PALADIN:
+		if (uSpec == PALADIN_SPEC_HOLY)
+			m_bot->Attack(m_targetCombat, false);
+		if (uSpec == PALADIN_SPEC_PROTECTION)
+			m_bot->Attack(m_targetCombat, true);
+	case CLASS_DRUID:
+		if (uSpec == DRUID_SPEC_RESTORATION)
+			m_bot->Attack(m_targetCombat, false);
+		// Feral can be used for both Tank or DPS... play it safe and assume tank. If not... he best be good at threat management or he'll ravage the healer's mana
+		else if (uSpec == DRUID_SPEC_FERAL)
+			m_bot->Attack(m_targetCombat, true);
+	case CLASS_PRIEST:
+		// Since Discipline can be used for both healer or DPS assume DPS
+		m_bot->Attack(m_targetCombat, false);
+	case CLASS_SHAMAN:
+		if (uSpec == SHAMAN_SPEC_RESTORATION)
+			m_bot->Attack(m_targetCombat, false);
+	case CLASS_WARRIOR:
+		m_bot->Attack(m_targetCombat, true);
+	case CLASS_MAGE:
+		m_bot->Attack(m_targetCombat, false);
+	case CLASS_WARLOCK:
+		m_bot->Attack(m_targetCombat, false);
+	case CLASS_ROGUE:
+		m_bot->Attack(m_targetCombat, true);
+	case CLASS_HUNTER:
+		m_bot->Attack(m_targetCombat, false);
+	default:
+		m_bot->Attack(m_targetCombat, true);
+	}
+	*/
 	m_bot->Attack(m_targetCombat, false);
-
 	// add thingToAttack to loot list
 	m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
 }
@@ -5108,7 +5140,7 @@ bool PlayerbotAI::IsElite(Unit* pTarget) const
 // Check if bot target has one of the following auras: Sap, Polymorph, Shackle Undead, Banish, Seduction, Freezing Trap, Hibernate
 // This is used by the AI to prevent bots from attacking crowd control targets 
 
-static const uint32 uAurasIds[21] =
+static const uint32 uAurasIds[31] =
 {
 	118, 12824, 12825, 12826,   // polymorph
 		28272, 28271,               // polymorph pig, turtle
@@ -5117,7 +5149,11 @@ static const uint32 uAurasIds[21] =
 		710, 18647,                 // banish
 		6770, 2070, 11297,          // sap
 		3355, 14308, 14309,         // freezing trap (effect auras IDs, not spell IDs)
-		2637, 18657, 18658          // hibernate
+		2637, 18657, 18658,          // hibernate
+		5782,6213,6215,                //fear warlock
+		5484,17928,                    //group fear warlock
+		5246,                           //warrior fear
+		8122,8124,10888,10890           //fear priest
 		 };
 
 bool PlayerbotAI::IsNeutralized(Unit* pTarget)

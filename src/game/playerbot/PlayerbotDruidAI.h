@@ -211,8 +211,8 @@ private:
            REMOVE_CURSE,
            ABOLISH_POISON,
 		   NATURES_SWIFTNESS,
-		   SHOOT;
-
+		   SHOOT,
+	       HIBERNATE;
     // racial
     uint32 ARCANE_TORRENT,
            GIFT_OF_THE_NAARU,
