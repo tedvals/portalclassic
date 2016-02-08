@@ -273,7 +273,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
+	if (newTarget && m_ai->IsElite(newTarget) && !m_ai->CanAoe()) // TODO: && party has a tank
 	{
 		// Have threat, can't quickly lower it. 3 options remain: Stop attacking, lowlevel damage (wand), keep on keeping on.
 		if (newTarget->GetHealthPercent() > 25)

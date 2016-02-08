@@ -265,7 +265,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && m_ai->IsElite(newTarget)) // TODO: && party has a tank
+	if (newTarget && m_ai->IsElite(newTarget) && !m_ai->CanAoe()) // TODO: && party has a tank
 	{
 		Creature * pCreature = (Creature*)newTarget;
 		switch (spec)

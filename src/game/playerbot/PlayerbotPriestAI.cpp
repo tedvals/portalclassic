@@ -241,9 +241,9 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	//Used to determine if this bot is highest on threat
 	Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
+	if (newTarget && m_ai->IsElite(newTarget)) // TODO: && party has a tank
 	{
-		if (FADE > 0 && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
+		if (FADE && !m_bot->HasAura(FADE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FADE))
 		{
 			if (CastSpell(FADE, m_bot))
 			{
@@ -258,7 +258,9 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		// TODO: move to HealTarget code
 		// TODO: you forgot to check for the 'temporarily immune to PW:S because you only just got it cast on you' effect
 		//       - which is different effect from the actual shield.
-		
+		// Night Elves priest bot can also cast Elune's Grace to improve his/her dodge rating
+		if (ELUNES_GRACE && !m_bot->HasAura(ELUNES_GRACE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ELUNES_GRACE) && CastSpell(ELUNES_GRACE, m_bot))
+			return RETURN_CONTINUE;
 		if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(WEAKNED_SOUL, EFFECT_INDEX_0))
 			{
 				if (CastSpell(POWER_WORD_SHIELD))
@@ -291,9 +293,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				return RETURN_CONTINUE;
 			}
 		
-			// Night Elves priest bot can also cast Elune's Grace to improve his/her dodge rating
-			if (ELUNES_GRACE && !m_bot->HasAura(ELUNES_GRACE, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ELUNES_GRACE) && CastSpell(ELUNES_GRACE, m_bot))
-				 return RETURN_CONTINUE;
+			
 	}
 	
 	//special tactic

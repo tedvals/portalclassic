@@ -2033,7 +2033,7 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 	if (!m_targetCombat)
 		return;
 
-	m_bot->Attack(m_targetCombat, true);
+	m_bot->Attack(m_targetCombat, false);
 
 	// add thingToAttack to loot list
 	m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
