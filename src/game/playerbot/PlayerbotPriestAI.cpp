@@ -603,7 +603,7 @@ void PlayerbotPriestAI::DoNonCombatActions()
 	// Buff
 	if (m_bot->GetGroup() && m_ai->HasSpellReagents(PRAYER_OF_FORTITUDE))
 	{
-		if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
+		if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && !m_bot->HasAura(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
 			return;
 
 		if (Buff(&PlayerbotPriestAI::BuffHelper, PRAYER_OF_FORTITUDE) & RETURN_CONTINUE)
