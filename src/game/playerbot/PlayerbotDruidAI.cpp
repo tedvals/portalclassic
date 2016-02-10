@@ -502,7 +502,14 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 	CombatManeuverReturns r = PlayerbotClassAI::HealPlayer(target);
 	if (r != RETURN_NO_ACTION_OK)
 		return r;
-
+	
+	if (REBIRTH && m_ai->In_Reach(target, REBIRTH) && !m_bot->HasSpellCooldown(REBIRTH) && m_ai->CastSpell(REBIRTH, *target))
+	{
+		std::string msg = "Resurrecting ";
+		msg += target->GetName();
+		m_bot->Say(msg, LANG_UNIVERSAL);
+		return RETURN_CONTINUE;
+	}
 	/*if (!target->isAlive())
 	{
 	if (m_bot->isInCombat())
@@ -567,6 +574,22 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 	uint8 hp = target->GetHealthPercent();
 	uint8 hpSelf = m_ai->GetHealthPercent();
 	uint8 hpmaster = m_master->GetHealthPercent();
+	uint8 ghp = 0;
+	//get aoe heal count must in same subgroup because PRAYER_OF_HEALING can only heal in same subgroup
+	if (m_bot->GetGroup())
+	{
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		uint8 subgroup = m_bot->GetSubGroup();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
+
+			if (!groupMember || !groupMember->isAlive() || groupMember->IsInDuel() || itr->group != subgroup)
+				continue;
+			if ((groupMember->GetMaxHealth() - groupMember->GetHealth()) >1200)
+				ghp++;
+		}
+	}
 	// Define a tank bot will look at
 	Unit* pMainTank = GetHealTarget(JOB_TANK);
 	
@@ -583,7 +606,7 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 	// Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
 	if (hp >= 90)
 		return RETURN_NO_ACTION_OK;
-	if (hp < 45 && hpSelf < 45 && hpmaster < 45 && TRANQUILITY > 0 && !m_bot->HasSpellCooldown(TRANQUILITY) && CastSpell(TRANQUILITY, target))
+	if (ghp >=3 && TRANQUILITY > 0 && !m_bot->HasSpellCooldown(TRANQUILITY) && CastSpell(TRANQUILITY, target))
 	{
 		m_ai->SetIgnoreUpdateTime(10);
 		return RETURN_CONTINUE;

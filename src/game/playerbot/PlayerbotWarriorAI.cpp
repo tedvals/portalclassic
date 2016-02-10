@@ -374,11 +374,30 @@ return RETURN_CONTINUE;
 			                // Cast taunt on bot current target if the mob is targeting someone else
 				if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
 				 return RETURN_CONTINUE;
-			                // for some reason bot can't taunt: try to CONCUSSION_BLOW the target to give some time to the tank and the new victim of the target
-				else if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+			    if (CHALLENGING_SHOUT > 0 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
+					return RETURN_CONTINUE;
+				if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
 				 return RETURN_CONTINUE;
+				
 			}
 		
+		// TODO: should behaviour (or treshold) be different between elite and normal mobs? We don't want bots to burn such precious cooldown needlessly 
+		if (m_bot->GetHealthPercent() < 20)
+			 {
+			                // Cast Last Stand first because it has lower cooldown
+				 if (LAST_STAND > 0 && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(LAST_STAND) && m_ai->CastSpell(LAST_STAND, *m_bot))
+				 {
+				m_ai->TellMaster("I'm using LAST STAND");
+				return RETURN_CONTINUE;
+				}
+			                // Cast Shield Wall only if Last Stand is on cooldown and not active
+				if (SHIELD_WALL > 0 && (m_bot->HasSpellCooldown(LAST_STAND) || LAST_STAND == 0) && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasAura(SHIELD_WALL, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_WALL, *m_bot))
+				 {
+				m_ai->TellMaster("I'm using SHIELD WALL");
+				return RETURN_CONTINUE;
+				}
+			}
+
 		if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE))
 			            {
 						 uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK);
