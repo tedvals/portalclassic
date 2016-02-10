@@ -171,6 +171,8 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	uint32 spec = m_bot->GetSpec();
 	// Define a tank bot will look at
 	Unit* pMainTank = GetHealTarget(JOB_TANK);
+	const SpellEntry* const pSpellInfoSHACKLE_UNDEAD = sSpellStore.LookupEntry(SHACKLE_UNDEAD);
+	const SpellEntry* const pSpellInfoSCREAM = sSpellStore.LookupEntry(SCREAM);
 	//if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
 	//    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	// if in melee range OR can't shoot OR have no ranged (wand) equipped
@@ -232,7 +234,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return RETURN_CONTINUE;
 		if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
 		{
-			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget) && CastSpell(SHACKLE_UNDEAD, newTarget))
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD,false) && CastSpell(SHACKLE_UNDEAD, newTarget))
 				return RETURN_CONTINUE;
 		}
 		if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(WEAKNED_SOUL, EFFECT_INDEX_0))
@@ -250,7 +252,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				m_ai->TellMaster("I'm casting RENEW.");
 				return RETURN_CONTINUE;
 			}
-			if (m_ai->GetHealthPercent() < 60 && SCREAM > 0 && !m_bot->HasSpellCooldown(SCREAM) && CastSpell(SCREAM, pTarget))
+			if (m_ai->GetHealthPercent() < 60 && SCREAM > 0 && !m_bot->HasSpellCooldown(SCREAM) && !pCreature->IsImmuneToSpell(pSpellInfoSCREAM, false) && CastSpell(SCREAM, pTarget))
 			{
 				m_ai->TellMaster("I'm casting SCREAM.");
 				return RETURN_CONTINUE;
@@ -279,7 +281,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		//world boss can not cc
 		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
 		{
-			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget1) && CastSpell(SHACKLE_UNDEAD, newTarget1))
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget1) &&  !pCreature1->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD, false) &&CastSpell(SHACKLE_UNDEAD, newTarget1))
 				return RETURN_CONTINUE;
 		}
 		//return RETURN_NO_ACTION_OK;

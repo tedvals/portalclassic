@@ -192,7 +192,8 @@ private:
            HOWL_OF_TERROR,
            FEAR,
 		   Siphon_Life,
-		   Amplify_Curse;
+		   Amplify_Curse,
+		   DEATH_COIL;
 
     // DESTRUCTION
     uint32 SHADOW_BOLT,

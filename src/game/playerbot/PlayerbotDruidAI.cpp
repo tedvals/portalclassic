@@ -189,6 +189,8 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 	//uint32 masterHP = GetMaster()->GetHealth() * 100 / GetMaster()->GetMaxHealth();
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 	uint32 spec = m_bot->GetSpec();
+	const SpellEntry* const pSpellInfoHIBERNATE = sSpellStore.LookupEntry(HIBERNATE);
+
 	if (spec == 0) // default to spellcasting or healing for healer
 		spec = (PlayerbotAI::ORDERS_HEAL & m_ai->GetCombatOrder() ? DRUID_SPEC_RESTORATION : DRUID_SPEC_BALANCE);
 
@@ -251,7 +253,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 		
 	if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DRAGONKIN))
 	{
-		if (HIBERNATE && !m_ai->IsNeutralized(newTarget) && CastSpell(HIBERNATE, newTarget))
+		if (HIBERNATE && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoHIBERNATE, false) && CastSpell(HIBERNATE, newTarget))
 			return RETURN_CONTINUE;
 	}
 
@@ -269,7 +271,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 		//world boss can not cc
 		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DRAGONKIN))
 		{
-			if (HIBERNATE && !m_ai->IsNeutralized(newTarget1) && CastSpell(HIBERNATE, newTarget1))
+			if (HIBERNATE && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoHIBERNATE, false) && CastSpell(HIBERNATE, newTarget1))
 				return RETURN_CONTINUE;
 		}
 		//return RETURN_NO_ACTION_OK;

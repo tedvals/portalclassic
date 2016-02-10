@@ -154,6 +154,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 
 	uint32 spec = m_bot->GetSpec();
+	const SpellEntry* const pSpellInfoPolymorph = sSpellStore.LookupEntry(Polymorph);
 
 	if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
@@ -230,7 +231,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
-					if (Polymorph && !m_ai->IsNeutralized(newTarget) && CastSpell(Polymorph, newTarget))
+					if (Polymorph && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget))
 						return RETURN_CONTINUE;
 				}
 
@@ -253,7 +254,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
-					if (Polymorph && !m_ai->IsNeutralized(newTarget) && CastSpell(Polymorph, newTarget))
+					if (Polymorph && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget))
 						return RETURN_CONTINUE;
 				}
 
@@ -266,7 +267,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			{
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
-					if (Polymorph && !m_ai->IsNeutralized(newTarget) && CastSpell(Polymorph, newTarget))
+					if (Polymorph && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget))
 						return RETURN_CONTINUE;
 				}
 
@@ -283,13 +284,13 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	{
 		Creature * pCreature1 = (Creature*)newTarget1;
 		
-		//world boss can not cc
+		
 				if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
-					if (Polymorph && !m_ai->IsNeutralized(newTarget1)&&  CastSpell(Polymorph, newTarget1))
+					if (Polymorph && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
 						return RETURN_CONTINUE;
 				}
-				//return RETURN_NO_ACTION_OK;
+				
 				
 
 	}

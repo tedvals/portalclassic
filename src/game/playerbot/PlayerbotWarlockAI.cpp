@@ -40,6 +40,7 @@ PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, 
 	FEAR = m_ai->initSpell(FEAR_1);
 	Siphon_Life = m_ai->initSpell(Siphon_Life_1);
 	Amplify_Curse = m_ai->initSpell(Amplify_Curse_1);
+	DEATH_COIL = m_ai->initSpell(DEATH_COIL_WARLOCK_1);
 	// DEMONOLOGY
 	BANISH = m_ai->initSpell(BANISH_1);
 	ENSLAVE_DEMON = m_ai->initSpell(ENSLAVE_DEMON_1);
@@ -171,11 +172,17 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Pet *pet = m_bot->GetPet();
 	uint32 spec = m_bot->GetSpec();
 	uint8 shardCount = m_bot->GetItemCount(SOUL_SHARD, false, nullptr);
+	
+	const SpellEntry* const pSpellInfoFEAR = sSpellStore.LookupEntry(FEAR);
+	const SpellEntry* const pSpellInfoSEDUCTION = sSpellStore.LookupEntry(SEDUCTION);
+	const SpellEntry* const pSpellInfoBANISH = sSpellStore.LookupEntry(BANISH);
+	const SpellEntry* const pSpellInfoHOWL_OF_TERROR = sSpellStore.LookupEntry(HOWL_OF_TERROR);
 
 	//If we have UA it will replace immolate in our rotation
 	uint32 FIRE = (UNSTABLE_AFFLICTION > 0 ? UNSTABLE_AFFLICTION : IMMOLATE);
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
+	
 	//get mana
 	if (pet && DARK_PACT > 0 && pet->GetPower(POWER_MANA) > 100 && m_ai->GetManaPercent() <= 50)
 	{
@@ -185,6 +192,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (LIFE_TAP && m_ai->GetManaPercent() <= 30 && m_ai->GetHealthPercent() > 80)
 		if (m_ai->CastSpell(LIFE_TAP, *m_bot))
 			return RETURN_CONTINUE;
+	
 	// Voidwalker is near death - sacrifice it for a shield
 	if (pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE) && pet->GetHealthPercent() < 10)
 		m_ai->CastPetSpell(SACRIFICE);
@@ -196,7 +204,6 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (healthStone)
 			m_ai->UseItem(healthStone);
 	}
-
 
 	// Voidwalker sacrifice gives shield - but you lose the pet (and it's DPS/tank) - use only as last resort for your own health!
 	if (m_ai->GetHealthPercent() < 20 && pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE))
@@ -239,18 +246,19 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				            {
 				                // let warlock pet handle it to win some time
 				Creature * pCreature = (Creature*)newTarget;
+				
 			if (pet)
 				{
 				switch (pet->GetEntry())
 					 {
 					                        // taunt the elite and tank it
 						case DEMON_VOIDWALKER:
-							if (TORMENT && m_ai->CastPetSpell(TORMENT, newTarget))
+							if (TORMENT && !m_bot->HasSpellCooldown(TORMENT) && m_ai->CastPetSpell(TORMENT, newTarget))
 								 return RETURN_NO_ACTION_OK;
 							                        // maybe give it some love?
 								case DEMON_SUCCUBUS:
 									if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
-										if (SEDUCTION && !m_ai->IsNeutralized(newTarget) && m_ai->CastPetSpell(SEDUCTION, newTarget))
+										if (SEDUCTION && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoSEDUCTION, false) && m_ai->CastPetSpell(SEDUCTION, newTarget))
 										 return RETURN_NO_ACTION_OK;
 									}
 				
@@ -258,12 +266,14 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			                // if aggroed mob is a demon or an elemental: banish it (but world boss can't be cc)
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
 				 {
-					 if (BANISH && !m_ai->IsNeutralized(newTarget) && CastSpell(BANISH, newTarget))
+					 if (BANISH && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoBANISH, false) && CastSpell(BANISH, newTarget))
 					 return RETURN_CONTINUE;
 				}
-				if (FEAR && !m_ai->IsNeutralized(newTarget) && CastSpell(FEAR, newTarget))
+				if (FEAR && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoFEAR, false) && CastSpell(FEAR, newTarget))
 					return RETURN_CONTINUE;
-				if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget) && m_ai->GetHealthPercent() <50 && CastSpell(HOWL_OF_TERROR, newTarget))
+				if (DEATH_COIL && !m_bot->HasSpellCooldown(DEATH_COIL) && CastSpell(DEATH_COIL, newTarget))
+					return RETURN_CONTINUE;
+				if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget) && m_ai->GetHealthPercent() <50 && !pCreature->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget))
 					return RETURN_CONTINUE;
 				return RETURN_NO_ACTION_OK; // do nothing and pray tank gets aggro off you
 			
@@ -292,19 +302,21 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				// maybe give it some love?
 			case DEMON_SUCCUBUS:
 				if (pCreature1 && pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
-					if (SEDUCTION && !m_ai->IsNeutralized(newTarget1) && m_ai->CastPetSpell(SEDUCTION, newTarget1))
+					if (SEDUCTION && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoSEDUCTION, false) && m_ai->CastPetSpell(SEDUCTION, newTarget1))
 						return RETURN_NO_ACTION_OK;
 			}
 
 		}
 		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
 		{
-			if (BANISH && !m_ai->IsNeutralized(newTarget1)&& CastSpell(BANISH, newTarget1))
+			if (BANISH && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoBANISH, false) && CastSpell(BANISH, newTarget1))
 				return RETURN_CONTINUE;
 		}
-		if (FEAR && !m_ai->IsNeutralized(newTarget1) && CastSpell(FEAR, newTarget1))
+		if (FEAR && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoFEAR, false) && CastSpell(FEAR, newTarget1))
 			return RETURN_CONTINUE;
-		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetHealthPercent() <50 && CastSpell(HOWL_OF_TERROR, newTarget1))
+		if (DEATH_COIL && !m_bot->HasSpellCooldown(DEATH_COIL) && CastSpell(DEATH_COIL, newTarget1))
+			return RETURN_CONTINUE;
+		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetHealthPercent() <50 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
 			return RETURN_CONTINUE;
 	}
 	// Create soul shard 
