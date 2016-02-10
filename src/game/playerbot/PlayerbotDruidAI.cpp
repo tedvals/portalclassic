@@ -502,13 +502,16 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 	CombatManeuverReturns r = PlayerbotClassAI::HealPlayer(target);
 	if (r != RETURN_NO_ACTION_OK)
 		return r;
-	
+	if (!target->isAlive())
+	{ 
 	if (REBIRTH && m_ai->In_Reach(target, REBIRTH) && !m_bot->HasSpellCooldown(REBIRTH) && m_ai->CastSpell(REBIRTH, *target))
 	{
 		std::string msg = "Resurrecting ";
 		msg += target->GetName();
 		m_bot->Say(msg, LANG_UNIVERSAL);
 		return RETURN_CONTINUE;
+	}
+	return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
 	}
 	/*if (!target->isAlive())
 	{
