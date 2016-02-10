@@ -334,45 +334,7 @@ return RETURN_CONTINUE;
 
 	CheckShouts();
 
-	//use TRINKET
-	Item *Trinkets1, *Trinkets2;
-	Trinkets1 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET1);
-	Trinkets2 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET2);
-
-	if (Trinkets1)
-	{
-		const ItemPrototype* const pItemProto1 = Trinkets1->GetProto();
-
-		for (int32 Index1 = 0; Index1 < MAX_ITEM_PROTO_SPELLS; ++Index1)
-		{
-
-			if (pItemProto1->Spells[Index1].SpellTrigger != 0)
-				continue;
-			if (pItemProto1->Spells[Index1].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto1->Spells[Index1].SpellId)))
-			{
-				if (pItemProto1->ItemId == 833 && m_ai->GetHealthPercent() < 60)
-					m_ai->UseItem(Trinkets1);
-
-			}
-		}
-	}
-	if (Trinkets2)
-	{
-		const ItemPrototype* const pItemProto2 = Trinkets2->GetProto();
-		for (int32 Index2 = 0; Index2 < MAX_ITEM_PROTO_SPELLS; ++Index2)
-		{
-
-			if (pItemProto2->Spells[Index2].SpellTrigger != 0)
-				continue;
-			if (pItemProto2->Spells[Index2].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto2->Spells[Index2].SpellId)))
-			{
-				if (pItemProto2->ItemId == 833 && m_ai->GetHealthPercent() < 60)
-					m_ai->UseItem(Trinkets2);
-
-
-			}
-		}
-	}
+	usetrinkets();
 
 	switch (spec)
 	{

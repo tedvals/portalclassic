@@ -49,7 +49,7 @@ public:
     virtual void DoNonCombatActions();
 	
     bool EatDrinkBandage(bool bMana = true, unsigned char foodPercent = 50, unsigned char drinkPercent = 50, unsigned char bandagePercent = 70);
-
+	void usetrinkets();
     // Utilities
     Player* GetMaster () { return m_master; }
     Player* GetPlayerBot() { return m_bot; }
@@ -77,6 +77,8 @@ protected:
 	Player* GetDispalTarget(JOB_TYPE type = JOB_ALL, bool bMustBeOOC = true);
     JOB_TYPE GetTargetJob(Player* target);
 
+
+	
     // These values are used in GetHealTarget and can be overridden per class (to accomodate healing spell health checks)
     uint8 m_MinHealthPercentTank;
     uint8 m_MinHealthPercentHealer;
