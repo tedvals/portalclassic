@@ -464,7 +464,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 {
 
 	Player* master = GetMaster();
-
+	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot || !master)
 		return;
 

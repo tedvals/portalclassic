@@ -344,7 +344,7 @@ void PlayerbotRogueAI::DoNonCombatActions()
 {
     if (!m_ai)  return;
     if (!m_bot) return;
-
+	m_bot->RemoveAllSpellCooldown();
     // remove stealth
     if (m_bot->HasAura(STEALTH))
         m_bot->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);

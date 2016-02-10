@@ -672,7 +672,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 
 	if (!m_ai)  return;
 	if (!m_bot) return;
-
+	m_bot->RemoveAllSpellCooldown();
 	//uint32 spec = m_bot->GetSpec();
 	Pet *pet = m_bot->GetPet();
 

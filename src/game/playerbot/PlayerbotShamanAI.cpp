@@ -525,7 +525,7 @@ void PlayerbotShamanAI::DoNonCombatActions()
 {
 	if (!m_ai)   return;
 	if (!m_bot)  return;
-
+	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
 	uint32 spec = m_bot->GetSpec();

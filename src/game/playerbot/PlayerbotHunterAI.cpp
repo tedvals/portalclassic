@@ -311,7 +311,7 @@ void PlayerbotHunterAI::DoNonCombatActions()
 {
     if (!m_ai)  return;
     if (!m_bot) return;
-
+	m_bot->RemoveAllSpellCooldown();
     if (!m_rangedCombat || m_ai->GetCombatStyle() == PlayerbotAI::COMBAT_MELEE)
     {
         m_rangedCombat = true;

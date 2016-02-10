@@ -492,7 +492,7 @@ void PlayerbotWarriorAI::DoNonCombatActions()
 {
 	if (!m_ai)  return;
 	if (!m_bot) return;
-
+	m_bot->RemoveAllSpellCooldown();
 	uint32 spec = m_bot->GetSpec();
 
 	//Stance Check

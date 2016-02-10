@@ -735,7 +735,7 @@ void PlayerbotDruidAI::DoNonCombatActions()
 {
 	if (!m_ai)   return;
 	if (!m_bot)  return;
-
+	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
 	// Revive
