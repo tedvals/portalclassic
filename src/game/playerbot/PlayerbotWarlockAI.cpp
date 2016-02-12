@@ -785,7 +785,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 	Item* const offweapon = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
 	if (weapon && !offweapon && weapon->GetProto()->SubClass != ITEM_SUBCLASS_WEAPON_STAFF && weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0)
 	{
-		//Item* const stone = m_ai->FindItem(13603);
+		Item* const stone = m_ai->FindItem(13603);
 		Item* const stone2 = m_ai->FindConsumable(FIRESTONE_DISPLAYID);
 		uint8 spellstone_count = m_bot->GetItemCount(SPELLSTONE, false, nullptr);
 		if (spellstone_count == 0)
@@ -806,7 +806,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 			else if (CREATE_SPELLSTONE == 0 && CREATE_FIRESTONE > 0 && shardCount > 0 && m_ai->CastSpell(CREATE_FIRESTONE))
 				return;
 		}
-		/*else if (stone)
+		else if (stone)
 		{
 			m_ai->EquipItem(stone);
 			return;
@@ -815,7 +815,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 		{
 			m_ai->EquipItem(stone2);
 			return;
-		}*/
+		}
 	}
 
 

@@ -173,8 +173,8 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Unit* pMainTank = GetHealTarget(JOB_TANK);
 	const SpellEntry* const pSpellInfoSHACKLE_UNDEAD = sSpellStore.LookupEntry(SHACKLE_UNDEAD);
 	const SpellEntry* const pSpellInfoSCREAM = sSpellStore.LookupEntry(SCREAM);
-	//if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
-	//    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
+	if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
+	    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	// if in melee range OR can't shoot OR have no ranged (wand) equipped
 	//else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE 
 	//&& (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true))
@@ -520,7 +520,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 		}
 	}
 
-	if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
+	if (INNER_FOCUS > 0 && !m_bot->HasSpellCooldown(INNER_FOCUS) && !m_bot->HasAura(INNER_FOCUS) && CastSpell(INNER_FOCUS, m_bot))
 		return RETURN_CONTINUE;
 	if (ghp >= 3 && PRAYER_OF_HEALING > 0 && m_ai->In_Reach(target, PRAYER_OF_HEALING) && CastSpell(PRAYER_OF_HEALING, target))
 	{

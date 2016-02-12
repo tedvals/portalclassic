@@ -374,7 +374,7 @@ return RETURN_CONTINUE;
 			                // Cast taunt on bot current target if the mob is targeting someone else
 				if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
 				 return RETURN_CONTINUE;
-			    if (CHALLENGING_SHOUT > 0 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
+			    if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount()>=2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
 					return RETURN_CONTINUE;
 				if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
 				 return RETURN_CONTINUE;
@@ -543,7 +543,7 @@ bool PlayerbotWarriorAI::CanPull()
 		//    m_ai->TellMaster("I'm out of range.");
 		//    return false;
 		// }
-		// return true;
+		return true;
 	}
 
 	return false;
