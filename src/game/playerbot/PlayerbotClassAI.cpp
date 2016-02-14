@@ -580,23 +580,43 @@ void PlayerbotClassAI::usetrinkets()
 				continue;
 			if (pItemProto1->Spells[Index1].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto1->Spells[Index1].SpellId)))
 			{
-				if (pItemProto1->ItemId == 11832 && m_ai->GetManaPercent() < 90)
+				switch (pItemProto1->ItemId)
+				{
+				case 11832:
+					if (m_ai->GetManaPercent() < 90)
 				{
 					m_ai->UseItem(Trinkets1);
 					
 				}
-				else if (pItemProto1->ItemId == 11819 && m_ai->GetManaPercent() < 80)
+					break;
+				case 11819:
+					if ( m_ai->GetManaPercent() < 80)
+					{
+						m_ai->UseItem(Trinkets1);
+					}
+					break;
+				case 833:
+                    if (m_ai->GetHealthPercent() < 60)
 				{
 					m_ai->UseItem(Trinkets1);
 				}
-				else if (pItemProto1->ItemId == 833 && m_ai->GetHealthPercent() < 60)
-				{
+					break;
+				case 19024:
+					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets1);
+					}
+					break;
+				default:
 					m_ai->UseItem(Trinkets1);
+					break;
 				}
-				else
-				{
-					m_ai->UseItem(Trinkets1);
-				}
+				
+				
+				
+				
+					
+				
 			}
 		}
 	}
@@ -610,22 +630,36 @@ void PlayerbotClassAI::usetrinkets()
 				continue;
 			if (pItemProto2->Spells[Index2].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto2->Spells[Index2].SpellId)))
 			{
-				if (pItemProto2->ItemId == 11832 && m_ai->GetManaPercent() < 90)
+				switch (pItemProto2->ItemId)
 				{
+				case 11832:
+					if (m_ai->GetManaPercent() < 90)
+					{
+						m_ai->UseItem(Trinkets2);
+
+					}
+					break;
+				case 11819:
+					if (m_ai->GetManaPercent() < 80)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				case 833:
+					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				case 19024:
+					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				default:
 					m_ai->UseItem(Trinkets2);
-					
-				}
-				else if (pItemProto2->ItemId == 11819 && m_ai->GetManaPercent() < 80)
-				{
-					m_ai->UseItem(Trinkets2);
-				}
-				else if (pItemProto2->ItemId == 833 && m_ai->GetHealthPercent() < 60)
-				{
-					m_ai->UseItem(Trinkets2);
-				}
-				else
-				{
-					m_ai->UseItem(Trinkets2);
+					break;
 				}
 			}
 		}
