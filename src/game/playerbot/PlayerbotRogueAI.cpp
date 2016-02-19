@@ -100,7 +100,7 @@ CombatManeuverReturns PlayerbotRogueAI::DoFirstCombatManeuverPVE(Unit *pTarget)
 {
     if (STEALTH > 0 && !m_bot->HasAura(STEALTH, EFFECT_INDEX_0) && m_ai->CastSpell(STEALTH, *m_bot))
     {
-        m_bot->addUnitState(UNIT_STAT_CHASE); // ensure that the bot does not use MoveChase(), as this doesn't seem to work with STEALTH
+        
         return RETURN_FINISHED_FIRST_MOVES; // DoNextCombatManeuver handles active stealth
     }
     else if (m_bot->HasAura(STEALTH, EFFECT_INDEX_0))
@@ -118,7 +118,7 @@ CombatManeuverReturns PlayerbotRogueAI::DoFirstCombatManeuverPVP(Unit *pTarget)
 {
     if (STEALTH > 0 && !m_bot->HasAura(STEALTH, EFFECT_INDEX_0) && m_ai->CastSpell(STEALTH, *m_bot))
     {
-        m_bot->addUnitState(UNIT_STAT_CHASE); // ensure that the bot does not use MoveChase(), as this doesn't seem to work with STEALTH
+        
         return RETURN_FINISHED_FIRST_MOVES; // DoNextCombatManeuver handles active stealth
     }
     else if (m_bot->HasAura(STEALTH, EFFECT_INDEX_0))
@@ -131,7 +131,7 @@ CombatManeuverReturns PlayerbotRogueAI::DoFirstCombatManeuverPVP(Unit *pTarget)
     return RETURN_NO_ACTION_OK;
 }
 
-CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuverPVE(Unit *pTarget)
+CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuver(Unit *pTarget)
 {
     switch (m_ai->GetScenarioType())
     {
@@ -151,7 +151,7 @@ CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuverPVE(Unit *pTarget)
     return RETURN_NO_ACTION_ERROR;
 }
 
-CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuver(Unit *pTarget)
+CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuverPVE(Unit *pTarget)
 {
     if (!pTarget) return RETURN_NO_ACTION_ERROR;
     if (!m_ai)    return RETURN_NO_ACTION_ERROR;
