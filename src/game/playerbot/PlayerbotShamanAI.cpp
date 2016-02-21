@@ -189,7 +189,7 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
-	
+
 	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
 		return RETURN_CONTINUE;
 	if (m_bot->getRace() == RACE_ORC && !m_bot->HasAura(BLOOD_FURY, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(BLOOD_FURY) && m_ai->CastSpell(BLOOD_FURY, *m_bot))
@@ -201,7 +201,7 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (manaPosion)
 			m_ai->UseItem(manaPosion);
 	}
-	
+
 	usetrinkets();
 
 	UseCooldowns();

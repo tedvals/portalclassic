@@ -377,44 +377,44 @@ return RETURN_CONTINUE;
 
 	case WARRIOR_SPEC_PROTECTION:
 		if (!newTarget)
-			 {
-			                // Cast taunt on bot current target if the mob is targeting someone else
-				if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
-				 return RETURN_CONTINUE;
-			    if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount()>=2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
-					return RETURN_CONTINUE;
-				if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
-				 return RETURN_CONTINUE;
-				
-			}
-		
+		{
+			// Cast taunt on bot current target if the mob is targeting someone else
+			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
+				return RETURN_CONTINUE;
+			if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount() >= 2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
+				return RETURN_CONTINUE;
+			if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+				return RETURN_CONTINUE;
+
+		}
+
 		// TODO: should behaviour (or treshold) be different between elite and normal mobs? We don't want bots to burn such precious cooldown needlessly 
 		if (m_bot->GetHealthPercent() < 20)
-			 {
-			                // Cast Last Stand first because it has lower cooldown
-				 if (LAST_STAND > 0 && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(LAST_STAND) && m_ai->CastSpell(LAST_STAND, *m_bot))
-				 {
+		{
+			// Cast Last Stand first because it has lower cooldown
+			if (LAST_STAND > 0 && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(LAST_STAND) && m_ai->CastSpell(LAST_STAND, *m_bot))
+			{
 				m_ai->TellMaster("I'm using LAST STAND");
 				return RETURN_CONTINUE;
-				}
-			                // Cast Shield Wall only if Last Stand is on cooldown and not active
-				if (SHIELD_WALL > 0 && (m_bot->HasSpellCooldown(LAST_STAND) || LAST_STAND == 0) && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasAura(SHIELD_WALL, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_WALL, *m_bot))
-				 {
+			}
+			// Cast Shield Wall only if Last Stand is on cooldown and not active
+			if (SHIELD_WALL > 0 && (m_bot->HasSpellCooldown(LAST_STAND) || LAST_STAND == 0) && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasAura(SHIELD_WALL, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_WALL, *m_bot))
+			{
 				m_ai->TellMaster("I'm using SHIELD WALL");
 				return RETURN_CONTINUE;
-				}
 			}
+		}
 
 		if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE))
-			            {
-						 uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK);
-		uint8 off = pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK);
-		if (base == MELEE_HIT_PARRY || base == MELEE_HIT_DODGE || base == MELEE_HIT_BLOCK || off == MELEE_HIT_PARRY || off == MELEE_HIT_DODGE || off == MELEE_HIT_BLOCK)
-			 if (m_ai->CastSpell(REVENGE, *pTarget))
-			 return RETURN_CONTINUE;
-		
-	}
-		if (DISARM > 0 &&  m_ai->GetRageAmount() >= 20 &&!pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
+		{
+			uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK);
+			uint8 off = pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK);
+			if (base == MELEE_HIT_PARRY || base == MELEE_HIT_DODGE || base == MELEE_HIT_BLOCK || off == MELEE_HIT_PARRY || off == MELEE_HIT_DODGE || off == MELEE_HIT_BLOCK)
+				if (m_ai->CastSpell(REVENGE, *pTarget))
+					return RETURN_CONTINUE;
+
+		}
+		if (DISARM > 0 && m_ai->GetRageAmount() >= 20 && !pTarget->HasAura(DISARM, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DISARM) && m_ai->CastSpell(DISARM, *pTarget))
 			return RETURN_CONTINUE;
 		if (DEMORALIZING_SHOUT > 0 && m_ai->GetRageAmount() >= 10 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(DEMORALIZING_SHOUT, *pTarget))
 			return RETURN_CONTINUE;
@@ -508,10 +508,10 @@ void PlayerbotWarriorAI::CheckShouts()
 	if (!m_ai)  return;
 	if (!m_bot) return;
 
-	
-		if (!m_bot->HasAura(BATTLE_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(BATTLE_SHOUT))
-			return;
-	
+
+	if (!m_bot->HasAura(BATTLE_SHOUT, EFFECT_INDEX_0) && m_ai->CastSpell(BATTLE_SHOUT))
+		return;
+
 }
 
 void PlayerbotWarriorAI::DoNonCombatActions()
@@ -528,7 +528,7 @@ void PlayerbotWarriorAI::DoNonCombatActions()
 		m_ai->CastSpell(BERSERKER_STANCE);
 	else if (spec == WARRIOR_SPEC_PROTECTION && !m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0))
 		m_ai->CastSpell(DEFENSIVE_STANCE);
-		
+
 	if (EatDrinkBandage())
 		return;
 	// hp/mana check
@@ -562,36 +562,36 @@ bool PlayerbotWarriorAI::Pull()
 	if (!m_bot) return false;
 	if (!m_ai)  return false;
 	// In Classic, Warriors had 3 differents spells for shooting with range weapons
-	    // So we need to determine which one to use
-		    // First step: look for the item equiped in range slot
-		Item* pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
+	// So we need to determine which one to use
+	// First step: look for the item equiped in range slot
+	Item* pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
 	if (!pItem)
-		 {
+	{
 		m_ai->TellMaster("I don't have ranged weapon equiped.");
 		return false;
-		}
-	
-		ItemPrototype const* pProto = pItem->GetProto();
+	}
+
+	ItemPrototype const* pProto = pItem->GetProto();
 	if (pProto && pProto->Class == ITEM_CLASS_WEAPON)
-		 {
+	{
 		switch (pProto->SubClass)
-			 {
-			case ITEM_SUBCLASS_WEAPON_BOW:
-				SHOOT = SHOOT_BOW;
-				break;
-				case ITEM_SUBCLASS_WEAPON_GUN:
-					SHOOT = SHOOT_GUN;
-					break;
-					case ITEM_SUBCLASS_WEAPON_CROSSBOW:
-						SHOOT = SHOOT_XBOW;
-						break;
-						default:
-							m_ai->TellMaster("Can't pull: equiped range item is neither a gun, bow or crossbow.");
-							return false;
-							}
+		{
+		case ITEM_SUBCLASS_WEAPON_BOW:
+			SHOOT = SHOOT_BOW;
+			break;
+		case ITEM_SUBCLASS_WEAPON_GUN:
+			SHOOT = SHOOT_GUN;
+			break;
+		case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+			SHOOT = SHOOT_XBOW;
+			break;
+		default:
+			m_ai->TellMaster("Can't pull: equiped range item is neither a gun, bow or crossbow.");
+			return false;
 		}
+	}
 	else
-		 return false;
+		return false;
 
 	if (m_bot->GetCombatDistance(m_ai->GetCurrentTarget(), true) > ATTACK_DISTANCE)
 	{

@@ -231,7 +231,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		case MAGE_SPEC_FIRE:
 			if (newTarget->GetHealthPercent() > 50)
 			{
-				
+
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
 					if (Polymorph && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget))
@@ -254,7 +254,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 			if (newTarget->GetHealthPercent() > 50)
 			{
-				
+
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 				{
 					if (Polymorph && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget))
@@ -280,24 +280,24 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		}
 
 	}
-	
+
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
 	if (newTarget1)
 	{
 		Creature * pCreature1 = (Creature*)newTarget1;
-		
-		
-				if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
-				{
-					if (Polymorph && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
-						return RETURN_CONTINUE;
-				}
-				
-				
+
+
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
+		{
+			if (Polymorph && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
+				return RETURN_CONTINUE;
+		}
+
+
 
 	}
-	
+
 	// Disp
 	if (GetDispalTarget() != NULL)
 	{
@@ -310,7 +310,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	switch (spec)
 	{
 	case MAGE_SPEC_FROST:
-		
+
 		if (COLD_SNAP > 0 && m_ai->In_Reach(m_bot, COLD_SNAP) && m_ai->GetHealthPercent() < 30 && m_bot->HasSpellCooldown(ICE_BLOCK) && CastSpell(COLD_SNAP, m_bot))
 			return RETURN_CONTINUE;
 		if (ICE_BLOCK > 0 && m_ai->In_Reach(m_bot, ICE_BLOCK) && !m_bot->HasAura(ICE_BLOCK, EFFECT_INDEX_0) && m_ai->GetHealthPercent() < 30 && !m_bot->HasSpellCooldown(ICE_BLOCK) && CastSpell(ICE_BLOCK, m_bot))
@@ -327,26 +327,26 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			//if (/*m_ai->GetAttackerCount() >= 5*/ && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			//{
 
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
-				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					return RETURN_CONTINUE;
-				}
-				if (CONE_OF_COLD > 0 && !m_bot->HasSpellCooldown(CONE_OF_COLD) && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(CONE_OF_COLD, pTarget))
-				{
-					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3); 
-					return RETURN_CONTINUE;
-				}
-				if (ARCANE_EXPLOSION > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
-				{
-					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					return RETURN_CONTINUE;
-				}
-				if (BLIZZARD > 0 && CastSpell(BLIZZARD, pTarget))
-				{
-					m_ai->SetIgnoreUpdateTime(8);
-					return RETURN_CONTINUE;
-				}
+			if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+			{
+				m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				return RETURN_CONTINUE;
+			}
+			if (CONE_OF_COLD > 0 && !m_bot->HasSpellCooldown(CONE_OF_COLD) && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(CONE_OF_COLD, pTarget))
+			{
+				//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3); 
+				return RETURN_CONTINUE;
+			}
+			if (ARCANE_EXPLOSION > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
+			{
+				//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				return RETURN_CONTINUE;
+			}
+			if (BLIZZARD > 0 && CastSpell(BLIZZARD, pTarget))
+			{
+				m_ai->SetIgnoreUpdateTime(8);
+				return RETURN_CONTINUE;
+			}
 			//}
 		}
 		if (FROST_WARD > 0 && m_ai->In_Reach(m_bot, FROST_WARD) && !m_bot->HasAura(FROST_WARD, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(FROST_WARD) && CastSpell(FROST_WARD, m_bot))
@@ -362,29 +362,29 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		{
 			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			//{
-				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
-				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					return RETURN_CONTINUE;
-				}
-				if (BLAST_WAVE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
-				{
-					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					return RETURN_CONTINUE;
-				}
-				if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && SpellSequence1 < 1 && CastSpell(FLAMESTRIKE, pTarget))
-				{
-					SpellSequence1 = SpellSequence1 + 1;
-					return RETURN_CONTINUE;
-				}
-				if (ARCANE_EXPLOSION>0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
-				{
-					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					SpellSequence1 = 0;
-					return RETURN_CONTINUE;
+			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+			{
+				m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				return RETURN_CONTINUE;
+			}
+			if (BLAST_WAVE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && !m_bot->HasSpellCooldown(BLAST_WAVE) && CastSpell(BLAST_WAVE, pTarget))
+			{
+				//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				return RETURN_CONTINUE;
+			}
+			if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget, FLAMESTRIKE) && SpellSequence1 < 1 && CastSpell(FLAMESTRIKE, pTarget))
+			{
+				SpellSequence1 = SpellSequence1 + 1;
+				return RETURN_CONTINUE;
+			}
+			if (ARCANE_EXPLOSION>0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
+			{
+				//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				SpellSequence1 = 0;
+				return RETURN_CONTINUE;
 
-				}
+			}
 
 			//}
 		}
@@ -417,18 +417,18 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		{
 			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			//{
-				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
-				{
-					m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					return RETURN_CONTINUE;
-				}
-				if (ARCANE_EXPLOSION > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
-				{
-					//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
-					return RETURN_CONTINUE;
+			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
+			{
+				m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				return RETURN_CONTINUE;
+			}
+			if (ARCANE_EXPLOSION > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
+			{
+				//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
+				return RETURN_CONTINUE;
 
-				}
+			}
 
 			//}
 		}

@@ -175,7 +175,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Pet *pet = m_bot->GetPet();
 	uint32 spec = m_bot->GetSpec();
 	uint8 shardCount = m_bot->GetItemCount(SOUL_SHARD, false, nullptr);
-	
+
 	const SpellEntry* const pSpellInfoFEAR = sSpellStore.LookupEntry(FEAR);
 	const SpellEntry* const pSpellInfoSEDUCTION = sSpellStore.LookupEntry(SEDUCTION);
 	const SpellEntry* const pSpellInfoBANISH = sSpellStore.LookupEntry(BANISH);
@@ -196,7 +196,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (LIFE_TAP && m_ai->GetManaPercent() <= 30 && m_ai->GetHealthPercent() > 80)
 		if (m_ai->CastSpell(LIFE_TAP, *m_bot))
 			return RETURN_CONTINUE;
-	
+
 	// Voidwalker is near death - sacrifice it for a shield
 	if (pet && pet->GetEntry() == DEMON_VOIDWALKER && SACRIFICE && !m_bot->HasAura(SACRIFICE) && pet->GetHealthPercent() < 10)
 		m_ai->CastPetSpell(SACRIFICE);
@@ -228,9 +228,9 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			m_ai->UseItem(manaPosion);
 	}
 
-	
+
 	usetrinkets();
-		
+
 
 	if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
@@ -246,42 +246,42 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (newTarget->GetHealthPercent() > 25)
 		{
 			// If elite
-			            if (m_ai->IsElite(newTarget))
-				            {
-				                // let warlock pet handle it to win some time
+			if (m_ai->IsElite(newTarget))
+			{
+				// let warlock pet handle it to win some time
 				Creature * pCreature = (Creature*)newTarget;
-				
-			if (pet)
+
+				if (pet)
 				{
-				switch (pet->GetEntry())
-					 {
-					                        // taunt the elite and tank it
-						case DEMON_VOIDWALKER:
-							if (TORMENT && !m_bot->HasSpellCooldown(TORMENT) && m_ai->CastPetSpell(TORMENT, newTarget))
-								 return RETURN_NO_ACTION_OK;
-							                        // maybe give it some love?
-								case DEMON_SUCCUBUS:
-									if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
-										if (SEDUCTION && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoSEDUCTION, false) && m_ai->CastPetSpell(SEDUCTION, newTarget))
-										 return RETURN_NO_ACTION_OK;
-									}
-				
+					switch (pet->GetEntry())
+					{
+						// taunt the elite and tank it
+					case DEMON_VOIDWALKER:
+						if (TORMENT && !m_bot->HasSpellCooldown(TORMENT) && m_ai->CastPetSpell(TORMENT, newTarget))
+							return RETURN_NO_ACTION_OK;
+						// maybe give it some love?
+					case DEMON_SUCCUBUS:
+						if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
+							if (SEDUCTION && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoSEDUCTION, false) && m_ai->CastPetSpell(SEDUCTION, newTarget))
+								return RETURN_NO_ACTION_OK;
 					}
-			                // if aggroed mob is a demon or an elemental: banish it (but world boss can't be cc)
+
+				}
+				// if aggroed mob is a demon or an elemental: banish it (but world boss can't be cc)
 				if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
-				 {
-					 if (BANISH && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoBANISH, false) && CastSpell(BANISH, newTarget))
-					 return RETURN_CONTINUE;
+				{
+					if (BANISH && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoBANISH, false) && CastSpell(BANISH, newTarget))
+						return RETURN_CONTINUE;
 				}
 				if (FEAR && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoFEAR, false) && CastSpell(FEAR, newTarget))
 					return RETURN_CONTINUE;
 				if (DEATH_COIL && !m_bot->HasSpellCooldown(DEATH_COIL) && CastSpell(DEATH_COIL, newTarget))
 					return RETURN_CONTINUE;
-				if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget) && m_ai->GetHealthPercent() <50 && !pCreature->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget))
+				if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget) && m_ai->GetHealthPercent() < 50 && !pCreature->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget))
 					return RETURN_CONTINUE;
 				return RETURN_NO_ACTION_OK; // do nothing and pray tank gets aggro off you
-			
-		}
+
+			}
 
 			// Not an elite. You could insert FEAR here but in any PvE situation that's 90-95% likely
 			// to worsen the situation for the group. ... So please don't.
@@ -320,7 +320,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return RETURN_CONTINUE;
 		if (DEATH_COIL && !m_bot->HasSpellCooldown(DEATH_COIL) && CastSpell(DEATH_COIL, newTarget1))
 			return RETURN_CONTINUE;
-		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetHealthPercent() <50 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
+		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetHealthPercent() < 50 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
 			return RETURN_CONTINUE;
 	}
 	// Create soul shard 
@@ -341,9 +341,9 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	}
 
 	// HP, mana and aggro checks done
-	    // Curse the target
-		if (CheckCurse(pTarget))
-		 return RETURN_CONTINUE;
+	// Curse the target
+	if (CheckCurse(pTarget))
+		return RETURN_CONTINUE;
 
 	// Damage Spells
 	switch (spec)
@@ -358,18 +358,18 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		{
 			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
 			//{
-				//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-				if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
-				{
-					CastSpell(HELLFIRE, pTarget);
-					//m_ai->SetIgnoreUpdateTime(8);
-					RETURN_CONTINUE;
-				}
-				if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
-				{
-					m_ai->SetIgnoreUpdateTime(8);
-					return RETURN_CONTINUE;
-				}
+			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
+			{
+				CastSpell(HELLFIRE, pTarget);
+				//m_ai->SetIgnoreUpdateTime(8);
+				RETURN_CONTINUE;
+			}
+			if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
+			{
+				m_ai->SetIgnoreUpdateTime(8);
+				return RETURN_CONTINUE;
+			}
 
 			//}
 		}
@@ -393,7 +393,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (pet && DEMONIC_EMPOWERMENT && !m_bot->HasSpellCooldown(DEMONIC_EMPOWERMENT) && CastSpell(DEMONIC_EMPOWERMENT))
 			return RETURN_CONTINUE;
 		//if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && CastSpell(CURSE_OF_AGONY, pTarget))
-			//return RETURN_CONTINUE;
+		//return RETURN_CONTINUE;
 		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
 		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
@@ -407,9 +407,9 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	case WARLOCK_SPEC_DESTRUCTION:
 		if (SHADOWBURN && pTarget->GetHealthPercent() < (HPThreshold / 2.0) && m_ai->In_Reach(pTarget, SHADOWBURN) && !pTarget->HasAura(SHADOWBURN) && CastSpell(SHADOWBURN, pTarget))
-			 return RETURN_CONTINUE;
+			return RETURN_CONTINUE;
 		//if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && CastSpell(CURSE_OF_AGONY, pTarget))
-			//return RETURN_CONTINUE;
+		//return RETURN_CONTINUE;
 		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
 		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
@@ -494,120 +494,120 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVP(Unit* pTarget)
 }
 // Decision tree for putting a curse on the current target
 bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
- {
+{
 	Creature * pCreature = (Creature*)pTarget;
 	uint32 CurseToCast = 0;
-	
-		    // Prevent low health humanoid from fleeing or fleeing too fast
-		    // Curse of Exhaustion first to avoid increasing damage output on tank
-		if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && pTarget->GetHealthPercent() < 20 && !pCreature->IsWorldBoss())
-		 {
+
+	// Prevent low health humanoid from fleeing or fleeing too fast
+	// Curse of Exhaustion first to avoid increasing damage output on tank
+	if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && pTarget->GetHealthPercent() < 20 && !pCreature->IsWorldBoss())
+	{
 		if (CURSE_OF_EXHAUSTION && m_ai->In_Reach(pTarget, CURSE_OF_EXHAUSTION) && !pTarget->HasAura(CURSE_OF_EXHAUSTION))
-			 {
-				 if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
-					 CastSpell(Amplify_Curse, m_bot);
-			
-				if (CastSpell(CURSE_OF_EXHAUSTION, pTarget))
-				 {
+		{
+			if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
+				CastSpell(Amplify_Curse, m_bot);
+
+			if (CastSpell(CURSE_OF_EXHAUSTION, pTarget))
+			{
 				m_CurrentCurse = CURSE_OF_EXHAUSTION;
 				return true;
-				}
-			}
-		else if (CURSE_OF_RECKLESSNESS && m_ai->In_Reach(pTarget, CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_EXHAUSTION) && CastSpell(CURSE_OF_RECKLESSNESS, pTarget))
-			 {
-			m_CurrentCurse = CURSE_OF_RECKLESSNESS;
-			return true;
 			}
 		}
-	
-		    // If bot already put a curse and curse is still active on target: no need to go further
-		if (m_CurrentCurse > 0 && pTarget->HasAura(m_CurrentCurse))
-		 return false;
-	
-		    // No curse or effect worn off: choose again which curse to use
-		
-		    // Target is a boss
-		if (pCreature && pCreature->IsWorldBoss())
-		 {
+		else if (CURSE_OF_RECKLESSNESS && m_ai->In_Reach(pTarget, CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_RECKLESSNESS) && !pTarget->HasAura(CURSE_OF_EXHAUSTION) && CastSpell(CURSE_OF_RECKLESSNESS, pTarget))
+		{
+			m_CurrentCurse = CURSE_OF_RECKLESSNESS;
+			return true;
+		}
+	}
+
+	// If bot already put a curse and curse is still active on target: no need to go further
+	if (m_CurrentCurse > 0 && pTarget->HasAura(m_CurrentCurse))
+		return false;
+
+	// No curse or effect worn off: choose again which curse to use
+
+	// Target is a boss
+	if (pCreature && pCreature->IsWorldBoss())
+	{
 		if (m_bot->GetGroup())
-			 {
+		{
 			uint8 mages = 0;
 			uint8 warlocks = 1;
 			Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
 			for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-				 {
+			{
 				Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
 				if (!groupMember || !groupMember->isAlive())
-					 continue;
+					continue;
 				switch (groupMember->getClass())
-					 {
-					case CLASS_WARLOCK:
-						warlocks++;
-						continue;
-						case CLASS_MAGE:
-							mages++;
-							continue;
-							}
+				{
+				case CLASS_WARLOCK:
+					warlocks++;
+					continue;
+				case CLASS_MAGE:
+					mages++;
+					continue;
 				}
+			}
 			if (warlocks > 1 && warlocks > mages)
-				 CurseToCast = CURSE_OF_SHADOW;
+				CurseToCast = CURSE_OF_SHADOW;
 			else if (mages > warlocks)
-				 CurseToCast = CURSE_OF_THE_ELEMENTS;
+				CurseToCast = CURSE_OF_THE_ELEMENTS;
 			else
-				 CurseToCast = CURSE_OF_AGONY;
-			}
-		    // If target is not elite, no need to put a curse useful
-			    // in the long run: go for direct damage
-			}
-		else if (!m_ai->IsElite(pTarget))
-			 CurseToCast = CURSE_OF_AGONY;
-	    // Enemy elite mages have low health but can cast dangerous spells: group safety before bot DPS
-		else if (pCreature && pCreature->GetCreatureInfo()->UnitClass == 8)
-		 CurseToCast = CURSE_OF_TONGUES;
-	    // Default case: Curse of Agony
-		else
-		 CurseToCast = CURSE_OF_AGONY;
-	
-		   // Try to curse the target with the selected curse
-		if (CurseToCast && m_ai->In_Reach(pTarget, CurseToCast) && !pTarget->HasAura(CurseToCast))
-		 {
+				CurseToCast = CURSE_OF_AGONY;
+		}
+		// If target is not elite, no need to put a curse useful
+		// in the long run: go for direct damage
+	}
+	else if (!m_ai->IsElite(pTarget))
+		CurseToCast = CURSE_OF_AGONY;
+	// Enemy elite mages have low health but can cast dangerous spells: group safety before bot DPS
+	else if (pCreature && pCreature->GetCreatureInfo()->UnitClass == 8)
+		CurseToCast = CURSE_OF_TONGUES;
+	// Default case: Curse of Agony
+	else
+		CurseToCast = CURSE_OF_AGONY;
+
+	// Try to curse the target with the selected curse
+	if (CurseToCast && m_ai->In_Reach(pTarget, CurseToCast) && !pTarget->HasAura(CurseToCast))
+	{
 		if (CurseToCast == CURSE_OF_AGONY)
 			if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
 				CastSpell(Amplify_Curse, m_bot);
-		
-			if (CastSpell(CurseToCast, pTarget))
-			 {
+
+		if (CastSpell(CurseToCast, pTarget))
+		{
 			m_CurrentCurse = CurseToCast;
 			return true;
-			}
 		}
-	    // else: go for Curse of Agony
-		else if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY))
-		 {
-			 if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
-				 CastSpell(Amplify_Curse, m_bot);
-		
-			if (CastSpell(CURSE_OF_AGONY, pTarget))
-			 {
+	}
+	// else: go for Curse of Agony
+	else if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY))
+	{
+		if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
+			CastSpell(Amplify_Curse, m_bot);
+
+		if (CastSpell(CURSE_OF_AGONY, pTarget))
+		{
 			m_CurrentCurse = CURSE_OF_AGONY;
 			return true;
-			}
 		}
-	    // else: go for Curse of Weakness
-		else if (CURSE_OF_WEAKNESS && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_AGONY))
-		 {
-			 if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
-				 CastSpell(Amplify_Curse, m_bot);
-		
-			if (CastSpell(CURSE_OF_WEAKNESS, pTarget))
-			 {
+	}
+	// else: go for Curse of Weakness
+	else if (CURSE_OF_WEAKNESS && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_AGONY))
+	{
+		if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
+			CastSpell(Amplify_Curse, m_bot);
+
+		if (CastSpell(CURSE_OF_WEAKNESS, pTarget))
+		{
 			m_CurrentCurse = CURSE_OF_WEAKNESS;
 			return true;
-			}
 		}
-	else
-		 return false;
 	}
+	else
+		return false;
+}
 
 void PlayerbotWarlockAI::CheckDemon()
 {

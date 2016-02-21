@@ -126,13 +126,13 @@ CombatManeuverReturns PlayerbotPriestAI::DoFirstCombatManeuverPVE(Unit* /*pTarge
 
 	if (m_ai->IsHealer())
 	{
-	// TODO: This must be done with toggles: FullHealth allowed
-	//Unit* healTarget = GetHealTarget(JOB_TANK);
-	// This is cast on a target, which activates (and switches to another target within the group) upon receiving+healing damage
-	// Mana efficient even at one use
-	//if (healTarget && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(healTarget,PRAYER_OF_MENDING) && !healTarget->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, healTarget) & RETURN_CONTINUE)
+		// TODO: This must be done with toggles: FullHealth allowed
+		//Unit* healTarget = GetHealTarget(JOB_TANK);
+		// This is cast on a target, which activates (and switches to another target within the group) upon receiving+healing damage
+		// Mana efficient even at one use
+		//if (healTarget && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(healTarget,PRAYER_OF_MENDING) && !healTarget->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, healTarget) & RETURN_CONTINUE)
 		if (CastHoTOnTank())
-		return RETURN_FINISHED_FIRST_MOVES;
+			return RETURN_FINISHED_FIRST_MOVES;
 	}
 	return RETURN_NO_ACTION_OK;
 }
@@ -177,7 +177,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	const SpellEntry* const pSpellInfoSHACKLE_UNDEAD = sSpellStore.LookupEntry(SHACKLE_UNDEAD);
 	const SpellEntry* const pSpellInfoSCREAM = sSpellStore.LookupEntry(SCREAM);
 	if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
-	    m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
+		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	// if in melee range OR can't shoot OR have no ranged (wand) equipped
 	//else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE 
 	//&& (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true))
@@ -186,20 +186,20 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	// Dwarves priests will try to buff with Fear Ward
 	if (FEAR_WARD > 0 && !m_bot->HasSpellCooldown(FEAR_WARD))
-		 {
-		        // Buff tank first
-			if (pMainTank)
-			{
+	{
+		// Buff tank first
+		if (pMainTank)
+		{
 			if (m_ai->In_Reach(pMainTank, FEAR_WARD) && !pMainTank->HasAura(FEAR_WARD, EFFECT_INDEX_0) && CastSpell(FEAR_WARD, pMainTank))
-				 return RETURN_CONTINUE;
-			}
-		        // Else try to buff master
-			else if (GetMaster())
-			 {
-			if (m_ai->In_Reach(GetMaster(), FEAR_WARD) && !GetMaster()->HasAura(FEAR_WARD, EFFECT_INDEX_0) && CastSpell(FEAR_WARD, GetMaster()))
-				 return RETURN_CONTINUE;
-			}
+				return RETURN_CONTINUE;
 		}
+		// Else try to buff master
+		else if (GetMaster())
+		{
+			if (m_ai->In_Reach(GetMaster(), FEAR_WARD) && !GetMaster()->HasAura(FEAR_WARD, EFFECT_INDEX_0) && CastSpell(FEAR_WARD, GetMaster()))
+				return RETURN_CONTINUE;
+		}
+	}
 
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && CastSpell(WILL_OF_THE_FORSAKEN, m_bot))
 		return RETURN_CONTINUE;
@@ -239,44 +239,44 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return RETURN_CONTINUE;
 		if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
 		{
-			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD,false) && CastSpell(SHACKLE_UNDEAD, newTarget))
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget) && !pCreature->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD, false) && CastSpell(SHACKLE_UNDEAD, newTarget))
 				return RETURN_CONTINUE;
 		}
 		if (m_ai->GetHealthPercent() < 90 && POWER_WORD_SHIELD > 0 && !m_bot->HasAura(POWER_WORD_SHIELD, EFFECT_INDEX_0) && !m_bot->HasAura(WEAKNED_SOUL, EFFECT_INDEX_0))
+		{
+			if (CastSpell(POWER_WORD_SHIELD))
 			{
-				if (CastSpell(POWER_WORD_SHIELD))
-				{
-					m_ai->TellMaster("I'm casting PW:S on myself.");
-					return RETURN_CONTINUE;
-				}
-				else if (m_ai->IsHealer()) // Even if any other RETURN_ANY_OK - aside from RETURN_CONTINUE
-					m_ai->TellMaster("Your healer's about TO DIE. HELP ME.");
-			}
-			if (m_ai->GetHealthPercent() < 80 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot))
-			{
-				m_ai->TellMaster("I'm casting RENEW.");
+				m_ai->TellMaster("I'm casting PW:S on myself.");
 				return RETURN_CONTINUE;
 			}
-			if (m_ai->GetHealthPercent() < 60 && SCREAM > 0 && !m_bot->HasSpellCooldown(SCREAM) && !pCreature->IsImmuneToSpell(pSpellInfoSCREAM, false) && CastSpell(SCREAM, pTarget))
-			{
-				m_ai->TellMaster("I'm casting SCREAM.");
-				return RETURN_CONTINUE;
-			}
-			if (m_ai->GetHealthPercent() < 40 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot))
-			{
-				m_ai->TellMaster("I'm casting FLASH_HEAL.");
-				return RETURN_CONTINUE;
-			}
+			else if (m_ai->IsHealer()) // Even if any other RETURN_ANY_OK - aside from RETURN_CONTINUE
+				m_ai->TellMaster("Your healer's about TO DIE. HELP ME.");
+		}
+		if (m_ai->GetHealthPercent() < 80 && RENEW > 0 && m_ai->In_Reach(m_bot, RENEW) && !m_bot->HasAura(RENEW) && CastSpell(RENEW, m_bot))
+		{
+			m_ai->TellMaster("I'm casting RENEW.");
+			return RETURN_CONTINUE;
+		}
+		if (m_ai->GetHealthPercent() < 60 && SCREAM > 0 && !m_bot->HasSpellCooldown(SCREAM) && !pCreature->IsImmuneToSpell(pSpellInfoSCREAM, false) && CastSpell(SCREAM, pTarget))
+		{
+			m_ai->TellMaster("I'm casting SCREAM.");
+			return RETURN_CONTINUE;
+		}
+		if (m_ai->GetHealthPercent() < 40 && FLASH_HEAL > 0 && m_ai->In_Reach(m_bot, FLASH_HEAL) && CastSpell(FLASH_HEAL, m_bot))
+		{
+			m_ai->TellMaster("I'm casting FLASH_HEAL.");
+			return RETURN_CONTINUE;
+		}
 
-			if (m_ai->GetHealthPercent() < 20 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot, DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot))
-			{
-				m_ai->TellMaster("I'm casting desperate prayer.");
-				return RETURN_CONTINUE;
-			}
-		
-			
+		if (m_ai->GetHealthPercent() < 20 && DESPERATE_PRAYER > 0 && m_ai->In_Reach(m_bot, DESPERATE_PRAYER) && CastSpell(DESPERATE_PRAYER, m_bot))
+		{
+			m_ai->TellMaster("I'm casting desperate prayer.");
+			return RETURN_CONTINUE;
+		}
+
+
 	}
-	
+
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
 	if (newTarget1)
@@ -286,7 +286,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		//world boss can not cc
 		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
 		{
-			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget1) &&  !pCreature1->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD, false) &&CastSpell(SHACKLE_UNDEAD, newTarget1))
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD, false) && CastSpell(SHACKLE_UNDEAD, newTarget1))
 				return RETURN_CONTINUE;
 		}
 		//return RETURN_NO_ACTION_OK;
@@ -296,8 +296,8 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	//special tactic
 	/*if (pTarget->GetEntry() == 14862 && m_ai->GetManaPercent(*pTarget) > 95)
 	{
-		CastSpell(MANA_BURN, pTarget);
-		return RETURN_CONTINUE;
+	CastSpell(MANA_BURN, pTarget);
+	return RETURN_CONTINUE;
 	}
 	*/
 	if (GetDispalTarget() != NULL)
@@ -428,7 +428,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVP(Unit* pTarget)
 	default:
 		break;
 	}
-	
+
 	return DoNextCombatManeuverPVE(pTarget); // TODO: bad idea perhaps, but better than the alternative
 }
 
@@ -500,14 +500,14 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 	Unit* pMainTank = GetHealTarget(JOB_TANK);
 
 	// If target is out of range (40 yards) and is a tank: move towards it
-	    // Other classes have to adjust their position to the healers
-		   // TODO: This code should be common to all healers and will probably
-		    // move to a more suitable place
-		if (pMainTank && !m_ai->In_Reach(pMainTank, FLASH_HEAL))
-		 {
+	// Other classes have to adjust their position to the healers
+	// TODO: This code should be common to all healers and will probably
+	// move to a more suitable place
+	if (pMainTank && !m_ai->In_Reach(pMainTank, FLASH_HEAL))
+	{
 		m_bot->GetMotionMaster()->MoveFollow(target, 39.0f, m_bot->GetOrientation());
 		return RETURN_CONTINUE;
-		}
+	}
 
 	//get aoe heal count must in same subgroup because PRAYER_OF_HEALING can only heal in same subgroup
 	if (m_bot->GetGroup())
@@ -517,10 +517,10 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
 		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
 		{
 			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
-			
+
 			if (!groupMember || !groupMember->isAlive() || groupMember->IsInDuel() || itr->group != subgroup)
 				continue;
-			if ((groupMember->GetMaxHealth()-groupMember->GetHealth()) >1200)
+			if ((groupMember->GetMaxHealth() - groupMember->GetHealth()) > 1200)
 				ghp++;
 		}
 	}
