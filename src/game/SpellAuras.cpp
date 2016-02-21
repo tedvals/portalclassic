@@ -1192,7 +1192,14 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                             caster->CastCustomSpell(target, 28836, &damage, nullptr, nullptr, true, nullptr, this);
                         return;
                     }
-                }
+					case 24596:
+					{
+						m_isPeriodic = true;
+						m_modifier.periodictime = 30 * IN_MILLISECONDS;
+						m_periodicTimer = m_modifier.periodictime;
+					return;
+					}
+					}
                 break;
             }
         }
@@ -1265,6 +1272,11 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 target->CastSpell(target, 28240, true, nullptr, this);
                 return;
             }
+			case 24596:
+			{
+				((Player*)target)->SetDrunkValue(0);
+				return;
+			}
         }
 
         if (m_removeMode == AURA_REMOVE_BY_DEATH)
@@ -4742,8 +4754,22 @@ void Aura::PeriodicDummyTick()
                 }
                 case 7057:                                  // Haunting Spirits
                     if (roll_chance_i(33))
-                        target->CastSpell(target, m_modifier.m_amount, true, nullptr, this);
+						target->CastSpell(target, 7067, true, nullptr, this);
                     return;
+				case 24596:
+				{
+					if (roll_chance_i(50))
+					{
+						if (Unit* target = GetTarget())
+							target->CastSpell(target, 6869, true, nullptr, this);
+					}
+					else if (roll_chance_i(50))
+					{
+						if (Unit* target = GetTarget())
+							target->CastSpell(target, 23365, true, nullptr, this);
+					}
+					return;
+				}
             }
             break;
         }
