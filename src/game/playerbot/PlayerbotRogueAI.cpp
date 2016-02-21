@@ -169,6 +169,12 @@ CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (healingPosion)
 			m_ai->UseItem(healingPosion);
 	}
+	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
+		return RETURN_CONTINUE;
+	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
+		return RETURN_CONTINUE;
+	if (m_bot->getRace() == RACE_ORC && !m_bot->HasAura(BLOOD_FURY, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(BLOOD_FURY) && m_ai->CastSpell(BLOOD_FURY, *m_bot))
+		return RETURN_CONTINUE;
     // TODO: make this work better...
     /*if (pVictim)
        {

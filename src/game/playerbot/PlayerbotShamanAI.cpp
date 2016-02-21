@@ -190,6 +190,10 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 	
+	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
+		return RETURN_CONTINUE;
+	if (m_bot->getRace() == RACE_ORC && !m_bot->HasAura(BLOOD_FURY, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(BLOOD_FURY) && m_ai->CastSpell(BLOOD_FURY, *m_bot))
+		return RETURN_CONTINUE;
 	//use mana posion
 	if (m_ai->GetManaPercent() < 10)
 	{
@@ -205,7 +209,9 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
 	if (newTarget && m_ai->IsElite(newTarget) && m_ai->GetHealthPercent() < 80) // TODO: && party has a tank
 	{
-
+		bool meleeReach1 = m_bot->CanReachWithMeleeAttack(newTarget);
+		if (m_bot->getRace() == RACE_TAUREN && !m_bot->HasSpellCooldown(WAR_STOMP) && meleeReach1 && m_ai->CastSpell(WAR_STOMP, *pTarget))
+			return RETURN_CONTINUE;
 		if (HealPlayer(m_bot) == RETURN_CONTINUE)
 			return RETURN_CONTINUE;
 
