@@ -1277,6 +1277,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 				((Player*)target)->SetDrunkValue(0);
 				return;
 			}
+			
         }
 
         if (m_removeMode == AURA_REMOVE_BY_DEATH)
@@ -2415,7 +2416,12 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
 
             target->SetRoot(false);
         }
-
+		//other Wyvern Sting
+		if (GetId() == 24335)
+		{
+			target->CastSpell(target, 24336, true,nullptr, this);
+			return;
+		}
         // Wyvern Sting
         if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_HUNTER && GetSpellProto()->SpellFamilyFlags & UI64LIT(0x00010000))
         {
@@ -2430,7 +2436,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
                 case 19386: spell_id = 24131; break;
                 case 24132: spell_id = 24134; break;
                 case 24133: spell_id = 24135; break;
-                default:
+				default:
                     sLog.outError("Spell selection called for unexpected original spell %u, new spell for this spell family?", GetId());
                     return;
             }
