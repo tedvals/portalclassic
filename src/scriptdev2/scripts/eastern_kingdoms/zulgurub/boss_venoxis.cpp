@@ -39,7 +39,7 @@ enum
     // serpent spells
     SPELL_VENOMSPIT         = 23862,
     SPELL_POISON_CLOUD      = 23861,
-    SPELL_PARASITIC_SERPENT = 23867,
+    SPELL_SUMMON_PARASITIC_SERPENT = 23866,
 
     // common spells
     SPELL_SNAKE_FORM        = 23849,
@@ -64,6 +64,7 @@ struct boss_venoxisAI : public ScriptedAI
     uint32 m_uiHolySpellTimer;
     uint32 m_uiDispellTimer;
     uint32 m_uiTrashTimer;
+	uint32 m_uiSUMMONPARASITCSERPENTTimer;
 
     bool m_bPhaseTwo;
     bool m_bInBerserk;
@@ -77,6 +78,7 @@ struct boss_venoxisAI : public ScriptedAI
         m_uiHolySpellTimer      = 10000;
         m_uiDispellTimer        = 35000;
         m_uiTrashTimer          = 5000;
+		m_uiSUMMONPARASITCSERPENTTimer = 15000;
 
         m_bPhaseTwo             = false;
         m_bInBerserk            = false;
@@ -163,7 +165,6 @@ struct boss_venoxisAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SNAKE_FORM, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
                 {
-                    DoCastSpellIfCan(m_creature, SPELL_PARASITIC_SERPENT, CAST_TRIGGERED);
                     DoScriptText(SAY_TRANSFORM, m_creature);
                     DoResetThreat();
                     m_bPhaseTwo = true;
@@ -192,6 +193,17 @@ struct boss_venoxisAI : public ScriptedAI
             else
                 m_uiVenomSpitTimer -= uiDiff;
         }
+		
+		if (m_uiSUMMONPARASITCSERPENTTimer < uiDiff)
+		{
+			if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+			{
+				if (DoCastSpellIfCan(pTarget, SPELL_SUMMON_PARASITIC_SERPENT) == CAST_OK)
+					m_uiSUMMONPARASITCSERPENTTimer = 15000;
+			}
+		}
+		else
+			m_uiSUMMONPARASITCSERPENTTimer -= uiDiff;
 
         if (m_uiTrashTimer < uiDiff)
         {
