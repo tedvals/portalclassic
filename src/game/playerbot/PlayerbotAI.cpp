@@ -2243,11 +2243,13 @@ void PlayerbotAI::DoCombatMovement()
 	uint8 pClass = m_bot->getClass();
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
 
-	if (m_bot->HasAura(21070) || m_bot->HasAura(17742))
+	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861))
 	{
-		//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
+		
+		InterruptCurrentCastingSpell();
 		m_bot->GetMotionMaster()->Clear(false);
-		m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 3);
+		m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 1.5);
+		SetIgnoreUpdateTime(1.5);
 
 	}
 	else if (m_combatStyle == COMBAT_MELEE
@@ -2263,21 +2265,11 @@ void PlayerbotAI::DoCombatMovement()
 		&& m_movementOrder != MOVEMENT_STAY
 		&& GetClassAI()->GetWaitUntil() == 0) // Not waiting
 	{
-		if (m_bot->HasAura(21070) || m_bot->HasAura(17742))
-		{
-			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 8.0f, 0.0f);
-			m_bot->GetMotionMaster()->Clear(false);
-			m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 2);
-
-		}
 		// ranged combat - just move within spell range
-		else if (!CanReachWithSpellAttack(m_targetCombat) && (pClass == CLASS_MAGE || pClass == CLASS_PRIEST || pClass == CLASS_WARLOCK))
+		if (!CanReachWithSpellAttack(m_targetCombat) && (pClass == CLASS_MAGE || pClass == CLASS_PRIEST || pClass == CLASS_WARLOCK))
 		{
 			m_bot->GetMotionMaster()->Clear(false);
 			m_bot->GetMotionMaster()->MoveChase(m_targetCombat);
-			//m_bot->GetMotionMaster()->MoveConfused();
-			//m_bot->GetMotionMaster()->MoveRandomAroundPoint(m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), 5.0f, 0.0f);
-
 		}
 
 		else
@@ -4038,7 +4030,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
 
 		m_bot->SetInFront(pTarget);
 	}
-
+	/*
 	float CastTime = 0.0f;
 
 	// stop movement to prevent cancel spell casting
@@ -4048,9 +4040,9 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
 	{
 		CastTime = (castTimeEntry->CastTime / 1000);
 		DEBUG_LOG("[PlayerbotAI]: CastSpell - Bot movement reset for casting %s (%u)", pSpellInfo->SpellName[0], spellId);
-		MovementClear();
+		//MovementClear();
 	}
-
+*/
 	uint16 target_type = TARGET_FLAG_UNIT;
 
 	if (pSpellInfo->Effect[0] == SPELL_EFFECT_OPEN_LOCK)
