@@ -65,7 +65,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
     {
         if (pGo->GetEntry() == GO_SAND_TRAP)
         {
-            m_uiTrapTriggerTimer = 3000;
+            m_uiTrapTriggerTimer = 5000;
             m_sandtrapGuid = pGo->GetObjectGuid();
         }
     }
@@ -117,9 +117,13 @@ struct boss_kurinnaxxAI : public ScriptedAI
         {
             if (m_uiTrapTriggerTimer <= uiDiff)
             {
-                if (GameObject* pTrap = m_creature->GetMap()->GetGameObject(m_sandtrapGuid))
-                    pTrap->Use(m_creature);
-                m_uiTrapTriggerTimer = 0;
+				if (GameObject* pTrap = m_creature->GetMap()->GetGameObject(m_sandtrapGuid))
+				{
+					pTrap->Use(m_creature);
+					pTrap->Delete();
+					//pTrap->DeleteFromDB();
+					m_uiTrapTriggerTimer = 0;
+				}
             }
             else
                 m_uiTrapTriggerTimer -= uiDiff;
