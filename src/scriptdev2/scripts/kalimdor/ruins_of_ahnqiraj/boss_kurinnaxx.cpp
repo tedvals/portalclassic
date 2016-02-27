@@ -44,6 +44,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
     uint32 m_uiTrashTimer;
     uint32 m_uiWideSlashTimer;
     uint32 m_uiTrapTriggerTimer;
+	uint32 SUMMON_Timer;
     bool m_bEnraged;
 
     ObjectGuid m_sandtrapGuid;
@@ -52,11 +53,12 @@ struct boss_kurinnaxxAI : public ScriptedAI
     {
         m_bEnraged = false;
 
-        m_uiMortalWoundTimer = urand(8000, 10000);
-        m_uiSandTrapTimer    = urand(5000, 10000);
-        m_uiTrashTimer       = urand(1000, 5000);
-        m_uiWideSlashTimer   = urand(10000, 15000);
-        m_uiTrapTriggerTimer = 0;
+		m_uiMortalWoundTimer = urand(8000, 10000);
+		m_uiSandTrapTimer = urand(5000, 10000);
+		m_uiTrashTimer = urand(1000, 5000);
+		m_uiWideSlashTimer = urand(10000, 15000);
+		SUMMON_Timer = 12000;
+		m_uiTrapTriggerTimer = 0;
     }
 
     void JustSummoned(GameObject* pGo) override
@@ -88,8 +90,16 @@ struct boss_kurinnaxxAI : public ScriptedAI
         }
         else
             m_uiMortalWoundTimer -= uiDiff;
-
-        // Sand Trap
+		//summon player
+		if (SUMMON_Timer <= uiDiff)
+		{
+			Unit* pTarget1 = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
+			if (pTarget1 && DoCastSpellIfCan(pTarget1, SPELL_SUMMON_PLAYER) == CAST_OK)
+				SUMMON_Timer = urand(8000, 10000);
+		}
+		else SUMMON_Timer -= uiDiff;
+        
+		// Sand Trap
         if (m_uiSandTrapTimer < uiDiff)
         {
             Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);

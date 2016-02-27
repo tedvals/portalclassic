@@ -476,7 +476,8 @@ void PlayerbotMageAI::DoNonCombatActions()
 		HealPlayer(GetDispalTarget());
 		return;
 	}
-
+	if (EatDrinkBandage())
+		return;
 	// Buff armor
 	if (MOLTEN_ARMOR)
 	{
@@ -537,8 +538,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 	}
 
 
-	if (EatDrinkBandage())
-		return;
+	
 	if (ICE_BARRIER > 0 && m_ai->In_Reach(m_bot, ICE_BARRIER) && !m_bot->HasAura(ICE_BARRIER, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(ICE_BARRIER) && CastSpell(ICE_BARRIER, m_bot))
 		return;
 	// Disp

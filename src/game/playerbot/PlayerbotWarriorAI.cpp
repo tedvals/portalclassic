@@ -6,6 +6,7 @@
    */
 #include "PlayerbotWarriorAI.h"
 #include "PlayerbotMgr.h"
+#include "../SpellAuras.h"
 
 class PlayerbotAI;
 PlayerbotWarriorAI::PlayerbotWarriorAI(Player* const master, Player* const bot, PlayerbotAI* const ai) : PlayerbotClassAI(master, bot, ai)
@@ -297,8 +298,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 {
 	if (!m_ai)  return RETURN_NO_ACTION_ERROR;
 	if (!m_bot) return RETURN_NO_ACTION_ERROR;
-
-	//Unit* pVictim = pTarget->getVictim();
+	SpellAuraHolder* holder = pTarget->getVictim()->GetSpellAuraHolder(25646);
 	//float fTargetDist = m_bot->GetCombatDistance(pTarget, true);
 	uint32 spec = m_bot->GetSpec();
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
@@ -376,7 +376,7 @@ return RETURN_CONTINUE;
 			return RETURN_CONTINUE;
 
 	case WARRIOR_SPEC_PROTECTION:
-		if (!newTarget)
+		if (!newTarget && newTarget->GetEntry()==15348 && holder->GetStackAmount >= 5)
 		{
 			// Cast taunt on bot current target if the mob is targeting someone else
 			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
@@ -386,6 +386,16 @@ return RETURN_CONTINUE;
 			if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
 				return RETURN_CONTINUE;
 
+		}
+		else
+		{
+			// Cast taunt on bot current target if the mob is targeting someone else
+			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
+				return RETURN_CONTINUE;
+			if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount() >= 2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
+				return RETURN_CONTINUE;
+			if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+				return RETURN_CONTINUE;
 		}
 
 		// TODO: should behaviour (or treshold) be different between elite and normal mobs? We don't want bots to burn such precious cooldown needlessly 

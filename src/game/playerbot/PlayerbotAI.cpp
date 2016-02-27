@@ -33,6 +33,7 @@
 #include "../Language.h"
 #include "../CreatureAI.h"
 #include "../LootMgr.h"
+#include "../../scriptdev2/include/sc_grid_searchers.h"
 
 // returns a float in range of..
 float rand_float(float low, float high)
@@ -2241,18 +2242,39 @@ void PlayerbotAI::DoCombatMovement()
 {
 	if (!m_targetCombat) return;
 	uint8 pClass = m_bot->getClass();
+	GameObject *pGo = nullptr;
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
+		
+	MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*m_bot, 180647, 10.0f);
+	MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(pGo, go_check);
+	Cell::VisitGridObjects(m_bot, searcher, 10.0f);
 
-	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861))
+	if (pGo)
+	{
+		
+			InterruptCurrentCastingSpell();
+			SetIgnoreUpdateTime(2);
+			m_bot->GetMotionMaster()->Clear(false);
+			m_bot->GetMotionMaster()->MoveFleeing1(pGo, 2);
+			return;
+		
+	}
+	
+		
+	
+	//special Tactical when detect aura
+		if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861))
 	{
 		
 		InterruptCurrentCastingSpell();
+		SetIgnoreUpdateTime(2);
 		m_bot->GetMotionMaster()->Clear(false);
 		m_bot->GetMotionMaster()->MoveFleeing(m_targetCombat, 1.5);
-		SetIgnoreUpdateTime(1.5);
+		return;
 
 	}
-	else if (m_combatStyle == COMBAT_MELEE
+
+	if (m_combatStyle == COMBAT_MELEE
 		&& !m_bot->hasUnitState(UNIT_STAT_CHASE)
 		&& ((m_movementOrder == MOVEMENT_STAY && meleeReach) || m_movementOrder != MOVEMENT_STAY)
 		&& GetClassAI()->GetWaitUntil() == 0) // Not waiting
