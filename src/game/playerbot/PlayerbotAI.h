@@ -357,6 +357,7 @@ public:
     Spell* GetCurrentSpell() const;
     uint32 GetCurrentSpellId() { return m_CurrentlyCastingSpellId; }
 
+	uint8 HasAuraStackAmount(uint32 spellId, const Unit& player) const;
     bool HasAura(uint32 spellId, const Unit& player) const;
     bool HasAura(const char* spellName, const Unit& player) const;
     bool HasAura(const char* spellName) const;

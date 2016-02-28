@@ -1568,6 +1568,20 @@ uint8 PlayerbotAI::GetEnergyAmount() const
 	return GetEnergyAmount(*m_bot);
 }
 
+uint8 PlayerbotAI::HasAuraStackAmount(uint32 spellId, const Unit& player) const
+{
+	if (spellId <= 0)
+		return 0;
+
+	for (Unit::SpellAuraHolderMap::const_iterator iter = player.GetSpellAuraHolderMap().begin(); iter != player.GetSpellAuraHolderMap().end(); ++iter)
+	{
+		if (iter->second->GetId() == spellId)
+			
+			return iter->second->GetStackAmount();
+	}
+	return 0;
+}
+
 bool PlayerbotAI::HasAura(uint32 spellId, const Unit& player) const
 {
 	if (spellId <= 0)

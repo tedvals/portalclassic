@@ -415,9 +415,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return RETURN_CONTINUE;
 		if (m_ai->CanAoe())
 		{
-			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
-			//{
-			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			
 			if (FROST_NOVA > 0 && meleeReach && !m_bot->HasSpellCooldown(FROST_NOVA) && CastSpell(FROST_NOVA, pTarget))
 			{
 				m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
@@ -425,12 +423,10 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			}
 			if (ARCANE_EXPLOSION > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && CastSpell(ARCANE_EXPLOSION, pTarget))
 			{
-				//m_bot->GetMotionMaster()->MoveFleeing(pTarget, 0.3);
 				return RETURN_CONTINUE;
 
 			}
-
-			//}
+						
 		}
 		if (ARCANE_POWER > 0 && !m_bot->HasSpellCooldown(ARCANE_POWER) && CastSpell(ARCANE_POWER, pTarget))
 			return RETURN_CONTINUE;

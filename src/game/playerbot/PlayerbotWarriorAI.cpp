@@ -100,8 +100,8 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuver(Unit* pTarget)
 			{
 				if (m_bot->GetCombatDistance(pTarget, true) <= ATTACK_DISTANCE)
 				{
-					// Set everyone's UpdateAI() waiting to 2 seconds
-					m_ai->SetGroupIgnoreUpdateTime(2);
+					// Set everyone's UpdateAI() waiting to 5 seconds
+					m_ai->SetGroupIgnoreUpdateTime(5);
 					// Clear their TEMP_WAIT_TANKAGGRO flag
 					m_ai->ClearGroupCombatOrder(PlayerbotAI::ORDERS_TEMP_WAIT_TANKAGGRO);
 					// Start attacking, force target on current target
@@ -138,7 +138,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuver(Unit* pTarget)
 	case PlayerbotAI::SCENARIO_PVP_BG:
 	case PlayerbotAI::SCENARIO_PVP_ARENA:
 	case PlayerbotAI::SCENARIO_PVP_OPENWORLD:
-		return DoFirstCombatManeuverPVP(pTarget);
+		//return DoFirstCombatManeuverPVP(pTarget);
 	case PlayerbotAI::SCENARIO_PVE:
 	case PlayerbotAI::SCENARIO_PVE_ELITE:
 	case PlayerbotAI::SCENARIO_PVE_RAID:
@@ -157,14 +157,14 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget
 
 	float fTargetDist = m_bot->GetCombatDistance(pTarget, true);
 
-	if (DEFENSIVE_STANCE && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK))
-	{
+	
+		
 		if (!m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(DEFENSIVE_STANCE))
 			return RETURN_CONTINUE;
 		else if (TAUNT > 0 && m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(TAUNT, *pTarget))
 			return RETURN_FINISHED_FIRST_MOVES;
-	}
-
+	
+	
 	/* if (BERSERKER_STANCE)
 	 {
 	 if (!m_bot->HasAura(BERSERKER_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(BERSERKER_STANCE))
@@ -205,8 +205,8 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget
 	 return RETURN_FINISHED_FIRST_MOVES;
 	 }
 	 }
-	 }*/
-
+	 }
+*/
 	return RETURN_NO_ACTION_OK;
 }
 
@@ -304,7 +304,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 	//If we have devastate it will replace SA in our rotation
 	uint32 SUNDER = (DEVASTATE > 0 ? DEVASTATE : SUNDER_ARMOR);
-
+	Unit* victim = pTarget->getVictim();
 	
 
 	//Used to determine if this bot is highest on threat
@@ -364,7 +364,7 @@ return RETURN_CONTINUE;
 			m_ai->SetIgnoreUpdateTime(1.5); // TODO: SetIgnoreUpdateTime takes a uint8 - how will 1.5 work as a value?
 			return RETURN_CONTINUE;
 		}
-
+		break;
 	case WARRIOR_SPEC_FURY:
 		if (EXECUTE > 0 && pTarget->GetHealthPercent() < 20 && m_ai->CastSpell(EXECUTE, *pTarget))
 			return RETURN_CONTINUE;
@@ -374,38 +374,25 @@ return RETURN_CONTINUE;
 			return RETURN_CONTINUE;
 		if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
 			return RETURN_CONTINUE;
-
+		break;
 	case WARRIOR_SPEC_PROTECTION:
-		/*
-		
-		if (pTarget->GetEntry() == 15348)
-		{
-			Unit::SpellAuraHolderMap const& auras = pTarget->getVictim()->GetSpellAuraHolderMap();
-			for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-			{
-				SpellAuraHolder *holder = itr->second;
-				if (holder->GetSpellProto()->Id == 25646)
-				{
-					if (holder->GetStackAmount() >= 5)
-					{
-						// Cast taunt on bot current target if the mob is targeting someone else
-						if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
-							return RETURN_CONTINUE;
-						if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount() >= 2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
-							return RETURN_CONTINUE;
-						if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
-							return RETURN_CONTINUE;
-					}
-				}
-				else continue;
-			}
-		}
-		*/
-
-		if (!newTarget)
+		if (!m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(DEFENSIVE_STANCE))
+			return RETURN_CONTINUE;
+		if (!newTarget && pTarget->GetEntry() !=15348)
 		{
 			// Cast taunt on bot current target if the mob is targeting someone else
-			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
+			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT)  && m_ai->CastSpell(TAUNT, *pTarget))
+				return RETURN_CONTINUE;
+			if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount() >= 2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
+				return RETURN_CONTINUE;
+			if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+				return RETURN_CONTINUE;
+		}
+
+		if (!newTarget && victim && pTarget->GetEntry() == 15348)
+		{
+			// Cast taunt on bot current target if the mob is targeting someone else
+			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->HasAuraStackAmount(25646,*victim)>=3 && m_ai->CastSpell(TAUNT, *pTarget))
 				return RETURN_CONTINUE;
 			if (CHALLENGING_SHOUT > 0 && m_ai->GetAttackerCount() >= 2 && !m_bot->HasSpellCooldown(CHALLENGING_SHOUT) && m_ai->CastSpell(CHALLENGING_SHOUT, *pTarget))
 				return RETURN_CONTINUE;
@@ -449,9 +436,9 @@ return RETURN_CONTINUE;
 			return RETURN_CONTINUE;
 		if (SUNDER > 0 && m_ai->CastSpell(SUNDER, *pTarget))
 			return RETURN_CONTINUE;
-		//if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
-		//return RETURN_CONTINUE;
-
+		if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
+			return RETURN_CONTINUE;
+		break;
 		
 	}
 
