@@ -406,6 +406,25 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		return RETURN_NO_ACTION_OK;
 
 	case WARLOCK_SPEC_DESTRUCTION:
+		if (m_ai->CanAoe())
+		{
+			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
+			//{
+			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
+			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
+			{
+				CastSpell(HELLFIRE, pTarget);
+				//m_ai->SetIgnoreUpdateTime(8);
+				RETURN_CONTINUE;
+			}
+			if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
+			{
+				m_ai->SetIgnoreUpdateTime(8);
+				return RETURN_CONTINUE;
+			}
+
+			//}
+		}
 		if (SHADOWBURN && pTarget->GetHealthPercent() < (HPThreshold / 2.0) && m_ai->In_Reach(pTarget, SHADOWBURN) && !pTarget->HasAura(SHADOWBURN) && CastSpell(SHADOWBURN, pTarget))
 			return RETURN_CONTINUE;
 		//if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && CastSpell(CURSE_OF_AGONY, pTarget))
@@ -415,10 +434,6 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
 			return RETURN_CONTINUE;
 		if (CONFLAGRATE && m_ai->In_Reach(pTarget, CONFLAGRATE) && pTarget->HasAura(FIRE) && !m_bot->HasSpellCooldown(CONFLAGRATE) && CastSpell(CONFLAGRATE, pTarget))
-			return RETURN_CONTINUE;
-		if (CHAOS_BOLT && m_ai->In_Reach(pTarget, CHAOS_BOLT) && !m_bot->HasSpellCooldown(CHAOS_BOLT) && CastSpell(CHAOS_BOLT, pTarget))
-			return RETURN_CONTINUE;
-		if (INCINERATE && m_ai->In_Reach(pTarget, INCINERATE) && pTarget->HasAura(FIRE) && CastSpell(INCINERATE, pTarget))
 			return RETURN_CONTINUE;
 		if (SHADOW_BOLT && m_ai->In_Reach(pTarget, SHADOW_BOLT) && CastSpell(SHADOW_BOLT, pTarget))
 			return RETURN_CONTINUE;

@@ -171,7 +171,7 @@ CombatManeuverReturns PlayerbotHunterAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (!m_ai)    return RETURN_NO_ACTION_ERROR;
 	if (!m_bot)   return RETURN_NO_ACTION_ERROR;
 	if (!pTarget) return RETURN_NO_ACTION_ERROR;
-
+	float fTargetDist = m_bot->GetCombatDistance(pTarget, true);
 	Unit* pVictim = pTarget->getVictim();
 
 	// check for pet and heal if neccessary
@@ -201,8 +201,22 @@ CombatManeuverReturns PlayerbotHunterAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (healingPosion)
 			m_ai->UseItem(healingPosion);
 	}
+	
+	//Unit* pMainTank = GetHealTarget(JOB_TANK);
 
-	if (meleeReach || !m_has_ammo)
+	// If target is out of range (40 yards) and is a tank: move towards it
+	// Other classes have to adjust their position to the healers
+	// TODO: This code should be common to all healers and will probably
+	// move to a more suitable place
+	if (pTarget && fTargetDist <8.0f)
+	{
+		m_ai->InterruptCurrentCastingSpell();
+		m_ai->SetIgnoreUpdateTime(3);
+		m_bot->GetMotionMaster()->Clear(false);
+		m_bot->GetMotionMaster()->MoveFleeing(pTarget,4);
+		RETURN_CONTINUE;
+	}
+	if (/*meleeReach ||*/ !m_has_ammo)
 	{
 		// switch to melee combat (target in melee range, out of ammo)
 		m_rangedCombat = false;

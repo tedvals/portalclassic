@@ -11,7 +11,7 @@
 #define FIRESTONE 13699
 #define GREATER_FIRESTONE 13700
 #define MAJOR_FIRESTONE 13701
-#define MAX_SHARD_COUNT 10 // Maximum soul shard count bot should keep
+#define MAX_SHARD_COUNT 20 // Maximum soul shard count bot should keep
 
 enum
 {
