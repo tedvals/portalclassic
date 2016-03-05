@@ -1582,6 +1582,19 @@ uint8 PlayerbotAI::HasAuraStackAmount(uint32 spellId, const Unit& player) const
 	return 0;
 }
 
+bool PlayerbotAI::HasAuraMY(uint32 spellId, const Unit& player,uint32 guid) const
+{
+	if (spellId <= 0)
+		return false;
+	
+	for (Unit::SpellAuraHolderMap::const_iterator iter = player.GetSpellAuraHolderMap().begin(); iter != player.GetSpellAuraHolderMap().end(); ++iter)
+	{
+		if (iter->second->GetId() == spellId && iter->second->GetCaster()->GetGUIDLow() == guid && iter->second->GetAuraDuration() > 3000)
+			return true;
+	}
+	return false;
+}
+
 bool PlayerbotAI::HasAura(uint32 spellId, const Unit& player) const
 {
 	if (spellId <= 0)

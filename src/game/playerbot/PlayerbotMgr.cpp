@@ -860,7 +860,7 @@ void PlayerbotMgr::RemoveAllBotsFromGroup()
     for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); m_master->GetGroup() && it != GetPlayerBotsEnd(); ++it)
     {
         Player* const bot = it->second;
-        if (bot->IsInSameGroupWith(m_master))
+		if (bot->IsInSameRaidWith(m_master))
             m_master->GetGroup()->RemoveMember(bot->GetObjectGuid(), 0);
     }
 }

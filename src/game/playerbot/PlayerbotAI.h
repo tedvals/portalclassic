@@ -359,6 +359,7 @@ public:
 
 	uint8 HasAuraStackAmount(uint32 spellId, const Unit& player) const;
     bool HasAura(uint32 spellId, const Unit& player) const;
+	bool HasAuraMY(uint32 spellId, const Unit& player,uint32 guid) const;
     bool HasAura(const char* spellName, const Unit& player) const;
     bool HasAura(const char* spellName) const;
 

@@ -84,6 +84,7 @@ PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, 
 	m_demonOfChoice = DEMON_IMP;
 	m_isTempImp = false;
 	m_CurrentCurse = 0;
+	m_botguid = m_bot->GetGUIDLow();
 }
 
 PlayerbotWarlockAI::~PlayerbotWarlockAI() {}
@@ -169,7 +170,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	if (!m_ai)  return RETURN_NO_ACTION_ERROR;
 	if (!m_bot) return RETURN_NO_ACTION_ERROR;
-
+	
 	//Unit* pVictim = pTarget->getVictim();
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 	Pet *pet = m_bot->GetPet();
@@ -367,21 +368,21 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			}
 			if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
 			{
-				m_ai->SetIgnoreUpdateTime(8);
+				//m_ai->SetIgnoreUpdateTime(8);
 				return RETURN_CONTINUE;
 			}
 
 			//}
 		}
-		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
+		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !m_ai->HasAuraMY(CORRUPTION,*pTarget,m_botguid) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
-		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
+		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !m_ai->HasAuraMY(FIRE, *pTarget, m_botguid) && CastSpell(FIRE, pTarget))
 			return RETURN_CONTINUE;
-		if (Siphon_Life && m_ai->In_Reach(pTarget, Siphon_Life) && !pTarget->HasAura(Siphon_Life) && CastSpell(Siphon_Life, pTarget))
+		if (Siphon_Life && m_ai->In_Reach(pTarget, Siphon_Life) && !m_ai->HasAuraMY(Siphon_Life, *pTarget, m_botguid) && CastSpell(Siphon_Life, pTarget))
 			return RETURN_CONTINUE;
 		if (DRAIN_LIFE && m_ai->In_Reach(pTarget, DRAIN_LIFE) && m_ai->GetHealthPercent() < 50 && CastSpell(DRAIN_LIFE, pTarget))
 		{
-			m_ai->SetIgnoreUpdateTime(5);
+			//m_ai->SetIgnoreUpdateTime(5);
 			return RETURN_CONTINUE;
 		}
 		if (SHADOW_BOLT && m_ai->In_Reach(pTarget, SHADOW_BOLT) && CastSpell(SHADOW_BOLT, pTarget))
@@ -392,13 +393,9 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	case WARLOCK_SPEC_DEMONOLOGY:
 		if (pet && DEMONIC_EMPOWERMENT && !m_bot->HasSpellCooldown(DEMONIC_EMPOWERMENT) && CastSpell(DEMONIC_EMPOWERMENT))
 			return RETURN_CONTINUE;
-		//if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && CastSpell(CURSE_OF_AGONY, pTarget))
-		//return RETURN_CONTINUE;
-		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
+		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !m_ai->HasAuraMY(CORRUPTION, *pTarget, m_botguid) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
-		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
-			return RETURN_CONTINUE;
-		if (INCINERATE && m_ai->In_Reach(pTarget, INCINERATE) && pTarget->HasAura(FIRE) && CastSpell(INCINERATE, pTarget))
+		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !m_ai->HasAuraMY(FIRE, *pTarget, m_botguid) && CastSpell(FIRE, pTarget))
 			return RETURN_CONTINUE;
 		if (SHADOW_BOLT && m_ai->In_Reach(pTarget, SHADOW_BOLT) && CastSpell(SHADOW_BOLT, pTarget))
 			return RETURN_CONTINUE;
@@ -425,15 +422,13 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 			//}
 		}
-		if (SHADOWBURN && pTarget->GetHealthPercent() < (HPThreshold / 2.0) && m_ai->In_Reach(pTarget, SHADOWBURN) && !pTarget->HasAura(SHADOWBURN) && CastSpell(SHADOWBURN, pTarget))
+		if (SHADOWBURN && pTarget->GetHealthPercent() < (HPThreshold / 2.0) && m_ai->In_Reach(pTarget, SHADOWBURN) && !m_ai->HasAuraMY(SHADOWBURN, *pTarget, m_botguid) && CastSpell(SHADOWBURN, pTarget))
 			return RETURN_CONTINUE;
-		//if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY) && CastSpell(CURSE_OF_AGONY, pTarget))
-		//return RETURN_CONTINUE;
-		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
+		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !m_ai->HasAuraMY(CORRUPTION, *pTarget, m_botguid) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
-		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
+		if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !m_ai->HasAuraMY(FIRE, *pTarget, m_botguid) && CastSpell(FIRE, pTarget))
 			return RETURN_CONTINUE;
-		if (CONFLAGRATE && m_ai->In_Reach(pTarget, CONFLAGRATE) && pTarget->HasAura(FIRE) && !m_bot->HasSpellCooldown(CONFLAGRATE) && CastSpell(CONFLAGRATE, pTarget))
+		if (CONFLAGRATE && m_ai->In_Reach(pTarget, CONFLAGRATE) && m_ai->HasAuraMY(FIRE, *pTarget, m_botguid) && !m_bot->HasSpellCooldown(CONFLAGRATE) && CastSpell(CONFLAGRATE, pTarget))
 			return RETURN_CONTINUE;
 		if (SHADOW_BOLT && m_ai->In_Reach(pTarget, SHADOW_BOLT) && CastSpell(SHADOW_BOLT, pTarget))
 			return RETURN_CONTINUE;
@@ -487,9 +482,9 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	}
 
 	// No spec due to low level OR no spell found yet
-	if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
+	if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !m_ai->HasAuraMY(CORRUPTION, *pTarget, m_botguid) && CastSpell(CORRUPTION, pTarget))
 		return RETURN_CONTINUE;
-	if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
+	if (FIRE && m_ai->In_Reach(pTarget, FIRE) && !m_ai->HasAuraMY(FIRE, *pTarget, m_botguid) && CastSpell(FIRE, pTarget))
 		return RETURN_CONTINUE;
 	if (SHADOW_BOLT && m_ai->In_Reach(pTarget, SHADOW_BOLT))
 		return CastSpell(SHADOW_BOLT, pTarget);
@@ -512,7 +507,7 @@ bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
 {
 	Creature * pCreature = (Creature*)pTarget;
 	uint32 CurseToCast = 0;
-
+	
 	// Prevent low health humanoid from fleeing or fleeing too fast
 	// Curse of Exhaustion first to avoid increasing damage output on tank
 	if (pCreature && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && pTarget->GetHealthPercent() < 20 && !pCreature->IsWorldBoss())
@@ -597,7 +592,7 @@ bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
 		}
 	}
 	// else: go for Curse of Agony
-	else if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY))
+	else if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget, CURSE_OF_AGONY) && !m_ai->HasAuraMY(CURSE_OF_AGONY, *pTarget, m_botguid))
 	{
 		if (Amplify_Curse && !m_bot->HasSpellCooldown(Amplify_Curse))
 			CastSpell(Amplify_Curse, m_bot);
