@@ -35,14 +35,14 @@ enum
     // Bat spells
     SPELL_CHARGE                = 22911,
     SPELL_SONIC_BURST           = 23918,
-    // SPELL_PSYHIC_SCREAM       = 22884,                   // spell not confirmed - needs research
+    SPELL_PSYHIC_SCREAM         = 6605,                   // spell not confirmed - needs research
     SPELL_SWOOP                 = 23919,
     SPELL_SUMMON_FRENZIED_BATS  = 23974,
 
     // Troll form spells
     SPELL_SHADOW_WORD_PAIN      = 23952,
     SPELL_MIND_FLAY             = 23953,
-    SPELL_BLOOD_LEECH           = 22644,
+	SPELL_CHAIN_MIND_FLAY       = 26044,
     SPELL_GREATERHEAL           = 23954,
 
     // Common spells
@@ -59,7 +59,9 @@ enum
 
     // npcs
     NPC_FRENZIED_BAT            = 14965,
+	NPC_Bloodseeker_Bat         = 11368,
     NPC_BAT_RIDER               = 14750,
+	GO_TRAP                     = 180125,
 };
 
 struct boss_jeklikAI : public ScriptedAI
@@ -81,7 +83,8 @@ struct boss_jeklikAI : public ScriptedAI
     uint32 m_uiChainMindFlayTimer;
     uint32 m_uiGreaterHealTimer;
     uint32 m_uiFlyingBatsTimer;
-
+	uint32 m_uiPSYHIC_SCREAMTimer;
+	
     bool m_bIsPhaseOne;
 
     GuidList m_lBombRiderGuidsList;
@@ -97,12 +100,15 @@ struct boss_jeklikAI : public ScriptedAI
         m_uiChainMindFlayTimer  = 26000;
         m_uiGreaterHealTimer    = 20000;
         m_uiFlyingBatsTimer     = 30000;
-
+		m_uiPSYHIC_SCREAMTimer  = 13000;
         m_bIsPhaseOne           = true;
+		
 
         DoCastSpellIfCan(m_creature, SPELL_GREEN_CHANNELING);
         SetCombatMovement(false);
     }
+	
+	
 
     void Aggro(Unit* /*pWho*/) override
     {
@@ -137,20 +143,21 @@ struct boss_jeklikAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned) override
     {
-        if (pSummoned->GetEntry() == NPC_FRENZIED_BAT)
+		if (pSummoned->GetEntry() == NPC_FRENZIED_BAT)
         {
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 pSummoned->AI()->AttackStart(pTarget);
         }
-        else if (pSummoned->GetEntry() == NPC_BAT_RIDER)
+		else if (pSummoned->GetEntry() == NPC_BAT_RIDER)
         {
             pSummoned->CastSpell(pSummoned, SPELL_LIQUID_FIRE, true);
+			//pSummoned->SetFactionTemporary();
             m_lBombRiderGuidsList.push_back(pSummoned->GetObjectGuid());
         }
 
         pSummoned->SetLevitate(true);
     }
-
+	
     void EnterEvadeMode() override
     {
         // Override MMaps, and teleport to original position
@@ -227,14 +234,26 @@ struct boss_jeklikAI : public ScriptedAI
             }
             else
                 m_uiSonicBurstTimer -= uiDiff;
-
-            if (m_uiSpawnBatsTimer < uiDiff)
+			
+			if (m_uiPSYHIC_SCREAMTimer < uiDiff)
+			{
+				if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PSYHIC_SCREAM) == CAST_OK)
+					m_uiPSYHIC_SCREAMTimer = urand(18000, 26000);
+			}
+			else
+				m_uiPSYHIC_SCREAMTimer -= uiDiff;
+            
+			if (m_uiSpawnBatsTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_FRENZIED_BATS) == CAST_OK)
-                {
-                    DoScriptText(SAY_SHRIEK, m_creature);
-                    m_uiSpawnBatsTimer = 60000;
-                }
+				for (uint8 i = 0; i < 6; ++i)
+				{
+					if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+						m_creature->SummonCreature(NPC_FRENZIED_BAT, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 1);
+				}
+				
+                DoScriptText(SAY_SHRIEK, m_creature);
+                m_uiSpawnBatsTimer = 60000;
+                
             }
             else
                 m_uiSpawnBatsTimer -= uiDiff;
@@ -260,10 +279,10 @@ struct boss_jeklikAI : public ScriptedAI
             }
             else
                 m_uiMindFlayTimer -= uiDiff;
-
-            if (m_uiChainMindFlayTimer < uiDiff)
+			            
+			if (m_uiChainMindFlayTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_BLOOD_LEECH) == CAST_OK)
+				if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CHAIN_MIND_FLAY) == CAST_OK)
                     m_uiChainMindFlayTimer = urand(15000, 30000);
             }
             else
@@ -288,7 +307,7 @@ struct boss_jeklikAI : public ScriptedAI
                     for (uint8 i = 0; i < 3; ++i)
                     {
                         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                            m_creature->SummonCreature(NPC_BAT_RIDER, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ() + 15.0f, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+							m_creature->SummonCreature(NPC_BAT_RIDER, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ() + 15.0f, 0, TEMPSUMMON_DEAD_DESPAWN, 1);
                     }
                     DoScriptText(SAY_RAIN_FIRE, m_creature);
 
@@ -316,12 +335,13 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
 
     uint32 m_uiInfectedBiteTimer;
     uint32 m_uiBattleCommandTimer;
-
+    uint32 m_uiTrapTriggerTimer;
+	ObjectGuid m_trapGuid;
     void Reset() override
     {
         m_uiInfectedBiteTimer = 6500;
         m_uiBattleCommandTimer = 8000;
-
+		m_uiTrapTriggerTimer = 0;
         m_bHasDoneConcoction = false;
 
         DoCastSpellIfCan(m_creature, SPELL_TRASH);
@@ -330,8 +350,8 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
     void Aggro(Unit* /*pWho*/) override
     {
         // Don't attack if is summoned by Jeklik - the npc gets aggro because of the Liquid Fire
-        if (m_bIsSummon)
-            return;
+        //if (m_bIsSummon)
+          //  return;
 
         DoCastSpellIfCan(m_creature, SPELL_DEMORALIZING_SHOUT);
         // For normal mobs flag needs to be removed
@@ -341,8 +361,8 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
     void AttackStart(Unit* pWho) override
     {
         // Don't attack if is summoned by Jeklik
-        if (m_bIsSummon)
-            return;
+        //if (m_bIsSummon)
+         //   return;
 
         ScriptedAI::AttackStart(pWho);
     }
@@ -355,7 +375,14 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
 
         ScriptedAI::MoveInLineOfSight(pWho);
     }
-
+	void JustSummoned(GameObject* pGo) override
+	{
+		if (pGo->GetEntry() == GO_TRAP)
+		{
+			m_uiTrapTriggerTimer = 1000;
+			m_trapGuid = pGo->GetObjectGuid();
+		}
+	}
     void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -374,6 +401,23 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
         }
         else
             m_uiInfectedBiteTimer -= uiDiff;
+		
+		// Trigger the in 1 secs after spawn
+		if (m_uiTrapTriggerTimer)
+		{
+			if (m_uiTrapTriggerTimer <= uiDiff)
+			{
+				if (GameObject* pTrap = m_creature->GetMap()->GetGameObject(m_trapGuid))
+				{
+					pTrap->Use(m_creature);
+					//pTrap->Delete();
+					//pTrap->DeleteFromDB();
+					m_uiTrapTriggerTimer = 1000;
+				}
+			}
+			else
+				m_uiTrapTriggerTimer -= uiDiff;
+		}
 
         if (m_uiBattleCommandTimer < uiDiff)
         {

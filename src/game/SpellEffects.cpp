@@ -3612,7 +3612,22 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 28561, true, nullptr, nullptr, m_caster->GetObjectGuid());
                     return;
                 }
-                case 30918:                                 // Improved Sprint
+				case 23969:                                 // 
+				{
+					//if (!unitTarget)
+						//return;
+					if (Unit* pTarget = ((Creature*)m_caster)->SelectRandomUnfriendlyTarget(nullptr, 100))
+						m_caster->CastSpell(pTarget, 23970, true);
+					return;
+				}
+				case 23970:                                 // 
+				{
+					if (!unitTarget)
+						return;
+					unitTarget->CastSpell(unitTarget, 23971, true, nullptr, nullptr, m_caster->GetObjectGuid());
+					return;
+				}
+				case 30918:                                 // Improved Sprint
                 {
                     if (!unitTarget)
                         return;
@@ -3621,6 +3636,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveAurasAtMechanicImmunity(IMMUNE_TO_ROOT_AND_SNARE_MASK, 30918, true);
                     break;
                 }
+				
             }
             break;
         }

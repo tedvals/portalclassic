@@ -2290,7 +2290,7 @@ void PlayerbotAI::DoCombatMovement()
 		
 	
 	//special Tactical when detect aura
-		if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861))
+	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || (m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f))
 	{
 		
 		InterruptCurrentCastingSpell();
