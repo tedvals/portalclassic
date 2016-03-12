@@ -59,9 +59,8 @@ enum
 
     // npcs
     NPC_FRENZIED_BAT            = 14965,
-	NPC_Bloodseeker_Bat         = 11368,
-    NPC_BAT_RIDER               = 14750,
-	GO_TRAP                     = 180125,
+	NPC_BAT_RIDER               = 14750,
+	
 };
 
 struct boss_jeklikAI : public ScriptedAI
@@ -351,7 +350,7 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
     {
         // Don't attack if is summoned by Jeklik - the npc gets aggro because of the Liquid Fire
         //if (m_bIsSummon)
-          //  return;
+           // return;
 
         DoCastSpellIfCan(m_creature, SPELL_DEMORALIZING_SHOUT);
         // For normal mobs flag needs to be removed
@@ -361,8 +360,8 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
     void AttackStart(Unit* pWho) override
     {
         // Don't attack if is summoned by Jeklik
-        //if (m_bIsSummon)
-         //   return;
+        if (m_bIsSummon)
+            return;
 
         ScriptedAI::AttackStart(pWho);
     }
@@ -370,19 +369,12 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
     void MoveInLineOfSight(Unit* pWho) override
     {
         // Don't attack if is summoned by Jeklik
-        if (m_bIsSummon)
-            return;
+       // if (m_bIsSummon)
+         //   return;
 
         ScriptedAI::MoveInLineOfSight(pWho);
     }
-	void JustSummoned(GameObject* pGo) override
-	{
-		if (pGo->GetEntry() == GO_TRAP)
-		{
-			m_uiTrapTriggerTimer = 1000;
-			m_trapGuid = pGo->GetObjectGuid();
-		}
-	}
+	
     void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -402,24 +394,7 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
         else
             m_uiInfectedBiteTimer -= uiDiff;
 		
-		// Trigger the in 1 secs after spawn
-		if (m_uiTrapTriggerTimer)
-		{
-			if (m_uiTrapTriggerTimer <= uiDiff)
-			{
-				if (GameObject* pTrap = m_creature->GetMap()->GetGameObject(m_trapGuid))
-				{
-					pTrap->Use(m_creature);
-					//pTrap->Delete();
-					//pTrap->DeleteFromDB();
-					m_uiTrapTriggerTimer = 1000;
-				}
-			}
-			else
-				m_uiTrapTriggerTimer -= uiDiff;
-		}
-
-        if (m_uiBattleCommandTimer < uiDiff)
+		if (m_uiBattleCommandTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BATTLE_COMMAND) == CAST_OK)
                 m_uiBattleCommandTimer = 25000;

@@ -3286,7 +3286,7 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
     int32 duration = GetSpellDuration(m_spellInfo);
 
     pGameObj->SetRespawnTime(duration > 0 ? duration / IN_MILLISECONDS : 0);
-    pGameObj->SetSpellId(m_spellInfo->Id);
+	pGameObj->SetSpellId(m_spellInfo->Id);
 
     // Wild object not have owner and check clickable by players
     map->Add(pGameObj);
@@ -3310,9 +3310,8 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
             }
         }
     }
-
-    pGameObj->SummonLinkedTrapIfAny();
-
+	pGameObj->SummonLinkedTrapIfAny();
+	pGameObj->SetLootState(GO_READY);
     if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
         ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
     if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())

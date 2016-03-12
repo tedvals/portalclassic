@@ -321,7 +321,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                     }
                 }
             }
-
+			
             if (isSpawned())
             {
                 // traps can have time and can not have
@@ -340,8 +340,8 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                             return;
                         else
                         {
-                            if (m_respawnTime > 0)
-                                break;
+                            //if (m_respawnTime > 0)
+                              //  break;
 
                             // battlegrounds gameobjects has data2 == 0 && data5 == 3
                             radius = float(goInfo->trap.cooldown);
