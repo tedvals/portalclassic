@@ -98,7 +98,7 @@ struct boss_jeklikAI : public ScriptedAI
         m_uiMindFlayTimer       = 11000;
         m_uiChainMindFlayTimer  = 26000;
         m_uiGreaterHealTimer    = 20000;
-        m_uiFlyingBatsTimer     = 30000;
+        m_uiFlyingBatsTimer     = 10000;
 		m_uiPSYHIC_SCREAMTimer  = 13000;
         m_bIsPhaseOne           = true;
 		
@@ -150,8 +150,7 @@ struct boss_jeklikAI : public ScriptedAI
 		else if (pSummoned->GetEntry() == NPC_BAT_RIDER)
         {
             pSummoned->CastSpell(pSummoned, SPELL_LIQUID_FIRE, true);
-			//pSummoned->SetFactionTemporary();
-            m_lBombRiderGuidsList.push_back(pSummoned->GetObjectGuid());
+			m_lBombRiderGuidsList.push_back(pSummoned->GetObjectGuid());
         }
 
         pSummoned->SetLevitate(true);
@@ -298,19 +297,20 @@ struct boss_jeklikAI : public ScriptedAI
             else
                 m_uiGreaterHealTimer -= uiDiff;
 
-            if (m_uiFlyingBatsTimer)
+            if (m_uiFlyingBatsTimer&& m_lBombRiderGuidsList.size() < 3)
             {
-                if (m_uiFlyingBatsTimer <= uiDiff)
+				if (m_uiFlyingBatsTimer <= uiDiff )
                 {
                     // Note: the bat riders summoning and movement may need additional research
-                    for (uint8 i = 0; i < 3; ++i)
-                    {
+                    //for (uint8 i = 0; i < 3; ++i)
+                    //{ 
+					
                         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 							m_creature->SummonCreature(NPC_BAT_RIDER, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ() + 15.0f, 0, TEMPSUMMON_DEAD_DESPAWN, 1);
-                    }
+                    //}
                     DoScriptText(SAY_RAIN_FIRE, m_creature);
 
-                    m_uiFlyingBatsTimer = 0;
+                    m_uiFlyingBatsTimer = 10000;
                 }
                 else
                     m_uiFlyingBatsTimer -= uiDiff;

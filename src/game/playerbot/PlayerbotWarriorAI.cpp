@@ -378,7 +378,7 @@ return RETURN_CONTINUE;
 	case WARRIOR_SPEC_PROTECTION:
 		if (!m_bot->HasAura(DEFENSIVE_STANCE, EFFECT_INDEX_0) && m_ai->CastSpell(DEFENSIVE_STANCE))
 			return RETURN_CONTINUE;
-		if (!newTarget && pTarget->GetEntry() !=15348)
+		if (!newTarget && victim && pTarget->GetEntry() != 15348)
 		{
 			// Cast taunt on bot current target if the mob is targeting someone else
 			if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT)  && m_ai->CastSpell(TAUNT, *pTarget))
@@ -416,7 +416,8 @@ return RETURN_CONTINUE;
 				return RETURN_CONTINUE;
 			}
 		}
-
+		if (SHIELD_BASH > 0 && m_ai->GetRageAmount() >= 10 && !m_bot->HasSpellCooldown(SHIELD_BASH) && pTarget->IsNonMeleeSpellCasted(true)  && m_ai->CastSpell(SHIELD_BASH, *pTarget))
+			return RETURN_CONTINUE;
 		if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE))
 		{
 			uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK);

@@ -2078,40 +2078,7 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 
 	if (!m_targetCombat)
 		return;
-	/*uint32 uSpec = m_bot->GetSpec();
-	switch (m_bot->getClass())
-	{
-	case CLASS_PALADIN:
-	if (uSpec == PALADIN_SPEC_HOLY)
-	m_bot->Attack(m_targetCombat, false);
-	if (uSpec == PALADIN_SPEC_PROTECTION)
-	m_bot->Attack(m_targetCombat, true);
-	case CLASS_DRUID:
-	if (uSpec == DRUID_SPEC_RESTORATION)
-	m_bot->Attack(m_targetCombat, false);
-	// Feral can be used for both Tank or DPS... play it safe and assume tank. If not... he best be good at threat management or he'll ravage the healer's mana
-	else if (uSpec == DRUID_SPEC_FERAL)
-	m_bot->Attack(m_targetCombat, true);
-	case CLASS_PRIEST:
-	// Since Discipline can be used for both healer or DPS assume DPS
-	m_bot->Attack(m_targetCombat, false);
-	case CLASS_SHAMAN:
-	if (uSpec == SHAMAN_SPEC_RESTORATION)
-	m_bot->Attack(m_targetCombat, false);
-	case CLASS_WARRIOR:
-	m_bot->Attack(m_targetCombat, true);
-	case CLASS_MAGE:
-	m_bot->Attack(m_targetCombat, false);
-	case CLASS_WARLOCK:
-	m_bot->Attack(m_targetCombat, false);
-	case CLASS_ROGUE:
-	m_bot->Attack(m_targetCombat, true);
-	case CLASS_HUNTER:
-	m_bot->Attack(m_targetCombat, false);
-	default:
-	m_bot->Attack(m_targetCombat, true);
-	}
-	*/
+	
 	m_bot->Attack(m_targetCombat, false);
 	// add thingToAttack to loot list
 	m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
@@ -2191,7 +2158,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
 	}
 
 	m_bot->SetSelectionGuid((m_targetCombat->GetObjectGuid()));
-	//SetIgnoreUpdateTime(1);
+	SetIgnoreUpdateTime(1);
 
 	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
@@ -2293,6 +2260,10 @@ void PlayerbotAI::DoCombatMovement()
 	MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*m_bot, 180647, 10.0f);
 	MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(pGo, go_check);
 	Cell::VisitGridObjects(m_bot, searcher, 10.0f);
+	
+	MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check1(*m_bot, 180125, 5.0f);
+	MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher1(pGo, go_check1);
+	Cell::VisitGridObjects(m_bot, searcher1, 5.0f);
 
 	if (pGo)
 	{
@@ -2308,7 +2279,9 @@ void PlayerbotAI::DoCombatMovement()
 		
 	
 	//special Tactical when detect aura
-	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || (m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f))
+	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || 
+		(m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f)||
+		(m_targetCombat->GetEntry() == 14517 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK)))
 	{
 		
 		InterruptCurrentCastingSpell();
