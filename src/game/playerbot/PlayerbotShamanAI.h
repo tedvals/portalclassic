@@ -23,6 +23,7 @@ enum
     CHAINED_HEAL_1                  = 70809,
     CLEANSE_SPIRIT_1                = 51886,
     CLEANSING_TOTEM_1               = 8170,
+	Poison_Cleansing_Totem          = 8166,
     CURE_TOXINS_1                   = 526,
 	CURE_DISEASE_shaman             = 2870,
     EARTH_ELEMENTAL_TOTEM_1         = 2062,
@@ -179,7 +180,8 @@ private:
 		   CURE_DISEASE,
            CLEANSE_SPIRIT,
            NATURES_SWIFTNESS_SHAMAN,
-           TIDAL_FORCE;
+           TIDAL_FORCE,
+		   POSION_CLEANSING_TOTEM;
 
     // ELEMENTAL
     uint32 LIGHTNING_BOLT,
