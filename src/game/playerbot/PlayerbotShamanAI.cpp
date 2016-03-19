@@ -24,6 +24,7 @@ PlayerbotShamanAI::PlayerbotShamanAI(Player* const master, Player* const bot, Pl
 	NATURES_SWIFTNESS_SHAMAN = m_ai->initSpell(NATURES_SWIFTNESS_SHAMAN_1);
 	TIDAL_FORCE = m_ai->initSpell(TIDAL_FORCE_1);
 	POSION_CLEANSING_TOTEM = m_ai->initSpell(Poison_Cleansing_Totem);
+	TRANQUIL_AIR_TOTEM = m_ai->initSpell(Tranquil_Air_Totem);
 	// enhancement
 	FOCUSED = 0; // Focused what?
 	STORMSTRIKE = m_ai->initSpell(STORMSTRIKE_1);
@@ -412,8 +413,11 @@ void PlayerbotShamanAI::DropTotems()
 	// Earth Totems
 	if ((earth == nullptr) || (m_bot->GetDistance(earth) > 30))
 	{
-		if (STRENGTH_OF_EARTH_TOTEM > 0 && m_ai->CastSpell(STRENGTH_OF_EARTH_TOTEM))
+		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_SHADOW &&TREMOR_TOTEM > 0 && m_ai->CastSpell(TREMOR_TOTEM))
 			return;
+		else if (STRENGTH_OF_EARTH_TOTEM > 0 && m_ai->CastSpell(STRENGTH_OF_EARTH_TOTEM))
+			return;
+		
 	}
 
 	// Fire Totems
@@ -421,10 +425,8 @@ void PlayerbotShamanAI::DropTotems()
 	{
 		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_FROST && FROST_RESISTANCE_TOTEM > 0 && m_ai->CastSpell(FROST_RESISTANCE_TOTEM))
 			return;
-		else if (spec == SHAMAN_SPEC_ELEMENTAL && TOTEM_OF_WRATH > 0 && m_ai->CastSpell(TOTEM_OF_WRATH))
-			return;
 		// If the spec didn't take totem of wrath, use flametongue
-		else if ((spec != SHAMAN_SPEC_ELEMENTAL || TOTEM_OF_WRATH == 0) && FLAMETONGUE_TOTEM > 0 && m_ai->CastSpell(FLAMETONGUE_TOTEM))
+		else if (SEARING_TOTEM > 0 && m_ai->CastSpell(SEARING_TOTEM))
 			return;
 	}
 
@@ -432,6 +434,8 @@ void PlayerbotShamanAI::DropTotems()
 	if ((air == nullptr) || (m_bot->GetDistance(air) > 30))
 	{
 		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_NATURE && NATURE_RESISTANCE_TOTEM > 0 && m_ai->CastSpell(NATURE_RESISTANCE_TOTEM))
+			return;
+		else if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_SHADOW && TRANQUIL_AIR_TOTEM > 0 && m_ai->CastSpell(TRANQUIL_AIR_TOTEM))
 			return;
 		else
 		{
@@ -447,8 +451,6 @@ void PlayerbotShamanAI::DropTotems()
 		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_FIRE && FIRE_RESISTANCE_TOTEM > 0 && m_ai->CastSpell(FIRE_RESISTANCE_TOTEM))
 			return;
 		else if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_NATURE && POSION_CLEANSING_TOTEM > 0 && m_ai->CastSpell(POSION_CLEANSING_TOTEM))
-			return;
-		else if ( POSION_CLEANSING_TOTEM > 0 && m_ai->CastSpell(POSION_CLEANSING_TOTEM))
 			return;
 		else if (MANA_SPRING_TOTEM > 0 && m_ai->CastSpell(MANA_SPRING_TOTEM))
 			return;

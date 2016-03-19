@@ -80,6 +80,7 @@ enum
     WINDFURY_TOTEM_1                = 8512,
     WINDFURY_WEAPON_1               = 8232,
     WRATH_OF_AIR_TOTEM_1            = 8835,
+	Tranquil_Air_Totem              =25908,
 
     //Totem Buffs
     STRENGTH_OF_EARTH_EFFECT_1      = 8076,
@@ -181,7 +182,8 @@ private:
            CLEANSE_SPIRIT,
            NATURES_SWIFTNESS_SHAMAN,
            TIDAL_FORCE,
-		   POSION_CLEANSING_TOTEM;
+		   POSION_CLEANSING_TOTEM,
+		   TRANQUIL_AIR_TOTEM;
 
     // ELEMENTAL
     uint32 LIGHTNING_BOLT,
