@@ -355,24 +355,22 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			CastSpell(SHADOW_BOLT, pTarget);
 			return RETURN_CONTINUE;
 		}
+		//set aoe mode
 		if (m_ai->CanAoe())
 		{
-			//if (m_ai->GetAttackerCount() >= 5 && ((Creature*)pTarget)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL)
-			//{
-			//m_bot->GetMotionMaster()->MoveFollow(pTarget, 6.0f, m_bot->GetOrientation());
-			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
+			
+			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 50 && !m_bot->HasAura(HELLFIRE))
 			{
 				CastSpell(HELLFIRE, pTarget);
 				//m_ai->SetIgnoreUpdateTime(8);
 				RETURN_CONTINUE;
 			}
-			if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
+			else if (RAIN_OF_FIRE > 0 && CastSpell(RAIN_OF_FIRE, pTarget))
 			{
 				//m_ai->SetIgnoreUpdateTime(8);
 				return RETURN_CONTINUE;
 			}
-
-			//}
+						
 		}
 		if (CORRUPTION && m_ai->In_Reach(pTarget, CORRUPTION) && !m_ai->HasAuraMY(CORRUPTION,*pTarget,m_botguid) && CastSpell(CORRUPTION, pTarget))
 			return RETURN_CONTINUE;
