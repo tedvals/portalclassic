@@ -37,7 +37,6 @@ extern void AddSC_instance_blackrock_depths();
 extern void AddSC_boss_overlordwyrmthalak();                // blackrock_spire
 extern void AddSC_boss_pyroguard_emberseer();
 extern void AddSC_boss_gyth();
-extern void AddSC_boss_mor_grayhoof();
 extern void AddSC_instance_blackrock_spire();
 extern void AddSC_boss_razorgore();                         // blackwing_lair
 extern void AddSC_boss_vaelastrasz();
@@ -238,7 +237,6 @@ void AddScripts()
     AddSC_boss_overlordwyrmthalak();                        // blackrock_spire
     AddSC_boss_pyroguard_emberseer();
     AddSC_boss_gyth();
-	AddSC_boss_mor_grayhoof();
     AddSC_instance_blackrock_spire();
     AddSC_boss_razorgore();                                 // blackwing_lair
     AddSC_boss_vaelastrasz();
