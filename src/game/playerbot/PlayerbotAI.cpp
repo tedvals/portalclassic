@@ -2079,7 +2079,7 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 	if (!m_targetCombat)
 		return;
 	
-	m_bot->Attack(m_targetCombat, false);
+	m_bot->Attack(m_targetCombat, true);
 	// add thingToAttack to loot list
 	m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
 }
@@ -2279,7 +2279,7 @@ void PlayerbotAI::DoCombatMovement()
 		
 	
 	//special Tactical when detect aura
-	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || 
+	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063) || m_bot->HasAura(24614) ||
 		(m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f)||
 		(m_targetCombat->GetEntry() == 14517 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 14510 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
@@ -6106,7 +6106,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
 		return;
 
 	// if message is not from a player in the masters account auto reply and ignore
-	/*if (!canObeyCommandFrom(fromPlayer))
+	if (!canObeyCommandFrom(fromPlayer))
 	{
 	// only tell the player once instead of endlessly nagging them
 	if (m_ignorePlayersChat.find(fromPlayer.GetObjectGuid()) == m_ignorePlayersChat.end())
@@ -6118,7 +6118,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
 	m_ignorePlayersChat.insert(fromPlayer.GetObjectGuid());
 	}
 	return;
-	}*/
+	}
 
 	// Passed along to ExtractCommand, if (sub)command is found "input" will only contain the rest of the string (or "")
 	std::string input = text.c_str();

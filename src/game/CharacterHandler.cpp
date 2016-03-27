@@ -586,7 +586,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         pCurrChar->SetInGuild(0);
         pCurrChar->SetRank(0);
     }
-	Guild* guild;
+	Guild* guild = NULL;;
     if (pCurrChar->GetGuildId() != 0)
     {
 		guild = sGuildMgr.GetGuildById(pCurrChar->GetGuildId());
@@ -736,7 +736,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->IsStandState() && !pCurrChar->hasUnitState(UNIT_STAT_STUNNED))
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
 	// If we are in a guild, load all guild members as bots. No need to give a command to load them then! Yay!
-	if (guild)
+	if (pCurrChar->GetGuildId() != 0 && guild)
 		{
 		PlayerbotMgr* mgr = pCurrChar->GetPlayerbotMgr();
 		if (!mgr)
