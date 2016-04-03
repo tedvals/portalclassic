@@ -2079,9 +2079,16 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 	if (!m_targetCombat)
 		return;
 	
-	m_bot->Attack(m_targetCombat, true);
-	// add thingToAttack to loot list
-	m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
+	if (m_bot->Attack(m_targetCombat, true))
+	{
+		m_bot->AddThreat(m_targetCombat);
+		//m_bot->SetInCombatWith(m_targetCombat);
+		//m_targetCombat->SetInCombatWith(m_bot);
+		// add thingToAttack to loot list
+		m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
+	}
+	//if (!m_targetCombat->GetObjectGuid().IsDynamicObject())
+	//m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
 }
 
 // intelligently sets a reasonable combat order for this bot
@@ -2193,7 +2200,7 @@ void PlayerbotAI::DoNextCombatManeuver()
 		Attack();
 
 	// clear orders if current target for attacks doesn't make sense anymore
-	if (!m_targetCombat || m_targetCombat->isDead() || !m_targetCombat->IsInWorld() || !m_bot->IsHostileTo(m_targetCombat) || !m_bot->IsInMap(m_targetCombat))
+	if (!m_targetCombat || m_targetCombat->isDead() || !m_targetCombat->IsInWorld() /*|| !m_bot->IsHostileTo(m_targetCombat)*/ || !m_bot->IsInMap(m_targetCombat))
 	{
 		m_bot->AttackStop();
 		m_bot->SetSelectionGuid(ObjectGuid());
