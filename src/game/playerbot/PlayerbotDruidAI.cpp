@@ -770,7 +770,14 @@ void PlayerbotDruidAI::DoNonCombatActions()
 	// Revive
 	///if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
 	// return;
+	//creat water
+	if (m_ai->FindDrink() == nullptr && m_bot->getLevel() == 60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(CRYSTAL_WATER, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
 
+		return;
+	}
 	if (GetDispalTarget() != NULL)
 	{
 		HealPlayer(GetDispalTarget());

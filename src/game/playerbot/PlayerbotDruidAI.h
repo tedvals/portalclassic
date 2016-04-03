@@ -2,7 +2,7 @@
 #define _PLAYERBOTDRUIDAI_H
 
 #include "PlayerbotClassAI.h"
-
+#define CRYSTAL_WATER 8079
 enum DruidSpells
 {
     ABOLISH_POISON_1                = 2893,

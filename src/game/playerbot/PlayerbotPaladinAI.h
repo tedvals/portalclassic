@@ -2,7 +2,7 @@
 #define _PlayerbotPaladinAI_H
 
 #include "PlayerbotClassAI.h"
-
+#define CRYSTAL_WATER 8079
 enum
 {
     Combat,

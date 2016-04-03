@@ -176,6 +176,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	Pet *pet = m_bot->GetPet();
 	uint32 spec = m_bot->GetSpec();
 	uint8 shardCount = m_bot->GetItemCount(SOUL_SHARD, false, nullptr);
+	
 
 	const SpellEntry* const pSpellInfoFEAR = sSpellStore.LookupEntry(FEAR);
 	const SpellEntry* const pSpellInfoSEDUCTION = sSpellStore.LookupEntry(SEDUCTION);
@@ -687,7 +688,7 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 	m_bot->RemoveAllSpellCooldown();
 	//uint32 spec = m_bot->GetSpec();
 	Pet *pet = m_bot->GetPet();
-
+	uint8 WaterCount = m_bot->GetItemCount(CRYSTAL_WATER, false, nullptr);
 	// Initialize pet spells
 	if (pet && pet->GetEntry() != m_lastDemon)
 	{
@@ -730,6 +731,14 @@ void PlayerbotWarlockAI::DoNonCombatActions()
 
 		//if (!m_isTempImp)
 		//    m_demonOfChoice = pet->GetEntry();
+	}
+	//creat water
+	if (m_ai->FindDrink() == nullptr && m_bot->getLevel()==60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(CRYSTAL_WATER, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
+		
+		return;
 	}
 
 	// Destroy extra soul shards

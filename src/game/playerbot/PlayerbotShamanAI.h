@@ -2,7 +2,7 @@
 #define _PLAYERBOTSHAMANAI_H
 
 #include "PlayerbotClassAI.h"
-
+#define CRYSTAL_WATER 8079
 enum
 {
     SPELL_ENHANCEMENT,

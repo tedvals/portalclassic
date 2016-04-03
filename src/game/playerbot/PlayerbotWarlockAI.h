@@ -12,7 +12,7 @@
 #define GREATER_FIRESTONE 13700
 #define MAJOR_FIRESTONE 13701
 #define MAX_SHARD_COUNT 20 // Maximum soul shard count bot should keep
-
+#define CRYSTAL_WATER 8079
 enum
 {
     SPELL_CURSES,

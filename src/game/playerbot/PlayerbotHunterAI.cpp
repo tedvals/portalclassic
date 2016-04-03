@@ -329,6 +329,14 @@ void PlayerbotHunterAI::DoNonCombatActions()
 	if (!m_ai)  return;
 	if (!m_bot) return;
 	m_bot->RemoveAllSpellCooldown();
+	//creat water
+	if (m_ai->FindDrink() == nullptr && m_bot->getLevel() == 60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(CRYSTAL_WATER, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
+
+		return;
+	}
 	if (!m_rangedCombat || m_ai->GetCombatStyle() == PlayerbotAI::COMBAT_MELEE)
 	{
 		m_rangedCombat = true;

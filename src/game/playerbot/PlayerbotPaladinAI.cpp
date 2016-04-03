@@ -581,7 +581,14 @@ void PlayerbotPaladinAI::DoNonCombatActions()
 	if (!m_bot)  return;
 	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
+	//creat water
+	if (m_ai->FindDrink() == nullptr && m_bot->getLevel() == 60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(CRYSTAL_WATER, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
 
+		return;
+	}
 	CheckAuras();
 
 	//Put up RF if tank

@@ -569,7 +569,14 @@ void PlayerbotPriestAI::DoNonCombatActions()
 	if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
 	uint32 spec = m_bot->GetSpec();
+	//creat water
+	if (m_ai->FindDrink() == nullptr && m_bot->getLevel() == 60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(CRYSTAL_WATER, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
 
+		return;
+	}
 	// selfbuff goes first
 	if (m_ai->SelfBuff(INNER_FIRE))
 		return;
