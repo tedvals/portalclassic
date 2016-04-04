@@ -778,6 +778,8 @@ void PlayerbotDruidAI::DoNonCombatActions()
 
 		return;
 	}
+	if (EatDrinkBandage())
+		return;
 	if (GetDispalTarget() != NULL)
 	{
 		HealPlayer(GetDispalTarget());
@@ -807,8 +809,7 @@ void PlayerbotDruidAI::DoNonCombatActions()
 
 	if (OMEN_OF_CLARITY && !m_bot->HasAura(OMEN_OF_CLARITY) && CastSpell(OMEN_OF_CLARITY, m_bot))
 		return;
-	if (EatDrinkBandage())
-		return;
+	
 	// Return to fighting form AFTER reviving, healing, buffing
 	CheckForms();
 } // end DoNonCombatActions

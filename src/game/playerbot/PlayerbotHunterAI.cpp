@@ -337,6 +337,8 @@ void PlayerbotHunterAI::DoNonCombatActions()
 
 		return;
 	}
+	if (EatDrinkBandage())
+		return;
 	if (!m_rangedCombat || m_ai->GetCombatStyle() == PlayerbotAI::COMBAT_MELEE)
 	{
 		m_rangedCombat = true;
@@ -351,8 +353,7 @@ void PlayerbotHunterAI::DoNonCombatActions()
 	if (ASPECT_OF_THE_HAWK > 0 && !m_bot->HasAura(ASPECT_OF_THE_HAWK, EFFECT_INDEX_0))
 		m_ai->CastSpell(ASPECT_OF_THE_HAWK, *m_bot);
 
-	if (EatDrinkBandage())
-		return;
+	
 	// hp/mana check
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 	//m_bot->SetStandState(UNIT_STAND_STATE_STAND);

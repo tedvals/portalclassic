@@ -1,6 +1,11 @@
 
 #include "PlayerbotMageAI.h"
 #include "../SpellAuras.h"
+#include "../GridNotifiers.h"
+#include "../GridNotifiersImpl.h"
+#include "../../scriptdev2/include/sc_grid_searchers.h"
+#include "CellImpl.h"
+#include "ObjectGuid.h"
 class PlayerbotAI;
 
 PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, PlayerbotAI* const ai) : PlayerbotClassAI(master, bot, ai)
@@ -168,6 +173,23 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		return RETURN_CONTINUE;
 	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
 		return RETURN_CONTINUE;
+	//special tictac
+	Creature *pcreture = nullptr;
+	MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck creature_check(*m_bot, 15163, true, false, 40.0f, false);
+	MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher2(pcreture, creature_check);
+
+	Cell::VisitGridObjects(m_bot, searcher2, 40.0f);
+
+
+	if (pcreture)
+	{
+		
+		m_bot->InterruptNonMeleeSpells(true);
+		m_ai->InterruptCurrentCastingSpell();
+				
+		if (FIRE_BLAST > 0 && m_ai->In_Reach(pcreture, FIRE_BLAST) && !m_bot->HasSpellCooldown(FIRE_BLAST) && CastSpell(FIRE_BLAST, pcreture))
+			return RETURN_CONTINUE;
+	}
 
 	if (m_ai->GetManaPercent() < 30)
 	{
@@ -226,6 +248,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (newTarget && m_ai->IsElite(newTarget) && !m_ai->CanAoe()) // TODO: && party has a tank
 	{
 		Creature * pCreature = (Creature*)newTarget;
+		
 		switch (spec)
 		{
 		case MAGE_SPEC_FIRE:
@@ -293,7 +316,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			if (Polymorph && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
 				return RETURN_CONTINUE;
 		}
-
+		
 
 
 	}
@@ -304,8 +327,8 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		HealPlayer(GetDispalTarget());
 		return RETURN_CONTINUE;
 	}
-
-
+	
+	
 
 	switch (spec)
 	{
@@ -466,14 +489,28 @@ void PlayerbotMageAI::DoNonCombatActions()
 	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot || !master)
 		return;
-
+	// TODO: The beauty of a mage is not only its ability to supply itself with water, but to share its water
+	// So, conjure at *least* 1.25 stacks, ready to trade a stack and still have some left for self
+	if (m_ai->FindDrink() == nullptr && CONJURE_WATER && m_ai->CastSpell(CONJURE_WATER, *m_bot))
+	{
+		m_ai->TellMaster("I'm conjuring some water.");
+		m_ai->SetIgnoreUpdateTime(3);
+		return;
+	}
+	if (m_ai->FindFood() == nullptr && CONJURE_FOOD && m_ai->CastSpell(CONJURE_FOOD, *m_bot))
+	{
+		m_ai->TellMaster("I'm conjuring some food.");
+		m_ai->SetIgnoreUpdateTime(3);
+		return;
+	}
+	if (EatDrinkBandage())
+		return;
 	if (GetDispalTarget() != nullptr)
 	{
 		HealPlayer(GetDispalTarget());
 		return;
 	}
-	if (EatDrinkBandage())
-		return;
+	
 	// Buff armor
 	if (MOLTEN_ARMOR)
 	{
@@ -502,20 +539,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 
 
 
-	// TODO: The beauty of a mage is not only its ability to supply itself with water, but to share its water
-	// So, conjure at *least* 1.25 stacks, ready to trade a stack and still have some left for self
-	if (m_ai->FindDrink() == nullptr && CONJURE_WATER && m_ai->CastSpell(CONJURE_WATER, *m_bot))
-	{
-		m_ai->TellMaster("I'm conjuring some water.");
-		m_ai->SetIgnoreUpdateTime(3);
-		return;
-	}
-	if (m_ai->FindFood() == nullptr && CONJURE_FOOD && m_ai->CastSpell(CONJURE_FOOD, *m_bot))
-	{
-		m_ai->TellMaster("I'm conjuring some food.");
-		m_ai->SetIgnoreUpdateTime(3);
-		return;
-	}
+	
 
 	if (CONJURE_MANA_GEM)
 	{

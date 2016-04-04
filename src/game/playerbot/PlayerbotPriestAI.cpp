@@ -577,6 +577,8 @@ void PlayerbotPriestAI::DoNonCombatActions()
 
 		return;
 	}
+	if (EatDrinkBandage())
+		return;
 	// selfbuff goes first
 	if (m_ai->SelfBuff(INNER_FIRE))
 		return;
@@ -642,8 +644,7 @@ void PlayerbotPriestAI::DoNonCombatActions()
 	// return;
 	// if (Buff(&PlayerbotPriestAI::BuffHelper, SHADOW_PROTECTION, (JOB_TANK | JOB_HEAL)) & RETURN_CONTINUE)
 	//  return;
-	if (EatDrinkBandage())
-		return;
+	
 	// hp/mana check
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 	//  m_bot->SetStandState(UNIT_STAND_STATE_STAND);

@@ -2075,15 +2075,16 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 	}
 
 	GetCombatTarget(forcedTarget);
-
+	
+	
 	if (!m_targetCombat)
 		return;
 	
 	if (m_bot->Attack(m_targetCombat, true))
 	{
 		m_bot->AddThreat(m_targetCombat);
-		//m_bot->SetInCombatWith(m_targetCombat);
-		//m_targetCombat->SetInCombatWith(m_bot);
+		m_bot->SetInCombatWith(m_targetCombat);
+		m_targetCombat->SetInCombatWith(m_bot);
 		// add thingToAttack to loot list
 		m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
 	}
@@ -2163,7 +2164,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
 		SetIgnoreUpdateTime(6);
 		return;
 	}
-
+	
 	m_bot->SetSelectionGuid((m_targetCombat->GetObjectGuid()));
 	//SetIgnoreUpdateTime(1);
 
@@ -2199,13 +2200,13 @@ void PlayerbotAI::DoNextCombatManeuver()
 	else
 		Attack();
 	//when mob use some spell invisibility the bot action
-	if (m_targetCombat->HasAuraType(SPELL_AURA_MOD_INVISIBILITY) && !(m_combatOrder & ORDERS_HEAL))
+	/*if (m_targetCombat && m_targetCombat->HasAuraType(SPELL_AURA_MOD_INVISIBILITY) && !(m_combatOrder & ORDERS_HEAL))
 	{
 		m_bot->AttackStop();
 		m_bot->SetSelectionGuid(ObjectGuid());
 		m_bot->InterruptNonMeleeSpells(true);
 		return;
-	}
+	}*/
 	// clear orders if current target for attacks doesn't make sense anymore
 	if (!m_targetCombat || m_targetCombat->isDead() || !m_targetCombat->IsInWorld() /*|| !m_bot->IsHostileTo(m_targetCombat)*/ || !m_bot->IsInMap(m_targetCombat))
 	{
@@ -2269,6 +2270,7 @@ void PlayerbotAI::DoCombatMovement()
 	if (!m_targetCombat) return;
 	uint8 pClass = m_bot->getClass();
 	GameObject *pGo = nullptr;
+	
 	bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
 		
 	MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*m_bot, 180647, 10.0f);
@@ -2292,7 +2294,8 @@ void PlayerbotAI::DoCombatMovement()
 
 	}
 	
-		
+	
+
 	
 	//special Tactical when detect aura
 	if (
@@ -2302,6 +2305,8 @@ void PlayerbotAI::DoCombatMovement()
 		(m_targetCombat->GetEntry() == 14510 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 14509 && m_bot->GetCombatDistance(m_targetCombat, true)<25.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true)<5.0f&& !(m_combatOrder & ORDERS_TANK))
+		//(m_targetCombat->GetEntry() == 15083 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))
+		/*(m_targetCombat->GetEntry() == 15163 && m_bot->GetCombatDistance(m_targetCombat, true)<10.0f)*/
 
 		)
 	{

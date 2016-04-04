@@ -553,6 +553,8 @@ void PlayerbotShamanAI::DoNonCombatActions()
 
 		return;
 	}
+	if (EatDrinkBandage())
+		return;
 	//CheckShields();
 	/*
 		   // buff myself weapon
@@ -605,8 +607,7 @@ void PlayerbotShamanAI::DoNonCombatActions()
 			return;// RETURN_CONTINUE;
 	}
 
-	if (EatDrinkBandage())
-		return;
+	
 	// hp/mana check
 	//if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 	//	m_bot->SetStandState(UNIT_STAND_STATE_STAND);

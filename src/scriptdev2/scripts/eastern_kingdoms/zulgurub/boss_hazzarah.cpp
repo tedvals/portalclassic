@@ -95,24 +95,25 @@ struct boss_hazzarahAI : public ScriptedAI
             m_uiEarthShockTimer -= uiDiff;
 
         // Illusions_Timer
-        if (m_uiIllusionsTimer < uiDiff)
-        {
+		if (m_uiIllusionsTimer < uiDiff)
+		{
 			Unit* pTarget = NULL;
 			for (uint8 i = 0; i < 3; ++i)
 			{
-				pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
-				if (!pTarget)
-					return;
-
-				Creature* Illusion = m_creature->SummonCreature(15163, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+				Creature* Illusion = m_creature->SummonCreature(15163, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
 				if (Illusion)
+				{
+					pTarget = Illusion->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+					if (!pTarget)
+						return;
 					Illusion->AI()->AttackStart(pTarget);
+				}
 			}
 
-            m_uiIllusionsTimer = urand(15000, 25000);
-        }
-        else
-            m_uiIllusionsTimer -= uiDiff;
+			m_uiIllusionsTimer = urand(15000, 25000);
+		}
+		else
+			m_uiIllusionsTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
