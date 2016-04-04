@@ -88,7 +88,7 @@ struct boss_hazzarahAI : public ScriptedAI
         // Earthshock
         if (m_uiEarthShockTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_EARTH_SHOCK) == CAST_OK)
+			if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTH_SHOCK) == CAST_OK)
                 m_uiEarthShockTimer = urand(9000, 16000);
         }
         else
@@ -97,9 +97,17 @@ struct boss_hazzarahAI : public ScriptedAI
         // Illusions_Timer
         if (m_uiIllusionsTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSION_1, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSION_2, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSION_3, CAST_TRIGGERED);
+			Unit* pTarget = NULL;
+			for (uint8 i = 0; i < 3; ++i)
+			{
+				pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+				if (!pTarget)
+					return;
+
+				Creature* Illusion = m_creature->SummonCreature(15163, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+				if (Illusion)
+					Illusion->AI()->AttackStart(pTarget);
+			}
 
             m_uiIllusionsTimer = urand(15000, 25000);
         }

@@ -2281,29 +2281,33 @@ void PlayerbotAI::DoCombatMovement()
 
 	if (pGo)
 	{
-		
-			InterruptCurrentCastingSpell();
-			SetIgnoreUpdateTime(2);
-			m_bot->GetMotionMaster()->Clear(false);
-			m_bot->GetMotionMaster()->MoveFleeing1(pGo, 2);
-			return;
-		
+		m_bot->AttackStop();
+		m_bot->SetSelectionGuid(ObjectGuid());
+		m_bot->InterruptNonMeleeSpells(true);
+		InterruptCurrentCastingSpell();
+		SetIgnoreUpdateTime(2);
+		m_bot->GetMotionMaster()->Clear(false);
+		m_bot->GetMotionMaster()->MoveFleeing1(pGo, 2);
+		return;
+
 	}
 	
 		
 	
 	//special Tactical when detect aura
-	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063) || 
+	if (
+		m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063) || 
 		(m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f)||
 		(m_targetCombat->GetEntry() == 14517 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 14510 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 14509 && m_bot->GetCombatDistance(m_targetCombat, true)<25.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true)<5.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 15082 && m_bot->GetCombatDistance(m_targetCombat, true)<10.0f&& m_targetCombat->HasAura(24646))
+		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true)<5.0f&& !(m_combatOrder & ORDERS_TANK))
 
 		)
 	{
-		
+		m_bot->AttackStop();
+		m_bot->SetSelectionGuid(ObjectGuid());
+		m_bot->InterruptNonMeleeSpells(true);
 		InterruptCurrentCastingSpell();
 		SetIgnoreUpdateTime(2);
 		m_bot->GetMotionMaster()->Clear(false);
