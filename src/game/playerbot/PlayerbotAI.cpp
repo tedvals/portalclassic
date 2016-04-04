@@ -2165,7 +2165,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
 	}
 
 	m_bot->SetSelectionGuid((m_targetCombat->GetObjectGuid()));
-	SetIgnoreUpdateTime(1);
+	//SetIgnoreUpdateTime(1);
 
 	if (m_bot->getStandState() != UNIT_STAND_STATE_STAND)
 		m_bot->SetStandState(UNIT_STAND_STATE_STAND);
@@ -2198,7 +2198,14 @@ void PlayerbotAI::DoNextCombatManeuver()
 		GetDuelTarget(GetMaster()); // TODO: Wow... wait... what? So not right.
 	else
 		Attack();
-
+	//when mob use some spell invisibility the bot action
+	if (m_targetCombat->HasAuraType(SPELL_AURA_MOD_INVISIBILITY) && !(m_combatOrder & ORDERS_HEAL))
+	{
+		m_bot->AttackStop();
+		m_bot->SetSelectionGuid(ObjectGuid());
+		m_bot->InterruptNonMeleeSpells(true);
+		return;
+	}
 	// clear orders if current target for attacks doesn't make sense anymore
 	if (!m_targetCombat || m_targetCombat->isDead() || !m_targetCombat->IsInWorld() /*|| !m_bot->IsHostileTo(m_targetCombat)*/ || !m_bot->IsInMap(m_targetCombat))
 	{
@@ -2286,12 +2293,14 @@ void PlayerbotAI::DoCombatMovement()
 		
 	
 	//special Tactical when detect aura
-	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063)  ||
+	if (m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063) || 
 		(m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f)||
 		(m_targetCombat->GetEntry() == 14517 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 14510 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
 		(m_targetCombat->GetEntry() == 14509 && m_bot->GetCombatDistance(m_targetCombat, true)<25.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true)<5.0f&& !(m_combatOrder & ORDERS_TANK))
+		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true)<5.0f&& !(m_combatOrder & ORDERS_TANK))||
+		(m_targetCombat->GetEntry() == 15082 && m_bot->GetCombatDistance(m_targetCombat, true)<10.0f&& m_targetCombat->HasAura(24646))
+
 		)
 	{
 		

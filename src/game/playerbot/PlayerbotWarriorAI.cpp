@@ -401,7 +401,7 @@ return RETURN_CONTINUE;
 		}
 
 		// TODO: should behaviour (or treshold) be different between elite and normal mobs? We don't want bots to burn such precious cooldown needlessly 
-		if (m_bot->GetHealthPercent() < 20)
+		if (m_bot->GetHealthPercent() < 40)
 		{
 			// Cast Last Stand first because it has lower cooldown
 			if (LAST_STAND > 0 && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(LAST_STAND) && m_ai->CastSpell(LAST_STAND, *m_bot))

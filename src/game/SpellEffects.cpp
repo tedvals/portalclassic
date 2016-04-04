@@ -901,6 +901,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+				{
+					if (Unit* pTarget = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+					{
+						m_caster->CastSpell(pTarget, 24700, true);
+						m_caster->CastSpell(pTarget, 24337, true);
+					}
+					return;
+				}
                 case 28098:                                 // Stalagg Tesla Effect
                 case 28110:                                 // Feugen Tesla Effect
                 {
