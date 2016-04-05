@@ -778,6 +778,14 @@ void PlayerbotDruidAI::DoNonCombatActions()
 
 		return;
 	}
+	//creat Wild_Thornroot
+	if (!m_ai->HasSpellReagents(GIFT_OF_THE_WILD) && m_bot->getLevel() == 60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(Wild_Thornroot, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
+
+		return;
+	}
 	if (EatDrinkBandage())
 		return;
 	if (GetDispalTarget() != NULL)

@@ -505,6 +505,16 @@ void PlayerbotMageAI::DoNonCombatActions()
 	}
 	if (EatDrinkBandage())
 		return;
+	
+	//creat ArcanePowder
+	if (!m_ai->HasSpellReagents(ARCANE_BRILLIANCE) && m_bot->getLevel() == 56)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(ArcanePowder, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
+
+		return;
+	}
+	
 	if (GetDispalTarget() != nullptr)
 	{
 		HealPlayer(GetDispalTarget());

@@ -577,6 +577,16 @@ void PlayerbotPriestAI::DoNonCombatActions()
 
 		return;
 	}
+	
+	//creat SacredCandle
+	if (!m_ai->HasSpellReagents(PRAYER_OF_FORTITUDE) && m_bot->getLevel() == 60)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(SacredCandle, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
+
+		return;
+	}
+
 	if (EatDrinkBandage())
 		return;
 	// selfbuff goes first

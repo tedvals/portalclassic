@@ -4,6 +4,7 @@
 #define  ManaJade 5513
 #define  ManaCitrine 8007
 #define  ManaRuby 8008
+#define  ArcanePowder 17020
 #include "PlayerbotClassAI.h"
 
 enum
