@@ -370,13 +370,28 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
 	uint8 hp = target->GetHealthPercent();
 	uint8 hpSelf = m_ai->GetHealthPercent();
 	uint8 hpmaster = m_master->GetHealthPercent();
+	uint8 ghp = 0;
+	//get aoe heal count must in same subgroup because CHAIN_HEAL can only heal in same subgroup
+	if (m_bot->GetGroup())
+	{
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		uint8 subgroup = m_bot->GetSubGroup();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
 
+			if (!groupMember || !groupMember->isAlive() || groupMember->IsInDuel() || itr->group != subgroup)
+				continue;
+			if ((groupMember->GetMaxHealth() - groupMember->GetHealth()) > 900)
+				ghp++;
+		}
+	}
 	// Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
-	if (target->GetHealthPercent() >= 80)
+	if (target->GetHealthPercent() >= 90)
 		return RETURN_NO_ACTION_OK;
 
 	// Technically the best rotation is CHAIN + LHW + LHW, or RIPTIDE + LHW + LHW (proc Tidal Waves then two short LHW), subbing in HW for trouble (bad mana efficiency)
-	if (hp < 30)
+	if (hp < 40)
 	{
 		// TODO: Use in conjunction with Nature's Swiftness
 		if (NATURES_SWIFTNESS_SHAMAN > 0 && m_ai->In_Reach(target, NATURES_SWIFTNESS_SHAMAN) && !m_bot->HasSpellCooldown(NATURES_SWIFTNESS_SHAMAN) && m_ai->CastSpell(NATURES_SWIFTNESS_SHAMAN, *m_bot))
@@ -387,12 +402,16 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
 		//if (NOURISH > 0 && m_ai->In_Reach(target,NOURISH) && CastSpell(NOURISH, target))
 		//return RETURN_CONTINUE;
 	}
-	if (target->GetHealthPercent() < 50 && LESSER_HEALING_WAVE > 0 && m_ai->CastSpell(LESSER_HEALING_WAVE, *target))
+	if (ghp >= 3 && CHAIN_HEAL > 0 && m_ai->CastSpell(CHAIN_HEAL, *target))
 		return RETURN_CONTINUE;
+	if (target->GetHealthPercent() < 60 && HEALING_WAVE > 0 && m_ai->CastSpell(HEALING_WAVE, *target))
+		return RETURN_CONTINUE;
+	if (target->GetHealthPercent() < 80 && LESSER_HEALING_WAVE > 0 && m_ai->CastSpell(LESSER_HEALING_WAVE, *target))
+		return RETURN_CONTINUE;
+
 	// if (target->GetHealthPercent() < 60 && RIPTIDE > 0 && !target->HasAura(RIPTIDE, EFFECT_INDEX_0) && m_ai->CastSpell(RIPTIDE, *target))
 	// return RETURN_CONTINUE;
-	if (target->GetHealthPercent() < 70 && CHAIN_HEAL > 0 && m_ai->CastSpell(CHAIN_HEAL, *target))
-		return RETURN_CONTINUE;
+	
 
 	return RETURN_NO_ACTION_OK;
 } // end HealTarget
