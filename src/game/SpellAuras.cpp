@@ -1277,7 +1277,11 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 				((Player*)target)->SetDrunkValue(0);
 				return;
 			}
-			
+			case 25185:  //itch
+			{
+				target->CastSpell(target, 25187, true, nullptr, this);
+				return;
+			}
         }
 
         if (m_removeMode == AURA_REMOVE_BY_DEATH)
