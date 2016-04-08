@@ -933,6 +933,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+				case 24150:
+				{
+					if (unitTarget&&unitTarget->HasAura(25187))
+					{
+						m_caster->CastSpell(unitTarget, 25191, true);
+					}
+					else
+						m_caster->CastSpell(unitTarget, 25190, true);
+					return;
+				}
             }
 
             // All IconID Check in there
