@@ -292,7 +292,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	}
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
-	if (newTarget1)
+	if (newTarget1&& m_ai->IsElite(newTarget) && !m_ai->CanAoe())
 	{
 		Creature * pCreature1 = (Creature*)newTarget1;
 
@@ -360,7 +360,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (m_ai->CanAoe())
 		{
 			
-			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 50 && !m_bot->HasAura(HELLFIRE))
+			if (HELLFIRE > 0 && m_bot->GetCombatDistance(pTarget, false) < 8.0f && m_ai->GetHealthPercent() > 30 && !m_bot->HasAura(HELLFIRE))
 			{
 				CastSpell(HELLFIRE, pTarget);
 				//m_ai->SetIgnoreUpdateTime(8);

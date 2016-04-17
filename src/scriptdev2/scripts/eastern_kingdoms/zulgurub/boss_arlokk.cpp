@@ -30,8 +30,8 @@ enum
     SAY_FEAST_PANTHER           = -1309012,
     SAY_DEATH                   = -1309013,
 
-    SPELL_SHADOW_WORD_PAIN      = 23952,
-    SPELL_GOUGE                 = 24698,
+	SPELL_SHADOW_WORD_PAIN      = 24212,
+    SPELL_GOUGE                 = 12540,
     SPELL_MARK_ARLOKK           = 24210,
     SPELL_RAVAGE                = 24213,
     SPELL_TRASH                 = 3391,

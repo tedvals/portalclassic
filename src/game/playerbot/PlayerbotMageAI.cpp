@@ -306,7 +306,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
-	if (newTarget1)
+	if (newTarget1 && m_ai->IsElite(newTarget) && !m_ai->CanAoe())
 	{
 		Creature * pCreature1 = (Creature*)newTarget1;
 
