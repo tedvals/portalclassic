@@ -3793,7 +3793,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
 			// resurrect now
 			// DEBUG_LOG ("[PlayerbotAI]: UpdateAI - Reviving %s to corpse...", m_bot->GetName() );
 
-			SetIgnoreUpdateTime(6);
+			SetIgnoreUpdateTime(2);
 
 			PlayerbotChatHandler ch(GetMaster());
 			if (!ch.revive(*m_bot))
@@ -3818,7 +3818,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
 		// set state to dead
 		SetState(BOTSTATE_DEAD);
 		// wait 30sec
-		SetIgnoreUpdateTime(30);
+		SetIgnoreUpdateTime(2);
 
 		return;
 	}
@@ -5492,7 +5492,7 @@ bool PlayerbotAI::TradeCopper(uint32 copper)
 
 bool PlayerbotAI::DoTeleport(WorldObject& /*obj*/)
 {
-	SetIgnoreUpdateTime(6);
+	SetIgnoreUpdateTime(2);
 	PlayerbotChatHandler ch(GetMaster());
 	if (!ch.teleport(*m_bot))
 	{
@@ -5505,7 +5505,7 @@ bool PlayerbotAI::DoTeleport(WorldObject& /*obj*/)
 
 void PlayerbotAI::HandleTeleportAck()
 {
-	SetIgnoreUpdateTime(6);
+	SetIgnoreUpdateTime(2);
 	m_bot->GetMotionMaster()->Clear(true);
 	if (m_bot->IsBeingTeleportedNear())
 	{
