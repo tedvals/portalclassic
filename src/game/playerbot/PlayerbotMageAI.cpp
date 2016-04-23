@@ -305,20 +305,15 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	}
 
 	Unit *heal = GetTarget(JOB_HEAL);
-	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
-	if (newTarget1 && m_ai->IsElite(newTarget) && !m_ai->CanAoe())
+	Unit *newTarget1 = m_ai->FindEveryAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1 && !m_ai->CanAoe())
 	{
 		Creature * pCreature1 = (Creature*)newTarget1;
-
-
 		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
 		{
-			if (Polymorph && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
+			if (Polymorph  && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
 				return RETURN_CONTINUE;
 		}
-		
-
-
 	}
 
 	// Disp

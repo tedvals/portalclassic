@@ -291,8 +291,8 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		}
 	}
 	Unit *heal = GetTarget(JOB_HEAL);
-	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
-	if (newTarget1&& m_ai->IsElite(newTarget) && !m_ai->CanAoe())
+	Unit *newTarget1 = m_ai->FindEveryAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1 && !m_ai->CanAoe())
 	{
 		Creature * pCreature1 = (Creature*)newTarget1;
 
@@ -322,7 +322,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return RETURN_CONTINUE;
 		if (DEATH_COIL && !m_bot->HasSpellCooldown(DEATH_COIL) && CastSpell(DEATH_COIL, newTarget1))
 			return RETURN_CONTINUE;
-		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetHealthPercent() < 50 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
+		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetAttackerCount() >=3 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
 			return RETURN_CONTINUE;
 	}
 	// Create soul shard 
