@@ -490,6 +490,7 @@ public:
     bool GroupTankHoldsAggro();
     void UpdateAttackerInfo();
     Unit* FindAttacker(ATTACKERINFOTYPE ait = AIT_NONE, Unit *victim = 0);
+	Unit* FindEveryAttacker(ATTACKERINFOTYPE ait = AIT_NONE, Unit *victim = 0);
     uint32 GetAttackerCount() { return m_attackerInfo.size(); };
     void SetCombatOrderByStr(std::string str, Unit *target = 0);
     void SetCombatOrder(CombatOrderType co, Unit *target = 0);

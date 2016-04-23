@@ -2080,7 +2080,7 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 	if (!m_targetCombat)
 		return;
 	
-	if (m_bot->Attack(m_targetCombat, true))
+	if (m_bot->Attack(m_targetCombat, false))
 	{
 		m_bot->AddThreat(m_targetCombat);
 		m_bot->SetInCombatWith(m_targetCombat);
@@ -3362,28 +3362,30 @@ Unit* PlayerbotAI::FindAttacker(ATTACKERINFOTYPE ait, Unit* victim)
 	Unit *a = 0;
 	AttackerInfoList::iterator itr = m_attackerInfo.begin();
 	for (; itr != m_attackerInfo.end(); ++itr)
-	{
+	{   
+		//定义是自己，但受害者不是自己，继续
 		if ((ait & AIT_VICTIMSELF) && !(ait & AIT_VICTIMNOTSELF) && itr->second.victim != m_bot)
 			continue;
-
+		//定义是不是自己，但受害者是自己，继续
 		if (!(ait & AIT_VICTIMSELF) && (ait & AIT_VICTIMNOTSELF) && itr->second.victim == m_bot)
 			continue;
-
+		//定义不是自己，且受害者不是给定目标，继续
 		if ((ait & AIT_VICTIMNOTSELF) && victim && itr->second.victim != victim)
 			continue;
-
+		//定义不是最高或最低仇恨则跳出循环，直接给定一个攻击者
 		if (!(ait & (AIT_LOWESTTHREAT | AIT_HIGHESTTHREAT)))
 		{
 			a = itr->second.attacker;
 			itr = m_attackerInfo.end(); // == break;
 		}
 		else
-		{
+		{   //定义是最高仇恨，且仇恨大于给定值
 			if ((ait & AIT_HIGHESTTHREAT) && /*(itr->second.victim==m_bot) &&*/ itr->second.threat >= t)
 			{
 				t = itr->second.threat;
 				a = itr->second.attacker;
 			}
+			//定义是最低仇恨，且仇恨小于给定值
 			else if ((ait & AIT_LOWESTTHREAT) && /*(itr->second.victim==m_bot) &&*/ itr->second.threat <= t)
 			{
 				t = itr->second.threat;
@@ -3392,6 +3394,57 @@ Unit* PlayerbotAI::FindAttacker(ATTACKERINFOTYPE ait, Unit* victim)
 		}
 	}
 	return a;
+}
+
+Unit* PlayerbotAI::FindEveryAttacker(ATTACKERINFOTYPE ait, Unit* victim)
+{
+	// list empty? why are we here?
+	if (m_attackerInfo.empty())
+		return 0;
+
+	// not searching something specific - return first in list
+	if (!ait)
+		return (m_attackerInfo.begin())->second.attacker;
+
+	float t = ((ait & AIT_HIGHESTTHREAT) ? 0.00 : 9999.00);
+	Unit *a = 0;
+	AttackerInfoList::iterator itr = m_attackerInfo.begin();
+	for (; itr != m_attackerInfo.end(); ++itr)
+	{
+		//定义是自己，但受害者不是自己，继续
+		if ((ait & AIT_VICTIMSELF) && !(ait & AIT_VICTIMNOTSELF) && itr->second.victim != m_bot)
+			continue;
+		//定义是不是自己，但受害者是自己，继续
+		if (!(ait & AIT_VICTIMSELF) && (ait & AIT_VICTIMNOTSELF) && itr->second.victim == m_bot)
+			continue;
+		//定义不是自己，且受害者不是给定目标，继续
+		if ((ait & AIT_VICTIMNOTSELF) && victim && itr->second.victim != victim)
+			continue;
+		if (IsNeutralized(itr->second.attacker))
+			continue;
+		//定义不是最高或最低仇恨则跳出循环，直接给定一个攻击者
+		if (!(ait & (AIT_LOWESTTHREAT | AIT_HIGHESTTHREAT)))
+		{
+			a = itr->second.attacker;
+			itr = m_attackerInfo.end(); // == break;
+		}
+		else
+		{   //定义是最高仇恨，且仇恨大于给定值
+			if ((ait & AIT_HIGHESTTHREAT) && /*(itr->second.victim==m_bot) &&*/ itr->second.threat >= t)
+			{
+				t = itr->second.threat;
+				a = itr->second.attacker;
+			}
+			//定义是最低仇恨，且仇恨小于给定值
+			else if ((ait & AIT_LOWESTTHREAT) && /*(itr->second.victim==m_bot) &&*/ itr->second.threat <= t)
+			{
+				t = itr->second.threat;
+				a = itr->second.attacker;
+			}
+		}
+	}
+	return a;
+	
 }
 
 /**
