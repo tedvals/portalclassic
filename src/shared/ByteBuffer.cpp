@@ -21,8 +21,16 @@
 
 void ByteBufferException::PrintPosError() const
 {
-    sLog.outError("Attempted to %s in ByteBuffer (pos: " SIZEFMTD " size: " SIZEFMTD ") value with size: " SIZEFMTD,
-        (add ? "put" : "get"), pos, size, esize);
+    char const* traceStr;
+
+    ACE_Stack_Trace trace;
+    traceStr = trace.c_str();
+
+    sLog.outError(
+        "Attempted to %s in ByteBuffer (pos: " SIZEFMTD " size: " SIZEFMTD ") "
+        "value with size: " SIZEFMTD "%s%s",
+        (add ? "put" : "get"), pos, size, esize,
+        traceStr ? "\n" : "", traceStr ? traceStr : "");
 }
 
 void ByteBuffer::print_storage() const

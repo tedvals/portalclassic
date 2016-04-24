@@ -19,12 +19,12 @@
 #ifndef _LINKEDLIST
 #define _LINKEDLIST
 
-#include <cstddef>
+#include "Common.h"
 
 //============================================
 class LinkedListHead;
 
-class MANGOS_DLL_SPEC LinkedListElement
+class LinkedListElement
 {
     private:
 

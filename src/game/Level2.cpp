@@ -418,7 +418,7 @@ bool ChatHandler::HandleGoTriggerCommand(char* args)
         return false;
     }
 
-    const bool to_target = !!ExtractLiteralArg(&args, "target");
+    bool to_target = ExtractLiteralArg(&args, "target");
     if (!to_target && *args)                                // can be fail also at syntax error
         return false;
 

@@ -48,7 +48,7 @@ class MANGOS_DLL_SPEC QueryResult
 
 typedef std::vector<std::string> QueryFieldNames;
 
-class QueryNamedResult
+class MANGOS_DLL_SPEC QueryNamedResult
 {
     public:
         explicit QueryNamedResult(QueryResult* query, QueryFieldNames const& names) : mQuery(query), mFieldNames(names) {}

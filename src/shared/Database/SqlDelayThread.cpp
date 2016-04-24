@@ -68,13 +68,10 @@ void SqlDelayThread::Stop()
 
 void SqlDelayThread::ProcessRequests()
 {
-    std::lock_guard<std::mutex> guard(m_queueMutex);
-
-    while (!m_sqlQueue.empty())
+    SqlOperation* s = nullptr;
+    while (m_sqlQueue.next(s))
     {
-        auto const s = std::move(m_sqlQueue.front());
-        m_sqlQueue.pop();
         s->Execute(m_dbConnection);
+        delete s;
     }
 }
-

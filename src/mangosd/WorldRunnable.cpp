@@ -20,6 +20,7 @@
     \ingroup mangosd
 */
 
+#include "WorldSocketMgr.h"
 #include "Common.h"
 #include "World.h"
 #include "WorldRunnable.h"
@@ -78,6 +79,8 @@ void WorldRunnable::run()
     }
 
     sWorld.CleanupsBeforeStop();
+
+    sWorldSocketMgr.StopNetwork();
 
     sMapMgr.UnloadAll();                                    // unload all grids (including locked in memory)
 

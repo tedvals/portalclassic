@@ -33,8 +33,6 @@
 #include <list>
 #include <deque>
 #include <mutex>
-#include <functional>
-#include <vector>
 
 class Object;
 class ObjectGuid;
@@ -364,20 +362,25 @@ enum RealmZone
 /// Storage class for commands issued for delayed execution
 struct CliCommandHolder
 {
-    typedef std::function<void(const char *)> Print;
-    typedef std::function<void(bool)> CommandFinished;
+    typedef void Print(void*, const char*);
+    typedef void CommandFinished(void*, bool success);
 
     uint32 m_cliAccountId;                                  // 0 for console and real account id for RA/soap
     AccountTypes m_cliAccessLevel;
-    std::vector<char> m_command;
-    Print m_print;
-    CommandFinished m_commandFinished;
+    void* m_callbackArg;
+    char* m_command;
+    Print* m_print;
+    CommandFinished* m_commandFinished;
 
-    CliCommandHolder(uint32 accountId, AccountTypes cliAccessLevel, const char* command, Print print, CommandFinished commandFinished)
-        : m_cliAccountId(accountId), m_cliAccessLevel(cliAccessLevel), m_print(print), m_commandFinished(commandFinished), m_command(strlen(command) + 1)
+    CliCommandHolder(uint32 accountId, AccountTypes cliAccessLevel, void* callbackArg, const char* command, Print* zprint, CommandFinished* commandFinished)
+        : m_cliAccountId(accountId), m_cliAccessLevel(cliAccessLevel), m_callbackArg(callbackArg), m_print(zprint), m_commandFinished(commandFinished)
     {
-        memcpy(&m_command[0], command, m_command.size() - 1);
+        size_t len = strlen(command) + 1;
+        m_command = new char[len];
+        memcpy(m_command, command, len);
     }
+
+    ~CliCommandHolder() { delete[] m_command; }
 };
 
 /// The World
@@ -502,7 +505,7 @@ class World
         bool getConfig(eConfigBoolValues index) const { return m_configBoolValues[index]; }
 
         /// Get configuration about force-loaded maps
-        bool isForceLoadMap(uint32 id) const { return m_configForceLoadMapIds.find(id) != m_configForceLoadMapIds.end(); }
+        std::set<uint32>* getConfigForceLoadMapIds() const { return m_configForceLoadMapIds; }
 
         /// Are we on a "Player versus Player" server?
         bool IsPvPRealm() { return (getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_PVP || getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_RPPVP || getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_FFA_PVP); }
@@ -529,7 +532,7 @@ class World
         void ServerMaintenanceStart();
 
         void ProcessCliCommands();
-        void QueueCliCommand(const CliCommandHolder* commandHolder) { std::lock_guard<std::mutex> guard(m_cliCommandQueueLock); m_cliCommandQueue.push_back(commandHolder); }
+        void QueueCliCommand(CliCommandHolder* commandHolder) { std::lock_guard<std::mutex> guard(m_cliCommandQueueLock); m_cliCommandQueue.push_back(commandHolder); }
 
         void UpdateResultQueue();
         void InitResultQueue();
@@ -623,7 +626,7 @@ class World
 
         // CLI command holder to be thread safe
         std::mutex m_cliCommandQueueLock;
-        std::deque<const CliCommandHolder *> m_cliCommandQueue;
+        std::deque<CliCommandHolder *> m_cliCommandQueue;
 
         // Player Queue
         Queue m_QueuedSessions;
@@ -639,7 +642,7 @@ class World
         std::string m_CreatureEventAIVersion;
 
         // List of Maps that should be force-loaded on startup
-        std::set<uint32> m_configForceLoadMapIds;
+        std::set<uint32>* m_configForceLoadMapIds;
 };
 
 extern uint32 realmID;

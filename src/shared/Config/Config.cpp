@@ -17,96 +17,98 @@
  */
 
 #include "Config.h"
+#include "ace/Configuration_Import_Export.h"
+
 #include "Policies/Singleton.h"
-
-#include <boost/algorithm/string.hpp>
-
-#include <unordered_map>
-#include <string>
-#include <fstream>
 
 INSTANTIATE_SINGLETON_1(Config);
 
-bool Config::SetSource(const std::string &file)
+static bool GetValueHelper(ACE_Configuration_Heap* mConf, const char* name, ACE_TString& result)
 {
-    m_filename = file;
+    if (!mConf)
+        return false;
+
+    ACE_TString section_name;
+    ACE_Configuration_Section_Key section_key;
+    ACE_Configuration_Section_Key root_key = mConf->root_section();
+
+    int i = 0;
+    while (mConf->enumerate_sections(root_key, i, section_name) == 0)
+    {
+        mConf->open_section(root_key, section_name.c_str(), 0, section_key);
+        if (mConf->get_string_value(section_key, name, result) == 0)
+            return true;
+        ++i;
+    }
+
+    return false;
+}
+
+Config::Config()
+    : mConf(nullptr)
+{
+}
+
+Config::~Config()
+{
+    delete mConf;
+}
+
+bool Config::SetSource(const char* file)
+{
+    mFilename = file;
 
     return Reload();
 }
 
 bool Config::Reload()
 {
-    std::ifstream in(m_filename, std::ifstream::in);
-    
-    if (in.fail())
-        return false;
+    delete mConf;
+    mConf = new ACE_Configuration_Heap;
 
-    std::unordered_map<std::string, std::string> newEntries;
-
-    do
+    if (mConf->open() == 0)
     {
-        std::string line;
-        std::getline(in, line);
+        ACE_Ini_ImpExp config_importer(*mConf);
+        if (config_importer.import_config(mFilename.c_str()) == 0)
+            return true;
+    }
 
-        boost::algorithm::trim_left(line);
-
-        if (!line.length())
-            continue;
-
-        if (line[0] == '#' || line[0] == '[')
-            continue;
-
-        auto const equals = line.find('=');
-        if (equals == std::string::npos)
-            return false;
-
-        auto const entry = boost::algorithm::trim_copy(boost::algorithm::to_lower_copy(line.substr(0, equals)));
-        auto const value = boost::algorithm::trim_copy_if(boost::algorithm::trim_copy(line.substr(equals + 1)), boost::algorithm::is_any_of("\""));
-
-        newEntries[entry] = value;
-    } while (in.good());
-
-    m_entries = std::move(newEntries);
-
-    return true;
+    delete mConf;
+    mConf = nullptr;
+    return false;
 }
 
-bool Config::IsSet(const std::string &name) const
+std::string Config::GetStringDefault(const char* name, const char* def)
 {
-    auto const nameLower = boost::algorithm::to_lower_copy(name);
-    return m_entries.find(nameLower) != m_entries.cend();
+    ACE_TString val;
+    return GetValueHelper(mConf, name, val) ? val.c_str() : def;
 }
 
-const std::string Config::GetStringDefault(const std::string &name, const std::string &def) const
+bool Config::GetBoolDefault(const char* name, bool def)
 {
-    auto const nameLower = boost::algorithm::to_lower_copy(name);
+    ACE_TString val;
+    if (!GetValueHelper(mConf, name, val))
+        return def;
 
-    auto const entry = m_entries.find(nameLower);
-
-    return entry == m_entries.cend() ? def : entry->second;
+    const char* str = val.c_str();
+    if (strcmp(str, "true") == 0 || strcmp(str, "TRUE") == 0 ||
+            strcmp(str, "yes") == 0 || strcmp(str, "YES") == 0 ||
+            strcmp(str, "1") == 0)
+        return true;
+    else
+        return false;
 }
 
-bool Config::GetBoolDefault(const std::string &name, bool def) const
+
+int32 Config::GetIntDefault(const char* name, int32 def)
 {
-    auto const value = GetStringDefault(name, def ? "true" : "false");
-
-    std::string valueLower;
-    std::transform(value.cbegin(), value.cend(), std::back_inserter(valueLower), ::tolower);
-
-    return valueLower == "true" || valueLower == "1" || valueLower == "yes";
+    ACE_TString val;
+    return GetValueHelper(mConf, name, val) ? atoi(val.c_str()) : def;
 }
 
-int32 Config::GetIntDefault(const std::string &name, int32 def) const
+
+float Config::GetFloatDefault(const char* name, float def)
 {
-    auto const value = GetStringDefault(name, std::to_string(def));
-
-    return std::stoi(value);
+    ACE_TString val;
+    return GetValueHelper(mConf, name, val) ? (float)atof(val.c_str()) : def;
 }
-
-float Config::GetFloatDefault(const std::string &name, float def) const
-{
-    auto const value = GetStringDefault(name, std::to_string(def));
-
-    return std::stof(value);
-}
-

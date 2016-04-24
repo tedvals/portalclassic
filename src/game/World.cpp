@@ -66,7 +66,6 @@
 
 #include <algorithm>
 #include <mutex>
-#include <cstdarg>
 
 INSTANTIATE_SINGLETON_1(World);
 
@@ -113,6 +112,8 @@ World::World()
 
     for (int i = 0; i < CONFIG_BOOL_VALUE_COUNT; ++i)
         m_configBoolValues[i] = false;
+
+    m_configForceLoadMapIds = nullptr;
 }
 
 /// World destructor
@@ -121,17 +122,19 @@ World::~World()
     // it is assumed that no other thread is accessing this data when the destructor is called.  therefore, no locks are necessary
 
     ///- Empty the kicked session set
-    for (auto const session : m_sessions)
-        delete session.second;
+    std::for_each(m_sessions.begin(), m_sessions.end(), [](const SessionMap::value_type &p) { delete p.second; });
+    m_sessions.clear();
 
-    for (auto const cliCommand : m_cliCommandQueue)
-        delete cliCommand;
+    std::for_each(m_cliCommandQueue.begin(), m_cliCommandQueue.end(), [](const CliCommandHolder *p) { delete p; });
+    m_cliCommandQueue.clear();
 
-    for (auto const session : m_sessionAddQueue)
-        delete session;
+    std::for_each(m_sessionAddQueue.begin(), m_sessionAddQueue.end(), [](const WorldSession *s) { delete s; });
+    m_sessionAddQueue.clear();
 
     VMAP::VMapFactory::clear();
     MMAP::MMapFactory::clear();
+
+    delete m_configForceLoadMapIds;
 }
 
 /// Cleanups before world stop
@@ -450,14 +453,15 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_CLEAN_CHARACTER_DB, "CleanCharacterDB", true);
     setConfig(CONFIG_BOOL_GRID_UNLOAD, "GridUnload", true);
 
-    std::string forceLoadGridOnMaps = sConfig.GetStringDefault("LoadAllGridsOnMaps");
+    std::string forceLoadGridOnMaps = sConfig.GetStringDefault("LoadAllGridsOnMaps", "");
     if (!forceLoadGridOnMaps.empty())
     {
+        m_configForceLoadMapIds = new std::set<uint32>;
         unsigned int pos = 0;
         unsigned int id;
         VMAP::VMapFactory::chompAndTrim(forceLoadGridOnMaps);
         while (VMAP::VMapFactory::getNextId(forceLoadGridOnMaps, pos, id))
-            m_configForceLoadMapIds.insert(id);
+            m_configForceLoadMapIds->insert(id);
     }
 
     setConfig(CONFIG_UINT32_INTERVAL_SAVE, "PlayerSave.Interval", 15 * MINUTE * IN_MILLISECONDS);
@@ -770,7 +774,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK, "vmap.enableIndoorCheck", true);
     bool enableLOS = sConfig.GetBoolDefault("vmap.enableLOS", false);
     bool enableHeight = sConfig.GetBoolDefault("vmap.enableHeight", false);
-    std::string ignoreSpellIds = sConfig.GetStringDefault("vmap.ignoreSpellIds");
+    std::string ignoreSpellIds = sConfig.GetStringDefault("vmap.ignoreSpellIds", "");
 
     if (!enableHeight)
         sLog.outError("VMAP height use disabled! Creatures movements and other things will be in broken state.");
@@ -783,7 +787,7 @@ void World::LoadConfigSettings(bool reload)
     sLog.outString("WORLD: VMap data directory is: %svmaps", m_dataPath.c_str());
 
     setConfig(CONFIG_BOOL_MMAP_ENABLED, "mmap.enabled", true);
-    std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds");
+    std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds", "");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: MMap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
 
@@ -1751,7 +1755,7 @@ void World::ShutdownMsg(bool show /*= false*/, Player* player /*= nullptr*/)
 /// Cancel a planned server shutdown
 void World::ShutdownCancel()
 {
-    // nothing to cancel or too late
+    // nothing cancel or too later
     if (!m_ShutdownTimer || m_stopEvent)
         return;
 
@@ -1785,12 +1789,11 @@ void World::UpdateSessions(uint32 /*diff*/)
         WorldSession* pSession = itr->second;
         WorldSessionFilter updater(pSession);
 
-        // the session itself is owned by the socket which created it.  that is where the destruction of the session will happen.
         if (!pSession->Update(updater))
         {
             RemoveQueuedSession(pSession);
             m_sessions.erase(itr);
-            pSession->Finalize();
+            delete pSession;
         }
     }
 }
@@ -1843,16 +1846,17 @@ void World::ProcessCliCommands()
 
     while (!m_cliCommandQueue.empty())
     {
-        auto const command = m_cliCommandQueue.front();
+        CliCommandHolder* command = m_cliCommandQueue.front();
         m_cliCommandQueue.pop_front();
 
         DEBUG_LOG("CLI command under processing...");
-
-        CliHandler handler(command->m_cliAccountId, command->m_cliAccessLevel, command->m_print);
-        handler.ParseCommands(&command->m_command[0]);
+        CliCommandHolder::Print* zprint = command->m_print;
+        void* callbackArg = command->m_callbackArg;
+        CliHandler handler(command->m_cliAccountId, command->m_cliAccessLevel, callbackArg, zprint);
+        handler.ParseCommands(command->m_command);
 
         if (command->m_commandFinished)
-            command->m_commandFinished(!handler.HasSentErrorMessage());
+            command->m_commandFinished(callbackArg, !handler.HasSentErrorMessage());
 
         delete command;
     }

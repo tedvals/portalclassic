@@ -19,12 +19,10 @@
 #ifndef __SQLDELAYTHREAD_H
 #define __SQLDELAYTHREAD_H
 
+#include "LockedQueue.h"
 #include "Threading.h"
-#include "SqlOperations.h"
 
 #include <mutex>
-#include <queue>
-#include <memory>
 
 class Database;
 class SqlOperation;
@@ -32,11 +30,12 @@ class SqlConnection;
 
 class SqlDelayThread : public MaNGOS::Runnable
 {
+        typedef ACE_Based::LockedQueue<SqlOperation*> SqlQueue;
+
     private:
-        std::mutex m_queueMutex;
-        std::queue<std::unique_ptr<SqlOperation>> m_sqlQueue;   ///< Queue of SQL statements
-        Database* m_dbEngine;                                   ///< Pointer to used Database engine
-        SqlConnection* m_dbConnection;                          ///< Pointer to DB connection
+        SqlQueue m_sqlQueue;                                ///< Queue of SQL statements
+        Database* m_dbEngine;                               ///< Pointer to used Database engine
+        SqlConnection* m_dbConnection;                      ///< Pointer to DB connection
         volatile bool m_running;
 
         // process all enqueued requests
@@ -47,12 +46,7 @@ class SqlDelayThread : public MaNGOS::Runnable
         ~SqlDelayThread();
 
         ///< Put sql statement to delay queue
-        bool Delay(SqlOperation* sql)
-        {
-            std::lock_guard<std::mutex> guard(m_queueMutex);
-            m_sqlQueue.push(std::unique_ptr<SqlOperation>(sql));
-            return true;
-        }
+        bool Delay(SqlOperation* sql) { m_sqlQueue.add(sql); return true; }
 
         virtual void Stop();                                ///< Stop event
         virtual void run();                                 ///< Main Thread loop

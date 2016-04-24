@@ -314,7 +314,6 @@ The Authors of third party libraries are not explicitly mentioned, and usually a
 * multiplexer
 * mumion
 * Naicisum
-* namreeb
 * narma
 * Nay
 * NeatElves

@@ -46,7 +46,6 @@
 #include <mutex>
 #include <deque>
 #include <algorithm>
-#include <cstdarg>
 
 // select opcodes appropriate for processing in Map::Update context for current session state
 static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
@@ -94,7 +93,14 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, time_
     _player(nullptr), m_Socket(sock), _security(sec), _accountId(id), _logoutTime(0),
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
-    m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED) {}
+    m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
+{
+    if (sock)
+    {
+        m_Address = sock->GetRemoteAddress();
+        sock->AddReference();
+    }
+}
 
 /// WorldSession destructor
 WorldSession::~WorldSession()
@@ -103,9 +109,16 @@ WorldSession::~WorldSession()
     if (_player)
         LogoutPlayer(true);
 
+    /// - If have unclosed socket, close it
+    if (m_Socket)
+    {
+        m_Socket->CloseSocket();
+        m_Socket->RemoveReference();
+        m_Socket = nullptr;
+    }
+
     ///- empty incoming packet queue
-    for (auto const packet : m_recvQueue)
-        delete packet;
+    std::for_each(m_recvQueue.begin(), m_recvQueue.end(), [](const WorldPacket *packet) { delete packet; });
 }
 
 void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
@@ -123,7 +136,6 @@ char const* WorldSession::GetPlayerName() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const* packet)
 {
-
     // Playerbot mod: send packet to bot AI
     if (GetPlayer()) {
         if (GetPlayer()->GetPlayerbotAI())
@@ -132,9 +144,7 @@ void WorldSession::SendPacket(WorldPacket const* packet)
             GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(*packet);
     }
 
-  
-    if (m_Socket->IsClosed())
-
+    if (!m_Socket)
         return;
 
 #ifdef MANGOS_DEBUG
@@ -173,7 +183,8 @@ void WorldSession::SendPacket(WorldPacket const* packet)
 
 #endif                                                  // !MANGOS_DEBUG
 
-    m_Socket->SendPacket(*packet);
+    if (m_Socket->SendPacket(*packet) == -1)
+        m_Socket->CloseSocket();
 }
 
 /// Add an incoming packet to the queue
@@ -210,14 +221,14 @@ bool WorldSession::Update(PacketFilter& updater)
     /// not process packets if socket already closed
     while (m_Socket && !m_Socket->IsClosed() && !m_recvQueue.empty())
     {
-        WorldPacket *packet = m_recvQueue.front();
-        m_recvQueue.pop_front();
-
         /*#if 1
         sLog.outError( "MOEP: %s (0x%.4X)",
                         packet->GetOpcodeName(),
                         packet->GetOpcode());
         #endif*/
+
+        WorldPacket* packet = m_recvQueue.front();
+        m_recvQueue.pop_front();
 
         OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
         try
@@ -311,7 +322,6 @@ bool WorldSession::Update(PacketFilter& updater)
         delete packet;
     }
 
-
     // Playerbot mod - Process player bot packets
     // The PlayerbotAI class adds to the packet queue to simulate a real player
     // since Playerbots are known to the World obj only by its master's WorldSession object
@@ -337,20 +347,24 @@ bool WorldSession::Update(PacketFilter& updater)
         }
     }
 
-    
+    ///- Cleanup socket pointer if need
+    if (m_Socket && m_Socket->IsClosed())
+    {
+        m_Socket->RemoveReference();
+        m_Socket = nullptr;
+    }
 
     // check if we are safe to proceed with logout
     // logout procedure should happen only in World::UpdateSessions() method!!!
     if (updater.ProcessLogout())
     {
         ///- If necessary, log the player out
-        const time_t currTime = time(nullptr);
-
-        if (m_Socket->IsClosed() || (ShouldLogOut(currTime) && !m_playerLoading))
-        {
+        time_t currTime = time(nullptr);
+        if (!m_Socket || (ShouldLogOut(currTime) && !m_playerLoading))
             LogoutPlayer(true);
-            return false;
-        }
+
+        if (!m_Socket)
+            return false;                                   // Will remove this session from the world session map
     }
 
     return true;
@@ -494,7 +508,7 @@ void WorldSession::LogoutPlayer(bool Save)
 
         // remove player from the group if he is:
         // a) in group; b) not in raid group; c) logging out normally (not being kicked or disconnected)
-        if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && !m_Socket->IsClosed())
+        if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && m_Socket)
             _player->RemoveFromGroup();
 
         ///- Send update to group
@@ -550,8 +564,8 @@ void WorldSession::LogoutPlayer(bool Save)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-    if (m_Socket->IsClosed())
-        m_Socket->Close();
+    if (m_Socket)
+        m_Socket->CloseSocket();
 }
 
 /// Cancel channeling handler

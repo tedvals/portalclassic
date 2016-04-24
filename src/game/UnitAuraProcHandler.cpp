@@ -472,7 +472,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     {
                         if (SpellEntry const* iterSpellProto = (*iter)->GetSpellProto())
                         {
-                            if (iterSpellProto->SpellFamilyName == SPELLFAMILY_MAGE && (iterSpellProto->SpellFamilyFlags & uint64(0x10000000)))
+                            if (iterSpellProto->SpellFamilyName == SPELLFAMILY_MAGE && (iterSpellProto->SpellFamilyFlags & UI64LIT(0x10000000)))
                             {
                                 found = true;
                                 break;
@@ -599,7 +599,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
         case SPELLFAMILY_WARRIOR:
         {
             // Retaliation
-            if (dummySpell->IsFitToFamilyMask(uint64(0x0000000800000000)))
+            if (dummySpell->IsFitToFamilyMask(UI64LIT(0x0000000800000000)))
             {
                 // check attack comes not from behind
                 if (!HasInArc(M_PI_F, pVictim))
@@ -691,7 +691,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
         case SPELLFAMILY_PALADIN:
         {
             // Seal of Righteousness - melee proc dummy
-            if ((dummySpell->SpellFamilyFlags & uint64(0x000000008000000)) && triggeredByAura->GetEffIndex() == EFFECT_INDEX_0)
+            if ((dummySpell->SpellFamilyFlags & UI64LIT(0x000000008000000)) && triggeredByAura->GetEffIndex() == EFFECT_INDEX_0)
             {
                 if (GetTypeId() != TYPEID_PLAYER)
                     return SPELL_AURA_PROC_FAILED;
@@ -926,7 +926,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             break;
         case SPELLFAMILY_WARRIOR:
             // Deep Wounds (replace triggered spells to directly apply DoT), dot spell have familyflags
-            if (!auraSpellInfo->SpellFamilyFlags && auraSpellInfo->SpellIconID == 243)
+            if (auraSpellInfo->SpellFamilyFlags == UI64LIT(0x0) && auraSpellInfo->SpellIconID == 243)
             {
                 float weaponDamage;
                 // DW should benefit of attack power, damage percent mods etc.
@@ -965,10 +965,10 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 uint32 tick = 1; // Default tick = 1
 
                 // Hellfire have 15 tick
-                if (procSpell->SpellFamilyFlags & uint64(0x0000000000000040))
+                if (procSpell->SpellFamilyFlags & UI64LIT(0x0000000000000040))
                     tick = 15;
                 // Rain of Fire have 4 tick
-                else if (procSpell->SpellFamilyFlags & uint64(0x0000000000000020))
+                else if (procSpell->SpellFamilyFlags & UI64LIT(0x0000000000000020))
                     tick = 4;
                 else
                     return SPELL_AURA_PROC_FAILED;
@@ -1038,7 +1038,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
         case SPELLFAMILY_PALADIN:
         {
             // Judgement of Light and Judgement of Wisdom
-            if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000080000))
+            if (auraSpellInfo->SpellFamilyFlags & UI64LIT(0x0000000000080000))
             {
                 switch (auraSpellInfo->Id)
                 {
@@ -1066,7 +1066,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 // procspell is triggered spell but we need mana cost of original casted spell
                 uint32 originalSpellId = procSpell->Id;
                 // Holy Shock
-                if (procSpell->SpellFamilyFlags & uint64(0x0000000000200000))
+                if (procSpell->SpellFamilyFlags & UI64LIT(0x0000000000200000))
                 {
                     switch (procSpell->Id)
                     {
@@ -1093,7 +1093,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
         case SPELLFAMILY_SHAMAN:
         {
             // Lightning Shield (overwrite non existing triggered spell call in spell.dbc
-            if (auraSpellInfo->IsFitToFamilyMask(uint64(0x0000000000000400)) && auraSpellInfo->SpellVisual == 37)
+            if (auraSpellInfo->IsFitToFamilyMask(UI64LIT(0x0000000000000400)) && auraSpellInfo->SpellVisual == 37)
             {
                 switch (auraSpellInfo->Id)
                 {
@@ -1362,7 +1362,7 @@ SpellAuraProcResult Unit::HandleModResistanceAuraProc(Unit* /*pVictim*/, uint32 
     SpellEntry const* spellInfo = triggeredByAura->GetSpellProto();
 
     // Inner Fire
-    if (spellInfo->IsFitToFamily(SPELLFAMILY_PRIEST, uint64(0x0000000000002)))
+    if (spellInfo->IsFitToFamily(SPELLFAMILY_PRIEST, UI64LIT(0x0000000000002)))
     {
         // only at real damage
         if (!damage)
