@@ -195,6 +195,8 @@ private:
 		   LastSpellArcane,
 		   LastSpellFire,
 		   LastSpellFrost;
+
+	uint32 m_botguid;
 };
 
 #endif
