@@ -3421,8 +3421,12 @@ Unit* PlayerbotAI::FindEveryAttacker(ATTACKERINFOTYPE ait, Unit* victim)
 		//定义不是自己，且受害者不是给定目标，继续
 		if ((ait & AIT_VICTIMNOTSELF) && victim && itr->second.victim != victim)
 			continue;
-		if (IsNeutralized(itr->second.attacker))
-			continue;
+		if (IsMyNeutralized(itr->second.attacker))
+		{   
+			a = itr->second.attacker;
+			itr = m_attackerInfo.end();//break
+		}
+		
 		//定义不是最高或最低仇恨则跳出循环，直接给定一个攻击者
 		if (!(ait & (AIT_LOWESTTHREAT | AIT_HIGHESTTHREAT)))
 		{
@@ -5286,6 +5290,19 @@ bool PlayerbotAI::IsNeutralized(Unit* pTarget)
 	return false;
 }
 
+bool PlayerbotAI::IsMyNeutralized(Unit* pTarget)
+{
+	if (!pTarget)
+		return false;
+	uint32 m_botguid = m_bot->GetGUIDLow();
+	for (uint8 i = 0; i < countof(uAurasIds); ++i)
+	{
+		if (HasAuraMY(uAurasIds[i], *pTarget, m_botguid))
+			return true;
+	}
+
+	return false;
+}
 
 bool PlayerbotAI::CanStore()
 {

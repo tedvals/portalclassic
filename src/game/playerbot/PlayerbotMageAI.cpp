@@ -74,6 +74,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
 	EVERY_MAN_FOR_HIMSELF = m_ai->initSpell(EVERY_MAN_FOR_HIMSELF_ALL); // human
 	BERSERKING = m_ai->initSpell(BERSERKING_ALL); // troll
 	WILL_OF_THE_FORSAKEN = m_ai->initSpell(WILL_OF_THE_FORSAKEN_ALL); // undead
+	m_botguid = m_bot->GetGUIDLow();
 }
 
 PlayerbotMageAI::~PlayerbotMageAI() {}
@@ -304,15 +305,14 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 	}
 
-	
+	//auto cc
 	if (m_bot->GetGroup())
 	{
-
 		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
 		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
 		{
 			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
-			if (!groupMember)
+			if (!groupMember || GetTargetJob(groupMember) == JOB_TANK)
 				continue;
 			Unit *newTarget1 = m_ai->FindEveryAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), groupMember);
 			if (newTarget1 && !m_ai->CanAoe())
@@ -325,8 +325,6 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				}
 			}
 		}
-
-
 	}
 	
 
