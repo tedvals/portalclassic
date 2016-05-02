@@ -290,7 +290,42 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return CastSpell(SHOOT, pTarget);
 		}
 	}
-	
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1 && !m_ai->CanAoe())
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
+
+		//world boss can not cc
+		if (pet)
+		{
+			switch (pet->GetEntry())
+			{
+				// taunt the elite and tank it
+			case DEMON_VOIDWALKER:
+				if (TORMENT && !m_ai->IsNeutralized(newTarget1) && m_ai->CastPetSpell(TORMENT, newTarget1))
+					return RETURN_NO_ACTION_OK;
+				// maybe give it some love?
+			case DEMON_SUCCUBUS:
+				if (pCreature1 && pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID)
+					if (SEDUCTION && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoSEDUCTION, false) && m_ai->CastPetSpell(SEDUCTION, newTarget1))
+						return RETURN_NO_ACTION_OK;
+			}
+
+		}
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DEMON || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_ELEMENTAL))
+		{
+			if (BANISH && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoBANISH, false) && CastSpell(BANISH, newTarget1))
+				return RETURN_CONTINUE;
+		}
+		if (FEAR && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoFEAR, false) && CastSpell(FEAR, newTarget1))
+			return RETURN_CONTINUE;
+		if (DEATH_COIL && !m_bot->HasSpellCooldown(DEATH_COIL) && CastSpell(DEATH_COIL, newTarget1))
+			return RETURN_CONTINUE;
+		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetAttackerCount() >= 3 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
+			return RETURN_CONTINUE;
+	}
+	/*
 	//auto cc
 	if (m_bot->GetGroup())
 	{
@@ -336,7 +371,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			}
 		}
 	}
-	
+	*/
 	
 	
 	// Create soul shard 

@@ -74,7 +74,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
 	EVERY_MAN_FOR_HIMSELF = m_ai->initSpell(EVERY_MAN_FOR_HIMSELF_ALL); // human
 	BERSERKING = m_ai->initSpell(BERSERKING_ALL); // troll
 	WILL_OF_THE_FORSAKEN = m_ai->initSpell(WILL_OF_THE_FORSAKEN_ALL); // undead
-	m_botguid = m_bot->GetGUIDLow();
+	
 }
 
 PlayerbotMageAI::~PlayerbotMageAI() {}
@@ -304,8 +304,19 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		}
 
 	}
-
-	//auto cc
+	
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1 && !m_ai->CanAoe())
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
+		{
+			if (Polymorph  && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
+				return RETURN_CONTINUE;
+		}
+	}
+	/*//auto cc
 	if (m_bot->GetGroup())
 	{
 		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
@@ -317,16 +328,14 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			Unit *newTarget1 = m_ai->FindEveryAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), groupMember);
 			if (newTarget1 && !m_ai->CanAoe())
 			{
-				Creature * pCreature1 = (Creature*)newTarget1;
-				if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID))
-				{
-					if (Polymorph  && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
+				
+					if (Polymorph && !newTarget1->IsImmuneToSpell(pSpellInfoPolymorph, false) && CastSpell(Polymorph, newTarget1))
 						return RETURN_CONTINUE;
-				}
+				
 			}
 		}
 	}
-	
+	*/
 
 	// Disp
 	if (GetDispalTarget() != NULL)
