@@ -39,7 +39,7 @@ enum
 
     SPELL_CHARGE        = 24315,
     SPELL_CLEAVE        = 20691,
-    SPELL_FEAR          = 29321,
+    SPELL_FEAR          = 26042,
     SPELL_WHIRLWIND     = 24236,
 	SPELL_MORTAL_STRIKE = 16856,
 	SPELL_ENRAGE        = 24318,

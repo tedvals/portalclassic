@@ -276,7 +276,23 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 
 	}
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1)
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
 
+		//world boss can not cc
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_UNDEAD))
+		{
+			if (SHACKLE_UNDEAD && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoSHACKLE_UNDEAD, false) && CastSpell(SHACKLE_UNDEAD, newTarget1))
+				return RETURN_CONTINUE;
+		}
+		//return RETURN_NO_ACTION_OK;
+
+
+	}
+	/*
 	//auto cc
 	if (m_bot->GetGroup())
 	{
@@ -304,7 +320,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		}
 	}
 
-	
+	*/
 	
 	//special tactic
 	/*if (pTarget->GetEntry() == 14862 && m_ai->GetManaPercent(*pTarget) > 95)

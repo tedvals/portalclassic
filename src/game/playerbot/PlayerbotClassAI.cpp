@@ -312,7 +312,7 @@ Player* PlayerbotClassAI::GetTarget(JOB_TYPE type)
 		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
 		{
 			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
-			if (!groupMember /*|| groupMember->isAlive()*/)
+			if (!groupMember)
 				continue;
 			JOB_TYPE job = GetTargetJob(groupMember);
 			if (job & type)

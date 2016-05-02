@@ -264,7 +264,23 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 			return RETURN_CONTINUE;
 		return RETURN_NO_ACTION_OK;
 	}
+	Unit *heal = GetTarget(JOB_HEAL);
+	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
+	if (newTarget1)
+	{
+		Creature * pCreature1 = (Creature*)newTarget1;
 
+		//world boss can not cc
+		if (pCreature1 && (pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST || pCreature1->GetCreatureInfo()->CreatureType == CREATURE_TYPE_DRAGONKIN))
+		{
+			if (HIBERNATE && !m_ai->IsNeutralized(newTarget1) && !pCreature1->IsImmuneToSpell(pSpellInfoHIBERNATE, false) && CastSpell(HIBERNATE, newTarget1))
+				return RETURN_CONTINUE;
+		}
+		//return RETURN_NO_ACTION_OK;
+
+
+	}
+	/*
 	//auto cc
 	if (m_bot->GetGroup())
 	{
@@ -291,7 +307,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 			}
 		}
 	}
-	
+	*/
 	
 	if (GetDispalTarget() != NULL)
 	{
