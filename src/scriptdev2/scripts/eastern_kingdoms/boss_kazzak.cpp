@@ -78,7 +78,7 @@ struct boss_kazzakAI : public ScriptedAI
 
     void Aggro(Unit* /*pWho*/) override
     {
-        DoCastSpellIfCan(m_creature, SPELL_CAPTURESOUL, CAST_TRIGGERED);
+        
         DoScriptText(urand(0, 1) ? SAY_AGGRO1 : SAY_AGGRO2, m_creature);
     }
 
@@ -93,6 +93,7 @@ struct boss_kazzakAI : public ScriptedAI
             case 1: DoScriptText(SAY_KILL2, m_creature); break;
             case 2: DoScriptText(SAY_KILL3, m_creature); break;
         }
+		DoCastSpellIfCan(m_creature, SPELL_CAPTURESOUL, CAST_TRIGGERED);
     }
 
     void JustDied(Unit* /*pKiller*/) override

@@ -2194,7 +2194,8 @@ void PlayerbotAI::DoNextCombatManeuver()
 
 	if (m_combatOrder == ORDERS_PASSIVE)
 		return;
-
+	if (m_bot->HasAura(24314))
+		SetIgnoreUpdateTime(8);
 	// check for new targets
 	if (m_ScenarioType == SCENARIO_PVP_DUEL)
 		GetDuelTarget(GetMaster()); // TODO: Wow... wait... what? So not right.
