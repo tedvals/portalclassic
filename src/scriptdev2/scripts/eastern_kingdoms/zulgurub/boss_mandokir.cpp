@@ -315,7 +315,7 @@ struct boss_mandokirAI : public ScriptedAI
                 }
 
                 if (uiTargetInRangeCount > 3)
-                    DoCastSpellIfCan(m_creature, SPELL_FEAR);
+					DoCastSpellIfCan(m_creature, SPELL_FEAR, CAST_TRIGGERED);
 
                 m_uiFearTimer = 4000;
             }
