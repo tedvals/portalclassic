@@ -41,7 +41,7 @@ enum
     SPELL_SHADOW_VOLLEY       = 21341,
     SPELL_BERSERK             = 21340,
     SPELL_CLEAVE              = 20691,
-    SPELL_THUNDERCLAP         = 26554,
+    SPELL_THUNDERCLAP         = 15588,
     SPELL_VOIDBOLT            = 21066,
     SPELL_MARK_OF_KAZZAK      = 21056,                  // triggers 21058 when target gets to 0 mana
     SPELL_CAPTURESOUL         = 21053,                  // procs 21054 on kill
