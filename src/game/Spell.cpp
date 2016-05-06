@@ -2545,7 +2545,7 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
 		// Sap - don't exit Stealth yet to prevent getting in combat and making Sap impossible to cast
 		        // Removing Stealth depends on talent later
 			        // Pick Pocket - don't exit Stealth at all
-			if (!(m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & UI64LIT(0x00000080) || m_spellInfo->SpellFamilyFlags & 2147483648)))
+			if (!(m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & uint64(0x00000080) || m_spellInfo->SpellFamilyFlags & 2147483648)))
         m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
         m_caster->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
     }
@@ -2697,7 +2697,7 @@ void Spell::cast(bool skipCheck)
 		case SPELLFAMILY_ROGUE:
 			{
 				           // exit stealth on sap when improved sap is not skilled
-					if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x00000080) && m_caster->GetTypeId() == TYPEID_PLAYER && (!m_caster->GetAura(14076, SpellEffectIndex(0)) && !m_caster->GetAura(14094, SpellEffectIndex(0)) && !m_caster->GetAura(14095, SpellEffectIndex(0))))
+					if (m_spellInfo->SpellFamilyFlags & uint64(0x00000080) && m_caster->GetTypeId() == TYPEID_PLAYER && (!m_caster->GetAura(14076, SpellEffectIndex(0)) && !m_caster->GetAura(14094, SpellEffectIndex(0)) && !m_caster->GetAura(14095, SpellEffectIndex(0))))
 					 m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 			}
         case SPELLFAMILY_WARRIOR:
@@ -4077,7 +4077,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         return SPELL_FAILED_BAD_TARGETS;
 					// Arcane Missile self cast forbidden
 					if (m_spellInfo->SpellFamilyName == SPELLFAMILY_MAGE &&
-						m_spellInfo->SpellFamilyFlags & UI64LIT(0x00000800) &&
+						m_spellInfo->SpellFamilyFlags & uint64(0x00000800) &&
 						m_caster == target)
 						 { return SPELL_FAILED_BAD_TARGETS; }
                     m_targets.setUnitTarget(target);
