@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Magmadar
-SD%Complete: 75
-SDComment: Lavabomb needs still core support
+SD%Complete: 90
+SDComment: 
 SDCategory: Molten Core
 EndScriptData */
 
@@ -31,8 +31,8 @@ enum
     SPELL_FRENZY                = 19451,
     SPELL_MAGMASPIT             = 19449,                    // This is actually a buff he gives himself
     SPELL_PANIC                 = 19408,
-    SPELL_LAVABOMB              = 19411,                    // This calls a dummy server side effect that isn't implemented yet
-    SPELL_LAVABOMB_ALT          = 19428
+    SPELL_LAVABOMB              = 19411                    
+    
 };
 
 struct boss_magmadarAI : public ScriptedAI
