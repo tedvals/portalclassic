@@ -22,12 +22,10 @@
 #include "ProgressBar.h"
 #include "DBCStores.h"
 #include "SQLStorages.h"
-#include "World.h"
 #include "Chat.h"
 #include "Spell.h"
-#include "BattleGround/BattleGroundMgr.h"
-#include "MapManager.h"
 #include "Unit.h"
+#include "World.h"
 
 bool IsPrimaryProfessionSkill(uint32 skill)
 {
@@ -308,28 +306,28 @@ float CalculateDefaultCoefficient(SpellEntry const* spellProto, DamageEffectType
 
 WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
 {
-	if (!spellInfo)
-		return BASE_ATTACK;
 
-	switch (spellInfo->DmgClass)
-	{
-	case SPELL_DAMAGE_CLASS_MELEE:
-		if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQ_OFFHAND))
-			return OFF_ATTACK;
-		else
-			return BASE_ATTACK;
-		break;
-	case SPELL_DAMAGE_CLASS_RANGED:
-		return RANGED_ATTACK;
-		break;
-	default:
-		// Wands
-		if (spellInfo->HasAttribute(SPELL_ATTR_EX2_AUTOREPEAT_FLAG))
-			return RANGED_ATTACK;
-		else
-			return BASE_ATTACK;
-		break;
-	}
+    if (!spellInfo)
+        return BASE_ATTACK;
+
+    switch (spellInfo->DmgClass)
+    {
+        case SPELL_DAMAGE_CLASS_MELEE:
+        {
+            if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQ_OFFHAND))
+                return OFF_ATTACK;
+            return BASE_ATTACK;
+        }
+        case SPELL_DAMAGE_CLASS_RANGED:
+            return RANGED_ATTACK;
+        default:
+        {
+            // Wands
+            if (spellInfo->HasAttribute(SPELL_ATTR_EX2_AUTOREPEAT_FLAG))
+                return RANGED_ATTACK;
+            return BASE_ATTACK;
+        }
+    }
 }
 
 bool IsPassiveSpell(uint32 spellId)
@@ -3796,28 +3794,29 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
 
 bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
 {
-	switch (group)
-	{
-	case DIMINISHING_CONTROL_STUN:
-	case DIMINISHING_TRIGGER_STUN:
-	case DIMINISHING_KIDNEYSHOT:
-	case DIMINISHING_SLEEP:
-	case DIMINISHING_CONTROL_ROOT:
-	case DIMINISHING_TRIGGER_ROOT:
-	case DIMINISHING_FEAR:
-	case DIMINISHING_WARLOCK_FEAR:
-	case DIMINISHING_CHARM:
-	case DIMINISHING_POLYMORPH:
-	case DIMINISHING_FREEZE:
-	case DIMINISHING_KNOCKOUT:
-	case DIMINISHING_BLIND:
-	case DIMINISHING_BANISH:
-	case DIMINISHING_LIMITONLY:
-		return true;
-	default:
-		return false;
-	}
-	return false;
+
+    switch (group)
+    {
+        case DIMINISHING_CONTROL_STUN:
+        case DIMINISHING_TRIGGER_STUN:
+        case DIMINISHING_KIDNEYSHOT:
+        case DIMINISHING_SLEEP:
+        case DIMINISHING_CONTROL_ROOT:
+        case DIMINISHING_TRIGGER_ROOT:
+        case DIMINISHING_FEAR:
+        case DIMINISHING_WARLOCK_FEAR:
+        case DIMINISHING_CHARM:
+        case DIMINISHING_POLYMORPH:
+        case DIMINISHING_FREEZE:
+        case DIMINISHING_KNOCKOUT:
+        case DIMINISHING_BLIND:
+        case DIMINISHING_BANISH:
+        case DIMINISHING_LIMITONLY:
+            return true;
+        default:
+            return false;
+    }
+
 }
 
 DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
