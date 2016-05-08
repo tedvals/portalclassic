@@ -36,7 +36,7 @@ PlayerbotHunterAI::PlayerbotHunterAI(Player* const master, Player* const bot, Pl
 	AIMED_SHOT = m_ai->initSpell(AIMED_SHOT_1);
 	VOLLEY = m_ai->initSpell(VOLLEY_1);
 	BLACK_ARROW = m_ai->initSpell(BLACK_ARROW_1);
-
+	TRANQUILIZING_SHOT = m_ai->initSpell(TRANQUILIZING_SHOT_1);
 	// MELEE
 	RAPTOR_STRIKE = m_ai->initSpell(RAPTOR_STRIKE_1);
 	WING_CLIP = m_ai->initSpell(WING_CLIP_1);
@@ -259,6 +259,8 @@ CombatManeuverReturns PlayerbotHunterAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	// damage spells
 	if (m_ai->GetCombatStyle() == PlayerbotAI::COMBAT_RANGED)
 	{
+		if (TRANQUILIZING_SHOT > 0 && m_ai->In_Reach(pTarget, TRANQUILIZING_SHOT) && pTarget->HasAura(19451) && m_ai->CastSpell(TRANQUILIZING_SHOT, *pTarget))
+			return RETURN_CONTINUE;
 		if (HUNTERS_MARK > 0 && m_ai->In_Reach(pTarget, HUNTERS_MARK) && !pTarget->HasAura(HUNTERS_MARK, EFFECT_INDEX_0) && m_ai->CastSpell(HUNTERS_MARK, *pTarget))
 			return RETURN_CONTINUE;
 		else if (RAPID_FIRE > 0 && m_ai->In_Reach(pTarget, RAPID_FIRE) && !m_bot->HasAura(RAPID_FIRE, EFFECT_INDEX_0) && m_ai->CastSpell(RAPID_FIRE, *m_bot))

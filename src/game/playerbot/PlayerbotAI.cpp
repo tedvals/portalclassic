@@ -2283,6 +2283,10 @@ void PlayerbotAI::DoCombatMovement()
 	MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher1(pGo, go_check1);
 	Cell::VisitGridObjects(m_bot, searcher1, 5.0f);
 
+	MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check2(*m_bot, 177704, 5.0f);
+	MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher2(pGo, go_check2);
+	Cell::VisitGridObjects(m_bot, searcher2, 5.0f);
+
 	if (pGo)
 	{
 		m_bot->AttackStop();
