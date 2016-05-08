@@ -1897,6 +1897,9 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 			// Arcane Intellect and Insight
 			if (spellInfo_2->SpellIconID == 125 && spellInfo_1->Id == 18820)
 				return false;
+			//Ice Barrier and Infallible Mind
+			if ((spellInfo_2->SpellIconID == 32 && spellInfo_1->Id == 10692))
+				return false;
 			break;
 		case SPELLFAMILY_WARRIOR:
 		{
@@ -1990,6 +1993,9 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
 
 		// Arcane Intellect and Insight
 		if (spellInfo_1->SpellIconID == 125 && spellInfo_2->Id == 18820)
+			return false;
+		//Ice Barrier and Infallible Mind
+		if ((spellInfo_1->SpellIconID == 32 && spellInfo_2->Id == 10692))
 			return false;
 
 		break;
