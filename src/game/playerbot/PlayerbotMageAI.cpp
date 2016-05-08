@@ -505,6 +505,37 @@ void PlayerbotMageAI::DoNonCombatActions()
 	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot || !master)
 		return;
+	//check buff
+	if (m_bot->getLevel() == 60)
+	{
+		//spirit
+		if (!m_bot->HasAura(15231))
+			m_ai->CastSpell(15231);
+		//fire r
+		if (!m_bot->HasAura(16326))
+			m_ai->CastSpell(16326);
+		//forst r
+		if (!m_bot->HasAura(16325))
+			m_ai->CastSpell(16325);
+		//Armor
+		if (!m_bot->HasAura(15233))
+			m_ai->CastSpell(15233);
+		//Songflower Serenade
+		if (!m_bot->HasAura(15366))
+			m_ai->CastSpell(15366);
+		//sta stone
+		if (!m_bot->HasAura(30090))
+			m_ai->CastSpell(30090);
+		//zanza sta spi posion
+		if (!m_bot->HasAura(24382))
+			m_ai->CastSpell(24382);
+		//magic damage
+		if (!m_bot->HasAura(17539))
+			m_ai->CastSpell(17539);
+		//int 
+		if (!m_bot->HasAura(10692))
+			m_ai->CastSpell(10692);
+	}
 	// TODO: The beauty of a mage is not only its ability to supply itself with water, but to share its water
 	// So, conjure at *least* 1.25 stacks, ready to trade a stack and still have some left for self
 	if (m_ai->FindDrink() == nullptr && CONJURE_WATER && m_ai->CastSpell(CONJURE_WATER, *m_bot))

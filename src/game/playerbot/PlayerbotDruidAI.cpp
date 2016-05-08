@@ -794,10 +794,39 @@ void PlayerbotDruidAI::DoNonCombatActions()
 	if (!m_bot)  return;
 	m_bot->RemoveAllSpellCooldown();
 	if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
+		
+	//check buff
+	if (m_bot->getLevel() == 60)
+	{
+		//spirit
+		if (!m_bot->HasAura(15231))
+			m_ai->CastSpell(15231);
+		//fire r
+		if (!m_bot->HasAura(16326))
+			m_ai->CastSpell(16326);
+		//forst r
+		if (!m_bot->HasAura(16325))
+			m_ai->CastSpell(16325);
+		//Armor
+		if (!m_bot->HasAura(15233))
+			m_ai->CastSpell(15233);
+		//Songflower Serenade
+		if (!m_bot->HasAura(15366))
+			m_ai->CastSpell(15366);
+		//sta stone
+		if (!m_bot->HasAura(30090))
+			m_ai->CastSpell(30090);
+		//zanza sta spi posion
+		if (!m_bot->HasAura(24382))
+			m_ai->CastSpell(24382);
+		//mana r
+		if (!m_bot->HasAura(24363))
+			m_ai->CastSpell(24363);
+		//int 
+		if (!m_bot->HasAura(10692))
+			m_ai->CastSpell(10692);
+	}
 
-	// Revive
-	///if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
-	// return;
 	//creat water
 	if (m_ai->FindDrink() == nullptr && m_bot->getLevel() == 60)
 	{

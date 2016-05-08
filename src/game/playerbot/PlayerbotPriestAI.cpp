@@ -205,6 +205,7 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		return RETURN_CONTINUE;
 	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
 		return RETURN_CONTINUE;
+		
 	if (m_ai->GetManaPercent() < 10)
 	{
 		Item* manaPosion = m_ai->FindManaPoison();
@@ -598,6 +599,38 @@ void PlayerbotPriestAI::DoNonCombatActions()
 	if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
 	uint32 spec = m_bot->GetSpec();
+	//check buff
+	if (m_bot->getLevel() == 60)
+	{
+		//spirit
+		if (!m_bot->HasAura(15231))
+			m_ai->CastSpell(15231);
+		//fire r
+		if (!m_bot->HasAura(16326))
+			m_ai->CastSpell(16326);
+		//forst r
+		if (!m_bot->HasAura(16325))
+			m_ai->CastSpell(16325);
+		//Armor
+		if (!m_bot->HasAura(15233))
+			m_ai->CastSpell(15233);
+		//Songflower Serenade
+		if (!m_bot->HasAura(15366))
+			m_ai->CastSpell(15366);
+		//sta stone
+		if (!m_bot->HasAura(30090))
+			m_ai->CastSpell(30090);
+		//zanza sta spi posion
+		if (!m_bot->HasAura(24382))
+			m_ai->CastSpell(24382);
+		//mana r
+		if (!m_bot->HasAura(24363))
+			m_ai->CastSpell(24363);
+		//int 
+		if (!m_bot->HasAura(10692))
+			m_ai->CastSpell(10692);
+	}
+
 	//creat water
 	if (m_ai->FindDrink() == nullptr && m_bot->getLevel() == 60)
 	{

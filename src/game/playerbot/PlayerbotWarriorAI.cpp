@@ -328,9 +328,26 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
 m_ai->CastSpell(BLOODRAGE);
 return RETURN_CONTINUE;
 }*/
+	//check buff in combat
+	if (m_bot->getLevel() == 60)
+	{
+		if (m_ai->GetHealthPercent() < 30)
+		{
+			//dodge
+			if (!m_bot->HasAura(16321) && !m_bot->HasSpellCooldown(16321) && m_ai->CastSpell(16321, *m_bot))
+				return RETURN_CONTINUE;
+			//heal crystal
+			if (!m_bot->HasAura(15229) && !m_bot->HasSpellCooldown(15229) && m_ai->CastSpell(15229, *m_bot))
+				return RETURN_CONTINUE;
+		}
+		//attack speed
+		if (!m_bot->HasAura(16323) && !m_bot->HasSpellCooldown(16323) && m_ai->CastSpell(16323, *m_bot))
+			return RETURN_CONTINUE;
+	}
 	//use healing posion
 	if (m_ai->GetHealthPercent() < 20)
 	{
+		
 		Item* healingPosion = m_ai->FindHealingPoison();
 		if (healingPosion)
 			m_ai->UseItem(healingPosion);
@@ -472,7 +489,43 @@ void PlayerbotWarriorAI::DoNonCombatActions()
 	if (!m_bot) return;
 	m_bot->RemoveAllSpellCooldown();
 	uint32 spec = m_bot->GetSpec();
-
+	//check buff
+	if (m_bot->getLevel() == 60)
+	{   
+		//str
+		if (!m_bot->HasAura(16323))
+			m_ai->CastSpell(16323);
+	    //fire r
+		if (!m_bot->HasAura(16326))
+			m_ai->CastSpell(16326);
+		//attack power
+		if (!m_bot->HasAura(16329))
+			m_ai->CastSpell(16329);
+		//forst r
+		if (!m_bot->HasAura(16325))
+			m_ai->CastSpell(16325);
+		//Crystal Spire 12 damage when attack
+		if (!m_bot->HasAura(15279))
+			m_ai->CastSpell(15279);
+		//Armor
+		if (!m_bot->HasAura(15233))
+			m_ai->CastSpell(15233);
+		//Songflower Serenade
+		if (!m_bot->HasAura(15366))
+			m_ai->CastSpell(15366);
+		//sta stone
+		if (!m_bot->HasAura(30090))
+			m_ai->CastSpell(30090);
+		//zanza sta spi posion
+		if (!m_bot->HasAura(24382))
+			m_ai->CastSpell(24382);
+		//hp r
+		if (!m_bot->HasAura(24361))
+			m_ai->CastSpell(24361);
+		//sta 
+		if (!m_bot->HasAura(10668))
+			m_ai->CastSpell(10668);
+	}
 	//Stance Check
 	if (spec == WARRIOR_SPEC_ARMS && !m_bot->HasAura(BATTLE_STANCE, EFFECT_INDEX_0))
 		m_ai->CastSpell(BATTLE_STANCE);
