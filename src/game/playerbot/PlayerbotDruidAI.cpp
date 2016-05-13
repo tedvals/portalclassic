@@ -309,7 +309,11 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 	}
 	*/
 	
-	if (GetDispalTarget() != NULL)
+	//rebirth
+	if (!m_master->isAlive() && REBIRTH && m_ai->In_Reach(m_master, REBIRTH) && !m_bot->HasSpellCooldown(REBIRTH) && CastSpell(REBIRTH, m_master))
+		return RETURN_CONTINUE;
+
+		if (GetDispalTarget() != NULL)
 	{
 		HealPlayer(GetDispalTarget());
 		return RETURN_CONTINUE;
@@ -521,7 +525,7 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverHeal()
 {
 	if (!m_ai)  return RETURN_NO_ACTION_ERROR;
 	if (!m_bot) return RETURN_NO_ACTION_ERROR;
-
+			
 	if (HealPlayer(GetHealTarget()) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
 		return RETURN_CONTINUE;
 
@@ -535,7 +539,7 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 		return r;
 	if (!target->isAlive())
 	{
-		if (REBIRTH && m_ai->In_Reach(target, REBIRTH) && !m_bot->HasSpellCooldown(REBIRTH) && m_ai->CastSpell(REBIRTH, *target))
+		if (REBIRTH && m_ai->In_Reach(target, REBIRTH) && !m_bot->HasSpellCooldown(REBIRTH) && CastSpell(REBIRTH, target))
 		{
 			std::string msg = "Resurrecting ";
 			msg += target->GetName();
@@ -843,6 +847,16 @@ void PlayerbotDruidAI::DoNonCombatActions()
 
 		return;
 	}
+	
+	//creat Ironwood_Seed
+	if (!m_ai->HasSpellReagents(REBIRTH) && m_bot->getLevel() == 50)
+	{
+		if (Item* pItem = m_bot->StoreNewItemInInventorySlot(Ironwood_Seed, 20))
+			m_bot->SendNewItem(pItem, 20, true, false);
+
+		return;
+	}
+
 	if (EatDrinkBandage())
 		return;
 	if (GetDispalTarget() != NULL)
@@ -850,6 +864,9 @@ void PlayerbotDruidAI::DoNonCombatActions()
 		HealPlayer(GetDispalTarget());
 		return;
 	}
+	// Revive
+	if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
+		return;
 	// Heal
 	if (m_ai->IsHealer())
 	{

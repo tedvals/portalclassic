@@ -432,7 +432,7 @@ void PlayerbotShamanAI::DropTotems()
 	// Earth Totems
 	if ((earth == nullptr) || (m_bot->GetDistance(earth) > 30))
 	{
-		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_SHADOW &&TREMOR_TOTEM > 0 && m_ai->CastSpell(TREMOR_TOTEM))
+		if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_FROST &&TREMOR_TOTEM > 0 && m_ai->CastSpell(TREMOR_TOTEM))
 			return;
 		else if (STRENGTH_OF_EARTH_TOTEM > 0 && m_ai->CastSpell(STRENGTH_OF_EARTH_TOTEM))
 			return;
