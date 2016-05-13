@@ -493,7 +493,7 @@ void WorldSession::LogoutPlayer(bool Save)
 
         // remove player from the group if he is:
         // a) in group; b) not in raid group; c) logging out normally (not being kicked or disconnected)
-		if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && (!m_Socket || m_Socket->IsClosed()))
+		if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && m_Socket && !m_Socket->IsClosed())
             _player->RemoveFromGroup();
 
         ///- Send update to group
@@ -549,8 +549,10 @@ void WorldSession::LogoutPlayer(bool Save)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-	if (m_Socket && m_Socket->IsClosed())
-        m_Socket->Close();
+
+	if (m_Socket && !m_Socket->IsClosed())
+
+		m_Socket->Close();
 }
 
 /// Cancel channeling handler
