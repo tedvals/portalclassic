@@ -386,6 +386,20 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
 				ghp++;
 		}
 	}
+	
+	// Define a tank bot will look at
+	Unit* pMainTank = GetHealTarget(JOB_TANK);
+	float fTargetDist = m_bot->GetCombatDistance(pMainTank, true);
+	// If target is out of range (40 yards) and is a tank: move towards it
+	// Other classes have to adjust their position to the healers
+	// TODO: This code should be common to all healers and will probably
+	// move to a more suitable place
+	if (pMainTank && fTargetDist > 30.0f)
+	{
+		m_bot->GetMotionMaster()->MoveFollow(target, 29.0f, m_bot->GetOrientation());
+		return RETURN_CONTINUE;
+	}
+
 	// Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
 	if (target->GetHealthPercent() >= 90)
 		return RETURN_NO_ACTION_OK;

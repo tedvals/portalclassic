@@ -216,6 +216,14 @@ CombatManeuverReturns PlayerbotHunterAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		m_bot->GetMotionMaster()->MoveFleeing(pTarget,4);
 		RETURN_CONTINUE;
 	}
+
+	//keep distance
+	if (pTarget && !m_ai->In_Reach(pTarget, AUTO_SHOT))
+	{
+		m_bot->GetMotionMaster()->MoveFollow(pTarget, 40.0f, m_bot->GetOrientation());
+		return RETURN_CONTINUE;
+	}
+
 	if (/*meleeReach ||*/ !m_has_ammo)
 	{
 		// switch to melee combat (target in melee range, out of ammo)
