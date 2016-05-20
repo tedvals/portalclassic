@@ -185,12 +185,19 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
 	uint32 spec = m_bot->GetSpec();
-
+	float fTargetDist = m_bot->GetCombatDistance(pTarget, true);
 	// Make sure healer stays put, don't even melee (aggro) if in range.
 	if (m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
 	else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
 		m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+
+	//keep distance
+	if (pTarget && fTargetDist >30.0f)
+	{
+		m_bot->GetMotionMaster()->MoveFollow(pTarget, 29.0f, m_bot->GetOrientation());
+		return RETURN_CONTINUE;
+	}
 
 	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
 		return RETURN_CONTINUE;
@@ -387,19 +394,6 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
 		}
 	}
 	
-	// Define a tank bot will look at
-	Unit* pMainTank = GetHealTarget(JOB_TANK);
-	float fTargetDist = m_bot->GetCombatDistance(pMainTank, true);
-	// If target is out of range (40 yards) and is a tank: move towards it
-	// Other classes have to adjust their position to the healers
-	// TODO: This code should be common to all healers and will probably
-	// move to a more suitable place
-	if (pMainTank && fTargetDist > 30.0f)
-	{
-		m_bot->GetMotionMaster()->MoveFollow(target, 29.0f, m_bot->GetOrientation());
-		return RETURN_CONTINUE;
-	}
-
 	// Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
 	if (target->GetHealthPercent() >= 90)
 		return RETURN_NO_ACTION_OK;

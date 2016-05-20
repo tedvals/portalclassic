@@ -2313,7 +2313,8 @@ void PlayerbotAI::DoCombatMovement()
 		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true) < 5.0f&& !(m_combatOrder & ORDERS_TANK)) ||
 		(m_targetCombat->GetEntry() == 11382 && m_bot->GetCombatDistance(m_targetCombat, true) < 15.0f&& !(m_combatOrder & ORDERS_TANK)) ||
 		(m_targetCombat->GetEntry() == 12397 && m_bot->GetCombatDistance(m_targetCombat, true) < 15.0f&& !(m_combatOrder & ORDERS_TANK)) ||
-		(m_targetCombat->GetEntry() == 12056 && m_targetCombat->HasAura(19695) && m_bot->GetCombatDistance(m_targetCombat, true) < 20.0f)
+		(m_targetCombat->GetEntry() == 12056 && m_targetCombat->HasAura(19695) && m_bot->GetCombatDistance(m_targetCombat, true) < 20.0f)||
+		(m_targetCombat->GetEntry() == 12264 && m_bot->GetCombatDistance(m_targetCombat, true) < 30.0f&& !(m_combatOrder & ORDERS_TANK)) 
 		)
 	{
 		m_bot->AttackStop();
