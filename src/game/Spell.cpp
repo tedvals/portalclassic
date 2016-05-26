@@ -260,7 +260,6 @@ Spell::Spell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid or
     m_spellInfo = info;
     m_triggeredBySpellInfo = triggeredBy;
     m_caster = caster;
-    m_selfContainer = nullptr;
     m_referencedFromCurrentSpell = false;
     m_executedCurrently = false;
     m_delayStart = 0;
@@ -292,7 +291,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid or
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         m_currentBasePoints[i] = m_spellInfo->CalculateSimpleValue(SpellEffectIndex(i));
 
-    m_spellState = SPELL_STATE_PREPARING;
+    m_spellState = SPELL_STATE_CREATED;
 
     m_castPositionX = m_castPositionY = m_castPositionZ = 0;
     m_TriggerSpells.clear();
@@ -2484,34 +2483,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
     }
 }
 
-void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
+SpellCastResult Spell::PreCastCheck(Aura* triggeredByAura /*= nullptr*/)
 {
-    m_targets = *targets;
-
-    m_spellState = SPELL_STATE_PREPARING;
-
-    m_castPositionX = m_caster->GetPositionX();
-    m_castPositionY = m_caster->GetPositionY();
-    m_castPositionZ = m_caster->GetPositionZ();
-    m_castOrientation = m_caster->GetOrientation();
-
-    if (triggeredByAura)
-        m_triggeredByAuraSpell  = triggeredByAura->GetSpellProto();
-
-    // create and add update event for this spell
-    SpellEvent* Event = new SpellEvent(this);
-    m_caster->m_Events.AddEvent(Event, m_caster->m_Events.CalculateTime(1));
-
     // Prevent casting at cast another spell (ServerSide check)
     if (!m_IsTriggeredSpell && m_caster->IsNonMeleeSpellCasted(false, true, true))
-    {
-        SendCastResult(SPELL_FAILED_SPELL_IN_PROGRESS);
-        finish(false);
-        return;
-    }
-
-    // Fill cost data
-    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+        return SPELL_FAILED_SPELL_IN_PROGRESS;
 
     SpellCastResult result = CheckCast(true);
     if (result != SPELL_CAST_OK && !IsAutoRepeat())         // always cast autorepeat dummy for triggering
@@ -2521,10 +2497,46 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
             SendChannelUpdate(0);
             triggeredByAura->GetHolder()->SetAuraDuration(0);
         }
+        return result;
+    }
+
+    return SPELL_CAST_OK;
+}
+
+void Spell::SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura)
+{
+    m_spellState = SPELL_STATE_STARTING;
+    m_targets = *targets;
+
+    m_castPositionX = m_caster->GetPositionX();
+    m_castPositionY = m_caster->GetPositionY();
+    m_castPositionZ = m_caster->GetPositionZ();
+    m_castOrientation = m_caster->GetOrientation();
+
+    if (triggeredByAura)
+        m_triggeredByAuraSpell = triggeredByAura->GetSpellProto();
+
+    // create and add update event for this spell
+    SpellEvent* Event = new SpellEvent(this);
+    m_caster->m_Events.AddEvent(Event, m_caster->m_Events.CalculateTime(1));
+
+    // Fill cost data
+    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+
+    SpellCastResult result = PreCastCheck();
+    if (result != SPELL_CAST_OK)
+    {
         SendCastResult(result);
         finish(false);
         return;
     }
+    else
+        Prepare();
+}
+
+void Spell::Prepare()
+{
+    m_spellState = SPELL_STATE_PREPARING;
 
     // Prepare data for triggers
     prepareDataForTriggerSystem();
@@ -2536,17 +2548,11 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
     // set timer base at cast time
     ReSetTimer();
 
-    // stealth must be removed at cast starting (at show channel bar)
-    // skip triggered spell (item equip spell casting and other not explicit character casts/item uses)
-    if (!m_IsTriggeredSpell && isSpellBreakStealth(m_spellInfo))
-    {
-		// Sap - don't exit Stealth yet to prevent getting in combat and making Sap impossible to cast
-		        // Removing Stealth depends on talent later
-			        // Pick Pocket - don't exit Stealth at all
-			if (!(m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & uint64(0x00000080) || m_spellInfo->SpellFamilyFlags & 2147483648)))
-        m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
-        m_caster->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
-    }
+
+    if (!m_IsTriggeredSpell)
+		if (!(m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & uint64(0x00000080) || m_spellInfo->SpellFamilyFlags & 2147483648)))
+        m_caster->RemoveAurasOnCast(m_spellInfo);
+
 
     // add non-triggered (with cast time and without)
     if (!m_IsTriggeredSpell)
@@ -3056,7 +3062,7 @@ void Spell::finish(bool ok)
     // remove/restore spell mods before m_spellState update
     if (Player* modOwner = m_caster->GetSpellModOwner())
     {
-        if (ok || m_spellState != SPELL_STATE_PREPARING)    // fail after start channeling or throw to target not affect spell mods
+        if (ok || (m_spellState > uint32(SPELL_STATE_PREPARING))) // fail after start channeling or throw to target not affect spell mods
             modOwner->RemoveSpellMods(this);
         else
             modOwner->ResetSpellModsDueToCanceledSpell(this);
@@ -3898,12 +3904,14 @@ void Spell::CastTriggerSpells()
 {
     for (SpellInfoList::const_iterator si = m_TriggerSpells.begin(); si != m_TriggerSpells.end(); ++si)
     {
+
 		bool _triggered = true;
 		if ((*si)->Id == 20578)                             // Cannibalize healing effect
 			 { _triggered = false; }
 		
 			Spell* spell = new Spell(m_caster, (*si), _triggered, m_originalCasterGUID);
-        spell->prepare(&m_targets);                         // use original spell original targets
+			spell->SpellStart(&m_targets);                         // use original spell original targets
+
     }
 }
 
@@ -4696,7 +4704,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_SKILL_NOT_HIGH_ENOUGH;
 
                 // chance for fail at orange skinning attempt
-                if ((m_selfContainer && (*m_selfContainer) == this) &&
+                if (m_spellState != SPELL_STATE_CREATED &&
                         skillValue < sWorld.GetConfigMaxSkillValue() &&
                         (ReqValue < 0 ? 0 : ReqValue) > irand(skillValue - 25, skillValue + 37))
                     return SPELL_FAILED_TRY_AGAIN;
@@ -4759,7 +4767,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 // chance for fail at orange mining/herb/LockPicking gathering attempt
                 // second check prevent fail at rechecks
-                if (skillId != SKILL_NONE && (!m_selfContainer || ((*m_selfContainer) != this)))
+                if (m_spellState != SPELL_STATE_CREATED && skillId != SKILL_NONE)
                 {
                     bool canFailAtMax = skillId != SKILL_HERBALISM && skillId != SKILL_MINING;
 

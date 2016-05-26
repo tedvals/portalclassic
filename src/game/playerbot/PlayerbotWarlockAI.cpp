@@ -1,5 +1,6 @@
 
 #include "PlayerbotWarlockAI.h"
+#include "GridNotifiers.h"
 
 class PlayerbotAI;
 PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, PlayerbotAI* const ai) : PlayerbotClassAI(master, bot, ai)
@@ -85,6 +86,7 @@ PlayerbotWarlockAI::PlayerbotWarlockAI(Player* const master, Player* const bot, 
 	m_isTempImp = false;
 	m_CurrentCurse = 0;
 	m_botguid = m_bot->GetGUIDLow();
+	m_BANISH = false;
 }
 
 PlayerbotWarlockAI::~PlayerbotWarlockAI() {}
@@ -239,7 +241,17 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	// if in melee range OR can't shoot OR have no ranged (wand) equipped
 	//else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE && (meleeReach || SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
 	//m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
-
+	/*
+	Creature* pCreature1 = nullptr;
+	MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck creature_check(*m_bot, 12099, true, false, 30);
+	MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pCreature1, creature_check);
+	Cell::VisitGridObjects(m_bot, searcher, 30);
+	if (pCreature1 && !pCreature1->HasAura(BANISH) && !m_BANISH&& CastSpell(BANISH, pCreature1) )
+	{
+		m_BANISH = true;
+		return RETURN_CONTINUE;
+	}
+*/
 	//Used to determine if this bot is highest on threat
 	Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
 	if (newTarget && m_ai->IsElite(newTarget) && !m_ai->CanAoe()) // TODO: && party has a tank
@@ -395,6 +407,13 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	// Curse the target
 	if (CheckCurse(pTarget))
 		return RETURN_CONTINUE;
+	
+	//keep distance
+	if (pTarget && !m_ai->In_Reach(pTarget, SHADOW_BOLT))
+	{
+		m_bot->GetMotionMaster()->MoveFollow(pTarget, 29.0f, m_bot->GetOrientation());
+		return RETURN_CONTINUE;
+	}
 
 	// Damage Spells
 	switch (spec)

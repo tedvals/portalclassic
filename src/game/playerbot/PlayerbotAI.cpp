@@ -2295,7 +2295,7 @@ void PlayerbotAI::DoCombatMovement()
 		InterruptCurrentCastingSpell();
 		SetIgnoreUpdateTime(2);
 		m_bot->GetMotionMaster()->Clear(false);
-		m_bot->GetMotionMaster()->MoveFleeing1(pGo, 2);
+		m_bot->GetMotionMaster()->MoveFleeing1(pGo, 1.5);
 		return;
 
 	}
@@ -2305,14 +2305,16 @@ void PlayerbotAI::DoCombatMovement()
 	
 	//special Tactical when detect aura
 	if (
-		m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063) || 
-		(m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat,true)<10.0f)||
-		(m_targetCombat->GetEntry() == 14517 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 14510 && m_bot->GetCombatDistance(m_targetCombat, true)<20.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 14509 && m_bot->GetCombatDistance(m_targetCombat, true)<25.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true)<5.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 11382 && m_bot->GetCombatDistance(m_targetCombat, true)<15.0f&& !(m_combatOrder & ORDERS_TANK))||
-		(m_targetCombat->GetEntry() == 12397 && m_bot->GetCombatDistance(m_targetCombat, true)<15.0f&& !(m_combatOrder & ORDERS_TANK))
+		m_bot->HasAura(21070) || m_bot->HasAura(17742) || m_bot->HasAura(23861) || m_bot->HasAura(24063) || m_bot->HasAura(19717) || m_bot->HasAura(20475) ||
+		(m_targetCombat->GetEntry() == 14750 && m_targetCombat->GetHealthPercent() <= 55 && m_bot->GetCombatDistance(m_targetCombat, true) < 10.0f) ||
+		(m_targetCombat->GetEntry() == 14517 && m_bot->GetCombatDistance(m_targetCombat, true) < 20.0f&& !(m_combatOrder & ORDERS_TANK)) ||
+		(m_targetCombat->GetEntry() == 14510 && m_bot->GetCombatDistance(m_targetCombat, true) < 20.0f&& !(m_combatOrder & ORDERS_TANK)) ||
+		(m_targetCombat->GetEntry() == 14509 && m_bot->GetCombatDistance(m_targetCombat, true) < 25.0f&& !(m_combatOrder & ORDERS_TANK)) ||
+		(m_targetCombat->GetEntry() == 15146 && m_bot->GetCombatDistance(m_targetCombat, true) < 5.0f&& !(m_combatOrder & ORDERS_TANK)) ||
+		(m_targetCombat->GetEntry() == 11382 && m_bot->GetCombatDistance(m_targetCombat, true) < 15.0f&& !(m_combatOrder & ORDERS_TANK)) ||
+		(m_targetCombat->GetEntry() == 12397 && m_bot->GetCombatDistance(m_targetCombat, true) < 15.0f&& !(m_combatOrder & ORDERS_TANK)) ||
+		(m_targetCombat->GetEntry() == 12056 && m_targetCombat->HasAura(19695) && m_bot->GetCombatDistance(m_targetCombat, true) < 20.0f)||
+		(m_targetCombat->GetEntry() == 12264 && m_bot->GetCombatDistance(m_targetCombat, true) < 30.0f&& !(m_combatOrder & ORDERS_TANK)) 
 		)
 	{
 		m_bot->AttackStop();

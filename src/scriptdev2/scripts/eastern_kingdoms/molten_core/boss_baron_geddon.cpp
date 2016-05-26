@@ -106,8 +106,10 @@ struct boss_baron_geddonAI : public ScriptedAI
         // Ignite Mana Timer
         if (m_uiIgniteManaTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_IGNITE_MANA) == CAST_OK)
+			
+			if (DoCastSpellIfCan(m_creature, SPELL_IGNITE_MANA) == CAST_OK)
                 m_uiIgniteManaTimer = 30000;
+			
         }
         else
             m_uiIgniteManaTimer -= uiDiff;

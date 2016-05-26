@@ -170,6 +170,9 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	// if can't shoot OR have no ranged (wand) equipped
 	//else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
 	//m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
+	
+	
+
 	if (m_bot->getRace() == RACE_UNDEAD && (m_bot->HasAuraType(SPELL_AURA_MOD_FEAR) || m_bot->HasAuraType(SPELL_AURA_MOD_CHARM)) && !m_bot->HasSpellCooldown(WILL_OF_THE_FORSAKEN) && m_ai->CastSpell(WILL_OF_THE_FORSAKEN, *m_bot))
 		return RETURN_CONTINUE;
 	if (m_bot->getRace() == RACE_TROLL && !m_bot->HasSpellCooldown(BERSERKING) && m_ai->CastSpell(BERSERKING, *m_bot))
@@ -345,10 +348,18 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 	}
 	
 	
+	
+		
 
 	switch (spec)
 	{
 	case MAGE_SPEC_FROST:
+		//keep distance
+		if (pTarget && !m_ai->In_Reach(pTarget, FROSTBOLT))
+		{
+			m_bot->GetMotionMaster()->MoveFollow(pTarget, 35.0f, m_bot->GetOrientation());
+			return RETURN_CONTINUE;
+		}
 
 		if (COLD_SNAP > 0 && m_ai->In_Reach(m_bot, COLD_SNAP) && m_ai->GetHealthPercent() < 30 && m_bot->HasSpellCooldown(ICE_BLOCK) && CastSpell(COLD_SNAP, m_bot))
 			return RETURN_CONTINUE;
@@ -395,6 +406,12 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		break;
 
 	case MAGE_SPEC_FIRE:
+		//keep distance
+		if (pTarget && !m_ai->In_Reach(pTarget, FIREBALL))
+		{
+			m_bot->GetMotionMaster()->MoveFollow(pTarget, 40.0f, m_bot->GetOrientation());
+			return RETURN_CONTINUE;
+		}
 		if (COUNTERSPELL > 0 && pTarget->IsNonMeleeSpellCasted(true) && !m_bot->HasSpellCooldown(COUNTERSPELL) && CastSpell(COUNTERSPELL, pTarget))
 			return RETURN_CONTINUE;
 		if (m_ai->CanAoe())
@@ -450,6 +467,13 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		break;
 
 	case MAGE_SPEC_ARCANE:
+		//keep distance
+		if (pTarget && !m_ai->In_Reach(pTarget, ARCANE_MISSILES))
+		{
+			m_bot->GetMotionMaster()->MoveFollow(pTarget, 29.0f, m_bot->GetOrientation());
+			return RETURN_CONTINUE;
+		}
+
 		if (COUNTERSPELL > 0 && pTarget->IsNonMeleeSpellCasted(true) && !m_bot->HasSpellCooldown(COUNTERSPELL) && CastSpell(COUNTERSPELL, pTarget))
 			return RETURN_CONTINUE;
 		if (m_ai->CanAoe())
