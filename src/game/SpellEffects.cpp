@@ -942,6 +942,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 						m_caster->CastSpell(unitTarget, 25190, true);
 					return;
 				}
+				case 24019:
+				{
+					if (Unit* pTarget = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+						m_caster->CastSpell(pTarget, 24020, true);
+				}
             }
 
             // All IconID Check in there
