@@ -1436,6 +1436,11 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 Target, Unit* pActionInvoke
             if (!pAIEventSender)
                 isError = true;
             return pAIEventSender;
+		case TARGET_T_FRIENDLY:
+			resTarget = m_creature->SelectRandomFriendlyTarget(m_creature, 20.0f);
+			if (!resTarget)
+				isError = true;
+			return resTarget;
         default:
             isError = true;
             return nullptr;

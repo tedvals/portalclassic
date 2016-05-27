@@ -183,6 +183,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u (must target player)", eventId, action, targetType, eventType);
                 return false;
             }
+		case TARGET_T_FRIENDLY:
             return true;                                    // Can always be used
         case TARGET_T_HOSTILE_RANDOM:
         case TARGET_T_HOSTILE_RANDOM_NOT_TOP:
