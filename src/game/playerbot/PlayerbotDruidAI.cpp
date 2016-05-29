@@ -264,6 +264,8 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 			return RETURN_CONTINUE;
 		return RETURN_NO_ACTION_OK;
 	}
+	
+	/*
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
 	if (newTarget1)
@@ -280,7 +282,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 
 
 	}
-	/*
+	
 	//auto cc
 	if (m_bot->GetGroup())
 	{
