@@ -2034,6 +2034,15 @@ void Aura::HandleModPossess(bool apply, bool Real)
 
     if (apply)
     {
+        if (caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            //remove any existing charm just in case
+            caster->Uncharm();
+
+            //pets should be removed when possesing a target if somehow check was bypassed
+            ((Player*)caster)->UnsummonPetIfAny();
+        }
+         
         target->addUnitState(UNIT_STAT_CONTROLLED);
 
         target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
@@ -2136,6 +2145,15 @@ void Aura::HandleModPossessPet(bool apply, bool Real)
 
     if (apply)
     {
+        if (caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            //remove any existing charm just in case
+            caster->Uncharm();
+
+            //pets should be removed when possesing a target if somehow check was bypassed
+            ((Player*)caster)->UnsummonPetIfAny();
+        }
+
         pet->addUnitState(UNIT_STAT_CONTROLLED);
 
         // target should became visible at SetView call(if not visible before):
@@ -2201,6 +2219,15 @@ void Aura::HandleModCharm(bool apply, bool Real)
 
     if (apply)
     {
+        if (caster->GetTypeId() == TYPEID_PLAYER)
+        {
+            //remove any existing charm just in case
+            caster->Uncharm();
+ 
+            //pets should be removed when possesing a target if somehow check was bypassed
+            ((Player*)caster)->UnsummonPetIfAny();
+        }
+
         // is it really need after spell check checks?
         target->RemoveSpellsCausingAura(SPELL_AURA_MOD_CHARM, GetHolder());
         target->RemoveSpellsCausingAura(SPELL_AURA_MOD_POSSESS, GetHolder());
@@ -2524,8 +2551,14 @@ void Aura::HandleInvisibility(bool apply, bool Real)
 
         if (Real && target->GetTypeId() == TYPEID_PLAYER)
         {
-            // apply glow vision
-            target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
+            if (Player* player = (Player*)target)
+            {
+                if (player->GetMover() == nullptr) // check if the player doesnt have a mover, when player is hidden during MC of creature
+                {
+                    // apply glow vision
+                    target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
+                }
+            }
         }
 
         // apply only if not in GM invisibility and not stealth
