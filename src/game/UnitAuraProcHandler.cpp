@@ -1277,12 +1277,57 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 
             triggered_spell_id = 24406;
             break;
-        }
-        case 4309:
-        {
-            triggered_spell_id = 17941;                     // Shadow Trance (Warlock Nightfall)
+        } 
+        case 4309: 
+        {													
+			triggered_spell_id = 17941;                     // Shadow Trance (Warlock Nightfall)
             break;
         }
+		case 5001:
+		{													//Custom
+			triggered_spell_id = 34269;                     // Lunar Eclipse (Druid)
+			break;
+		}
+		case 5002:
+		{
+			triggered_spell_id = 34271;                     // Solar Eclipse (Druid)
+			break;
+		}
+		case 5003:
+		{
+			triggered_spell_id = 34273;                     // Overload (Shaman)
+			break;
+		}
+		case 5010:
+		{
+			triggered_spell_id = 34312;                     // Vampiric Touch (Priest)
+			break;
+		}
+		case 5011:
+		{
+			triggered_spell_id = 34316;                     // Pain and Suffering (Warlock)
+			break;
+		}		
+		case 5012:
+		{
+			triggered_spell_id = 34517;                     // Art of War (Paladin)
+			break;
+		}
+		case 5013:
+		{
+			triggered_spell_id = 34533;                     // Cunningness (Hunter)
+			break;
+		}
+		case 5014:
+		{
+			triggered_spell_id = 34536;                     // Cobra reflexes (Hunter)
+			break;
+		}
+		case 5015:
+		{
+			triggered_spell_id = 34540;                     // Cobra reflexes (Hunter)
+			break;
+		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus
         {
             // Chance 50%

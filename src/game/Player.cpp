@@ -1249,6 +1249,70 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 
     if (isAlive())
     {
+		//custom
+		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_RULES))
+		{
+			float health = (GetHealth() / GetMaxHealth()) * 100;
+			float penalty;
+
+			if (health >= 90.f)
+			{
+				//Remove Wounded Auras
+				if (HasAura(34601))
+					RemoveAurasDueToSpell(34601);
+				if (HasAura(34602))
+					RemoveAurasDueToSpell(34602);
+				if (HasAura(34603))
+					RemoveAurasDueToSpell(34603);
+				//Add Heartened Aura
+				if (!HasAura(34600))
+					CastSpell(this, 34600, true);
+			}
+			else if (health >= 60.f)
+			{
+				//Remove Wounded Auras
+				if (HasAura(34602))
+					RemoveAurasDueToSpell(34602);
+				if (HasAura(34603))
+					RemoveAurasDueToSpell(34603);
+				//Remove Heartened Aura
+				if (HasAura(34600))
+					RemoveAurasDueToSpell(34600);
+				//Add injured Aura
+				if (!HasAura(34601))
+					CastSpell(this, 34601, true);
+			}
+			else if (health >= 20.f)
+			{
+				//Remove Wounded Auras
+				if (HasAura(34601))
+					RemoveAurasDueToSpell(34601);
+				if (HasAura(34603))
+					RemoveAurasDueToSpell(34603);
+				//Remove Heartened Aura
+				if (HasAura(34600))
+					RemoveAurasDueToSpell(34600);
+				//Add wounded Aura
+				if (!HasAura(34602))
+					CastSpell(this, 34602, true);
+			}
+			else
+			{
+				//Remove Wounded Auras
+				if (HasAura(34601))
+					RemoveAurasDueToSpell(34601);
+				if (HasAura(34602))
+					RemoveAurasDueToSpell(34602);
+				//Remove Heartened Aura
+				if (HasAura(34600))
+					RemoveAurasDueToSpell(34600);
+				//Add Grevious wounded Aura
+				if (!HasAura(34603))
+					CastSpell(this, 34603, true);
+			}
+		}
+		//Custom
+
         RegenerateAll();
     }
 
