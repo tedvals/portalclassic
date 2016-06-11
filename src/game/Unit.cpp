@@ -328,7 +328,9 @@ void Unit::Update(uint32 update_diff, uint32 p_time)
     // update abilities available only for fraction of time
     UpdateReactives(update_diff);
 
-    ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, GetHealth() < GetMaxHealth() * 0.20f);
+    if (isAlive())
+        ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, GetHealth() < GetMaxHealth() * 0.20f);
+
     UpdateSplineMovement(p_time);
     i_motionMaster.UpdateMotion(p_time);
 }
@@ -6233,20 +6235,8 @@ void Unit::Mount(uint32 mount, uint32 spellId)
         if (!spellId)
             ((Player*)this)->UnsummonPetTemporaryIfAny();
         // Called by mount aura
-        else
-        {
-            // Normal case (Unsummon only permanent pet)
-            if (Pet* pet = GetPet())
-            {
-                if (pet->IsPermanentPetFor((Player*)this) &&
-                        sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT))
-                {
-                    ((Player*)this)->UnsummonPetTemporaryIfAny();
-                }
-                else
-                    pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, true);
-            }
-        }
+        else if (Pet* pet = GetPet())
+            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, true);
     }
 }
 
@@ -6265,18 +6255,16 @@ void Unit::Unmount(bool from_aura)
         WorldPacket data(SMSG_DISMOUNT, 8);
         data << GetPackGUID();
         SendMessageToSet(&data, true);
+
+        if (Pet* pet = GetPet())
+            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, false);
     }
 
     // only resummon old pet if the player is already added to a map
     // this prevents adding a pet to a not created map which would otherwise cause a crash
     // (it could probably happen when logging in after a previous crash)
     if (GetTypeId() == TYPEID_PLAYER)
-    {
-        if (Pet* pet = GetPet())
-            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, false);
-        else
-            ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
-    }
+        ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
 }
 
 void Unit::SetInCombatWith(Unit* enemy)
@@ -6552,6 +6540,16 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
 
     // raw invisibility
     bool invisible = (m_invisibilityMask != 0 || u->m_invisibilityMask != 0);
+    if (u->GetTypeId() == TYPEID_PLAYER) // if object is player with mover, use its visibility masks, so that an invisible player MCing a creature can see stuff
+    {
+        if (Player* player = (Player*)u)
+        {
+            if (Unit* mover=player->GetMover())
+            {
+                invisible= (m_invisibilityMask != 0 || mover->m_invisibilityMask != 0);
+            }
+        }
+    }
 
     // detectable invisibility case
     if (invisible && (

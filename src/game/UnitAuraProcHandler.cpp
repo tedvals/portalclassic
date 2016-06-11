@@ -1328,6 +1328,11 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 			triggered_spell_id = 34540;                     // Cobra reflexes (Hunter)
 			break;
 		}
+		case 5016:
+		{
+			triggered_spell_id = 34582;                     // Cobra reflexes (Hunter)
+			break;
+		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus
         {
             // Chance 50%
