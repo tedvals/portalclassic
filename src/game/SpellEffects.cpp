@@ -361,16 +361,75 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
             case SPELLFAMILY_ROGUE:
             {
                 // Eviscerate
-                if ((m_spellInfo->SpellFamilyFlags & uint64(0x00020000)) && m_caster->GetTypeId() == TYPEID_PLAYER)
-                {
-                    if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
-                    {
-                        damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * combo * 0.03f);
-                    }
-                }
-                break;
+				if ((m_spellInfo->SpellFamilyFlags & uint64(0x00020000)) && m_caster->GetTypeId() == TYPEID_PLAYER)
+				{
+					if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
+					{
+						damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * combo * 0.03f);
+					}
+				}
+				// Envenom
+				if (m_caster->GetTypeId() == TYPEID_PLAYER && (m_spellInfo->SpellFamilyFlags & uint64(0x800000000)))
+				{
+					// consume from stack dozes not more that have combo-points
+					if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
+					{
+							Aura* poison = nullptr;
+							// Lookup for Deadly poison (only attacker applied)
+							Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+							for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+							{
+								if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
+									((*itr)->GetSpellProto()->SpellFamilyFlags & uint64(0x10000)) &&
+									(*itr)->GetSpellProto()->SpellVisual == 5100 &&
+									(*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
+								{
+									poison = *itr;
+									break;
+								}
+							}
+							// count consumed deadly poison doses at target
+							if (poison)
+							{
+								uint32 spellId = poison->GetId();
+								uint32 doses = poison->GetStackAmount();
+								if (doses > combo)
+									doses = combo;
+
+								unitTarget->RemoveAuraHolderFromStack(spellId, doses, m_caster->GetObjectGuid());
+
+								damage *= doses;
+								damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
+							}
+
+						}
+					}
+					break;
             }
             case SPELLFAMILY_HUNTER:
+				// Setup Shot
+				if (m_spellInfo->SpellFamilyFlags & uint64(0x80000))
+				{
+					if (!unitTarget || !unitTarget->isAlive())
+						return;
+
+					bool found = false;
+
+					// check dazed affect
+					Unit::AuraList const& decSpeedList = unitTarget->GetAurasByType(SPELL_AURA_MOD_DECREASE_SPEED);
+					for (Unit::AuraList::const_iterator iter = decSpeedList.begin(); iter != decSpeedList.end(); ++iter)
+					{
+						if ((*iter)->GetSpellProto()->SpellIconID == 15 && (*iter)->GetSpellProto()->Dispel == 0)
+						{
+							found = true;
+							break;
+						}
+					}
+
+					if (found)
+						damage = damage* 1.1f;
+					return;
+				}
                 break;
             case SPELLFAMILY_PALADIN:
                 break;
@@ -379,6 +438,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
         if (damage >= 0)
             m_damage += damage;
     }
+
 }
 
 void Spell::EffectDummy(SpellEffectIndex eff_idx)
@@ -3155,7 +3215,26 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 customBonusDamagePercentMod = true;
                 bonusDamagePercentMod = 2.5f;               // 250%
             }
-            break;
+            // Mutilate (for each hand)
+			else if (m_spellInfo->SpellFamilyFlags & uint64(0x802000))
+			{
+				bool found = false;
+				// full aura scan
+				
+				Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
+				for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+				{
+					if (itr->second->GetSpellProto()->Dispel == DISPEL_POISON)
+					{
+						found = true;
+						break;
+					}
+				}	
+
+				if (found)
+					bonusDamagePercentMod = 1.5f;          // 150% if poisoned
+			}
+			break;
         }
         case SPELLFAMILY_PALADIN:
         {
