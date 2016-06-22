@@ -5554,9 +5554,20 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
         {
             if ((*i)->GetModifier()->m_miscvalue & schoolMask)
             {
+				Stats usedStat;
                 // stat used stored in miscValueB for this aura
-                Stats usedStat = STAT_SPIRIT;
-                DoneAdvertisedBenefit += int32(GetStat(usedStat) * (*i)->GetModifier()->m_amount / 100.0f);
+				if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000100))
+					usedStat = STAT_STRENGTH;
+				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000200))
+					usedStat = STAT_AGILITY;					
+				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000400))
+					usedStat = STAT_STAMINA;
+				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000800))
+					usedStat = STAT_INTELLECT;				
+				else usedStat = STAT_SPIRIT;
+
+				
+				DoneAdvertisedBenefit += int32(GetStat(usedStat) * (*i)->GetModifier()->m_amount / 100.0f);
             }
         }
     }

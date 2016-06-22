@@ -3424,12 +3424,39 @@ void Aura::HandleAuraModResistenceOfStatPercent(bool /*apply*/, bool /*Real*/)
     {
         // support required adding replace UpdateArmor by loop by UpdateResistence at intellect update
         // and include in UpdateResistence same code as in UpdateArmor for aura mod apply.
-        sLog.outError("Aura SPELL_AURA_MOD_RESISTANCE_OF_STAT_PERCENT(182) need adding support for non-armor resistances!");
-        return;
+    //    sLog.outError("Aura SPELL_AURA_MOD_RESISTANCE_OF_STAT_PERCENT(182) need adding support for non-armor resistances!");
+    //    return;
     }
 
+	Stats usedStat;
+	float value;
+	
+	if (m_modifier.m_miscvalue & uint64(0x00000100))
+		usedStat = STAT_STRENGTH;
+	else if (m_modifier.m_miscvalue & uint64(0x00000200))
+		usedStat = STAT_AGILITY;
+	else if (m_modifier.m_miscvalue & uint64(0x00000400))
+		usedStat = STAT_STAMINA;
+	else if (m_modifier.m_miscvalue & uint64(0x00000800))
+		usedStat = STAT_SPIRIT;
+	else usedStat = STAT_INTELLECT;
+
+	value += int32(GetTarget()->GetStat(usedStat) * m_modifier.m_amount / 100.0f);
+
+	
+	for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
+	{
+		float res_value = GetTarget()->GetTotalAuraModValue(UnitMods(UNIT_MOD_RESISTANCE_START + i));
+
+		if (m_modifier.m_miscvalue & (1 << i))
+		{
+			value += int32(GetTarget()->GetStat(usedStat) * m_modifier.m_amount / 100.0f);
+			GetTarget()->SetResistance(SpellSchools(i), int32(res_value + value));
+		}
+	}
+		
     // Recalculate Armor
-    GetTarget()->UpdateArmor();
+    GetTarget()->UpdateArmor();	
 }
 
 /********************************/
