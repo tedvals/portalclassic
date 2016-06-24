@@ -844,6 +844,24 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastCustomSpell(m_caster, 23783, &basepoints, nullptr, nullptr, true, nullptr);
                     return;
                 }
+				case 24531:                                 // Refocus (Renataki's Charm of Beasts)
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					// immediately finishes the cooldown for hunter abilities
+					const SpellCooldowns& cm = ((Player*)m_caster)->GetSpellCooldownMap();
+					for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+					{
+						SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+						if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->rangeIndex == 114 && spellInfo->Id != 20736 && spellInfo->Id != 14274 && spellInfo->Id != 15629 && spellInfo->Id != 15630 && spellInfo->Id != 15631 && spellInfo->Id != 15632 && spellInfo->Id != 5116 && spellInfo->Id != 19503 && spellInfo->Id != 19801 && GetSpellRecoveryTime(spellInfo) > 0)
+							((Player*)m_caster)->RemoveSpellCooldown((itr++)->first, true);
+						else
+							++itr;
+					}
+					return;
+				}
                 case 24781:                                 // Dream Fog
                 {
                     if (m_caster->GetTypeId() != TYPEID_UNIT || !unitTarget)
