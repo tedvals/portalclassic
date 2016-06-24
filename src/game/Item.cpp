@@ -24,6 +24,8 @@
 #include "ItemEnchantmentMgr.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "World.h"
+#include "Util.h"
 
 void AddItemsSetItem(Player* player, Item* item)
 {
@@ -930,6 +932,52 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
         if (pItem->Create(sObjectMgr.GenerateItemLowGuid(), item, player))
         {
             pItem->SetCount(count);
+
+			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM))
+			{
+				if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)))
+				{
+					ItemPrototype const* itemProto = pItem->GetProto();
+
+					uint32 itemLevel = itemProto->ItemLevel;
+					uint32 itemClass = itemProto->Class;
+					uint32 ItemSubClass = itemProto->SubClass;
+					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+
+					itemLevel = itemLevel - sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF);
+
+					if (itemLevel < minLevel)
+						itemLevel = minLevel;
+												
+					if (itemProto && !itemProto->RandomProperty && (itemClass == 2 || itemClass == 4))
+					{												
+						
+						int i = 0;
+						QueryResult* result;
+
+						do
+						{
+							result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", itemLevel, itemClass, ItemSubClass);
+							--itemClass;
+							
+							if (itemLevel < minLevel)
+								break;
+
+							++i;
+						} while (!result || i < 10);
+						
+						if (result)
+						{
+							Field* fields = result->Fetch();
+							randomPropertyId = fields[0].GetUInt32();
+
+							delete result;
+						}
+												
+					}
+				}
+			}
+
             if (uint32 randId = randomPropertyId ? randomPropertyId : Item::GenerateItemRandomPropertyId(item))
                 pItem->SetItemRandomProperties(randId);
 

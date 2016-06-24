@@ -786,7 +786,12 @@ void World::LoadConfigSettings(bool reload)
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: MMap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
 
-	setConfig(CONFIG_BOOL_CUSTOM_RULES, "Custom.CustomRules", true);
+	setConfig(CONFIG_BOOL_CUSTOM_RULES, "Custom.CustomRules", false);
+
+	setConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM, "Custom.RandomizeItem", false);
+	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL, "Custom.RandomizeItemMinLevel", 15);
+	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 50.f);
+	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF, "Custom.RandomizeItemDiff", 20);
 	
     sLog.outString();
 }
