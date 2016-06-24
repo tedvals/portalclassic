@@ -607,6 +607,12 @@ void PlayerbotClassAI::usetrinkets()
 						m_ai->UseItem(Trinkets1);
 					}
 					break;
+				case 19953:
+					if (m_bot->HasSpellCooldown(14287))
+					{
+						m_ai->UseItem(Trinkets1);
+					}
+					break;
 				default:
 					m_ai->UseItem(Trinkets1);
 					break;
@@ -653,6 +659,12 @@ void PlayerbotClassAI::usetrinkets()
 					break;
 				case 19024:
 					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				case 19953:
+					if (m_bot->HasSpellCooldown(14287))
 					{
 						m_ai->UseItem(Trinkets2);
 					}
