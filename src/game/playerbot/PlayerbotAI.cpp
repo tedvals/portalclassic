@@ -2085,7 +2085,7 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 	{
 		m_bot->AddThreat(m_targetCombat);
 		m_bot->SetInCombatWith(m_targetCombat);
-		m_targetCombat->SetInCombatWith(m_bot);
+		//m_targetCombat->SetInCombatWith(m_bot);
 		// add thingToAttack to loot list
 		m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
 	}
