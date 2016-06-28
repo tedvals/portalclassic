@@ -661,6 +661,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADSKILLS,
     PLAYER_LOGIN_QUERY_LOADMAILS,
     PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,
+	PLAYER_LOGIN_QUERY_CUSTOM_ADVENTURE_MODE,
 
     MAX_PLAYER_LOGIN_QUERY
 };
@@ -683,6 +684,8 @@ enum ReputationSource
 // Player summoning auto-decline time (in secs)
 #define MAX_PLAYER_SUMMON_DELAY (2*MINUTE)
 #define MAX_MONEY_AMOUNT        (0x7FFFFFFF-1)
+
+#define ADVENTURE_AURA           35000
 
 struct InstancePlayerBind
 {
@@ -1046,7 +1049,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool HasItemTotemCategory(uint32 TotemCategory) const;
         InventoryResult CanUseItem(ItemPrototype const* pItem, bool direct_action = true) const;
         InventoryResult CanUseAmmo(uint32 item) const;
-        Item* StoreNewItem(ItemPosCountVec const& pos, uint32 item, bool update, int32 randomPropertyId = 0);
+		Item* StoreNewItem(ItemPosCountVec const& pos, uint32 item, bool update, int32 randomPropertyId = 0, bool randomize = false);
         Item* StoreItem(ItemPosCountVec const& pos, Item* pItem, bool update);
         Item* EquipNewItem(uint16 pos, uint32 item, bool update);
         Item* EquipItem(uint16 pos, Item* pItem, bool update);
@@ -2134,7 +2137,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool _LoadHomeBind(QueryResult* result);
         void _LoadBGData(QueryResult* result);
         void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
-
+		//Custom
+		void _LoadAdventureLevel(QueryResult* result);
+		
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
         /*********************************************************/
@@ -2258,6 +2263,22 @@ class MANGOS_DLL_SPEC Player : public Unit
         float m_rest_bonus;
         RestType rest_type;
         //////////////////// Rest System/////////////////////
+
+		//////////////////// Adventure Mode/////////////////////
+
+		uint32 adventure_level;
+		uint32 adventure_xp;
+		
+		public:
+		void AddAdventureXP(uint32 xp);
+		void SubstractAdventureXP(uint32 xp);
+		uint32 GetAdventureLevel() const;
+
+		protected:
+		uint32 _GetAdventureLevel() const;
+		void ResetAdventureLevel();
+		void StoreAdventureLevel();		
+		void SetAdventureLevel(uint32 level);
 
         // Transports
         Transport* m_transport;

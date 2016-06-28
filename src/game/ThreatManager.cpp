@@ -466,16 +466,17 @@ Unit* ThreatManager::getHostileTarget()
 
 float ThreatManager::getThreat(Unit* pVictim, bool pAlsoSearchOfflineList)
 {
+    if (!pVictim)
+        return 0.0f;
 
-	float threat = 0.0f;
-	if (!pVictim)
-		return threat;
-	HostileReference* ref = iThreatContainer.getReferenceByTarget(pVictim);
-	if (!ref && pAlsoSearchOfflineList)
-		ref = iThreatOfflineContainer.getReferenceByTarget(pVictim);
-	if (ref)
-		threat = ref->getThreat();
-	return threat;
+    float threat = 0.0f;
+
+    if (HostileReference* ref = iThreatContainer.getReferenceByTarget(pVictim))
+        threat = ref->getThreat();
+    else if (pAlsoSearchOfflineList)
+        threat = iThreatOfflineContainer.getReferenceByTarget(pVictim)->getThreat();
+
+    return threat;
 }
 
 //============================================================

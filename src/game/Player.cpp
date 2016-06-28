@@ -801,6 +801,14 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
     }
     // all item positions resolved
 
+	//Custom
+
+	if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+	{
+		adventure_level = 0;
+		adventure_xp = 0;
+	}
+
     return true;
 }
 
@@ -830,7 +838,7 @@ bool Player::StoreNewItemInBestSlots(uint32 titem_id, uint32 titem_amount)
     uint8 msg = CanStoreNewItem(INVENTORY_SLOT_BAG_0, NULL_SLOT, sDest, titem_id, titem_amount);
     if (msg == EQUIP_ERR_OK)
     {
-        StoreNewItem(sDest, titem_id, true, Item::GenerateItemRandomPropertyId(titem_id));
+        StoreNewItem(sDest, titem_id, true, Item::GenerateItemRandomPropertyId(titem_id), true);
         return true;                                        // stored
     }
 
@@ -1250,6 +1258,10 @@ void Player::Update(uint32 update_diff, uint32 p_time)
     if (isAlive())
     {
 		//custom
+
+		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+			SetAdventureLevel(adventure_level);
+
 		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_RULES))
 		{
 			float health = (GetHealth() / GetMaxHealth()) * 100;
@@ -1426,6 +1438,9 @@ void Player::SetDeathState(DeathState s)
         // passive spell
         if (!ressSpellId)
             ressSpellId = GetResurrectionSpellId();
+
+		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+			SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_DEATHXP) * GetAdventureLevel());
 
         if (InstanceData* mapInstance = GetInstanceData())
             mapInstance->OnPlayerDeath(this);
@@ -9336,13 +9351,13 @@ void Player::RemoveAmmo()
 }
 
 // Return stored item (if stored to stack, it can diff. from pItem). And pItem ca be deleted in this case.
-Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update, int32 randomPropertyId)
+Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update, int32 randomPropertyId, bool randomize)
 {
     uint32 count = 0;
     for (ItemPosCountVec::const_iterator itr = dest.begin(); itr != dest.end(); ++itr)
         count += itr->count;
 
-    Item* pItem = Item::CreateItem(item, count, this, randomPropertyId);
+	Item* pItem = Item::CreateItem(item, count, this, randomPropertyId, randomize);
     if (pItem)
     {
         ItemAddedQuestCheck(item, count);
@@ -11951,7 +11966,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
             ItemPosCountVec dest;
             if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, pQuest->RewChoiceItemCount[reward]) == EQUIP_ERR_OK)
             {
-                Item* item = StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
+                Item* item = StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId), true);
                 SendNewItem(item, pQuest->RewChoiceItemCount[reward], true, false);
             }
         }
@@ -11966,7 +11981,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
                 ItemPosCountVec dest;
                 if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, pQuest->RewItemCount[i]) == EQUIP_ERR_OK)
                 {
-                    Item* item = StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
+                    Item* item = StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId),true);
                     SendNewItem(item, pQuest->RewItemCount[i], true, false);
                 }
             }
@@ -13559,6 +13574,11 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     _LoadAuras(holder->GetResult(PLAYER_LOGIN_QUERY_LOADAURAS), time_diff);
 
+	if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+	{ 
+		_LoadAdventureLevel(holder->GetResult(PLAYER_LOGIN_QUERY_LOADAURAS));
+	}
+
     // add ghost flag (must be after aura load: PLAYER_FLAGS_GHOST set in aura)
     if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
         m_deathState = DEAD;
@@ -14333,6 +14353,22 @@ void Player::_LoadGroup(QueryResult* result)
     }
 }
 
+void Player::_LoadAdventureLevel(QueryResult* result)
+{
+	// QueryResult *result = CharacterDatabase.PQuery("SELECT adventurelevel,adventurexp FROM character_custom_data WHERE guid = '%u'", m_guid.GetCounter());
+	if (result)
+	{
+		adventure_level = (*result)[0].GetUInt32();
+		adventure_xp = (*result)[0].GetUInt32();
+
+		delete result;
+
+		SetAdventureLevel(adventure_level);
+	}
+}
+
+ 
+
 void Player::_LoadBoundInstances(QueryResult* result)
 {
     m_boundInstances.clear();
@@ -14808,6 +14844,11 @@ void Player::SaveToDB()
     m_reputationMgr.SaveToDB();
     _SaveHonorCP();
     GetSession()->SaveTutorialsData();                      // changed only while character in game
+
+	if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+	{
+		StoreAdventureLevel();
+	}
 
     CharacterDatabase.CommitTransaction();
 
@@ -17822,6 +17863,23 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
         // normal creature (not pet/etc) can be only in !PvP case
         if (pVictim->GetTypeId() == TYPEID_UNIT)
             KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
+
+		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP))
+		{
+			uint32 victim_level = pVictim->getLevel();
+			uint32 multiplier = 1;
+
+			Creature * pCreature = (Creature*)(pVictim);
+
+			if (pCreature->IsElite())
+				multiplier = 5;
+
+			if (pCreature->IsWorldBoss())
+				multiplier = 40;
+
+
+			AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - getLevel()));
+			}		
     }
 }
 
@@ -18937,4 +18995,128 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_USE);
     }
     SendForcedObjectUpdate();
+}
+
+//Custom
+uint32 Player::GetAdventureLevel() const
+{
+	uint32 level = 0;
+	uint32 members = 0;
+
+	if (Group* pGroup = m_group.getTarget())
+	{
+		for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
+		{
+			Player* pGroupGuy = itr->getSource();
+
+			// for any leave or dead (with not released body) group member at appropriate distance
+			if (pGroupGuy)
+			{
+				level += pGroupGuy->_GetAdventureLevel();
+				members++;
+			}
+				
+		}
+
+		level = ceil(level / members);
+	}
+	else
+		level = _GetAdventureLevel();
+
+		
+	return level;
+}
+
+uint32 Player::_GetAdventureLevel() const
+{
+	uint32 level = 0;
+
+	for (Unit::SpellAuraHolderMap::const_iterator iter = GetSpellAuraHolderMap().begin(); iter != GetSpellAuraHolderMap().end(); ++iter)
+	{
+			if (iter->second->GetId() == ADVENTURE_AURA)
+				level = iter->second->GetStackAmount();
+		}
+
+	if (level > sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
+		level = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL);
+
+	return level;
+}
+
+
+void Player::SetAdventureLevel(uint32 level)
+{
+	//Apply Aura
+
+	if (!HasAura(ADVENTURE_AURA))
+		CastSpell(this, ADVENTURE_AURA, true);
+
+	if (GetAdventureLevel() == level)
+		return;
+
+	if (GetAdventureLevel() > level)
+	{
+		RemoveAurasDueToSpell(ADVENTURE_AURA);
+		CastSpell(this, ADVENTURE_AURA, true);
+	}
+		
+
+	//Apply Aura
+	while (GetAdventureLevel() < level || GetAdventureLevel() <= sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
+	{
+		CastSpell(this, ADVENTURE_AURA, true);
+	}
+}
+
+
+void Player::AddAdventureXP(uint32 xp)
+{
+	uint32 max_xp = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
+	adventure_xp += xp;
+	
+	if (adventure_xp > max_xp)
+	{
+		adventure_xp -= max_xp;
+		adventure_level++;
+
+		SetAdventureLevel(adventure_level);
+	}			
+}
+
+void Player::SubstractAdventureXP(uint32 xp)
+{
+	adventure_xp -= xp;
+	
+	if (adventure_xp < 0 && adventure_level > 1)
+	{
+		adventure_level += sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * (adventure_level-1);
+	}
+	else adventure_xp = 0;			
+	
+	SetAdventureLevel(adventure_level);	
+}
+
+void Player::ResetAdventureLevel()
+{
+	adventure_level = 0;
+	adventure_xp = 0;
+}
+
+void Player::StoreAdventureLevel()
+{
+	
+	static SqlStatementID delAdventureData;
+	static SqlStatementID insAdventureData;
+
+	SqlStatement stmt = CharacterDatabase.CreateStatement(delAdventureData, "DELETE FROM character_custom_data WHERE guid = ?");
+
+	stmt.PExecute(GetGUIDLow());
+
+	stmt = CharacterDatabase.CreateStatement(insAdventureData, "INSERT INTO character_custom_data VALUES (?, ?, ?)");
+		/* guid, adventurelevel,xplevel */
+		stmt.addUInt32(GetGUIDLow());
+		stmt.addUInt32(adventure_level);
+		stmt.addUInt32(adventure_xp);		
+
+	stmt.Execute();		
 }

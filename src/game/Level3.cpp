@@ -2205,7 +2205,7 @@ bool ChatHandler::HandleAddItemCommand(char* args)
         return false;
     }
 
-    Item* item = plTarget->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
+    Item* item = plTarget->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId),true);
 
     // remove binding (let GM give it to another player later)
     if (pl == plTarget)

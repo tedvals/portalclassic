@@ -1123,6 +1123,23 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
                 // the whole RewardGroupAtKill needs a rewrite to match up with this anyways:
                 // http://wowwiki.wikia.com/wiki/Formulas:Mob_XP?oldid=228414
                 pet->GivePetXP(itr_xp / 2);
+
+			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP))
+			{
+				uint32 victim_level = pVictim->getLevel();
+				uint32 multiplier = 1;
+
+				Creature * pCreature = (Creature*)(pVictim);
+
+				if (pCreature->IsElite())
+					multiplier = 5;
+
+				if (pCreature->IsWorldBoss())
+					multiplier = 40;
+
+
+				pGroupGuy->AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - pGroupGuy->getLevel()));
+			}
         }
 
         // quest objectives updated only for alive group member or dead but with not released body

@@ -785,13 +785,20 @@ void World::LoadConfigSettings(bool reload)
     std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: MMap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
+	// Custom Features
+	setConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE, "Custom.AdventureMode", false);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL, "Custom.AdventureMaxLevel", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP, "Custom.AdventureKillXP", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_DEATHXP, "Custom.AdventureDeathXP", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP, "Custom.AdventureItemXP", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP, "Custom.AdventureLevelXP", 0);
 
 	setConfig(CONFIG_BOOL_CUSTOM_RULES, "Custom.CustomRules", false);
-
 	setConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM, "Custom.RandomizeItem", false);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL, "Custom.RandomizeItemMinLevel", 15);
-	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 50.f);
-	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF, "Custom.RandomizeItemDiff", 20);
+	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY, "Custom.RandomizeItemMinQuality", 2);
+	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF, "Custom.RandomizeItemDiff", 5);
+
 	
     sLog.outString();
 }

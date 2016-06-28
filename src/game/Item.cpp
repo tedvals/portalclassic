@@ -916,7 +916,7 @@ void Item::SendTimeUpdate(Player* owner)
     owner->GetSession()->SendPacket(&data);
 }
 
-Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 randomPropertyId)
+Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 randomPropertyId, bool randomize)
 {
     if (count < 1)
         return nullptr;                                        // don't create item at zero count
@@ -942,14 +942,35 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					uint32 itemLevel = itemProto->ItemLevel;
 					uint32 itemClass = itemProto->Class;
 					uint32 ItemSubClass = itemProto->SubClass;
-					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+					uint32 ItemQuality = itemProto->Quality;
 
-					itemLevel = itemLevel - sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF);
+					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+					uint32 adventure_level = player->GetAdventureLevel();
+
+					if (itemProto->RandomProperty && randomize)
+						if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && player)
+						{
+							itemLevel += adventure_level;
+							if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
+								((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality);
+						}
+						else
+							itemLevel += sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF);
+					else
+					if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && player)
+					{
+						itemLevel += (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL) - adventure_level)*(6 - ItemQuality);
+						if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
+							((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality);
+					}
+					else
+						itemLevel -=sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*(6 - ItemQuality);
+						
 
 					if (itemLevel < minLevel)
 						itemLevel = minLevel;
 												
-					if (itemProto && !itemProto->RandomProperty && (itemClass == 2 || itemClass == 4))
+					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY)))
 					{												
 						
 						int i = 0;
