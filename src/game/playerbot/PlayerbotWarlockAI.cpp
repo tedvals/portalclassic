@@ -302,6 +302,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 			return CastSpell(SHOOT, pTarget);
 		}
 	}
+	/*
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
 	if (newTarget1 && !m_ai->CanAoe())
@@ -337,7 +338,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		if (HOWL_OF_TERROR && !m_ai->IsNeutralized(newTarget1) && m_ai->GetAttackerCount() >= 3 && !pCreature1->IsImmuneToSpell(pSpellInfoHOWL_OF_TERROR, false) && !m_bot->HasSpellCooldown(HOWL_OF_TERROR) && CastSpell(HOWL_OF_TERROR, newTarget1))
 			return RETURN_CONTINUE;
 	}
-	/*
+	
 	//auto cc
 	if (m_bot->GetGroup())
 	{

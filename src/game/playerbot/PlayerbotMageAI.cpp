@@ -307,7 +307,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 		}
 
 	}
-	
+	/*
 	Unit *heal = GetTarget(JOB_HEAL);
 	Unit *newTarget1 = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMNOTSELF | PlayerbotAI::AIT_HIGHESTTHREAT), heal);
 	if (newTarget1 && !m_ai->CanAoe())
@@ -319,7 +319,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 				return RETURN_CONTINUE;
 		}
 	}
-	/*//auto cc
+	//auto cc
 	if (m_bot->GetGroup())
 	{
 		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();

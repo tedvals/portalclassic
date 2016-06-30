@@ -721,8 +721,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 17950:                                 // Shadow Portal
                 {
-                    if (!unitTarget)
+					if (!unitTarget || m_caster->GetTypeId() != TYPEID_UNIT)
                         return;
+					
+					// remove threat fom the target
+					if (m_caster->getThreatManager().getThreat(unitTarget))
+						 m_caster->getThreatManager().modifyThreatPercent(unitTarget, -100);
 
                     // Shadow Portal
                     const uint32 spell_list[6] = {17863, 17939, 17943, 17944, 17946, 17948};
@@ -1001,6 +1005,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 					else
 						m_caster->CastSpell(unitTarget, 25190, true);
 					return;
+				}
+				case 24019:
+				{
+					if (Unit* pTarget = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+						m_caster->CastSpell(pTarget, 24020, true);
 				}
             }
 
@@ -3691,6 +3700,15 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, roll_chance_i(50) ? 24714 : 24715, true);
                     return;
                 }
+				case 25778:                                 // Knock Away
+					{
+						if (!unitTarget || m_caster->GetTypeId() != TYPEID_UNIT)
+							 return;
+						
+							if (m_caster->getThreatManager().getThreat(unitTarget))
+							 m_caster->getThreatManager().modifyThreatPercent(unitTarget, -50);
+						return;
+						}
                 case 26004:                                 // Mistletoe
                 {
                     if (!unitTarget)
