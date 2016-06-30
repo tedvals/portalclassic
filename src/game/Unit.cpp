@@ -2213,11 +2213,13 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
         return MELEE_HIT_CRIT;
     }
 
+    tmp = (victimDefenseSkill < victimMaxSkillValueForLevel) ? victimDefenseSkill : victimMaxSkillValueForLevel;
+
     // mobs can score crushing blows if they're 3 or more levels above victim
     // having defense above your maximum (from items, talents etc.) has no effect
     // mob's level * 5 - player's current defense skill - add 2% chance per lacking skill point, min. is 15%
     if ((getLevel() - 3) >= pVictim->getLevel() && !SpellCasted
-        && roll < (tmp = (((attackerMaxSkillValueForLevel - victimMaxSkillValueForLevel) * 200) - 1500)))
+        && roll < (tmp = (((attackerMaxSkillValueForLevel - tmp) * 200) - 1500)))
     {
         uint32 typeId = GetTypeId();
         if ((typeId == TYPEID_UNIT && !(GetOwnerGuid() && GetOwner()->GetTypeId() == TYPEID_PLAYER)
@@ -6239,7 +6241,7 @@ void Unit::Mount(uint32 mount, uint32 spellId)
             ((Player*)this)->UnsummonPetTemporaryIfAny();
         // Called by mount aura
         else if (Pet* pet = GetPet())
-            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, true);
+            pet->SetModeFlags(PET_MODE_DISABLE_ACTIONS);
     }
 }
 
@@ -6260,7 +6262,8 @@ void Unit::Unmount(bool from_aura)
         SendMessageToSet(&data, true);
 
         if (Pet* pet = GetPet())
-            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, false);
+            if (CharmInfo* charmInfo = pet->GetCharmInfo())
+                pet->SetModeFlags(PetModeFlags(charmInfo->GetReactState() | charmInfo->GetCommandState() * 0x100));
     }
 
     // only resummon old pet if the player is already added to a map
