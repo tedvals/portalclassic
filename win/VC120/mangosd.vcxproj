@@ -333,7 +333,7 @@
       <Version>
       </Version>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>C:\local\boost_1_61_0\lib64-msvc-12.0;..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);$(BOOST_LIBRARYDIR);$(BOOST_ROOT)\stage\$(Platform);$(BOOST_ROOT)\lib\$(Platform);$(BOOST_ROOT)\stage;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\boost\lib64-msvc-12.0;..\..\dep\lib\$(Platform)_$(Configuration);.\framework__$(Platform)_$(Configuration);$(BOOST_LIBRARYDIR);$(BOOST_ROOT)\stage\$(Platform);$(BOOST_ROOT)\lib\$(Platform);$(BOOST_ROOT)\stage;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
       <MapFileName>$(TargetDir)$(TargetName).map</MapFileName>

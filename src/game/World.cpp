@@ -792,6 +792,7 @@ void World::LoadConfigSettings(bool reload)
 	setConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE, "Custom.AdventureMode", false);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL, "Custom.AdventureMaxLevel", 0);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP, "Custom.AdventureKillXP", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP, "Custom.AdventurePVPXP", 0);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_DEATHXP, "Custom.AdventureDeathXP", 0);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP, "Custom.AdventureItemXP", 0);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP, "Custom.AdventureLevelXP", 0);

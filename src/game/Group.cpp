@@ -1102,11 +1102,12 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
     if (pGroupGuy->isAlive())
         pGroupGuy->RewardHonor(pVictim, count);
 
+	float rate = group_rate * float(pGroupGuy->getLevel()) / sum_level;
+
     // xp and reputation only in !PvP case
     if (!PvP)
     {
-        float rate = group_rate * float(pGroupGuy->getLevel()) / sum_level;
-
+        
         // if is in dungeon then all receive full reputation at kill
         // rewarded any alive/dead/near_corpse group member
         pGroupGuy->RewardReputation(pVictim, is_dungeon ? 1.0f : rate);
@@ -1138,7 +1139,7 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
 					multiplier = 40;
 
 
-				pGroupGuy->AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - pGroupGuy->getLevel()));
+				pGroupGuy->AddAdventureXP(ceil(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - pGroupGuy->getLevel())*rate));
 			}
         }
 
@@ -1150,6 +1151,12 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
                 pGroupGuy->KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
         }
     }
+	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP))
+	{
+		uint32 victim_level = pVictim->getLevel();
+
+		pGroupGuy->AddAdventureXP(ceil(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - pGroupGuy->getLevel()))*rate);
+	}
 }
 
 /** Provide rewards to group members at unit kill

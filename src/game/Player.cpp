@@ -13576,7 +13576,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
 	if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
 	{ 
-		_LoadAdventureLevel(holder->GetResult(PLAYER_LOGIN_QUERY_LOADAURAS));
+		_LoadAdventureLevel(holder->GetResult(PLAYER_LOGIN_QUERY_CUSTOM_ADVENTURE_MODE));
 	}
 
     // add ghost flag (must be after aura load: PLAYER_FLAGS_GHOST set in aura)
@@ -14362,9 +14362,14 @@ void Player::_LoadAdventureLevel(QueryResult* result)
 		adventure_xp = (*result)[0].GetUInt32();
 
 		delete result;
-
-		SetAdventureLevel(adventure_level);
 	}
+	else
+	{
+		adventure_level = 1;
+		adventure_xp = 0;
+	}
+
+	SetAdventureLevel(adventure_level);
 }
 
  
@@ -17881,6 +17886,12 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
 			AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - getLevel()));
 			}		
     }
+	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP))
+	{
+		uint32 victim_level = pVictim->getLevel();
+		
+		AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - getLevel()));
+	}
 }
 
 void Player::RewardPlayerAndGroupAtEvent(uint32 creature_id, WorldObject* pRewardSource)
@@ -19029,7 +19040,7 @@ uint32 Player::GetAdventureLevel() const
 
 uint32 Player::_GetAdventureLevel() const
 {
-	uint32 level = 0;
+	uint32 level = 1;
 
 	for (Unit::SpellAuraHolderMap::const_iterator iter = GetSpellAuraHolderMap().begin(); iter != GetSpellAuraHolderMap().end(); ++iter)
 	{
@@ -19069,21 +19080,25 @@ void Player::SetAdventureLevel(uint32 level)
 }
 
 
-void Player::AddAdventureXP(uint32 xp)
+void Player::AddAdventureXP(int32 xp)
 {
-	uint32 max_xp = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
-	adventure_xp += xp;
-	
-	if (adventure_xp > max_xp)
+	if (xp > 0)
 	{
-		adventure_xp -= max_xp;
-		adventure_level++;
+		uint32 max_xp = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
+		adventure_xp += xp;
 
-		SetAdventureLevel(adventure_level);
-	}			
+		if (adventure_xp > max_xp)
+		{
+			adventure_xp -= max_xp;
+			adventure_level++;
+
+			SetAdventureLevel(adventure_level);
+		}
+	}
+	else SubstractAdventureXP(abs(xp));
 }
 
-void Player::SubstractAdventureXP(uint32 xp)
+void Player::SubstractAdventureXP(int32 xp)
 {
 	adventure_xp -= xp;
 	
@@ -19098,7 +19113,7 @@ void Player::SubstractAdventureXP(uint32 xp)
 
 void Player::ResetAdventureLevel()
 {
-	adventure_level = 0;
+	adventure_level = 1;
 	adventure_xp = 0;
 }
 
