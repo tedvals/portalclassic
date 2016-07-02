@@ -805,7 +805,7 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
 
 	if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
 	{
-		adventure_level = 0;
+		adventure_level = 1;
 		adventure_xp = 0;
 	}
 
@@ -19040,7 +19040,7 @@ uint32 Player::GetAdventureLevel() const
 
 uint32 Player::_GetAdventureLevel() const
 {
-	uint32 level = 1;
+	uint32 level = 0;
 
 	for (Unit::SpellAuraHolderMap::const_iterator iter = GetSpellAuraHolderMap().begin(); iter != GetSpellAuraHolderMap().end(); ++iter)
 	{
@@ -19059,23 +19059,20 @@ void Player::SetAdventureLevel(uint32 level)
 {
 	//Apply Aura
 
-	if (!HasAura(ADVENTURE_AURA))
-		CastSpell(this, ADVENTURE_AURA, true);
-
 	if (GetAdventureLevel() == level)
 		return;
 
 	if (GetAdventureLevel() > level)
 	{
 		RemoveAurasDueToSpell(ADVENTURE_AURA);
-		CastSpell(this, ADVENTURE_AURA, true);
+		CastSpell(this, ADVENTURE_AURA, false);
 	}
 		
 
 	//Apply Aura
-	while (GetAdventureLevel() < level || GetAdventureLevel() <= sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
+	while (GetAdventureLevel() < level && GetAdventureLevel() <= sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
 	{
-		CastSpell(this, ADVENTURE_AURA, true);
+		CastSpell(this, ADVENTURE_AURA, false);
 	}
 }
 
