@@ -662,6 +662,8 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
             player_tap->SendDirectMessage(&data);
         }
+        else if (GetTypeId() == TYPEID_UNIT && this != pVictim)
+            ProcDamageAndSpell(pVictim, PROC_FLAG_KILL, PROC_FLAG_KILLED, PROC_EX_NONE, 0);
 
         // Reward player, his pets, and group/raid members
         if (player_tap != pVictim)
@@ -2049,6 +2051,13 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     else
         DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (NPC)    %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
                          GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), damageInfo.damage, damageInfo.absorb, damageInfo.blocked_amount, damageInfo.resist);
+
+    if (Unit* owner = GetOwner())
+    {
+        owner->AddThreat(pVictim);
+        owner->SetInCombatWith(pVictim);
+        pVictim->SetInCombatWith(owner);
+    }
 
     // if damage pVictim call AI reaction
     pVictim->AttackedBy(this);
