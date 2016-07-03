@@ -2476,7 +2476,7 @@ void SpellMgr::LoadSpellChains()
 			AbilitySpellPrevMap::const_iterator prev_itr = prevRanks.find(forward_id);
 			if (prev_itr != prevRanks.end())
 			{
-	//			MANGOS_ASSERT(prev_itr->second == spell_id && "Conflicting data in talents or spell abilities dbc");
+				MANGOS_ASSERT(prev_itr->second == spell_id && "Conflicting data in talents or spell abilities dbc");
 				continue;
 			}
 

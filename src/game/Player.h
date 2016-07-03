@@ -2272,13 +2272,14 @@ class MANGOS_DLL_SPEC Player : public Unit
 		public:
 		void AddAdventureXP(int32 xp);
 		void SubstractAdventureXP(int32 xp);
-		uint32 GetAdventureLevel() const;
+		uint32 GetAdventureLevel();
 
 		protected:
-		uint32 _GetAdventureLevel() const;
+		uint32 _GetAdventureLevel();
 		void ResetAdventureLevel();
 		void StoreAdventureLevel();		
 		void SetAdventureLevel(uint32 level);
+		void _CreateCustomAura(uint32 spellid, uint32 stackcount = 0, int32 remaincharges = 0);
 
         // Transports
         Transport* m_transport;

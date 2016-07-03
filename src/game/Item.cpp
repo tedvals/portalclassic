@@ -945,7 +945,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					uint32 ItemQuality = itemProto->Quality;
 
 					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
-					uint32 adventure_level = player->GetAdventureLevel();
+					uint32 adventure_level = ((Player*)player)->GetAdventureLevel();
 
 					if (itemProto->RandomProperty && randomize)
 						if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && player)

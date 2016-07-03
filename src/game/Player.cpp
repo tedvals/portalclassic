@@ -1277,8 +1277,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34603))
 					RemoveAurasDueToSpell(34603);
 				//Add Heartened Aura
-				if (!HasAura(34600))
-					CastSpell(this, 34600, true);
+				_CreateCustomAura(34600);
 			}
 			else if (health >= 60.f)
 			{
@@ -1291,8 +1290,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add injured Aura
-				if (!HasAura(34601))
-					CastSpell(this, 34601, true);
+				_CreateCustomAura(34601);
 			}
 			else if (health >= 20.f)
 			{
@@ -1305,8 +1303,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add wounded Aura
-				if (!HasAura(34602))
-					CastSpell(this, 34602, true);
+				_CreateCustomAura(34602);
 			}
 			else
 			{
@@ -1319,8 +1316,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add Grevious wounded Aura
-				if (!HasAura(34603))
-					CastSpell(this, 34603, true);
+				_CreateCustomAura(34603);
 			}
 		}
 		//Custom
@@ -19009,7 +19005,7 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
 }
 
 //Custom
-uint32 Player::GetAdventureLevel() const
+uint32 Player::GetAdventureLevel()
 {
 	uint32 level = 0;
 	uint32 members = 0;
@@ -19038,7 +19034,7 @@ uint32 Player::GetAdventureLevel() const
 	return level;
 }
 
-uint32 Player::_GetAdventureLevel() const
+uint32 Player::_GetAdventureLevel()
 {
 	uint32 level = 0;
 
@@ -19059,21 +19055,17 @@ void Player::SetAdventureLevel(uint32 level)
 {
 	//Apply Aura
 
+	//if (GetCurrentSpell(CURRENT_GENERIC_SPELL) || GetCurrentSpell(CURRENT_CHANNELED_SPELL))
+	//	return;
+
+	if (level > sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
+		level = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL);
+
 	if (GetAdventureLevel() == level)
 		return;
 
-	if (GetAdventureLevel() > level)
-	{
-		RemoveAurasDueToSpell(ADVENTURE_AURA);
-		CastSpell(this, ADVENTURE_AURA, false);
-	}
-		
-
 	//Apply Aura
-	while (GetAdventureLevel() < level && GetAdventureLevel() <= sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
-	{
-		CastSpell(this, ADVENTURE_AURA, false);
-	}
+	_CreateCustomAura(ADVENTURE_AURA, level);		
 }
 
 
@@ -19131,4 +19123,74 @@ void Player::StoreAdventureLevel()
 		stmt.addUInt32(adventure_xp);		
 
 	stmt.Execute();		
+}
+
+void Player::_CreateCustomAura(uint32 spellid, uint32 stackcount, int32 remaincharges)
+{
+	SpellEntry const* spellproto = sSpellStore.LookupEntry(spellid);
+	if (!spellproto)
+	{
+		sLog.outError("Unknown spell (spellid %u), ignore.", spellid);
+		return;
+	}
+
+	ObjectGuid object;
+
+	if (spellproto->StackAmount < stackcount)
+		stackcount = spellproto->StackAmount;
+
+	for (Unit::SpellAuraHolderMap::const_iterator iter = GetSpellAuraHolderMap().begin(); iter != GetSpellAuraHolderMap().end(); ++iter)
+	{
+		if (iter->second->GetId() == spellid)
+		{
+			if (iter->second->GetStackAmount() == stackcount)
+				return;
+			else
+			{
+				iter->second->SetStackAmount(stackcount);
+				return;
+			}
+		}
+		
+		uint32 remaintime;
+		uint32 maxduration;
+
+		SpellDurationEntry const* du = sSpellDurationStore.LookupEntry(spellproto->DurationIndex);
+
+		if (du)
+		{
+			remaintime = (du->Duration[0] == -1) ? -1 : abs(du->Duration[0]);
+			maxduration = (du->Duration[2] == -1) ? -1 : abs(du->Duration[2]);
+		}
+		else
+		{
+			remaintime = -1;
+			maxduration= -1;
+		}
+
+		
+		if (remaincharges)
+			remaincharges = spellproto->procCharges;
+
+		SpellAuraHolder* holder = CreateSpellAuraHolder(spellproto, this, this);
+		holder->SetLoadedState(GetObjectGuid(), object, stackcount, remaincharges, maxduration, remaintime);
+
+		for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+		{
+			uint8 eff = spellproto->Effect[i];
+
+			if (eff >= TOTAL_SPELL_EFFECTS)
+				continue;
+			
+			if (IsAreaAuraEffect(eff) ||
+				eff == SPELL_EFFECT_APPLY_AURA ||
+				eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+			{ 
+				Aura* aura = CreateAura(spellproto, SpellEffectIndex(i), nullptr, holder, this);
+				holder->AddAura(aura, SpellEffectIndex(i));
+			}			
+		}			
+		AddSpellAuraHolder(holder);
+
+	}
 }
