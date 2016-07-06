@@ -855,7 +855,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 					{
 						SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
 
-						if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->rangeIndex == 114 && spellInfo->Id != 20736 && spellInfo->Id != 14274 && spellInfo->Id != 15629 && spellInfo->Id != 15630 && spellInfo->Id != 15631 && spellInfo->Id != 15632 && spellInfo->Id != 5116 && spellInfo->Id != 19503 && spellInfo->Id != 19801 && GetSpellRecoveryTime(spellInfo) > 0)
+						if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->SpellIconID == 1629 || spellInfo->SpellIconID == 85 || spellInfo->SpellIconID == 126 || spellInfo->SpellIconID == 218) && GetSpellRecoveryTime(spellInfo) > 0)
 							((Player*)m_caster)->RemoveSpellCooldown((itr++)->first, true);
 						else
 							++itr;
