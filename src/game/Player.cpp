@@ -1264,10 +1264,9 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 
 		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_RULES))
 		{
-			float health = (GetHealth() / GetMaxHealth()) * 100;
-			float penalty;
-
-			if (health >= 90.f)
+			float health = (GetHealth() / GetMaxHealth());
+			
+			if (health >= .9f)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34601))
@@ -1279,7 +1278,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				//Add Heartened Aura
 				_CreateCustomAura(34600);
 			}
-			else if (health >= 60.f)
+			else if (health >= .6f)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34602))
@@ -1292,7 +1291,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				//Add injured Aura
 				_CreateCustomAura(34601);
 			}
-			else if (health >= 20.f)
+			else if (health >= 0.2f)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34601))
@@ -1305,7 +1304,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				//Add wounded Aura
 				_CreateCustomAura(34602);
 			}
-			else
+			else if (health < 0.2f)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34601))
