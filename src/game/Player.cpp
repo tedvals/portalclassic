@@ -1264,9 +1264,10 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 
 		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_RULES))
 		{
-			float health = (GetHealth() / GetMaxHealth());
-			
-			if (health >= .9f)
+			uint8 health = GetHealthPercent();
+		
+
+			if (health >= 90)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34601))
@@ -1278,7 +1279,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				//Add Heartened Aura
 				_CreateCustomAura(34600);
 			}
-			else if (health >= .6f)
+			else if (health >= 60 && getClass() != CLASS_WARLOCK)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34602))
@@ -1291,7 +1292,20 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				//Add injured Aura
 				_CreateCustomAura(34601);
 			}
-			else if (health >= 0.2f)
+			else if (health >= 40 && getClass() == CLASS_WARLOCK)
+			{
+				//Remove Wounded Auras
+				if (HasAura(34602))
+					RemoveAurasDueToSpell(34602);
+				if (HasAura(34603))
+					RemoveAurasDueToSpell(34603);
+				//Remove Heartened Aura
+				if (HasAura(34600))
+					RemoveAurasDueToSpell(34600);
+				//Add injured Aura
+				_CreateCustomAura(34601);
+			}
+			else if (health >= 20)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34601))
@@ -1304,7 +1318,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				//Add wounded Aura
 				_CreateCustomAura(34602);
 			}
-			else if (health < 0.2f)
+			else if (health < 20)
 			{
 				//Remove Wounded Auras
 				if (HasAura(34601))

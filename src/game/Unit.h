@@ -1233,7 +1233,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         uint32 GetHealth()    const { return GetUInt32Value(UNIT_FIELD_HEALTH); }
         uint32 GetMaxHealth() const { return GetUInt32Value(UNIT_FIELD_MAXHEALTH); }
-        float GetHealthPercent() const { return (GetHealth() * 100.0f) / GetMaxHealth(); }
+		uint8 GetHealthPercent() const { return (static_cast<float> (GetHealth()) / GetMaxHealth()) * 100; }
         void SetHealth(uint32 val);
         void SetMaxHealth(uint32 val);
         void SetHealthPercent(float percent);

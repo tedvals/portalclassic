@@ -1331,6 +1331,11 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 			triggered_spell_id = 34095;                     // Enlightment (Priest)
 			break;
 		}
+		case 5018:
+		{
+			triggered_spell_id = 34395;                     // Backdraft (Warlock)
+			break;
+		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus
         {
             // Chance 50%
