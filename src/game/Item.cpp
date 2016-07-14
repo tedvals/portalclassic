@@ -972,7 +972,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						}
 
 						if (!reforgeLevel)
-							reforgeLevel = urand(8 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (8 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
+							reforgeLevel = urand(10 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (6 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
 						else
 							reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
 												
