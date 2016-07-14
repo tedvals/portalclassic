@@ -796,6 +796,7 @@ void World::LoadConfigSettings(bool reload)
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_DEATHXP, "Custom.AdventureDeathXP", 0);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP, "Custom.AdventureItemXP", 0);
 	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP, "Custom.AdventureLevelXP", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP, "Custom.AdventureBossOnlyXP", 5);
 
 	setConfig(CONFIG_BOOL_CUSTOM_RULES, "Custom.CustomRules", false);
 	setConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM, "Custom.RandomizeItem", false);

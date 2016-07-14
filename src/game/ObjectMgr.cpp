@@ -7722,6 +7722,7 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
         uint32 spell  = fields[1].GetUInt32();
 
         SpellEntry const* spellinfo = sSpellStore.LookupEntry(spell);
+
         if (!spellinfo)
         {
             sLog.outErrorDb("Table `%s` (Entry: %u ) has non existing spell %u, ignore", tableName, entry, spell);

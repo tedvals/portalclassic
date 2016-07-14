@@ -176,7 +176,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS] =
     &Spell::EffectApplyAreaAura,                            // 119 SPELL_EFFECT_APPLY_AREA_AURA_PET
     &Spell::EffectUnused,                                   // 120 SPELL_EFFECT_TELEPORT_GRAVEYARD       one spell: Graveyard Teleport Test
     &Spell::EffectWeaponDmg,                                // 121 SPELL_EFFECT_NORMALIZED_WEAPON_DMG
-    &Spell::EffectUnused,                                   // 122 SPELL_EFFECT_122                      unused
+	&Spell::EffectReforgeItem,                              // 122 SPELL_EFFECT_122                      //custom Reforge
     &Spell::EffectSendTaxi,                                 // 123 SPELL_EFFECT_SEND_TAXI                taxi/flight related (misc value is taxi path id)
     &Spell::EffectPlayerPull,                               // 124 SPELL_EFFECT_PLAYER_PULL              opposite of knockback effect (pulls player twoard caster)
     &Spell::EffectModifyThreatPercent,                      // 125 SPELL_EFFECT_MODIFY_THREAT_PERCENT
@@ -5359,4 +5359,99 @@ void Spell::EffectBind(SpellEffectIndex eff_idx)
     data << m_caster->GetObjectGuid();
     data << uint32(area_id);
     player->SendDirectMessage(&data);
+}
+
+
+void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
+{
+	if (!sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM) || !sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+		return;
+
+	if (m_caster->GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	if (!itemTarget)
+		return;
+
+	Player* p_caster = (Player*)m_caster;
+
+	Player* item_owner = itemTarget->GetOwner();
+	if (!item_owner|| (item_owner != p_caster))
+		return;
+			
+	if (ItemPrototype const* itemProto = itemTarget->GetProto())
+	{
+
+		uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
+		uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+		if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)))
+		{
+
+			uint32 itemLevel = itemProto->ItemLevel;
+			uint32 itemClass = itemProto->Class;
+			uint32 ItemSubClass = itemProto->SubClass;
+			uint32 ItemQuality = itemProto->Quality;
+			uint32 protoRandom = itemProto->RandomProperty;
+
+			if (!itemProto || !(itemClass == 2 || itemClass == 4) || !(ItemQuality > minQuality) || !(itemLevel > minLevel))
+				return;
+
+			int32  randomPropertyId;
+			uint32 adventure_level = ((Player*)p_caster)->GetAdventureLevel();
+			uint32 reforgeLevel;
+
+			if (protoRandom)
+			{
+				QueryResult* result;
+				result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", protoRandom, itemClass, ItemSubClass);
+
+				if (result)
+				{
+					Field* fields = result->Fetch();
+					reforgeLevel = fields[0].GetUInt32();
+
+					delete result;
+				}
+			}
+
+			if (!reforgeLevel)
+				reforgeLevel = urand(8 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (8 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
+			else
+				reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
+
+			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
+				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+				{
+					DEBUG_LOG("Not enough adventure xp to apply random property to item %u", itemTarget->GetGUIDLow());
+					return;
+				}
+
+			int i = 0;
+			QueryResult* result;
+
+			do
+			{
+				result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+				--reforgeLevel;
+
+				if (reforgeLevel < minLevel)
+					break;
+
+				++i;
+			} while (!result || i < 10);
+
+			if (result)
+			{
+				Field* fields = result->Fetch();
+				randomPropertyId = fields[0].GetUInt32();
+
+				delete result;
+			}
+
+			DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, itemTarget->GetGUIDLow());
+			itemTarget->SetItemRandomProperties(randomPropertyId);
+		}
+	}
+
+	return;
 }

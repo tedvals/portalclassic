@@ -2271,7 +2271,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 		
 		public:
 		void AddAdventureXP(int32 xp);
-		void SubstractAdventureXP(int32 xp);
+		bool SubstractAdventureXP(int32 xp);
 		uint32 GetAdventureLevel();
 
 		protected:

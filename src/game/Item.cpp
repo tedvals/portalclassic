@@ -932,10 +932,12 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
         if (pItem->Create(sObjectMgr.GenerateItemLowGuid(), item, player))
         {
             pItem->SetCount(count);
-
-			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM))
+			
+			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM) && randomize)
 			{
-				if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)))
+				uint32 adventure_level = ((Player*)player)->GetAdventureLevel();
+
+				if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)*adventure_level))
 				{
 					ItemPrototype const* itemProto = pItem->GetProto();
 
@@ -943,10 +945,64 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					uint32 itemClass = itemProto->Class;
 					uint32 ItemSubClass = itemProto->SubClass;
 					uint32 ItemQuality = itemProto->Quality;
+					uint32 protoRandom = itemProto->RandomProperty;
 
-					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+					int32  randomPropertyId;
 					uint32 adventure_level = ((Player*)player)->GetAdventureLevel();
+					uint32 reforgeLevel;
 
+					uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
+					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+
+					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > minQuality) && (itemLevel>minLevel) && ((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+					{
+
+						if (protoRandom)
+						{
+							QueryResult* result;
+							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", protoRandom, itemClass, ItemSubClass);
+
+							if (result)
+							{
+								Field* fields = result->Fetch();
+								reforgeLevel = fields[0].GetUInt32();
+
+								delete result;
+							}
+						}
+
+						if (!reforgeLevel)
+							reforgeLevel = urand(8 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (8 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
+						else
+							reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
+												
+						int i = 0;
+						QueryResult* result;
+
+						do
+						{
+							result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+							--reforgeLevel;
+
+							if (reforgeLevel < minLevel)
+								break;
+
+							++i;
+						} while (!result || i < 10);
+
+						if (result)
+						{
+							Field* fields = result->Fetch();
+							randomPropertyId = fields[0].GetUInt32();
+
+							delete result;
+						}
+
+						DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, item);
+												
+					}
+					
+					/*
 					if (itemProto->RandomProperty && randomize)
 						if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && player)
 						{
@@ -970,8 +1026,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					if (itemLevel < minLevel)
 						itemLevel = minLevel;
 												
-					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY)))
-					{												
+												
 						
 						int i = 0;
 						QueryResult* result;
@@ -996,8 +1051,10 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						}
 												
 					}
+					*/
 				}
 			}
+			
 
             if (uint32 randId = randomPropertyId ? randomPropertyId : Item::GenerateItemRandomPropertyId(item))
                 pItem->SetItemRandomProperties(randId);

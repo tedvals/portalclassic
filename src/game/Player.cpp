@@ -1277,7 +1277,8 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34603))
 					RemoveAurasDueToSpell(34603);
 				//Add Heartened Aura
-				_CreateCustomAura(34600);
+				if (!HasAura(34600))
+					_CreateCustomAura(34600);
 			}
 			else if (health >= 60 && getClass() != CLASS_WARLOCK)
 			{
@@ -1290,7 +1291,8 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add injured Aura
-				_CreateCustomAura(34601);
+				if (!HasAura(34601))
+					_CreateCustomAura(34601);
 			}
 			else if (health >= 40 && getClass() == CLASS_WARLOCK)
 			{
@@ -1303,7 +1305,8 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add injured Aura
-				_CreateCustomAura(34601);
+				if (!HasAura(34601))
+					_CreateCustomAura(34601);
 			}
 			else if (health >= 20)
 			{
@@ -1316,7 +1319,8 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add wounded Aura
-				_CreateCustomAura(34602);
+				if (!HasAura(34602))
+					_CreateCustomAura(34602);
 			}
 			else if (health < 20)
 			{
@@ -1329,7 +1333,8 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 				if (HasAura(34600))
 					RemoveAurasDueToSpell(34600);
 				//Add Grevious wounded Aura
-				_CreateCustomAura(34603);
+				if (!HasAura(34603))
+					_CreateCustomAura(34603);
 			}
 		}
 		//Custom
@@ -9366,7 +9371,7 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
     for (ItemPosCountVec::const_iterator itr = dest.begin(); itr != dest.end(); ++itr)
         count += itr->count;
 
-	Item* pItem = Item::CreateItem(item, count, this, randomPropertyId, randomize);
+	Item* pItem = Item::CreateItem(item, count, this, randomPropertyId);
     if (pItem)
     {
         ItemAddedQuestCheck(item, count);
@@ -17891,6 +17896,8 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
 			if (pCreature->IsWorldBoss())
 				multiplier = 40;
 
+			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) > adventure_level && !pCreature->IsWorldBoss())
+				multiplier = 0;
 
 			AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - getLevel()));
 			}		
@@ -19100,17 +19107,21 @@ void Player::AddAdventureXP(int32 xp)
 	else SubstractAdventureXP(abs(xp));
 }
 
-void Player::SubstractAdventureXP(int32 xp)
+bool Player::SubstractAdventureXP(int32 xp)
 {
 	adventure_xp -= xp;
-	
-	if (adventure_xp < 0 && adventure_level > 1)
+	uint32 currentLevel = adventure_level;
+
+	while (adventure_xp < 0 && adventure_level > 1)
 	{
-		adventure_level += sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * (adventure_level-1);
+		adventure_level--;
+		adventure_xp += sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * (adventure_level);
+		SetAdventureLevel(adventure_level);
+		return true;
 	}
-	else adventure_xp = 0;			
-	
-	SetAdventureLevel(adventure_level);	
+
+	SetAdventureLevel(currentLevel);
+	return false;	
 }
 
 void Player::ResetAdventureLevel()
