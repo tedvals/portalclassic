@@ -9371,7 +9371,7 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
     for (ItemPosCountVec::const_iterator itr = dest.begin(); itr != dest.end(); ++itr)
         count += itr->count;
 
-	Item* pItem = Item::CreateItem(item, count, this, randomPropertyId);
+	Item* pItem = Item::CreateItem(item, count, this, randomPropertyId,true);
     if (pItem)
     {
         ItemAddedQuestCheck(item, count);
@@ -19030,25 +19030,26 @@ uint32 Player::GetAdventureLevel()
 	uint32 level = 0;
 	uint32 members = 0;
 
+	level = _GetAdventureLevel();
+
 	if (Group* pGroup = m_group.getTarget())
 	{
 		for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
 		{
 			Player* pGroupGuy = itr->getSource();
 
-			// for any leave or dead (with not released body) group member at appropriate distance
-			if (pGroupGuy)
+			if (pGroupGuy && pGroupGuy->isAlive())
 			{
-				level += pGroupGuy->_GetAdventureLevel();
-				members++;
+				if (pGroupGuy->_GetAdventureLevel() < level)
+					level = pGroupGuy->_GetAdventureLevel();
 			}
 				
 		}
 
 		level = ceil(level / members);
 	}
-	else
-		level = _GetAdventureLevel();
+	
+		
 
 		
 	return level;
@@ -19217,4 +19218,53 @@ void Player::_CreateCustomAura(uint32 spellid, uint32 stackcount, int32 remainch
 		AddSpellAuraHolder(holder);
 
 	}
+}
+
+bool Player::CanReforgeItem(Item* itemTarget)
+{
+	if (!sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM) || !sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
+		return false;
+
+	if (!itemTarget)
+		return false;
+
+	Player* p_caster = this;
+
+	Player* item_owner = itemTarget->GetOwner();
+	if (!item_owner || (item_owner != p_caster))
+		return false;
+
+	if (ItemPrototype const* itemProto = itemTarget->GetProto())
+	{
+
+		uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
+		uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+		if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)))
+		{
+
+			uint32 itemLevel = itemProto->ItemLevel;
+			uint32 itemClass = itemProto->Class;
+			uint32 ItemSubClass = itemProto->SubClass;
+			uint32 ItemQuality = itemProto->Quality;
+			uint32 protoRandom = itemProto->RandomProperty;
+
+			if (!itemProto || !(itemClass == 2 || itemClass == 4) || !(ItemQuality > minQuality) || !(itemLevel > minLevel))
+				return false;
+
+			int32  randomPropertyId;
+			uint32 adventure_level = ((Player*)p_caster)->GetAdventureLevel();
+			uint32 reforgeLevel;
+
+			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
+				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+				{
+					DEBUG_LOG("Not enough adventure xp to apply random property to item %u", itemTarget->GetGUIDLow());
+					return false;
+				}
+		}
+
+		return true;
+	}
+	
+	return false;
 }

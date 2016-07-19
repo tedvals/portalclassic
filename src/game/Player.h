@@ -2274,6 +2274,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 		bool SubstractAdventureXP(int32 xp);
 		uint32 GetAdventureLevel();
 
+		bool CanReforgeItem(Item* itemTarget);
+
 		protected:
 		uint32 _GetAdventureLevel();
 		void ResetAdventureLevel();

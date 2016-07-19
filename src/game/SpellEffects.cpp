@@ -5419,13 +5419,6 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 			else
 				reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
 
-			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
-				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
-				{
-					DEBUG_LOG("Not enough adventure xp to apply random property to item %u", itemTarget->GetGUIDLow());
-					return;
-				}
-
 			int i = 0;
 			QueryResult* result;
 
@@ -5448,8 +5441,16 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 				delete result;
 			}
 
-			DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, itemTarget->GetGUIDLow());
+			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
+				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+				{
+					DEBUG_LOG("Not enough adventure xp to apply random property to item %u", itemTarget->GetGUIDLow());
+					return;
+				}
+
 			itemTarget->SetItemRandomProperties(randomPropertyId);
+			DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, itemTarget->GetGUIDLow());
+			
 		}
 	}
 

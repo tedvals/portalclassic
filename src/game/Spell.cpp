@@ -2363,6 +2363,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY:
                 case SPELL_EFFECT_DISENCHANT:
                 case SPELL_EFFECT_FEED_PET:
+				case SPELL_EFFECT_REFORGE_ITEM:										//custom
                     if (m_targets.getItemTarget())
                         AddItemTarget(m_targets.getItemTarget(), effIndex);
                     break;
@@ -5758,6 +5759,23 @@ SpellCastResult Spell::CheckItems()
                 }
                 break;
             }
+			case SPELL_EFFECT_REFORGE_ITEM:
+			{
+				Item* targetItem = m_targets.getItemTarget();
+				if (!targetItem)
+					return SPELL_FAILED_ITEM_GONE;
+
+				if (targetItem->GetProto()->ItemLevel < m_spellInfo->baseLevel)
+					return SPELL_FAILED_LOWLEVEL;
+				
+				// Not allow enchant in trade slot for some enchant type
+				if (targetItem->GetOwner() != m_caster)
+					return SPELL_FAILED_NOT_TRADEABLE;
+
+				if (!(targetItem->GetOwner()->CanReforgeItem(targetItem)))
+					return SPELL_FAILED_CANT_DO_THAT_YET;
+				break;
+			}
             case SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY:
             {
                 Item* item = m_targets.getItemTarget();

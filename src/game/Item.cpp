@@ -945,22 +945,23 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					uint32 itemClass = itemProto->Class;
 					uint32 ItemSubClass = itemProto->SubClass;
 					uint32 ItemQuality = itemProto->Quality;
-					uint32 protoRandom = itemProto->RandomProperty;
-
-					int32  randomPropertyId;
+															
 					uint32 adventure_level = ((Player*)player)->GetAdventureLevel();
 					uint32 reforgeLevel;
+					uint32 reforgePropertyId;
 
 					uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
 					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
 
-					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > minQuality) && (itemLevel>minLevel) && ((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > minQuality) && (itemLevel>minLevel))
 					{
+						if (!randomPropertyId)
+							randomPropertyId = itemProto->RandomProperty;
 
-						if (protoRandom)
+						if (randomPropertyId)
 						{
 							QueryResult* result;
-							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", protoRandom, itemClass, ItemSubClass);
+							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass, ItemSubClass);
 
 							if (result)
 							{
@@ -993,65 +994,26 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						if (result)
 						{
 							Field* fields = result->Fetch();
-							randomPropertyId = fields[0].GetUInt32();
+							reforgePropertyId = fields[0].GetUInt32();
 
 							delete result;
 						}
 
-						DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, item);
-												
+						DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, item);												
 					}
 					
-					/*
-					if (itemProto->RandomProperty && randomize)
-						if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && player)
-						{
-							itemLevel += adventure_level;
-							if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
-								((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality);
-						}
-						else
-							itemLevel += sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF);
-					else
-					if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && player)
+					if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
 					{
-						itemLevel += (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL) - adventure_level)*(6 - ItemQuality);
-						if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
-							((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality);
-					}
-					else
-						itemLevel -=sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*(6 - ItemQuality);
-						
-
-					if (itemLevel < minLevel)
-						itemLevel = minLevel;
-												
-												
-						
-						int i = 0;
-						QueryResult* result;
-
-						do
+						if (reforgePropertyId && ((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
 						{
-							result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", itemLevel, itemClass, ItemSubClass);
-							--itemClass;
-							
-							if (itemLevel < minLevel)
-								break;
-
-							++i;
-						} while (!result || i < 10);
-						
-						if (result)
-						{
-							Field* fields = result->Fetch();
-							randomPropertyId = fields[0].GetUInt32();
-
-							delete result;
+							randomPropertyId = reforgePropertyId;
 						}
-												
+						else 
+							DEBUG_LOG("Not enough adventure xp to apply random property to item %u", item);
 					}
-					*/
+					else if (reforgePropertyId) 
+						randomPropertyId = reforgePropertyId;
+						
 				}
 			}
 			
