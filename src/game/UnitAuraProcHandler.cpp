@@ -666,7 +666,25 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     target = this;
                     triggered_spell_id = 28848;
                     break;
-                }
+                }				
+					// Lifebloom
+				case 34418:
+				case 34419:
+				case 34420:
+				{
+					switch (dummySpell->Id)
+					{
+					case 34418: basepoints[0] = int32(0.1f * damage); break;
+					case 34419: basepoints[0] = int32(0.2f * damage); break;
+					case 34420: basepoints[0] = int32(0.3f * damage); break;
+					default:
+						sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (IG)", dummySpell->Id);
+						return SPELL_AURA_PROC_FAILED;
+					}
+
+					triggered_spell_id = 34417;
+					break;
+				}
             }
             break;
         }
@@ -766,6 +784,27 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     }
                     break;
                 }
+				// Spiritual Attunement
+				case 34422:
+				case 34423:
+				{
+					// if healed by another unit (victim)
+					if (this == pVictim)
+						return SPELL_AURA_PROC_FAILED;
+
+					// dont allow non-positive dots to proc
+					if (!procSpell )
+					//	|| !procSpell->IsPositive())
+						return SPELL_AURA_PROC_FAILED;
+
+					// heal amount )
+					int32 basepoints0 = int32(std::min(damage, GetMaxHealth() - GetHealth())* static_cast<float>(triggerAmount) / 100.0f);
+					target = this;
+
+					if (basepoints0)
+						CastCustomSpell(pVictim, 34421, &basepoints0, nullptr, nullptr, true, nullptr, triggeredByAura);
+					break;
+				}
             }
             break;
         }
@@ -1030,6 +1069,35 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             break;
         }
         case SPELLFAMILY_DRUID:
+			// Deep Wounds (replace triggered spells to directly apply DoT), dot spell have familyflags
+			switch (auraSpellInfo->Id)
+			{
+				// Primal Tenacity
+			case 34042:
+			case 34043:
+				float weaponDamage;
+				// DW should benefit of attack power, damage percent mods etc.
+				// TODO: check if using offhand damage is correct and if it should be divided by 2
+				if (haveOffhandWeapon() && getAttackTimer(BASE_ATTACK) > getAttackTimer(OFF_ATTACK))
+					weaponDamage = (GetFloatValue(UNIT_FIELD_MINOFFHANDDAMAGE) + GetFloatValue(UNIT_FIELD_MAXOFFHANDDAMAGE)) / 2;
+				else
+					weaponDamage = (GetFloatValue(UNIT_FIELD_MINDAMAGE) + GetFloatValue(UNIT_FIELD_MAXDAMAGE)) / 2;
+
+				switch (auraSpellInfo->Id)
+				{
+				case 34042: basepoints[0] = int32(weaponDamage * 0.2f); break;
+				case 34043: basepoints[0] = int32(weaponDamage * 0.4f); break;
+					// Impossible case
+				default:
+					sLog.outError("Unit::HandleProcTriggerSpellAuraProc: DW unknown spell rank %u", auraSpellInfo->Id);
+					return SPELL_AURA_PROC_FAILED;
+				}
+
+				// 1 tick/sec * 6 sec = 6 ticks
+				basepoints[0] /= 6;
+
+				trigger_spell_id = 12721;
+			}
             break;
         case SPELLFAMILY_HUNTER:
             break;
@@ -1332,6 +1400,11 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 			break;
 		}
 		case 5018:
+		{
+			triggered_spell_id = 34395;                     // Backdraft (Warlock)
+			break;
+		}
+		case 5019:											//Payback (Hunter)
 		{
 			triggered_spell_id = 34395;                     // Backdraft (Warlock)
 			break;
