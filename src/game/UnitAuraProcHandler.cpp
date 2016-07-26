@@ -805,6 +805,26 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 						CastCustomSpell(pVictim, 34421, &basepoints0, nullptr, nullptr, true, nullptr, triggeredByAura);
 					break;
 				}
+				// Light's Grace
+				case 34438:
+				case 34439:
+				case 34440:
+				case 34441:
+				{
+					switch (dummySpell->Id)
+					{
+					case 34438: basepoints[0] = int32(0.05f * damage); break;
+					case 34439: basepoints[0] = int32(0.1f * damage); break;
+					case 34440: basepoints[0] = int32(0.15f * damage); break;
+					case 34441: basepoints[0] = int32(0.2f * damage); break;
+					default:
+						sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (IG)", dummySpell->Id);
+						return SPELL_AURA_PROC_FAILED;
+					}
+
+					triggered_spell_id = 34442;
+					break;
+				}
             }
             break;
         }

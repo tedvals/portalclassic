@@ -19039,12 +19039,11 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
 }
 
 //Custom
-uint32 Player::GetAdventureLevel()
+uint32 Player::GetAdventureLevelGroup()
 {
 	uint32 level = 0;
-	uint32 members = 0;
-
-	level = _GetAdventureLevel();
+	
+	level = GetAdventureLevel();
 
 	if (Group* pGroup = m_group.getTarget())
 	{
@@ -19054,22 +19053,17 @@ uint32 Player::GetAdventureLevel()
 
 			if (pGroupGuy && pGroupGuy->isAlive())
 			{
-				if (pGroupGuy->_GetAdventureLevel() < level)
-					level = pGroupGuy->_GetAdventureLevel();
+				if (pGroupGuy->GetAdventureLevel() < level)
+					level = pGroupGuy->GetAdventureLevel();
 			}
 				
-		}
-
-		level = ceil(level / members);
+		}		
 	}
 	
-		
-
-		
 	return level;
 }
 
-uint32 Player::_GetAdventureLevel()
+uint32 Player::GetAdventureLevel()
 {
 	uint32 level = 0;
 
@@ -19096,11 +19090,21 @@ void Player::SetAdventureLevel(uint32 level)
 	if (level > sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL))
 		level = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL);
 
-	if (GetAdventureLevel() == level)
+	if (GetAdventureLevel() == level && !GetGroup())
+		return;
+	else if (GetGroup() && adventure_group_level == GetAdventureLevelGroup())
 		return;
 
 	//Apply Aura
-	_CreateCustomAura(ADVENTURE_AURA, level);		
+	_CreateCustomAura(ADVENTURE_AURA, level);	
+
+	if (GetGroup())
+	{
+		adventure_group_level = GetAdventureLevelGroup();
+		_CreateCustomAura(GROUP_ADVENTURE_AURA, GetAdventureLevelGroup());		 
+	}
+	else if (HasAura(GROUP_ADVENTURE_AURA))
+		RemoveAurasDueToSpell(GROUP_ADVENTURE_AURA);
 }
 
 

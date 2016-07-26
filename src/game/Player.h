@@ -686,6 +686,7 @@ enum ReputationSource
 #define MAX_MONEY_AMOUNT        (0x7FFFFFFF-1)
 
 #define ADVENTURE_AURA           35000
+#define GROUP_ADVENTURE_AURA     35001
 
 struct InstancePlayerBind
 {
@@ -2267,17 +2268,18 @@ class MANGOS_DLL_SPEC Player : public Unit
 		//////////////////// Adventure Mode/////////////////////
 
 		uint32 adventure_level;
+		uint32 adventure_group_level;
 		uint32 adventure_xp;
 		
 		public:
 		void AddAdventureXP(int32 xp);
 		bool SubstractAdventureXP(int32 xp);
+		uint32 GetAdventureLevelGroup();
 		uint32 GetAdventureLevel();
 
 		bool CanReforgeItem(Item* itemTarget);
 
-		protected:
-		uint32 _GetAdventureLevel();
+		protected:		
 		void ResetAdventureLevel();
 		void StoreAdventureLevel();		
 		void SetAdventureLevel(uint32 level);

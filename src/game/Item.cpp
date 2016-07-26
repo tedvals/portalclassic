@@ -935,7 +935,11 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 			
 			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM) && randomize)
 			{
-				uint32 adventure_level = ((Player*)player)->GetAdventureLevel();
+				uint32 adventure_level;
+				if (((Player*)player)->GetGroup())
+					adventure_level = ((Player*)player)->GetAdventureLevelGroup();
+				else
+					adventure_level = ((Player*)player)->GetAdventureLevel();
 
 				if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)*adventure_level))
 				{
@@ -946,9 +950,8 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					uint32 ItemSubClass = itemProto->SubClass;
 					uint32 ItemQuality = itemProto->Quality;
 															
-					uint32 adventure_level = ((Player*)player)->GetAdventureLevel();
-					uint32 reforgeLevel;
-					uint32 reforgePropertyId;
+					uint32 reforgeLevel = 0;
+					uint32 reforgePropertyId = 0;
 
 					uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
 					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
