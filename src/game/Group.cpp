@@ -1138,10 +1138,12 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
 				if (pCreature->IsWorldBoss())
 					multiplier = 40;
 
-				if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) > pGroupGuy->GetAdventureLevel() && !pCreature->IsWorldBoss())
+				if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) < pGroupGuy->GetAdventureLevel() && !pCreature->IsWorldBoss())
 					multiplier = 0;
 
-				pGroupGuy->AddAdventureXP(ceil(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - pGroupGuy->getLevel())*rate));
+				int newxp = ceil(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - pGroupGuy->getLevel())*rate);
+				pGroupGuy->AddAdventureXP(newxp);
+				sLog.outString("Giving %d xp to player %s", newxp, pGroupGuy->GetName());   //custom-debug
 			}
         }
 

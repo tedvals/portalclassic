@@ -1002,7 +1002,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 							delete result;
 						}
 
-						DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, item);												
+						sLog.outString("Adding random property %u to item %u", randomPropertyId, item);
 					}
 					
 					if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
@@ -1012,7 +1012,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 							randomPropertyId = reforgePropertyId;
 						}
 						else 
-							DEBUG_LOG("Not enough adventure xp to apply random property to item %u", item);
+							sLog.outString("Not enough adventure xp to apply random property to item %u", item);
 					}
 					else if (reforgePropertyId) 
 						randomPropertyId = reforgePropertyId;

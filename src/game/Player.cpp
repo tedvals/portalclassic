@@ -14387,7 +14387,7 @@ void Player::_LoadAdventureLevel(QueryResult* result)
 	if (result)
 	{
 		adventure_level = (*result)[0].GetUInt32();
-		adventure_xp = (*result)[0].GetUInt32();
+		adventure_xp = (*result)[1].GetUInt32();
 
 		delete result;
 	}
@@ -17910,10 +17910,12 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
 			if (pCreature->IsWorldBoss())
 				multiplier = 40;
 
-			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) > adventure_level && !pCreature->IsWorldBoss())
+			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) < adventure_level && !pCreature->IsWorldBoss())
 				multiplier = 0;
 
-			AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - getLevel()));
+			int newxp = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - getLevel());
+			AddAdventureXP(newxp);
+			sLog.outString("Giving %d xp to player %s", newxp, GetName());			//custom-debug
 			}		
     }
 	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP))
@@ -19158,6 +19160,8 @@ void Player::StoreAdventureLevel()
 	SqlStatement stmt = CharacterDatabase.CreateStatement(delAdventureData, "DELETE FROM character_custom_data WHERE guid = ?");
 
 	stmt.PExecute(GetGUIDLow());
+
+	sLog.outString("Save Adventure Level for char:%u -Lvl:%u, xp:%u", GetGUIDLow(), adventure_level, adventure_xp);
 
 	stmt = CharacterDatabase.CreateStatement(insAdventureData, "INSERT INTO character_custom_data VALUES (?, ?, ?)");
 		/* guid, adventurelevel,xplevel */
