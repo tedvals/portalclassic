@@ -1125,11 +1125,11 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
                 // http://wowwiki.wikia.com/wiki/Formulas:Mob_XP?oldid=228414
                 pet->GivePetXP(itr_xp / 2);
 
-			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP))
+			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP))
 			{
 				uint32 victim_level = pVictim->getLevel();
-				uint32 multiplier = 1;
-
+				float multiplier = 1;
+				uint32 attacker_level = pGroupGuy->getLevel();
 				Creature * pCreature = (Creature*)(pVictim);
 
 				if (pCreature->IsElite())
@@ -1141,9 +1141,14 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
 				if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) < pGroupGuy->GetAdventureLevel() && !pCreature->IsWorldBoss())
 					multiplier = 0;
 
-				int newxp = ceil(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - pGroupGuy->getLevel())*rate);
-				pGroupGuy->AddAdventureXP(newxp);
-				sLog.outString("Giving %d xp to player %s", newxp, pGroupGuy->GetName());   //custom-debug
+				if ((victim_level + 3 - attacker_level) > 0)
+					multiplier = victim_level * multiplier;
+				else
+					multiplier = (-0.5f)*victim_level * multiplier;
+
+
+				int newxp = (int)(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP)*multiplier);
+				pGroupGuy->AddAdventureXP(newxp);				
 			}
         }
 
@@ -1155,11 +1160,11 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
                 pGroupGuy->KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
         }
     }
-	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP))
+	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP))
 	{
 		uint32 victim_level = pVictim->getLevel();
 
-		pGroupGuy->AddAdventureXP(ceil(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - pGroupGuy->getLevel()))*rate);
+		pGroupGuy->AddAdventureXP(ceil(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - pGroupGuy->getLevel()))*rate);
 	}
 }
 

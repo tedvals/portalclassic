@@ -227,7 +227,7 @@ uint32 GetSpellCastTimeForBonus(SpellEntry const* spellProto, DamageEffectType d
 
 	// Area Effect Spells receive only half of bonus
 	if (AreaEffect)
-		CastingTime /= 2;
+		CastingTime /= 2;	
 
 	// 50% for damage and healing spells for leech spells from damage bonus and 0% from healing
 	for (int j = 0; j < MAX_EFFECT_INDEX; ++j)

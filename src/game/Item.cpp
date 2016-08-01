@@ -1005,9 +1005,9 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						sLog.outString("Adding random property %u to item %u", randomPropertyId, item);
 					}
 					
-					if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
+					if (sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP))
 					{
-						if (reforgePropertyId && ((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+						if (reforgePropertyId && ((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
 						{
 							randomPropertyId = reforgePropertyId;
 						}

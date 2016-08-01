@@ -313,7 +313,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     return true;
 }
 
-void Pet::SavePetToDB(PetSaveMode mode)
+void Pet::SavePetToDB(PetSaveMode mode, Unit* owner /*= nullptr*/)
 {
     if (!GetEntry())
         return;
@@ -325,10 +325,24 @@ void Pet::SavePetToDB(PetSaveMode mode)
     // not save not player pets
     if (!GetOwnerGuid().IsPlayer())
         return;
-
-    Player* pOwner = (Player*)GetOwner();
-    if (!pOwner)
-        return;
+	
+	//add due to crash
+	
+	Player* pOwner;
+	if (owner)
+	{
+		pOwner = (Player*)owner;
+	}
+	else
+	{
+		pOwner = (Player*)GetOwner();
+		if (!owner)
+			return;
+	}
+//		Player* pOwner = (Player*)GetOwner();
+//		if (!pOwner)
+//			return;
+	
 
     // current/stable/not_in_slot
     if (mode >= PET_SAVE_AS_CURRENT)

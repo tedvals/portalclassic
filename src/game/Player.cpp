@@ -1454,7 +1454,7 @@ void Player::SetDeathState(DeathState s)
             ressSpellId = GetResurrectionSpellId();
 
 		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE))
-			SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_DEATHXP) * GetAdventureLevel());
+			SubstractAdventureXP(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_DEATHXP) * GetAdventureLevel());
 
         if (InstanceData* mapInstance = GetInstanceData())
             mapInstance->OnPlayerDeath(this);
@@ -14890,9 +14890,9 @@ void Player::SaveToDB()
     if (m_session->isLogingOut() || !sWorld.getConfig(CONFIG_BOOL_STATS_SAVE_ONLY_ON_LOGOUT))
         _SaveStats();
 
-    // save pet (hunter pet level and experience and all type pets health/mana).
-    if (Pet* pet = GetPet())
-        pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+	// save pet (hunter pet level and experience and all type pets health/mana).
+	if (Pet* pet = GetPet())
+		pet->SavePetToDB(PET_SAVE_AS_CURRENT, this);
 }
 
 // fast save function for item/money cheating preventing - save only inventory and money state
@@ -17897,10 +17897,11 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
         if (pVictim->GetTypeId() == TYPEID_UNIT)
             KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
 
-		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP))
+		if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP))
 		{
 			uint32 victim_level = pVictim->getLevel();
-			uint32 multiplier = 1;
+			uint32 attacker_level = getLevel();
+			float multiplier = 1;
 
 			Creature * pCreature = (Creature*)(pVictim);
 
@@ -17913,16 +17914,20 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
 			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) < adventure_level && !pCreature->IsWorldBoss())
 				multiplier = 0;
 
-			int newxp = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_KILLXP)*multiplier*victim_level*(victim_level + 3 - getLevel());
-			AddAdventureXP(newxp);
-			sLog.outString("Giving %d xp to player %s", newxp, GetName());			//custom-debug
+			if ((victim_level + 3 - attacker_level) > 0)
+				multiplier = victim_level * multiplier;
+			else
+				multiplier = (-0.5f)*victim_level * multiplier;
+
+			int newxp = (int)(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP)*multiplier);
+			AddAdventureXP(newxp);			
 			}		
     }
-	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP))
+	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP))
 	{
 		uint32 victim_level = pVictim->getLevel();
 		
-		AddAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - getLevel()));
+		AddAdventureXP(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - getLevel()));
 	}
 }
 
@@ -19114,9 +19119,10 @@ void Player::AddAdventureXP(int32 xp)
 {
 	if (xp > 0)
 	{
-		uint32 max_xp = sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
+		uint32 max_xp = sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
 		adventure_xp += xp;
 
+		sLog.outString("Granting %d xp to player %s. Lvl:%u. Current xp: %u Max xp: %u", xp, GetName(), adventure_level, adventure_xp, max_xp);			//custom-debug
 		if (adventure_xp > max_xp)
 		{
 			adventure_xp -= max_xp;
@@ -19125,19 +19131,22 @@ void Player::AddAdventureXP(int32 xp)
 			SetAdventureLevel(adventure_level);
 		}
 	}
-	else SubstractAdventureXP(abs(xp));
+	else if (adventure_xp > abs(xp))
+		SubstractAdventureXP(abs(xp));
 }
 
 bool Player::SubstractAdventureXP(int32 xp)
 {
 	adventure_xp -= xp;
 	uint32 currentLevel = adventure_level;
+	uint32 max_xp = sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
 
-	while (adventure_xp < 0 && adventure_level > 1)
+	sLog.outString("Granting %d xp to player %s. Lvl:%u. Current xp: %u Max xp: %u", xp, GetName(), adventure_level, adventure_xp, max_xp);			//custom-debug
+	while (adventure_xp < 0 && currentLevel > 1)
 	{
-		adventure_level--;
-		adventure_xp += sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_LEVELXP) * (adventure_level);
-		SetAdventureLevel(adventure_level);
+		currentLevel--;
+		adventure_xp += max_xp;
+		SetAdventureLevel(currentLevel);
 		return true;
 	}
 
@@ -19165,11 +19174,8 @@ void Player::StoreAdventureLevel()
 
 	stmt = CharacterDatabase.CreateStatement(insAdventureData, "INSERT INTO character_custom_data VALUES (?, ?, ?)");
 		/* guid, adventurelevel,xplevel */
-		stmt.addUInt32(GetGUIDLow());
-		stmt.addUInt32(adventure_level);
-		stmt.addUInt32(adventure_xp);		
-
-	stmt.Execute();		
+		
+	stmt.PExecute(GetGUIDLow(), adventure_level, adventure_xp);
 }
 
 void Player::_CreateCustomAura(uint32 spellid, uint32 stackcount, int32 remaincharges)
@@ -19273,12 +19279,10 @@ bool Player::CanReforgeItem(Item* itemTarget)
 			if (!itemProto || !(itemClass == 2 || itemClass == 4) || !(ItemQuality > minQuality) || !(itemLevel > minLevel))
 				return false;
 
-			int32  randomPropertyId;
 			uint32 adventure_level = ((Player*)p_caster)->GetAdventureLevel();
-			uint32 reforgeLevel;
-
-			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
-				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+			
+			if (sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP))
+				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
 				{
 					DEBUG_LOG("Not enough adventure xp to apply random property to item %u", itemTarget->GetGUIDLow());
 					return false;

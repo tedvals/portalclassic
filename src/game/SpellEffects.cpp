@@ -1694,6 +1694,8 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
 		unitTarget->RemoveAurasAtMechanicImmunity(IMMUNE_TO_ROOT_AND_SNARE_MASK, 30918, true);
 		return;
 	}
+
+	
     // ghost spell check, allow apply any auras at player loading in ghost mode (will be cleanup after load)
     if ((!unitTarget->isAlive() && !(IsDeathOnlySpell(m_spellInfo) || IsDeathPersistentSpell(m_spellInfo))) &&
             (unitTarget->GetTypeId() != TYPEID_PLAYER || !((Player*)unitTarget)->GetSession()->PlayerLoading()))
@@ -1709,6 +1711,25 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
         else
             return;
     }
+
+	//custom Talent: Essence Trafficer
+	//Drain Life - Harvest Life
+	if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags & uint64(0x00000000000010) && caster->HasAura(17864) && caster->GetHealthPercent() > 90)
+		if (m_spellInfo->EffectApplyAuraName[eff_idx] == SPELL_AURA_PERIODIC_LEECH)
+			m_currentBasePoints[eff_idx] += int32(m_currentBasePoints[eff_idx] * 0.25f);
+
+	if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags & uint64(0x00000000000010) && caster->HasAura(18393) && caster->GetHealthPercent() > 90)
+		if (m_spellInfo->EffectApplyAuraName[eff_idx] == SPELL_AURA_PERIODIC_LEECH)
+			m_currentBasePoints[eff_idx] += int32(m_currentBasePoints[eff_idx] * 0.5f);
+
+	//Drain Soul
+	if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags & uint64(0x00000000004000) && caster->HasAura(17864) && unitTarget->GetHealthPercent() < 10)
+		if (m_spellInfo->EffectApplyAuraName[eff_idx] == SPELL_AURA_PERIODIC_DAMAGE)
+			m_currentBasePoints[eff_idx] += m_currentBasePoints[eff_idx];
+
+	if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags & uint64(0x00000000004000) && caster->HasAura(18393) && caster->GetHealthPercent() < 10)
+		if (m_spellInfo->EffectApplyAuraName[eff_idx] == SPELL_AURA_PERIODIC_DAMAGE)
+			m_currentBasePoints[eff_idx] += 2*m_currentBasePoints[eff_idx];
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
 
@@ -3072,7 +3093,7 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
 
     plr->PetSpellInitialize();
 
-    pet->SavePetToDB(PET_SAVE_AS_CURRENT);
+	pet->SavePetToDB(PET_SAVE_AS_CURRENT, plr);
 }
 
 void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
@@ -3115,7 +3136,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
                     NewSummon->SetHealth(NewSummon->GetMaxHealth());
                     NewSummon->SetPower(POWER_MANA, NewSummon->GetMaxPower(POWER_MANA));
 
-                    NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);
+					NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT, m_caster);
 
                     return;
                 }
@@ -3188,7 +3209,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         if (m_caster->IsPvP())
             NewSummon->SetPvP(true);
 
-        NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);
+		NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT, m_caster);
         ((Player*)m_caster)->PetSpellInitialize();
     }
     else
@@ -5435,8 +5456,8 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 				delete result;
 			}
 
-			if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP))
-				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+			if (sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP))
+				if (!((Player*)p_caster)->SubstractAdventureXP(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
 				{
 					DEBUG_LOG("Not enough adventure xp to apply random property to item %u", itemTarget->GetGUIDLow());
 					return;
