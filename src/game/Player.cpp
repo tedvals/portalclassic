@@ -19128,6 +19128,7 @@ void Player::AddAdventureXP(int32 xp)
 			adventure_xp -= max_xp;
 			adventure_level++;
 
+			RemoveAurasDueToSpell(ADVENTURE_AURA);
 			SetAdventureLevel(adventure_level);
 		}
 	}
