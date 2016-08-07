@@ -917,85 +917,74 @@ bool IsPositiveSpell(SpellEntry const* spellproto)
 
 bool IsSingleTargetSpell(SpellEntry const* spellInfo)
 {
-	// hunter's mark and similar
-	if (spellInfo->SpellVisual == 3239)
-		return true;
+    // hunter's mark and similar
+    if (spellInfo->SpellVisual == 3239)
+        return true;
 
-	// exceptions (have spellInfo->AttributesEx & (1<<18) but not single targeted)
-	switch (spellInfo->Id)
-	{
-	case 1833:                                          // Cheap Shot
-	case 4538:                                          // Extract Essence (group targets)
-	case 5106:                                          // Crystal Flash (group targets)
-	case 5530:                                          // Mace Stun Effect
-	case 5648:                                          // Stunning Blast, rank 1
-	case 5649:                                          // Stunning Blast, rank 2
-	case 5726:                                          // Stunning Blow, Rank 1
-	case 5727:                                          // Stunning Blow, Rank 2
-	case 6927:                                          // Shadowstalker Slash, Rank 1
-	case 8399:                                          // Sleep (group targets)
-	case 9159:                                          // Sleep (armor triggred affect)
-	case 9256:                                          // Deep Sleep (group targets)
-	case 13902:                                         // Fist of Ragnaros
-	case 14902:                                         // Cheap Shot
-	case 16104:                                         // Crystallize (group targets)
-	case 17286:                                         // Crusader's Hammer (group targets)
-	case 20277:                                         // Fist of Ragnaros (group targets)
-	case 20669:                                         // Sleep (group targets)
-	case 20683:                                         // Highlord's Justice
-	case 24664:                                         // Sleep (group targets)
-		return false;
-	}
-	// cannot be cast on another target while not cooled down anyway
-	if (GetSpellDuration(spellInfo) < int32(GetSpellRecoveryTime(spellInfo)))
-		return false;
+    // exceptions (have spellInfo->AttributesEx & (1<<18) but not single targeted)
+    switch (spellInfo->Id)
+    {
+        case 1833:                                          // Cheap Shot
+        case 4538:                                          // Extract Essence (group targets)
+        case 5106:                                          // Crystal Flash (group targets)
+        case 5530:                                          // Mace Stun Effect
+        case 5648:                                          // Stunning Blast, rank 1
+        case 5649:                                          // Stunning Blast, rank 2
+        case 5726:                                          // Stunning Blow, Rank 1
+        case 5727:                                          // Stunning Blow, Rank 2
+        case 6927:                                          // Shadowstalker Slash, Rank 1
+        case 8399:                                          // Sleep (group targets)
+        case 9159:                                          // Sleep (armor triggred affect)
+        case 9256:                                          // Deep Sleep (group targets)
+        case 13902:                                         // Fist of Ragnaros
+        case 14902:                                         // Cheap Shot
+        case 16104:                                         // Crystallize (group targets)
+        case 17286:                                         // Crusader's Hammer (group targets)
+        case 20277:                                         // Fist of Ragnaros (group targets)
+        case 20669:                                         // Sleep (group targets)
+        case 20683:                                         // Highlord's Justice
+        case 24664:                                         // Sleep (group targets)
+            return false;
+    }
+    // cannot be cast on another target while not cooled down anyway
+    if (GetSpellDuration(spellInfo) < int32(GetSpellRecoveryTime(spellInfo)))
+        return false;
 
-	// all other single target spells have if it has AttributesEx
-	if (spellInfo->AttributesEx & (1 << 18))
-		return true;
+    // all other single target spells have if it has AttributesEx
+    if (spellInfo->AttributesEx & (1 << 18))
+        return true;
 
-	// other single target
-	// Fear
-	if ((spellInfo->SpellIconID == 98 && spellInfo->SpellVisual == 336)
-		// Banish
-		|| (spellInfo->SpellIconID == 96 && spellInfo->SpellVisual == 1305)
-		) return true;
+    // other single target
+    // Fear
+    if ((spellInfo->SpellIconID == 98 && spellInfo->SpellVisual == 336)
+            // Banish
+            || (spellInfo->SpellIconID == 96 && spellInfo->SpellVisual == 1305)
+       ) return true;
 
-	// TODO - need found Judgements rule
-	switch (GetSpellSpecific(spellInfo->Id))
-	{
-	case SPELL_JUDGEMENT:
-		return true;
-	default:
-		break;
-	}
-
-	return false;
+    return false;
 }
 
 bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
 {
-	// TODO - need better check
-	// Equal icon and spellfamily
-	if (spellInfo1->SpellFamilyName == spellInfo2->SpellFamilyName &&
-		spellInfo1->SpellIconID == spellInfo2->SpellIconID)
-		return true;
+    // TODO - need better check
+    // Equal icon and spellfamily
+    if (spellInfo1->SpellFamilyName == spellInfo2->SpellFamilyName &&
+            spellInfo1->SpellIconID == spellInfo2->SpellIconID)
+        return true;
 
-	// TODO - need found Judgements rule
-	SpellSpecific spec1 = GetSpellSpecific(spellInfo1->Id);
-	// spell with single target specific types
-	switch (spec1)
-	{
-	case SPELL_JUDGEMENT:
-	case SPELL_MAGE_POLYMORPH:
-		if (GetSpellSpecific(spellInfo2->Id) == spec1)
-			return true;
-		break;
-	default:
-		break;
-	}
+    SpellSpecific spec1 = GetSpellSpecific(spellInfo1->Id);
+    // spell with single target specific types
+    switch (spec1)
+    {
+        case SPELL_MAGE_POLYMORPH:
+            if (GetSpellSpecific(spellInfo2->Id) == spec1)
+                return true;
+            break;
+        default:
+            break;
+    }
 
-	return false;
+    return false;
 }
 
 SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form)

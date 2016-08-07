@@ -1889,6 +1889,10 @@ void Aura::HandleAuraModSkill(bool apply, bool /*Real*/)
     uint32 prot = GetSpellProto()->EffectMiscValue[m_effIndex];
     int32 points = GetModifier()->m_amount;
 
+	//custom for Anticipation;
+	float basePointsPerLevel = GetSpellProto()->EffectRealPointsPerLevel[m_effIndex];
+	points += int32(((Player*)GetTarget())->getLevel() * basePointsPerLevel);
+	
     ((Player*)GetTarget())->ModifySkillBonus(prot, (apply ? points : -points), m_modifier.m_auraname == SPELL_AURA_MOD_SKILL_TALENT);
     if (prot == SKILL_DEFENSE)
         ((Player*)GetTarget())->UpdateDefenseBonusesMod();
@@ -4493,6 +4497,9 @@ void Aura::PeriodicTick()
             uint32 heal = pCaster->SpellHealingBonusTaken(pCaster, spellProto, int32(new_damage * multiplier), DOT, GetStackAmount());
 
             int32 gain = pCaster->DealHeal(pCaster, heal, spellProto);
+            // Health Leech effects do not generate healing aggro
+            if (m_modifier.m_auraname == SPELL_AURA_PERIODIC_LEECH)
+                break;
             pCaster->getHostileRefManager().threatAssist(pCaster, gain * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
             break;
         }
