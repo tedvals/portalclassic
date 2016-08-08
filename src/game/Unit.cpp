@@ -1428,6 +1428,16 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
 
     damageInfo->hitOutCome = RollMeleeOutcomeAgainst(damageInfo->target, damageInfo->attackType);
 
+	//custom
+	// Chance 50% to break Who dares win
+
+	if (HasAura(34554))
+		if (!roll_chance_i(50))
+		{
+			damageInfo->hitOutCome = MELEE_HIT_DODGE;			
+		}
+
+
     // Disable parry or dodge for ranged attack
     if (damageInfo->attackType == RANGED_ATTACK)
     {
@@ -2170,6 +2180,8 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
 MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackType attType) const
 {
     // This is only wrapper
+	// custom
+
 
     // Miss chance based on melee
     float miss_chance = MeleeMissChanceCalc(pVictim, attType);
