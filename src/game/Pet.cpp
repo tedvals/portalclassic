@@ -927,7 +927,7 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
         }
     }
 
-    SavePetToDB(mode);
+	SavePetToDB(mode, owner);
     AddObjectToRemoveList();
     m_removed = true;
 }
