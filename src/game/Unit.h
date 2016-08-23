@@ -1819,6 +1819,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         bool isHover() const { return HasAuraType(SPELL_AURA_HOVER); }
 
+	void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
+        void KnockBackWithAngle(float angle, float horizontalSpeed, float verticalSpeed);
+
         void _RemoveAllAuraMods();
         void _ApplyAllAuraMods();
 

@@ -9288,3 +9288,34 @@ void Unit::ForceHealthAndPowerUpdate()
     ForceValuesUpdateAtIndex(UNIT_FIELD_POWER1 + powerType);
     ForceValuesUpdateAtIndex(UNIT_FIELD_MAXPOWER1 + powerType);
 }
+
+void Unit::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed)
+{
+    float angle = this == target ? GetOrientation() + M_PI_F : target->GetAngle(this);
+    KnockBackWithAngle(angle, horizontalSpeed, verticalSpeed);
+}
+
+void Unit::KnockBackWithAngle(float angle, float horizontalSpeed, float verticalSpeed)
+{
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        ((Player*)this)->GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
+    }
+    else
+    {
+        float vsin = sin(angle);
+        float vcos = cos(angle);
+        float moveTimeHalf = verticalSpeed / Movement::gravity;
+        float max_height = -Movement::computeFallElevation(moveTimeHalf, false, -verticalSpeed);
+
+        float dis = 2 * moveTimeHalf * horizontalSpeed;
+        float ox, oy, oz;
+        GetPosition(ox, oy, oz);
+        float fx = ox + dis * vcos;
+        float fy = oy + dis * vsin;
+        float fz = oz + 0.5f;
+        GetMap()->GetHitPosition(ox, oy, oz + 0.5f, fx, fy, fz, GetPhaseMask(), -0.5f);
+        UpdateAllowedPositionZ(fx, fy, fz);
+        GetMotionMaster()->MoveJump(fx, fy, fz, horizontalSpeed, max_height);
+    }
+}

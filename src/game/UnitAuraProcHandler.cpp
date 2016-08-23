@@ -1357,13 +1357,53 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
                 return SPELL_AURA_PROC_FAILED;
 
             triggered_spell_id = 24406;
+// accumulated chance to finish the cooldown for Bestial Wrath
+  		    if (GetTypeId() == TYPEID_PLAYER)
+		    {
+                    	const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+                    	for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+                    	{
+                        	SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+                        	if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->Id == 19574) && GetSpellRecoveryTime(spellInfo) > 0)
+				{
+					if ((Player*)this)->RollAccumChance())
+                            			((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+					}
+                        else
+			{
+			   (Player*)this)->AddAccumChance(2);
+                            ++itr;
+			}
+                    }
+
             break;
         } 
         case 4309: 
         {													
-			triggered_spell_id = 17941;                     // Shadow Trance (Warlock Nightfall)
+		triggered_spell_id = 17941;                     // Shadow Trance (Warlock Nightfall)
+ // accumulated chance to finish the cooldown for Amplify Curse
+  		if (GetTypeId() == TYPEID_PLAYER)
+		    {
+                    	const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+                    	for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+                    	{
+                        	SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+                        	if (spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && (spellInfo->Id == 18288) && GetSpellRecoveryTime(spellInfo) > 0)
+				{
+					if ((Player*)this)->RollAccumChance())
+                            			((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+					}
+                        else
+			{
+			   (Player*)this)->AddAccumChance(4);
+                            ++itr;
+			}
+                    }
             break;
         }
+
 		case 5001:
 		{													//Custom
 			triggered_spell_id = 34269;                     // Lunar Eclipse (Druid)
@@ -1376,7 +1416,27 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5003:
 		{
-			triggered_spell_id = 34273;                     // Overload (Shaman)
+		    triggered_spell_id = 34273;                     // Overload (Shaman)
+ // accumulated chance to finish the cooldown for Elemental Mastery
+		    if (GetTypeId() == TYPEID_PLAYER)
+		    {
+                    	const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+                    	for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+                    	{
+                        	SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+                        	if (spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && spellInfo->Id == 16166 && GetSpellRecoveryTime(spellInfo) > 0)
+				{
+					if ((Player*)this)->RollAccumChance())
+                            			((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+					}
+                        else
+			{
+			   (Player*)this)->AddAccumChance(5);
+                            ++itr;
+			}
+                    }
+
 			break;
 		}
 		case 5010:
@@ -1397,6 +1457,25 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		case 5013:
 		{
 			triggered_spell_id = 34533;                     // Cunningness (Hunter)
+ // accumulated chance to finish the cooldown for Bestial Wrath
+  		    if (GetTypeId() == TYPEID_PLAYER)
+		    {
+                    	const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+                    	for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+                    	{
+                        	SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+                        	if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->Id == 19574) && GetSpellRecoveryTime(spellInfo) > 0)
+				{
+					if ((Player*)this)->RollAccumChance())
+                            			((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+					}
+                        else
+			{
+			   (Player*)this)->AddAccumChance(5);
+                            ++itr;
+			}
+                    }
 			break;
 		}
 		case 5014:
@@ -1406,17 +1485,55 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5015:
 		{
-			triggered_spell_id = 34540;                     // Cobra reflexes (Hunter)
+			triggered_spell_id = 34540;                     // Marksman (Hunter)
 			break;
 		}
 		case 5016:
 		{
-			triggered_spell_id = 34582;                     // Cobra reflexes (Hunter)
+			triggered_spell_id = 34582;                     // Fire and Frost (Mage)
+		// accumulated chance to finish the cooldown of Combustion and Cold Snap
+		    if (GetTypeId() == TYPEID_PLAYER)
+		    {
+                    	const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+                    	for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+                    	{
+                        	SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+                        	if (spellInfo->SpellFamilyName == SPELLFAMILY_MAGE && (spellInfo->Id == 11129||spellInfo->Id == 12472) && GetSpellRecoveryTime(spellInfo) > 0)
+				{
+					if ((Player*)this)->RollAccumChance())
+                            			((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+					}
+                        else
+			{
+			   (Player*)this)->AddAccumChance(4);
+                            ++itr;
+			}
+                    }
 			break;
 		}
 		case 5017:
 		{
 			triggered_spell_id = 34095;                     // Enlightment (Priest)
+// accumulated chance to finish the cooldown of Power Infusion
+		    if (GetTypeId() == TYPEID_PLAYER)
+		    {
+                    	const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+                    	for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+                    	{
+                        	SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+
+                        	if (spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && (spellInfo->Id == 10060) && GetSpellRecoveryTime(spellInfo) > 0)
+				{
+					if ((Player*)this)->RollAccumChance())
+                            			((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+					}
+                        else
+			{
+			   (Player*)this)->AddAccumChance(8);
+                            ++itr;
+			}
+                    }
 			break;
 		}
 		case 5018:

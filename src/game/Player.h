@@ -1385,7 +1385,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsNeedCastPassiveLikeSpellAtLearn(SpellEntry const* spellInfo) const;
         bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index, bool castOnSelf) const override;
 
-        void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
+        //void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
 
         void SendProficiency(ItemClass itemClass, uint32 itemSubclassMask);
         void SendInitialSpells();
@@ -2271,6 +2271,8 @@ class MANGOS_DLL_SPEC Player : public Unit
 		uint32 adventure_level;
 		uint32 adventure_group_level;
 		uint32 adventure_xp;
+//custom 
+		uint8 m_AccumChance;
 		
 		public:
 		void AddAdventureXP(int32 xp);
@@ -2279,6 +2281,19 @@ class MANGOS_DLL_SPEC Player : public Unit
 		uint32 GetAdventureLevel();
 
 		bool CanReforgeItem(Item* itemTarget);
+
+		void AddAccumChance(uint8 chance) { m_AccumChance += chance; }
+		void ResetAccumChance()	{m_AccumChance = 0 };
+		bool RollAccumChance() 
+		{ 
+			if (urand(0, 100) < m_AccumChance) 
+			{
+				ResetAccumChance();
+				return true;
+			} 
+			else return false; 
+		}  
+
 
 		protected:		
 		void ResetAdventureLevel();

@@ -809,6 +809,8 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
 		adventure_xp = 0;
 	}
 
+	ResetAccumChance();
+
     return true;
 }
 
@@ -13571,6 +13573,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     // cleanup aura list explicitly before skill load where some spells can be applied
     RemoveAllAuras();
+    ResetAccumChance();
 
     // make sure the unit is considered out of combat for proper loading
     ClearInCombat();
@@ -18944,11 +18947,13 @@ bool Player::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex
     return Unit::IsImmuneToSpellEffect(spellInfo, index, castOnSelf);
 }
 
+/*
 void Player::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed)
 {
     float angle = this == target ? GetOrientation() + M_PI_F : target->GetAngle(this);
     GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
 }
+*/
 
 AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& miscRequirement)
 {
