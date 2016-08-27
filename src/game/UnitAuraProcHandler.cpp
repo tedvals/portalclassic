@@ -1551,6 +1551,11 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 			triggered_spell_id = 34554; break;			
 			break;
 		}
+		case 5021:
+		{
+			triggered_spell_id = 34461;                     // Ice veins (Mage)
+			break;
+		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus
         {
             // Chance 50%
