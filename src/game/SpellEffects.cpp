@@ -212,7 +212,7 @@ void Spell::EffectResurrectNew(SpellEffectIndex eff_idx)
     if (!unitTarget->IsInWorld())
         return;
 
-    Player* pTarget = ((Player*)unitTarget);
+    Player* pTarget = (Player*)unitTarget;
 
     if (pTarget->isRessurectRequested())      // already have one active request
         return;
@@ -368,13 +368,13 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
 		    int32 hasteModBasePoints1 = energy * combo;
 		    int32 hasteModBasePoints2 = energy * combo;
                     
-		    m_caster->SetPower(POWER_ENERGY, 0);					}
+		    m_caster->SetPower(POWER_ENERGY, 0);					
 
-                    // FIXME: custom spell required this aura state by some unknown reason, we not need remove it anyway
-                    m_caster->ModifyAuraState(AURA_STATE_BERSERKING, true);
-                    m_caster->CastCustomSpell(m_caster, 34459, &hasteModBasePoints0, &hasteModBasePoints1, &hasteModBasePoints2, true, nullptr);
-                }    
-		break;
+            // FIXME: custom spell required this aura state by some unknown reason, we not need remove it anyway
+            m_caster->ModifyAuraState(AURA_STATE_BERSERKING, true);
+            m_caster->CastCustomSpell(m_caster, 34459, &hasteModBasePoints0, &hasteModBasePoints1, &hasteModBasePoints2, true, nullptr);
+            }    
+			break;
             	
             }
             case SPELLFAMILY_ROGUE:
@@ -5094,7 +5094,7 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
    if (!unitTarget)
         return;
 
-   if (!(Creature*)unitTarget->IsWorldBoss())
+   if (!((Creature*)unitTarget)->IsWorldBoss())
 	unitTarget->KnockBackFrom(m_caster, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
 }
 

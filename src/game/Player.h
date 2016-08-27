@@ -2284,7 +2284,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 		bool CanReforgeItem(Item* itemTarget);
 
 		void AddAccumChance(uint8 chance) { m_AccumChance += chance; }
-		void ResetAccumChance()	{m_AccumChance = 0 };
+		void ResetAccumChance()	{ m_AccumChance = 0; }
 		bool RollAccumChance() 
 		{ 
 			if (urand(0, 100) < m_AccumChance) 
