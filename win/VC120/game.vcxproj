@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_NoPCH|Win32">
@@ -346,7 +346,6 @@
     <ClCompile Include="..\..\src\game\AI\CreatureEventAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\CreatureEventAIMgr.cpp" />
     <ClCompile Include="..\..\src\game\AI\GuardAI.cpp" />
-    <ClCompile Include="..\..\src\game\AI\GuardianAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\NullCreatureAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\PetAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\ReactorAI.cpp" />
@@ -513,7 +512,6 @@
     <ClInclude Include="..\..\src\game\AI\CreatureEventAI.h" />
     <ClInclude Include="..\..\src\game\AI\CreatureEventAIMgr.h" />
     <ClInclude Include="..\..\src\game\AI\GuardAI.h" />
-    <ClInclude Include="..\..\src\game\AI\GuardianAI.h" />
     <ClInclude Include="..\..\src\game\AI\NullCreatureAI.h" />
     <ClInclude Include="..\..\src\game\AI\PetAI.h" />
     <ClInclude Include="..\..\src\game\AI\PossessedAI.h" />

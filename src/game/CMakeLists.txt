@@ -43,7 +43,6 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/shared
 )
 
-<<<<<<< HEAD
 set(SRC_GRP_PLAYERBOT
 	playerbot/config.h
 	playerbot/PlayerbotAI.cpp
@@ -70,7 +69,8 @@ set(SRC_GRP_PLAYERBOT
 	playerbot/PlayerbotWarlockAI.h
 	playerbot/PlayerbotWarriorAI.cpp
 	playerbot/PlayerbotWarriorAI.h
-=======
+)
+
 set(SRC_GRP_AI
     AI/AggressorAI.cpp
     AI/AggressorAI.h
@@ -96,7 +96,6 @@ set(SRC_GRP_AI
     AI/ReactorAI.h
     AI/TotemAI.cpp
     AI/TotemAI.h
->>>>>>> a7eea43d58ef8173cb6c98d1837bb3fbc40c9a8a
 )
 
 set(SRC_GRP_AHBOT

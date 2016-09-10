@@ -32,7 +32,7 @@
 #include "../AuctionHouseMgr.h"
 #include "../Mail.h"
 #include "../Language.h"
-#include "../CreatureAI.h"
+#include "../AI/CreatureAI.h"
 #include "../LootMgr.h"
 #include "../../scriptdev2/include/sc_grid_searchers.h"
 
