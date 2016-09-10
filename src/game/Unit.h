@@ -999,6 +999,18 @@ enum PowerDefaults
 
 struct SpellProcEventEntry;                                 // used only privately
 
+
+struct CombatData
+{
+public:
+    CombatData(Unit* owner) : threatManager(ThreatManager(owner)), hostileRefManager(HostileRefManager(owner)) {};
+
+    // Manage all Units threatening us
+    ThreatManager threatManager;
+    // Manage all Units that are threatened by us
+    HostileRefManager hostileRefManager;
+};
+
 class MANGOS_DLL_SPEC Unit : public WorldObject
 {
     public:
@@ -1194,7 +1206,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
          * @return false if we weren't attacking already, true otherwise
          * \see Unit::m_attacking
          */
-        void AttackStop(bool targetSwitch = false, bool includingCast = false);
+        bool AttackStop(bool targetSwitch = false, bool includingCast = false);
         /**
          * Removes all attackers from the Unit::m_attackers set and logs it if someone that
          * wasn't attacking it was in the list. Does this check by checking if Unit::AttackStop()
@@ -1685,11 +1697,11 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void TauntFadeOut(Unit* taunter);
         void FixateTarget(Unit* pVictim);
         ObjectGuid GetFixateTargetGuid() const { return m_fixateTargetGuid; }
-        ThreatManager& getThreatManager() { return m_ThreatManager; }
-        ThreatManager const& getThreatManager() const { return m_ThreatManager; }
-        void addHatedBy(HostileReference* pHostileReference) { m_HostileRefManager.insertFirst(pHostileReference); };
+        ThreatManager& getThreatManager() { return m_combatData->threatManager; }
+        ThreatManager const& getThreatManager() const { return m_combatData->threatManager; }
+        void addHatedBy(HostileReference* pHostileReference) { m_combatData->hostileRefManager.insertFirst(pHostileReference); };
         void removeHatedBy(HostileReference* /*pHostileReference*/) { /* nothing to do yet */ }
-        HostileRefManager& getHostileRefManager() { return m_HostileRefManager; }
+        HostileRefManager& getHostileRefManager() { return m_combatData->hostileRefManager; }
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);
         Aura* GetAura(AuraType type, SpellFamily family, uint64 familyFlag, ObjectGuid casterGuid = ObjectGuid());
@@ -1885,6 +1897,17 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void ForceHealthAndPowerUpdate();   // force server to send new value for hp and power (including max)
 
+        // Take possession of an unit (pet, creature, ...)
+        bool TakePossessOf(Unit* possessed);
+
+        // Take possession of a new spawned unit
+        Unit* TakePossessOf(SpellEntry const* spellEntry, uint32 effIdx, float x, float y, float z, float ang);
+
+        // Reset control to player
+        void ResetControlState(bool attackCharmer = true);
+
+        CombatData* m_combatData;
+
     protected:
         explicit Unit();
 
@@ -1896,7 +1919,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         float m_createStats[MAX_STATS];
 
-        AttackerSet m_attackers;
         Unit* m_attacking;
 
         DeathState m_deathState;
@@ -1955,6 +1977,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 m_CombatTimer;
         bool   m_dummyCombatState;                          // Used to keep combat state during some aura
 
+        AttackerSet m_attackers;                            // Used to help know who is currently attacking this unit
         Spell* m_currentSpells[CURRENT_MAX_SPELL];
         uint32 m_castCounter;                               // count casts chain of triggered spells for prevent infinity cast crashes
 
@@ -1964,10 +1987,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         ShortTimeTracker m_movesplineTimer;
 
         Diminishing m_Diminishing;
-        // Manage all Units threatening us
-        ThreatManager m_ThreatManager;
-        // Manage all Units that are threatened by us
-        HostileRefManager m_HostileRefManager;
 
         FollowerRefManager m_FollowingRefManager;
 

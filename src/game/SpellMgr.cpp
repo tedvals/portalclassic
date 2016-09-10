@@ -425,153 +425,153 @@ int32 CompareAuraRanks(uint32 spellId_1, uint32 spellId_2)
 
 SpellSpecific GetSpellSpecific(uint32 spellId)
 {
-	SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
-	if (!spellInfo)
-		return SPELL_NORMAL;
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    if (!spellInfo)
+        return SPELL_NORMAL;
 
-	switch (spellInfo->SpellFamilyName)
-	{
-	case SPELLFAMILY_GENERIC:
-	{
-		// Aspect of the Beast
-		if (spellInfo->Id == 13161)
-			return SPELL_ASPECT;
+    switch (spellInfo->SpellFamilyName)
+    {
+        case SPELLFAMILY_GENERIC:
+        {
+            // Aspect of the Beast
+            if (spellInfo->Id == 13161)
+                return SPELL_ASPECT;
 
-		// Food / Drinks (mostly)
-		if (spellInfo->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED)
-		{
-			bool food = false;
-			bool drink = false;
-			for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
-			{
-				switch (spellInfo->EffectApplyAuraName[i])
-				{
-					// Food
-				case SPELL_AURA_MOD_REGEN:
-				case SPELL_AURA_OBS_MOD_HEALTH:
-					food = true;
-					break;
-					// Drink
-				case SPELL_AURA_MOD_POWER_REGEN:
-				case SPELL_AURA_OBS_MOD_MANA:
-					drink = true;
-					break;
-				default:
-					break;
-				}
-			}
+            // Food / Drinks (mostly)
+            if (spellInfo->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED)
+            {
+                bool food = false;
+                bool drink = false;
+                for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
+                {
+                    switch (spellInfo->EffectApplyAuraName[i])
+                    {
+                        // Food
+                        case SPELL_AURA_MOD_REGEN:
+                        case SPELL_AURA_OBS_MOD_HEALTH:
+                            food = true;
+                            break;
+                        // Drink
+                        case SPELL_AURA_MOD_POWER_REGEN:
+                        case SPELL_AURA_OBS_MOD_MANA:
+                            drink = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
-			if (food && drink)
-				return SPELL_FOOD_AND_DRINK;
-			else if (food)
-				return SPELL_FOOD;
-			else if (drink)
-				return SPELL_DRINK;
-		}
-		else
-		{
-			// Well Fed buffs (must be exclusive with Food / Drink replenishment effects, or else Well Fed will cause them to be removed)
-			// SpellIcon 2560 is Spell 46687, does not have this flag
-			if (spellInfo->HasAttribute(SPELL_ATTR_EX2_FOOD_BUFF))
-				return SPELL_WELL_FED;
-		}
-		break;
-	}
-	case SPELLFAMILY_MAGE:
-	{
-		// family flags 18(Molten), 25(Frost/Ice), 28(Mage)
-		if (spellInfo->SpellFamilyFlags & uint64(0x12000000))
-			return SPELL_MAGE_ARMOR;
+                if (food && drink)
+                    return SPELL_FOOD_AND_DRINK;
+                else if (food)
+                    return SPELL_FOOD;
+                else if (drink)
+                    return SPELL_DRINK;
+            }
+            else
+            {
+                // Well Fed buffs (must be exclusive with Food / Drink replenishment effects, or else Well Fed will cause them to be removed)
+                // SpellIcon 2560 is Spell 46687, does not have this flag
+                if (spellInfo->HasAttribute(SPELL_ATTR_EX2_FOOD_BUFF))
+                    return SPELL_WELL_FED;
+            }
+            break;
+        }
+        case SPELLFAMILY_MAGE:
+        {
+            // family flags 18(Molten), 25(Frost/Ice), 28(Mage)
+            if (spellInfo->SpellFamilyFlags & uint64(0x12000000))
+                return SPELL_MAGE_ARMOR;
 
-		if (spellInfo->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_CONFUSE && spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
-			return SPELL_MAGE_POLYMORPH;
+            if (spellInfo->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_CONFUSE && spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
+                return SPELL_MAGE_POLYMORPH;
 
-		break;
-	}
-	case SPELLFAMILY_WARRIOR:
-	{
-		if (spellInfo->SpellFamilyFlags & uint64(0x00008000010000))
-			return SPELL_POSITIVE_SHOUT;
+            break;
+        }
+        case SPELLFAMILY_WARRIOR:
+        {
+            if (spellInfo->SpellFamilyFlags & uint64(0x00008000010000))
+                return SPELL_POSITIVE_SHOUT;
 
-		break;
-	}
-	case SPELLFAMILY_WARLOCK:
-	{
-		// only warlock curses have this
-		if (spellInfo->Dispel == DISPEL_CURSE)
-			return SPELL_CURSE;
-		break;
-	}
-	case SPELLFAMILY_PRIEST:
-	{
-		// "Well Fed" buff from Blessed Sunfruit, Blessed Sunfruit Juice, Alterac Spring Water
-		if (spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING) &&
-			(spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_AUTOATTACK) &&
-			(spellInfo->SpellIconID == 52 || spellInfo->SpellIconID == 79))
-			return SPELL_WELL_FED;
-		break;
-	}
-	case SPELLFAMILY_HUNTER:
-	{
-		// only hunter stings have this
-		if (spellInfo->Dispel == DISPEL_POISON)
-			return SPELL_STING;
+            break;
+        }
+        case SPELLFAMILY_WARLOCK:
+        {
+            // only warlock curses have this
+            if (spellInfo->Dispel == DISPEL_CURSE)
+                return SPELL_CURSE;
+            break;
+        }
+        case SPELLFAMILY_PRIEST:
+        {
+            // "Well Fed" buff from Blessed Sunfruit, Blessed Sunfruit Juice, Alterac Spring Water
+            if (spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING) &&
+                    (spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_AUTOATTACK) &&
+                    (spellInfo->SpellIconID == 52 || spellInfo->SpellIconID == 79))
+                return SPELL_WELL_FED;
+            break;
+        }
+        case SPELLFAMILY_HUNTER:
+        {
+            // only hunter stings have this
+            if (spellInfo->Dispel == DISPEL_POISON)
+                return SPELL_STING;
 
-		// only hunter aspects have this (one have generic family), if exclude Auto Shot
-		if (spellInfo->activeIconID == 122 && spellInfo->Id != 75)
-			return SPELL_ASPECT;
+            // only hunter aspects have this (one have generic family), if exclude Auto Shot
+            if (spellInfo->activeIconID == 122 && spellInfo->Id != 75)
+                return SPELL_ASPECT;
 
-		break;
-	}
-	case SPELLFAMILY_PALADIN:
-	{
-		if (IsSealSpell(spellInfo))
-			return SPELL_SEAL;
+            break;
+        }
+        case SPELLFAMILY_PALADIN:
+        {
+            if (IsSealSpell(spellInfo))
+                return SPELL_SEAL;
 
-		if (spellInfo->IsFitToFamilyMask(uint64(0x0000000010000100)))
-			return SPELL_BLESSING;
+            if (spellInfo->IsFitToFamilyMask(uint64(0x0000000010000180)))
+                return SPELL_BLESSING;
 
-		if ((spellInfo->IsFitToFamilyMask(uint64(0x0000000020180400))) && spellInfo->baseLevel != 0)
-			return SPELL_JUDGEMENT;
+            if ((spellInfo->IsFitToFamilyMask(uint64(0x0000000020180400))) && spellInfo->baseLevel != 0)
+                return SPELL_JUDGEMENT;
 
-		for (int i = 0; i < 3; ++i)
-		{
-			// only paladin auras have this
-			if (spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AREA_AURA_PARTY)
-				return SPELL_AURA;
-		}
-		break;
-	}
-	case SPELLFAMILY_SHAMAN:
-	{
-		if (IsElementalShield(spellInfo))
-			return SPELL_ELEMENTAL_SHIELD;
+            for (int i = 0; i < 3; ++i)
+            {
+                // only paladin auras have this
+                if (spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AREA_AURA_PARTY)
+                    return SPELL_AURA;
+            }
+            break;
+        }
+        case SPELLFAMILY_SHAMAN:
+        {
+            if (IsElementalShield(spellInfo))
+                return SPELL_ELEMENTAL_SHIELD;
 
-		break;
-	}
+            break;
+        }
 
-	case SPELLFAMILY_POTION:
-		return sSpellMgr.GetSpellElixirSpecific(spellInfo->Id);
-	}
+        case SPELLFAMILY_POTION:
+            return sSpellMgr.GetSpellElixirSpecific(spellInfo->Id);
+    }
 
-	// only warlock armor/skin have this (in additional to family cases)
-	if (spellInfo->SpellVisual == 130 && spellInfo->SpellIconID == 89)
-	{
-		return SPELL_WARLOCK_ARMOR;
-	}
+    // only warlock armor/skin have this (in additional to family cases)
+    if (spellInfo->SpellVisual == 130 && spellInfo->SpellIconID == 89)
+    {
+        return SPELL_WARLOCK_ARMOR;
+    }
 
-	// Tracking spells (exclude Well Fed, some other always allowed cases)
-	if ((IsSpellHaveAura(spellInfo, SPELL_AURA_TRACK_CREATURES) ||
-		IsSpellHaveAura(spellInfo, SPELL_AURA_TRACK_RESOURCES) ||
-		IsSpellHaveAura(spellInfo, SPELL_AURA_TRACK_STEALTHED)) &&
-		(spellInfo->HasAttribute(SPELL_ATTR_EX_UNK17) || spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_MOUNTED)))
-		return SPELL_TRACKER;
+    // Tracking spells (exclude Well Fed, some other always allowed cases)
+    if ((IsSpellHaveAura(spellInfo, SPELL_AURA_TRACK_CREATURES) ||
+            IsSpellHaveAura(spellInfo, SPELL_AURA_TRACK_RESOURCES)  ||
+            IsSpellHaveAura(spellInfo, SPELL_AURA_TRACK_STEALTHED)) &&
+            (spellInfo->HasAttribute(SPELL_ATTR_EX_UNK17) || spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_MOUNTED)))
+        return SPELL_TRACKER;
 
-	// elixirs can have different families, but potion most ofc.
-	if (SpellSpecific sp = sSpellMgr.GetSpellElixirSpecific(spellInfo->Id))
-		return sp;
+    // elixirs can have different families, but potion most ofc.
+    if (SpellSpecific sp = sSpellMgr.GetSpellElixirSpecific(spellInfo->Id))
+        return sp;
 
-	return SPELL_NORMAL;
+    return SPELL_NORMAL;
 }
 
 // target not allow have more one spell specific from same caster
