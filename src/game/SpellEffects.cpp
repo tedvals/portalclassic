@@ -2666,14 +2666,16 @@ void Spell::EffectDistract(SpellEffectIndex /*eff_idx*/)
     // target must be OK to do this
     if (unitTarget->hasUnitState(UNIT_STAT_CAN_NOT_REACT))
         return;
-	//fix Distract ability was not set the target orientation properly
-	float angle = unitTarget->GetAngle(m_targets.m_destX, m_targets.m_destY);
-	unitTarget->SetFacingTo(angle);
-    unitTarget->clearUnitState(UNIT_STAT_MOVING);
-	unitTarget->SetOrientation(angle);
+
+	unitTarget->clearUnitState(UNIT_STAT_MOVING);
 
     if (unitTarget->GetTypeId() == TYPEID_UNIT)
         unitTarget->GetMotionMaster()->MoveDistract(damage * IN_MILLISECONDS);
+
+    float orientation = unitTarget->GetAngle(m_targets.m_destX, m_targets.m_destY);
+    unitTarget->SetFacingTo(orientation);
+    // This is needed to change the facing server side as well (and it must be after the MoveDistract call)
+    unitTarget->SetOrientation(orientation);
 }
 
 void Spell::EffectPickPocket(SpellEffectIndex /*eff_idx*/)
@@ -2998,7 +3000,7 @@ void Spell::EffectAddHonor(SpellEffectIndex /*eff_idx*/)
 
     // honor-spells don't scale with level and won't be casted by an item
     // also we must use damage (spelldescription says +25 honor but damage is only 24)
-    ((Player*)unitTarget)->AddHonorCP(float(damage), HONORABLE, 0, 0);
+    ((Player*)unitTarget)->AddHonorCP(float(damage), HONORABLE);
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "SpellEffect::AddHonor (spell_id %u) rewards %u honor points (non scale) for player: %u", m_spellInfo->Id, damage, ((Player*)unitTarget)->GetGUIDLow());
 }
 
