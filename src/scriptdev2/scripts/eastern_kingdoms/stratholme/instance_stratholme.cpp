@@ -35,15 +35,18 @@ instance_stratholme::instance_stratholme(Map* pMap) : ScriptedInstance(pMap),
     m_uiMindlessCount(0),
     m_uiPostboxesUsed(0),
     m_uiAuriusSummonTimer(0),
-    m_bIsSlaughterDoorOpen(false)    
+    m_bIsSlaughterDoorOpen(false)
 {
     Initialize();
 }
 
 void instance_stratholme::Initialize()
 {
-	memset(&m_uiGateTrapTimers, 0, sizeof(m_uiGateTrapTimers)*2);
-	memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+    memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+
+    for (uint8 i = 0; i < 2; ++i)
+        for (uint8 j = 0; j < 3; ++j)
+            m_uiGateTrapTimers[i][j] = 0;
 }
 
 void instance_stratholme::OnPlayerEnter(Player* pPlayer)
