@@ -170,6 +170,11 @@ inline bool IsSealSpell(SpellEntry const* spellInfo)
     return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, uint64(0x000000000A000200));
 }
 
+inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
+{
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+}
+
 inline bool IsElementalShield(SpellEntry const* spellInfo)
 {
     // family flags 10 (Lightning), 42 (Earth), 37 (Water), proc shield from T2 8 pieces bonus
@@ -194,6 +199,18 @@ inline bool IsPassiveSpellStackableWithRanks(SpellEntry const* spellProto)
     return !IsSpellHaveEffect(spellProto, SPELL_EFFECT_APPLY_AURA);
 }
 
+inline bool IsAutocastable(SpellEntry const* spellInfo)
+{
+    return !(spellInfo->HasAttribute(SPELL_ATTR_EX4_UNAUTOCASTABLE) || spellInfo->HasAttribute(SPELL_ATTR_PASSIVE));
+}
+
+inline bool IsAutocastable(uint32 spellId)
+{
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    if (!spellInfo)
+        return false;
+    return IsAutocastable(spellInfo);
+}
 
 inline bool IsDeathOnlySpell(SpellEntry const* spellInfo)
 {
@@ -220,6 +237,12 @@ bool IsExplicitNegativeTarget(uint32 targetA);
 
 bool IsSingleTargetSpell(SpellEntry const* spellInfo);
 bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2);
+
+// TODO: research binary spells
+inline bool IsBinarySpell(SpellEntry const* spellInfo)
+{
+    return false;
+}
 
 inline bool IsCasterSourceTarget(uint32 target)
 {
@@ -426,7 +449,7 @@ inline bool IsChanneledSpell(SpellEntry const* spellInfo)
 
 inline bool IsNeedCastSpellAtFormApply(SpellEntry const* spellInfo, ShapeshiftForm form)
 {
-    if ((!spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !spellInfo->HasAttribute(SPELL_ATTR_UNK7)) || !form)
+    if ((!spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !spellInfo->HasAttribute(SPELL_ATTR_HIDDEN_CLIENTSIDE)) || !form)
         return false;
 
     // passive spells with SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT are already active without shapeshift, do no recast!
@@ -440,6 +463,12 @@ inline bool IsNeedCastSpellAtOutdoor(SpellEntry const* spellInfo)
     return (spellInfo->HasAttribute(SPELL_ATTR_OUTDOORS_ONLY) && spellInfo->HasAttribute(SPELL_ATTR_PASSIVE));
 }
 
+inline bool IsReflectableSpell(SpellEntry const* spellInfo)
+{
+    return spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MAGIC && !spellInfo->HasAttribute(SPELL_ATTR_ABILITY)
+        && !spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_BE_REFLECTED) && !spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)
+        && !spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !IsPositiveSpell(spellInfo);
+}
 
 inline bool NeedsComboPoints(SpellEntry const* spellInfo)
 {

@@ -1236,7 +1236,7 @@ void CreatureEventAI::EnterCombat(Unit* enemy)
 
 void CreatureEventAI::AttackStart(Unit* who)
 {
-    if (!who || m_reactState == REACT_PASSIVE)
+    if (!who || m_reactState == REACT_PASSIVE || m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE))
         return;
 
     if (m_creature->Attack(who, m_MeleeEnabled))
@@ -1290,10 +1290,7 @@ void CreatureEventAI::MoveInLineOfSight(Unit* who)
         if (m_creature->IsWithinDistInMap(who, attackRadius) && m_creature->IsWithinLOSInMap(who))
         {
             if (!m_creature->getVictim())
-            {
                 AttackStart(who);
-                who->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
-            }
             else if (m_creature->GetMap()->IsDungeon())
             {
                 m_creature->AddThreat(who);
@@ -1374,7 +1371,8 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
                 SetCombatMovement(true, true);
         }
         else if (m_MeleeEnabled && m_creature->CanReachWithMeleeAttack(victim)
-            && !(m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_MELEE))
+            && !(m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE)
+            || m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_MELEE))
             DoMeleeAttackIfReady();
     }
 }
