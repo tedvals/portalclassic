@@ -802,6 +802,8 @@ void World::LoadConfigSettings(bool reload)
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY, "Custom.RandomizeItemMinQuality", 2);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF, "Custom.RandomizeItemDiff", 5);
 	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 10);
+	//Resistance Penaty
+	setConfig(CONFIG_BOOL_RESISTANCE_PENALTY, "Custom.ResistancePenalty", false);
 
 	
     sLog.outString();

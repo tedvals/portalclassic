@@ -5662,6 +5662,20 @@ uint32 Unit::SpellDamageBonusTaken(Unit* pCaster, SpellEntry const* spellProto, 
     float TakenTotalMod = 1.0f;
     int32 TakenTotal = 0;
 
+
+	//Resistance Penalty Mod
+	bool resPenalty = sWorld.getConfig(CONFIG_BOOL_RESISTANCE_PENALTY);
+
+	if (GetTypeId() == TYPEID_PLAYER)
+	{		
+		uint32 spellResistance = GetResistance((SpellSchools)spellProto->School);
+
+		if (resPenalty && ((spellResistance + 10) - getLevel() < 0))
+			TakenTotalMod = (getLevel() - spellResistance + 10)/60.f;
+	}
+	//End
+
+
     // ..taken
     TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, schoolMask);
 
