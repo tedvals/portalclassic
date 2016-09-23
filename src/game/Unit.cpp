@@ -596,7 +596,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
     }
 
     // Get in CombatState
-    if (pVictim != this && damagetype != DOT && (!spellProto || !spellProto->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO)))
+    if (pVictim != this && damagetype != DOT && (!spellProto || (!IsPositiveSpellTargetMode(spellProto, this, pVictim) && !spellProto->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO))))
     {
         SetInCombatWith(pVictim);
         pVictim->SetInCombatWith(this);
@@ -2709,7 +2709,7 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, bool 
 
     // All positive spells can`t miss
     // TODO: client not show miss log for this spells - so need find info for this in dbc and use it!
-    if (IsPositiveSpell(spell->Id))
+    if (IsPositiveSpell(spell->Id, this, pVictim))
         return SPELL_MISS_NONE;
 
     // Check for immune (use charges)
@@ -5781,7 +5781,7 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
             // taken
             if (pVictim)
             {
-                if (!IsPositiveSpell(spellProto->Id))
+                if (!IsPositiveSpell(spellProto->Id, this, pVictim))
                 {
                     // Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE
                     crit_chance += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE, schoolMask);
@@ -7476,12 +7476,17 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
     if (Player* modOwner = GetSpellModOwner())
         modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value);
 
-    if (spellProto->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION) && spellProto->spellLevel &&
-            spellProto->Effect[effect_index] != SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
-            spellProto->Effect[effect_index] != SPELL_EFFECT_KNOCK_BACK &&
-            (spellProto->Effect[effect_index] != SPELL_EFFECT_APPLY_AURA || spellProto->EffectApplyAuraName[effect_index] != SPELL_AURA_MOD_DECREASE_SPEED))
-        value = int32(value * 0.25f * exp(getLevel() * (70 - spellProto->spellLevel) / 1000.0f));
-
+    if (spellProto->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION) && spellProto->spellLevel)
+    {
+        if (spellProto->EffectApplyAuraName[effect_index])
+            value += int32(std::max(0, int32(getLevel() - spellProto->maxLevel)) * basePointsPerLevel);
+        else if (spellProto->Effect[effect_index] != SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
+                 spellProto->Effect[effect_index] != SPELL_EFFECT_KNOCK_BACK &&
+                 !IsControlledByPlayer())
+        {
+            value = int32(value * 0.25f * exp(getLevel() * (70 - spellProto->spellLevel) / 1000.0f));
+        }
+    }
     return value;
 }
 
