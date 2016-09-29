@@ -2258,6 +2258,44 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
 
             break;
         }
+        case ATTACKING_TARGET_NEAREST_BY:
+        case ATTACKING_TARGET_FARTHEST_AWAY:
+        {
+            float distance = -1;
+            Unit* suitableTarget = nullptr;
+
+            while (itr != threatlist.end())
+            {
+                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
+                {
+                    if (selectFlags && MeetsSelectAttackingRequirement(pTarget, pSpellInfo, selectFlags))
+                    {
+                        float combatDistance = Creature::GetCombatDistance(pTarget, false);
+
+                        if (target == ATTACKING_TARGET_NEAREST_BY)
+                        {
+                            if (!suitableTarget || combatDistance < distance)
+                            {
+                                distance = combatDistance;
+                                suitableTarget = pTarget;
+                            }
+                        }
+                        else // FARTHEST
+                        {
+                            if (combatDistance > distance)
+                            {
+                                distance = combatDistance;
+                                suitableTarget = pTarget;
+                            }
+                        }
+                    }
+                }
+
+                ++itr;
+            }
+
+            return suitableTarget;
+        }
     }
 
     return nullptr;
