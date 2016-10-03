@@ -11,7 +11,6 @@
 #include "../Language.h"
 #include "../WaypointMovementGenerator.h"
 #include "../LootMgr.h"
-
 class LoginQueryHolder;
 class CharacterHandler;
 
@@ -323,7 +322,14 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
 
                 case TEXTEMOTE_EAT:
                 case TEXTEMOTE_DRINK:
+                {
+                    for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
+                    {
+                        Player* const bot = it->second;
+                        bot->GetPlayerbotAI()->Feast();
+                    }
                     return;
+                }
 
                 // emote to attack selected target
                 case TEXTEMOTE_POINT:
@@ -543,15 +549,16 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
 
         case CMSG_LOOT_ROLL:
         {
-            WorldPacket p(packet);  //WorldPacket packet for CMSG_LOOT_ROLL, (8+4+1)
+            WorldPacket p(packet);    //WorldPacket packet for CMSG_LOOT_ROLL, (8+4+1)
             ObjectGuid Guid;
             uint32 itemSlot;
             uint8 rollType;
+            
 
-            p.rpos(0);              //reset packet pointer
-            p >> Guid;              //guid of the lootable target
-            p >> itemSlot;          //loot index
-            p >> rollType;          //need,greed or pass on roll
+			p.rpos(0);              //reset packet pointer
+			p >> Guid;              //guid of the lootable target
+			p >> itemSlot;          //loot index
+			p >> rollType;          //need,greed or pass on roll
 
             for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
             {
@@ -565,21 +572,21 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
                 if (!group)
                     return;
 
-                // check that the bot did not already vote
-                if (rollType >= ROLL_NOT_EMITED_YET)
-                    return;
-
-                Loot* loot = sLootMgr.GetLoot(bot, Guid);
-
-                if (!loot)
-                {
-                    sLog.outError("LootMgr::PlayerVote> Error cannot get loot object info!");
-                    return;
-                }
-
-                LootItem* lootItem = loot->GetLootItemInSlot(itemSlot);
-
-                ItemPrototype const *pProto = lootItem->itemProto;
+				// check that the bot did not already vote
+				if (rollType >= ROLL_NOT_EMITED_YET)
+					 return;
+				
+					Loot* loot = sLootMgr.GetLoot(bot, Guid);
+				
+					if (!loot)
+					 {
+					sLog.outError("LootMgr::PlayerVote> Error cannot get loot object info!");
+					return;
+					}
+				
+					LootItem* lootItem = loot->GetLootItemInSlot(itemSlot);
+				
+					ItemPrototype const *pProto = lootItem->itemProto;
                 if (!pProto)
                     return;
 
@@ -591,9 +598,9 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
                         choice = 2; // Greed
                 }
                 else
-                    choice = 0;     // Pass
+                    choice = 0; // Pass
 
-                sLootMgr.PlayerVote(bot, Guid, itemSlot, RollVote(choice));
+				sLootMgr.PlayerVote(bot, Guid, itemSlot, RollVote(choice));
             }
             return;
         }
@@ -853,7 +860,7 @@ void PlayerbotMgr::RemoveAllBotsFromGroup()
     for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); m_master->GetGroup() && it != GetPlayerBotsEnd(); ++it)
     {
         Player* const bot = it->second;
-        if (bot->IsInSameGroupWith(m_master))
+		if (bot->IsInSameRaidWith(m_master))
             m_master->GetGroup()->RemoveMember(bot->GetObjectGuid(), 0);
     }
 }
@@ -991,7 +998,7 @@ uint32 Player::GetSpec()
 
         if (!talentTabInfo)
             continue;
-
+            
         if ((classMask & talentTabInfo->ClassMask) == 0)
             continue;
 
@@ -1002,7 +1009,7 @@ uint32 Player::GetSpec()
             {
                 if (row == 0 && spec == 0)
                     spec = talentInfo->TalentTab;
-
+                    
                 if (talentInfo->Row > row)
                 {
                     row = talentInfo->Row;
@@ -1064,14 +1071,14 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
         return false;
     }
 
-    uint32 accountId = sObjectMgr.GetPlayerAccountIdByGUID(guid);
+    /*uint32 accountId = sObjectMgr.GetPlayerAccountIdByGUID(guid);
     if (accountId != m_session->GetAccountId())
     {
         PSendSysMessage("|cffff0000You may only add bots from the same account.");
         SetSentErrorMessage(true);
         return false;
     }
-
+	*/
     // create the playerbot manager if it doesn't already exist
     PlayerbotMgr* mgr = m_session->GetPlayer()->GetPlayerbotMgr();
     if (!mgr)
@@ -1124,7 +1131,7 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
             return false;
         }
         CharacterDatabase.DirectPExecute("UPDATE characters SET online = 1 WHERE guid = '%u'", guid.GetCounter());
-        mgr->LoginPlayerBot(guid);
+		mgr->LoginPlayerBot(guid, mgr->GetMaster()->GetSession()->GetAccountId());
         PSendSysMessage("Bot added successfully.");
     }
     else if (cmdStr == "remove" || cmdStr == "logout")
@@ -1136,7 +1143,7 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
             return false;
         }
         CharacterDatabase.DirectPExecute("UPDATE characters SET online = 0 WHERE guid = '%u'", guid.GetCounter());
-		mgr->LoginPlayerBot(guid, mgr->GetMaster()->GetSession()->GetAccountId());
+        mgr->LogoutPlayerBot(guid);
         PSendSysMessage("Bot removed successfully.");
     }
     else if (cmdStr == "co" || cmdStr == "combatorder")

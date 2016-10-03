@@ -1278,6 +1278,7 @@ void World::SetInitialWorldSettings()
     sLog.outString();
 
     PlayerbotMgr::SetInitialWorldSettings();
+    //Get playerbot configuration file
 
     sLog.outString("---------------------------------------");
     sLog.outString("      CMANGOS: World initialized       ");

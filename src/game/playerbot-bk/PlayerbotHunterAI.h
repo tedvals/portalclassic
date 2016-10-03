@@ -2,7 +2,7 @@
 #define _PLAYERHUNTERAI_H
 
 #include "PlayerbotClassAI.h"
-
+#define CRYSTAL_WATER 8079
 enum
 {
     SPELL_HUNTER
@@ -122,7 +122,8 @@ private:
            WYVERN_STING,
            AIMED_SHOT,
            VOLLEY,
-           BLACK_ARROW;
+           BLACK_ARROW,
+		   TRANQUILIZING_SHOT;
 
     uint32 RAPTOR_STRIKE,
            WING_CLIP,

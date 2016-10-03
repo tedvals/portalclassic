@@ -35,7 +35,6 @@ public:
 
     void LoginPlayerBot(ObjectGuid guid);
 	void LoginPlayerBot(ObjectGuid guid, uint32 masterAccountId);
-
     void LogoutPlayerBot(ObjectGuid guid);
     Player* GetPlayerBot (ObjectGuid guid) const;
     Player* GetMaster() const { return m_master; };

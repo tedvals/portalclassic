@@ -1,5 +1,6 @@
 #include "PlayerbotClassAI.h"
 #include "Common.h"
+#include "../SpellAuras.h"
 
 PlayerbotClassAI::PlayerbotClassAI(Player* const master, Player* const bot, PlayerbotAI* const ai)
 {
@@ -39,6 +40,10 @@ bool PlayerbotClassAI::EatDrinkBandage(bool bMana, unsigned char foodPercent, un
         foodItem = m_ai->FindFood();
     if (drinkItem || foodItem)
     {
+        // have it wait until drinks are finished and/or combat begins
+        //m_ai->SetCombatOrder(PlayerbotAI::ORDERS_TEMP_WAIT_OOC);
+        //SetWait(25); // seconds
+		//m_ai->SetIgnoreUpdateTime(25);
         if (drinkItem)
         {
             m_ai->TellMaster("I could use a drink.");
@@ -127,49 +132,6 @@ CombatManeuverReturns PlayerbotClassAI::Buff(bool (*BuffHelper)(PlayerbotAI*, ui
     }
 
     return RETURN_NO_ACTION_OK;
-}
-
-/**
- * NeedGroupBuff()
- * return boolean Returns true if more than two targets in the bot's group need the group buff.
- *
- * params:groupBuffSpellId uint32 the spell ID of the group buff like Arcane Brillance
- * params:singleBuffSpellId uint32 the spell ID of the single target buff equivalent of the group buff like Arcane Intellect for group buff Arcane Brillance
- * return false if false is returned, the bot is expected to perform a buff check for the single target buff of the group buff.
- *
- */
-bool PlayerbotClassAI::NeedGroupBuff(uint32 groupBuffSpellId, uint32 singleBuffSpellId)
-{
-    if (!m_bot) return false;
-
-    uint8 numberOfGroupTargets = 0;
-    // Check group players to avoid using regeant and mana with an expensive group buff
-    // when only two players or less need it
-    if (m_bot->GetGroup())
-    {
-        Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
-        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-        {
-            Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
-            if (!groupMember || !groupMember->isAlive())
-                continue;
-            // Check if group member needs buff
-            if (!groupMember->HasAura(groupBuffSpellId, EFFECT_INDEX_0) && !groupMember->HasAura(singleBuffSpellId, EFFECT_INDEX_0))
-                numberOfGroupTargets++;
-            // Don't forget about pet
-            Pet * pet = groupMember->GetPet();
-            if (pet && !pet->HasAuraType(SPELL_AURA_MOD_UNATTACKABLE) && (pet->HasAura(groupBuffSpellId, EFFECT_INDEX_0) || pet->HasAura(singleBuffSpellId, EFFECT_INDEX_0)))
-                numberOfGroupTargets++;
-        }
-        // treshold set to 2 targets because beyond that value, the group buff cost is cheaper in mana
-        if (numberOfGroupTargets < 3)
-            return false;
-
-        // In doubt, buff everyone
-        return true;
-    }
-    else
-        return false;   // no group, no group buff
 }
 
 /**
@@ -314,7 +276,7 @@ Player* PlayerbotClassAI::GetResurrectionTarget(JOB_TYPE type, bool bMustBeOOC)
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
             Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
-            if (!groupMember || groupMember->isAlive())
+			if (!groupMember || groupMember->isAlive())
                 continue;
             JOB_TYPE job = GetTargetJob(groupMember);
             if (job & type)
@@ -331,6 +293,171 @@ Player* PlayerbotClassAI::GetResurrectionTarget(JOB_TYPE type, bool bMustBeOOC)
         return m_master;
 
     return nullptr;
+}
+//get target by job
+Player* PlayerbotClassAI::GetTarget(JOB_TYPE type)
+{
+	if (!m_ai)  return nullptr;
+	if (!m_bot) return nullptr;
+	//if (!m_bot->isAlive() || m_bot->IsInDuel()) return nullptr;
+	//if (bMustBeOOC && m_bot->isInCombat()) return nullptr;
+
+	// First, fill the list of targets
+	if (m_bot->GetGroup())
+	{
+		// define seperately for sorting purposes - DO NOT CHANGE ORDER!
+		std::vector<heal_priority> targets;
+
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
+			if (!groupMember)
+				continue;
+			JOB_TYPE job = GetTargetJob(groupMember);
+			if (job & type)
+				targets.push_back(heal_priority(groupMember, 0, job));
+		}
+
+		// Sorts according to type: Healers first, tanks next, then master followed by DPS, thanks to the order of the TYPE enum
+		std::sort(targets.begin(), targets.end());
+
+		if (targets.size())
+			return targets.at(0).p;
+	}
+	else if (!m_master->isAlive())
+		return m_master;
+
+	return nullptr;
+}
+
+Player* PlayerbotClassAI::GetDispalTarget(JOB_TYPE type, bool bMustBeOOC)
+{
+	if (!m_ai)  return NULL;
+	if (!m_bot) return NULL;
+	if (!m_bot->isAlive()) return NULL;
+	//if (bMustBeOOC && m_bot->isInCombat()) return NULL;
+
+	// First, fill the list of targets
+	if (m_bot->GetGroup())
+	{
+		// define seperately for sorting purposes - DO NOT CHANGE ORDER!
+		std::vector<heal_priority> targets;
+		std::vector<heal_priority> targets1;
+		std::vector<heal_priority> targets2;
+		std::vector<heal_priority> targets3;
+
+		Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *groupMember = sObjectMgr.GetPlayer(itr->guid);
+			if (!groupMember)
+				continue;
+			uint32 dispelMask = GetDispellMask(DISPEL_CURSE);
+			uint32 dispelMask1 = GetDispellMask(DISPEL_DISEASE);
+			uint32 dispelMask2 = GetDispellMask(DISPEL_POISON);
+			uint32 dispelMask3 = GetDispellMask(DISPEL_MAGIC);
+
+			Unit::SpellAuraHolderMap const& auras = groupMember->GetSpellAuraHolderMap();
+
+			for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+			{
+				SpellAuraHolder *holder = itr->second;
+
+
+				if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_CURSE)
+					{
+
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets.push_back(heal_priority(groupMember, 0, job));
+					}
+
+				}
+				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask1)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_DISEASE)
+					{
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets1.push_back(heal_priority(groupMember, 0, job));
+					}
+				}
+				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask2)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_POISON)
+					{
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets2.push_back(heal_priority(groupMember, 0, job));
+					}
+				}
+				else if ((1 << holder->GetSpellProto()->Dispel) & dispelMask3)
+				{
+					if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC && (holder->GetSpellProto()->Id != 6136 && holder->GetSpellProto()->Id != 7321 && holder->GetSpellProto()->Id != 12484 && holder->GetSpellProto()->Id != 12485 && holder->GetSpellProto()->Id != 12486 && holder->GetSpellProto()->Id != 15850 && holder->GetSpellProto()->Id != 16927 && holder->GetSpellProto()->Id != 18101 && holder->GetSpellProto()->Id != 20005))
+					{
+						bool positive = true;
+						if (!holder->IsPositive())
+							positive = false;
+						else
+							positive = (holder->GetSpellProto()->AttributesEx & SPELL_ATTR_NEGATIVE) == 0;
+
+						// do not remove positive auras if friendly target
+						//               negative auras if non-friendly target
+						if (positive == groupMember->IsFriendlyTo(m_bot))
+							continue;
+						JOB_TYPE job = GetTargetJob(groupMember);
+						if (job & type)
+							targets3.push_back(heal_priority(groupMember, 0, job));
+					}
+				}
+				else continue;
+			}
+			std::sort(targets.begin(), targets.end());
+			std::sort(targets1.begin(), targets1.end());
+			std::sort(targets2.begin(), targets2.end());
+			std::sort(targets3.begin(), targets3.end());
+
+			uint8 pClass = m_bot->getClass();
+
+			if (pClass == CLASS_MAGE || pClass == CLASS_DRUID)
+			{
+				if (targets.size())
+					return targets.at(0).p;
+			}
+			if (pClass == CLASS_PRIEST || pClass == CLASS_PALADIN || pClass == CLASS_SHAMAN)
+			{
+				if (targets1.size())
+					return targets1.at(0).p;
+			}
+			if (pClass == CLASS_DRUID || pClass == CLASS_PALADIN || pClass == CLASS_SHAMAN)
+			{
+				if (targets2.size())
+					return targets2.at(0).p;
+			}
+			if (pClass == CLASS_PRIEST || pClass == CLASS_PALADIN)
+			{
+				if (targets3.size())
+					return targets3.at(0).p;
+			}
+		}
+
+
+
+
+
+
+	}
+
+		// Sorts according to type: Healers first, tanks next, then master followed by DPS, thanks to the order of the TYPE enum
+		
+	
+	else if (!m_master->isAlive())
+		return m_master;
+
+	return NULL;
 }
 
 JOB_TYPE PlayerbotClassAI::GetTargetJob(Player* target)
@@ -431,4 +558,123 @@ CombatManeuverReturns PlayerbotClassAI::CastSpellWand(uint32 nextAction, Unit *p
         return (m_ai->CastSpell(nextAction, *pTarget) ? RETURN_CONTINUE : RETURN_NO_ACTION_ERROR);
     else
         return (m_ai->CastSpell(nextAction) ? RETURN_CONTINUE : RETURN_NO_ACTION_ERROR);
+}
+
+void PlayerbotClassAI::usetrinkets()
+{
+	Item *Trinkets1, *Trinkets2;
+	Trinkets1 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET1);
+	Trinkets2 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_TRINKET2);
+
+	
+
+	if (Trinkets1)
+	{
+		const ItemPrototype* const pItemProto1 = Trinkets1->GetProto();
+
+		for (int32 Index1 = 0; Index1 < MAX_ITEM_PROTO_SPELLS; ++Index1)
+		{
+
+
+			if (pItemProto1->Spells[Index1].SpellTrigger != 0)
+				continue;
+			if (pItemProto1->Spells[Index1].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto1->Spells[Index1].SpellId)))
+			{
+				switch (pItemProto1->ItemId)
+				{
+				case 11832:
+					if (m_ai->GetManaPercent() < 90)
+				{
+					m_ai->UseItem(Trinkets1);
+					
+				}
+					break;
+				case 11819:
+					if ( m_ai->GetManaPercent() < 80)
+					{
+						m_ai->UseItem(Trinkets1);
+					}
+					break;
+				case 833:
+                    if (m_ai->GetHealthPercent() < 60)
+				{
+					m_ai->UseItem(Trinkets1);
+				}
+					break;
+				case 19024:
+					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets1);
+					}
+					break;
+				case 19953:
+					if (m_bot->HasSpellCooldown(14287))
+					{
+						m_ai->UseItem(Trinkets1);
+					}
+					break;
+				default:
+					m_ai->UseItem(Trinkets1);
+					break;
+				}
+				
+				
+				
+				
+					
+				
+			}
+		}
+	}
+	if (Trinkets2)
+	{
+		const ItemPrototype* const pItemProto2 = Trinkets2->GetProto();
+		for (int32 Index2 = 0; Index2 < MAX_ITEM_PROTO_SPELLS; ++Index2)
+		{
+
+			if (pItemProto2->Spells[Index2].SpellTrigger != 0)
+				continue;
+			if (pItemProto2->Spells[Index2].SpellTrigger == 0 && (!m_bot->HasSpellCooldown(pItemProto2->Spells[Index2].SpellId)))
+			{
+				switch (pItemProto2->ItemId)
+				{
+				case 11832:
+					if (m_ai->GetManaPercent() < 90)
+					{
+						m_ai->UseItem(Trinkets2);
+
+					}
+					break;
+				case 11819:
+					if (m_ai->GetManaPercent() < 80)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				case 833:
+					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				case 19024:
+					if (m_ai->GetHealthPercent() < 60)
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				case 19953:
+					if (m_bot->HasSpellCooldown(14287))
+					{
+						m_ai->UseItem(Trinkets2);
+					}
+					break;
+				default:
+					m_ai->UseItem(Trinkets2);
+					break;
+				}
+			}
+		}
+	}
+	
 }

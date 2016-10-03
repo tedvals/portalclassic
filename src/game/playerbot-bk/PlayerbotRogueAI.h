@@ -14,6 +14,7 @@ enum
 
 enum RoguePoisonDisplayId
 {
+
     DEADLY_POISON_DISPLAYID         = 13707,
     CRIPPLING_POISON_DISPLAYID      = 13708,
     MIND_NUMBLING_POISON_DISPLAYID  = 13709,
@@ -75,7 +76,6 @@ private:
     CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
     CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
     CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
-    Item* FindPoison() const;
 
     // COMBAT
     uint32 ADRENALINE_RUSH,
@@ -115,7 +115,7 @@ private:
     // racial
     uint32 STONEFORM,
            ESCAPE_ARTIST,
-           PERCEPTION,
+		   PERCEPTION,
            SHADOWMELD,
            BLOOD_FURY,
            WAR_STOMP,

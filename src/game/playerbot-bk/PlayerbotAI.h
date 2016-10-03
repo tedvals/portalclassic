@@ -20,14 +20,14 @@ class PlayerbotMgr;
 
 enum RacialTraits
 {
-    BERSERKING_ALL                 = 26297,
-    BLOOD_FURY_ALL                 = 20572,
-    ESCAPE_ARTIST_ALL              = 20589,
-    PERCEPTION_ALL                 = 20600,
-    SHADOWMELD_ALL                 = 20580,
-    STONEFORM_ALL                  = 20594,
-    WAR_STOMP_ALL                  = 20549,
-    WILL_OF_THE_FORSAKEN_ALL       = 7744
+	BERSERKING_ALL = 26297,
+	BLOOD_FURY_ALL = 20572,
+	ESCAPE_ARTIST_ALL = 20589,
+	PERCEPTION_ALL = 20600,
+	SHADOWMELD_ALL = 20580,
+	STONEFORM_ALL = 20594,
+	WAR_STOMP_ALL = 20549,
+	WILL_OF_THE_FORSAKEN_ALL = 7744
 };
 
 enum ProfessionSpells
@@ -40,6 +40,8 @@ enum ProfessionSpells
     FIRST_AID_1                    = 3273,
     FISHING_1                      = 7620,
     HERB_GATHERING_1               = 2366,
+    INSCRIPTION_1                  = 45357,
+    JEWELCRAFTING_1                = 25229,
     MINING_1                       = 2575,
     SKINNING_1                     = 8613,
     TAILORING_1                    = 3908
@@ -48,34 +50,17 @@ enum ProfessionSpells
 enum NotableItems
 {
     // Skeleton Keys
-    SILVER_SKELETON_KEY            = 15869,
-    GOLDEN_SKELETON_KEY            = 15870,
-    TRUESILVER_SKELETON_KEY        = 15871,
-    ARCANITE_SKELETON_KEY          = 15872,
+    SILVER_SKELETON_KEY = 15869,
+    GOLDEN_SKELETON_KEY = 15870,
+    TRUESILVER_SKELETON_KEY = 15871,
+    ARCANITE_SKELETON_KEY = 15872,
+    TITANIUM_SKELETON_KEY = 43853,
+    COBALT_SKELETON_KEY = 43854,
     // Lock Charges
-    SMALL_SEAFORIUM_CHARGE         = 4367,
-    LARGE_SEAFORIUM_CHARGE         = 4398,
-    POWERFUL_SEAFORIUM_CHARGE      = 18594
-};
-
-enum SharpeningStoneDisplayId
-{
-    ROUGH_SHARPENING_DISPLAYID          = 24673,
-    COARSE_SHARPENING_DISPLAYID         = 24674,
-    HEAVY_SHARPENING_DISPLAYID          = 24675,
-    SOLID_SHARPENING_DISPLAYID          = 24676,
-    DENSE_SHARPENING_DISPLAYID          = 24677,
-    CONSECRATED_SHARPENING_DISPLAYID    = 24674,    // will not be used because bot can not know if it will face undead targets
-    ELEMENTAL_SHARPENING_DISPLAYID      = 21072
-};
-
-enum WeightStoneDisplayId
-{
-    ROUGH_WEIGHTSTONE_DISPLAYID         = 24683,
-    COARSE_WEIGHTSTONE_DISPLAYID        = 24684,
-    HEAVY_WEIGHTSTONE_DISPLAYID         = 24685,
-    SOLID_WEIGHTSTONE_DISPLAYID         = 24686,
-    DENSE_WEIGHTSTONE_DISPLAYID         = 24687
+    SMALL_SEAFORIUM_CHARGE = 4367,
+    LARGE_SEAFORIUM_CHARGE = 4398,
+    POWERFUL_SEAFORIUM_CHARGE = 18594,
+    ELEMENTAL_SEAFORIUM_CHARGE = 23819
 };
 
 enum MainSpec
@@ -161,6 +146,7 @@ public:
         ORDERS_RESIST_NATURE        = 0x0200,   // resist nature
         ORDERS_RESIST_FROST         = 0x0400,   // resist frost
         ORDERS_RESIST_SHADOW        = 0x0800,   // resist shadow
+		ORDERS_AOE                  = 0x1000,   // SET AOE MODE
 
         // Cumulative orders
         ORDERS_PRIMARY              = 0x0007,
@@ -273,8 +259,8 @@ public:
         HL_TARGET,
         HL_NAME,
         HL_AUCTION
-    };
-
+    };  
+    
 public:
     PlayerbotAI(PlayerbotMgr * const mgr, Player * const bot);
     virtual ~PlayerbotAI();
@@ -346,12 +332,12 @@ public:
     void findNearbyGO();
     // finds nearby creatures, whose UNIT_NPC_FLAGS match the flags specified in item list m_itemIds
     void findNearbyCreature();
-    bool IsElite(Unit* pTarget) const;
-    // Used by bots to check if their target is neutralized (polymorph, shackle or the like). Useful to avoid breaking crowd control
-    bool IsNeutralized(Unit* pTarget);
-    // Make the bots face their target
-    void FaceTarget(Unit* pTarget);
-
+	bool IsElite(Unit* pTarget) const;
+	// Used by bots to check if their target is neutralized (polymorph, shackle or the like). Useful to avoid breaking crowd control
+	bool IsNeutralized(Unit* pTarget);
+	bool IsMyNeutralized(Unit* pTarget);
+	// Make the bots face their target
+	void FaceTarget(Unit* pTarget);
     void MakeSpellLink(const SpellEntry *sInfo, std::ostringstream &out);
     void MakeWeaponSkillLink(const SpellEntry *sInfo, std::ostringstream &out, uint32 skillid);
 
@@ -362,7 +348,9 @@ public:
     Spell* GetCurrentSpell() const;
     uint32 GetCurrentSpellId() { return m_CurrentlyCastingSpellId; }
 
+	uint8 HasAuraStackAmount(uint32 spellId, const Unit& player) const;
     bool HasAura(uint32 spellId, const Unit& player) const;
+	bool HasAuraMY(uint32 spellId, const Unit& player,uint32 guid) const;
     bool HasAura(const char* spellName, const Unit& player) const;
     bool HasAura(const char* spellName) const;
 
@@ -382,17 +370,20 @@ public:
     uint8 GetRageAmount() const;
     uint8 GetEnergyAmount(const Unit& target) const;
     uint8 GetEnergyAmount() const;
+    uint8 GetRunicPower(const Unit& target) const;
+    uint8 GetRunicPower() const;
 
     Item* FindFood() const;
     Item* FindDrink() const;
     Item* FindBandage() const;
+    Item* FindManaPoison() const;
+	Item* FindHealingPoison() const;
     Item* FindMount(uint32 matchingRidingSkill) const;
     Item* FindItem(uint32 ItemId);
     Item* FindItemInBank(uint32 ItemId);
     Item* FindKeyForLockValue(uint32 reqSkillValue);
     Item* FindBombForLockValue(uint32 reqSkillValue);
     Item* FindConsumable(uint32 displayId) const;
-    Item* FindStoneFor(Item* weapon) const;
     bool  FindAmmo() const;
     uint8 _findItemSlot(Item* target);
     bool CanStore();
@@ -433,11 +424,13 @@ public:
     uint32 gQuestFetch;
     void BotDataRestore();
     void CombatOrderRestore();
+    void Feast();
     void InterruptCurrentCastingSpell();
     void Attack(Unit* forcedTarget = nullptr);
     void GetCombatTarget(Unit* forcedTarget = 0);
     void GetDuelTarget(Unit* forcedTarget);
     Unit* GetCurrentTarget() { return m_targetCombat; };
+	Unit* GetProtectTarget() { return m_targetProtect; };
     void DoNextCombatManeuver();
     void DoCombatMovement();
     void SetIgnoreUpdateTime(uint8 t = 0) { m_ignoreAIUpdatesUntilTime = time(nullptr) + t; };
@@ -477,7 +470,7 @@ public:
     bool AddQuest(const uint32 entry, WorldObject* questgiver);
 
     bool IsInCombat();
-    bool IsRegenerating();
+	bool IsRegenerating();
     bool IsGroupInCombat();
     Player* GetGroupTank(); // TODO: didn't want to pollute non-playerbot code but this should really go in group.cpp
     void SetGroupCombatOrder(CombatOrderType co);
@@ -486,10 +479,11 @@ public:
     bool GroupHoTOnTank();
     bool CanPull(Player &fromPlayer);
     bool CastPull();
+	bool CastNeutralize();
     bool GroupTankHoldsAggro();
-    bool CastNeutralize();
     void UpdateAttackerInfo();
     Unit* FindAttacker(ATTACKERINFOTYPE ait = AIT_NONE, Unit *victim = 0);
+	Unit* FindEveryAttacker(ATTACKERINFOTYPE ait = AIT_NONE, Unit *victim = 0);
     uint32 GetAttackerCount() { return m_attackerInfo.size(); };
     void SetCombatOrderByStr(std::string str, Unit *target = 0);
     void SetCombatOrder(CombatOrderType co, Unit *target = 0);
@@ -497,6 +491,7 @@ public:
     CombatOrderType GetCombatOrder() { return this->m_combatOrder; }
     bool IsTank() { return (m_combatOrder & ORDERS_TANK) ? true : false; }
     bool IsHealer() { return (m_combatOrder & ORDERS_HEAL) ? true : false; }
+	bool CanAoe() { return (m_combatOrder & ORDERS_AOE) ? true : false; }
     bool IsDPS() { return (m_combatOrder & ORDERS_ASSIST) ? true : false; }
     bool Impulse() { srand ( time(nullptr) ); return(((rand() % 100) > 50) ? true : false); }
     void SetMovementOrder(MovementOrderType mo, Unit *followTarget = 0);
@@ -535,7 +530,6 @@ private:
     void _HandleCommandStay(std::string &text, Player &fromPlayer);
     void _HandleCommandAttack(std::string &text, Player &fromPlayer);
     void _HandleCommandPull(std::string &text, Player &fromPlayer);
-    void _HandleCommandNeutralize(std::string &text, Player &fromPlayer);
     void _HandleCommandCast(std::string &text, Player &fromPlayer);
     void _HandleCommandSell(std::string &text, Player &fromPlayer);
     void _HandleCommandRepair(std::string &text, Player &fromPlayer);
