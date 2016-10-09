@@ -2663,9 +2663,12 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell)
         // Ignore resistance by self SPELL_AURA_MOD_TARGET_RESISTANCE aura
         targetResistance += (float)GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_TARGET_RESISTANCE, schoolMask);
 
-        rand = irand(0, 10000);
+        rand = irand(0,9999); // exactly 10000 number range
 
-        if (targetResistance / (getLevel() * 5) * 0.75) // compute resistance percentage for binary spell
+        float averageResistance = targetResistance / (getLevel() * 5) * 0.75;
+        averageResistance = averageResistance > 0.75 ? 0.75 : averageResistance; // cant have more than cap
+
+        if (rand < averageResistance*10000) // compute resistance percentage for binary spell
             return SPELL_MISS_RESIST;
     }
 
@@ -7381,7 +7384,7 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
     int32 value = basePoints;
 
     // random damage
-    if (comboDamage != 0 && unitPlayer && target && (target->GetObjectGuid() == unitPlayer->GetComboTargetGuid()))
+    if (comboDamage != 0.0f && unitPlayer && target && (target->GetObjectGuid() == unitPlayer->GetComboTargetGuid() || IsOnlySelfTargeting(spellProto)))
         value += (int32)(comboDamage * comboPoints);
 
     if (Player* modOwner = GetSpellModOwner())
@@ -8728,7 +8731,7 @@ void Unit::SetStandState(uint8 state)
 
 bool Unit::IsPolymorphed() const
 {
-    return GetSpellSpecific(getTransForm()) == SPELL_MAGE_POLYMORPH;
+    return IsSpellMagePolymorph(getTransForm());
 }
 
 void Unit::SetDisplayId(uint32 modelId)
