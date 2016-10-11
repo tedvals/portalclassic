@@ -164,15 +164,15 @@ inline bool IsSpellLastAuraEffect(SpellEntry const* spellInfo, SpellEffectIndex 
 	return true;
 }
 
-inline bool IsSealSpell(SpellEntry const* spellInfo)
-{
-	// Collection of all the seal family flags. No other paladin spell has any of those.
-	return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, uint64(0x000000000A000200));
-}
-
 inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
 {
-	return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+}
+
+inline bool IsSealSpell(SpellEntry const* spellInfo)
+{
+    // Collection of all the seal family flags. No other paladin spell has any of those.
+    return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, uint64(0x000000000A000200));
 }
 
 inline bool IsSpellMagePolymorph(uint32 spellid)
@@ -181,10 +181,6 @@ inline bool IsSpellMagePolymorph(uint32 spellid)
     const SpellEntry* entry = sSpellStore.LookupEntry(spellid);
     return (entry && entry->SpellFamilyName == SPELLFAMILY_MAGE && (entry->SpellFamilyFlags & uint64(0x1000000)) && IsSpellHaveAura(entry, SPELL_AURA_MOD_CONFUSE));
 }
-
-bool IsSingleFromSpellSpecificPerTargetPerCaster(SpellSpecific spellSpec1, SpellSpecific spellSpec2);
-bool IsSingleFromSpellSpecificSpellRanksPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2);
-bool IsSingleFromSpellSpecificSpellRanksPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2);
 
 inline bool IsSpellEffectTriggerSpell(const SpellEntry* entry, SpellEffectIndex effIndex)
 {
@@ -248,8 +244,16 @@ inline bool IsSpellAbleToCrit(const SpellEntry* entry)
 	return false;
 }
 
-bool IsPassiveSpell(uint32 spellId);
-bool IsPassiveSpell(SpellEntry const* spellProto);
+inline bool IsPassiveSpell(SpellEntry const* spellInfo)
+{
+    return spellInfo->HasAttribute(SPELL_ATTR_PASSIVE);
+}
+
+inline bool IsPassiveSpell(uint32 spellId)
+{
+    const SpellEntry* entry = sSpellStore.LookupEntry(spellId);
+    return (entry && IsPassiveSpell(entry));
+}
 
 inline bool IsPassiveSpellStackableWithRanks(SpellEntry const* spellProto)
 {
@@ -289,12 +293,6 @@ inline bool IsNonCombatSpell(SpellEntry const* spellInfo)
 
 bool IsExplicitPositiveTarget(uint32 targetA);
 bool IsExplicitNegativeTarget(uint32 targetA);
-
-bool IsSingleTargetSpell(SpellEntry const* spellInfo);
-inline bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
-{
-    return (IsSingleTargetSpell(spellInfo1) && (spellInfo1->Id == spellInfo2->Id || (spellInfo1->SpellFamilyFlags.Flags == spellInfo2->SpellFamilyFlags.Flags && IsSingleTargetSpell(spellInfo2))));
-}
 
 // TODO: research binary spells
 inline bool IsBinarySpell(SpellEntry const* spellInfo)
@@ -461,6 +459,40 @@ inline bool IsOnlySelfTargeting(SpellEntry const* spellInfo)
 		}
 	}
 	return true;
+}
+
+inline bool IsSingleTargetSpell(SpellEntry const* spellInfo)
+{
+    // Not AoE
+    if (IsAreaOfEffectSpell(spellInfo))
+        return false;
+
+    // Mechanics
+    switch (spellInfo->Mechanic)
+    {
+        case MECHANIC_FEAR:         // Includes: Warlock's Fear, Scare Beast
+        case MECHANIC_TURN:         // Turn Undead
+            // Always single-target in classic
+            return true;
+        case MECHANIC_ROOT:
+        case MECHANIC_SLEEP:        // Includes: Hibernate, Wyvern Sting
+        case MECHANIC_KNOCKOUT:     // Includes: Sap, Gouge
+        case MECHANIC_POLYMORPH:
+        case MECHANIC_BANISH:
+        case MECHANIC_SHACKLE:
+            // Only spells used by players seem to be subjects to single target mechanics in classic
+            return (spellInfo->SpellFamilyName && spellInfo->SpellFamilyFlags.Flags);
+    }
+    // Hunter's Mark mechanics (Mind Vision also uses this spell, but it has no practical side effects)
+    if (IsSpellHaveAura(spellInfo, SPELL_AURA_MOD_STALKED))
+        return true;
+
+    return false;
+}
+
+inline bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
+{
+    return (IsSingleTargetSpell(spellInfo1) && (spellInfo1->Id == spellInfo2->Id || (spellInfo1->SpellFamilyFlags.Flags == spellInfo2->SpellFamilyFlags.Flags && IsSingleTargetSpell(spellInfo2))));
 }
 
 inline bool IsScriptTarget(uint32 target)

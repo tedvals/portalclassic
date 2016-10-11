@@ -4080,8 +4080,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         // totem immunity for channeled spells(needs to be before spell cast)
         // spell attribs for player channeled spells
         if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNEL_TRACK_TARGET)
-                && target->GetTypeId() == TYPEID_UNIT
-                && ((Creature*)target)->IsTotem())
+            && target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->IsTotem())
             return SPELL_FAILED_IMMUNE;
 
         bool non_caster_target = target != m_caster && !IsSpellWithCasterSourceTargetsOnly(m_spellInfo);
@@ -4287,7 +4286,31 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_MORE_POWERFUL_SPELL_ACTIVE;
             }
         }
+
+        // Classic only (seems to be handled client side tbc and later (not verified)) - Only check effect 0
+        // Spells such as Abolish Poison have dispel on effect 1 but should be castable even if target not poisoned
+        if (m_spellInfo->Effect[0] == SPELL_EFFECT_DISPEL)
+        {
+            bool dispelTarget = false;
+            uint32 mechanic = m_spellInfo->EffectMiscValue[0];
+            SpellEntry const* spell = nullptr;
+
+            Unit::SpellAuraHolderMap& Auras = target->GetSpellAuraHolderMap();
+            for (Unit::SpellAuraHolderMap::iterator iter = Auras.begin(); iter != Auras.end(); ++iter)
+            {
+                spell = iter->second->GetSpellProto();
+                if (spell->Dispel == mechanic)
+                {
+                    dispelTarget = true;
+                    break;
+                }
+            }
+
+            if (!dispelTarget)
+                return SPELL_FAILED_NOTHING_TO_DISPEL;
+        }
     }
+
     // zone check
     uint32 zone, area;
     m_caster->GetZoneAndAreaId(zone, area);
@@ -4530,14 +4553,16 @@ SpellCastResult Spell::CheckCast(bool strict)
             {
                 if (m_spellInfo->SpellIconID == 1648)       // Execute
                 {
-                    if (!m_targets.getUnitTarget() || m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.2)
+                    Unit* target = m_targets.getUnitTarget();
+                    if (!target || target->GetHealth() > target->GetMaxHealth() * 0.2)
                         return SPELL_FAILED_BAD_TARGETS;
                 }
                 else if (m_spellInfo->SpellIconID == 156)   // Holy Shock
                 {
+                    Unit* target = m_targets.getUnitTarget();
                     // spell different for friends and enemies
                     // hart version required facing
-                    if (m_targets.getUnitTarget() && !m_caster->IsFriendlyTo(m_targets.getUnitTarget()) && !m_caster->HasInArc(M_PI_F, m_targets.getUnitTarget()))
+                    if (target && !(m_caster->IsFriendlyTo(target) || m_caster->HasInArc(M_PI_F, target)))
                         return SPELL_FAILED_UNIT_NOT_INFRONT;
                 }
                 break;

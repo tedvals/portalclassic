@@ -329,19 +329,6 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
 	}
 }
 
-bool IsPassiveSpell(uint32 spellId)
-{
-	SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
-	if (!spellInfo)
-		return false;
-	return IsPassiveSpell(spellInfo);
-}
-
-bool IsPassiveSpell(SpellEntry const* spellInfo)
-{
-	return spellInfo->HasAttribute(SPELL_ATTR_PASSIVE);
-}
-
 SpellSpecific GetSpellSpecific(uint32 spellId)
 {
     SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
@@ -352,9 +339,15 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
     {
         case SPELLFAMILY_GENERIC:
         {
-            // Aspect of the Beast
-            if (spellInfo->Id == 13161)
-                return SPELL_ASPECT;
+            // Pre-Wrath wrong family spells:
+            switch (spellInfo->Id)
+            {
+                case 687:       // Demon Skin, Rank 1
+                case 696:       // Demon Skin, Rank 2
+                    return SPELL_WARLOCK_ARMOR;
+                case 13161:     // Aspect of the Beast
+                    return SPELL_ASPECT;
+            }
 
             // Food / Drinks (mostly)
             if (spellInfo->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED)
@@ -417,7 +410,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
         case SPELLFAMILY_MAGE:
         {
             // family flags 18(Molten), 25(Frost/Ice), 28(Mage)
-            if (spellInfo->SpellFamilyFlags & uint64(0x12000000))
+            if (spellInfo->IsFitToFamilyMask(uint64(0x12000000)))
                 return SPELL_MAGE_ARMOR;
 
             break;
@@ -429,7 +422,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
                 return SPELL_CURSE;
 
             // Drain Soul and Shadowburn
-            if (spellInfo->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_CHANNEL_DEATH_ITEM)
+            if (IsSpellHaveAura(spellInfo, SPELL_AURA_CHANNEL_DEATH_ITEM))
                 return SPELL_SOUL_CAPTURE;
 
             break;
@@ -449,7 +442,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->Dispel == DISPEL_POISON)
                 return SPELL_STING;
 
-            // only hunter aspects have this (one have generic family), if exclude Auto Shot
+            // only hunter aspects have this (except Aspect of the Beast, which is under general)
             if (spellInfo->activeIconID == 122 && spellInfo->Id != 75)
                 return SPELL_ASPECT;
 
@@ -466,18 +459,15 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if ((spellInfo->IsFitToFamilyMask(uint64(0x0000000020180400))) && spellInfo->baseLevel != 0)
                 return SPELL_JUDGEMENT;
 
-            for (int i = 0; i < 3; ++i)
-            {
-                // only paladin auras have this
-                if (spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AREA_AURA_PARTY)
-                    return SPELL_AURA;
-            }
+            if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_APPLY_AREA_AURA_PARTY))
+                return SPELL_AURA;
+
             break;
         }
         case SPELLFAMILY_SHAMAN:
         {
             // Elemental shields: family flags 10 (Lightning), 42 (Earth), 37 (Water), proc shield from T2 8 pieces bonus
-            if ((spellInfo->SpellFamilyFlags & uint64(0x42000000400)) || spellInfo->Id == 23552)
+            if (spellInfo->IsFitToFamilyMask(uint64(0x42000000400)) || spellInfo->Id == 23552)
                 return SPELL_ELEMENTAL_SHIELD;
 
             break;
@@ -485,12 +475,6 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
 
         case SPELLFAMILY_POTION:
             return sSpellMgr.GetSpellElixirSpecific(spellInfo->Id);
-    }
-
-    // only warlock armor/skin have this (in additional to family cases)
-    if (spellInfo->SpellVisual == 130 && spellInfo->SpellIconID == 89)
-    {
-        return SPELL_WARLOCK_ARMOR;
     }
 
     // Tracking spells (exclude Well Fed, some other always allowed cases)
@@ -504,6 +488,67 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
         return sp;
 
     return SPELL_NORMAL;
+}
+
+// target not allow have more one spell specific from same caster
+bool IsSingleFromSpellSpecificPerTargetPerCaster(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
+{
+	switch (spellSpec1)
+	{
+	case SPELL_BLESSING:
+	case SPELL_AURA:
+	case SPELL_STING:
+	case SPELL_CURSE:
+	case SPELL_ASPECT:
+	case SPELL_JUDGEMENT:
+		return spellSpec1 == spellSpec2;
+	default:
+		return false;
+	}
+}
+
+// target not allow have more one ranks from spell from spell specific per target
+bool IsSingleFromSpellSpecificSpellRanksPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
+{
+	switch (spellSpec1)
+	{
+	case SPELL_BLESSING:
+	case SPELL_AURA:
+	case SPELL_CURSE:
+	case SPELL_ASPECT:
+		return spellSpec1 == spellSpec2;
+	default:
+		return false;
+	}
+}
+
+// target not allow have more one spell specific per target from any caster
+bool IsSingleFromSpellSpecificPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
+{
+	switch (spellSpec1)
+	{
+	case SPELL_SEAL:
+	case SPELL_TRACKER:
+	case SPELL_WARLOCK_ARMOR:
+	case SPELL_MAGE_ARMOR:
+	case SPELL_ELEMENTAL_SHIELD:
+	case SPELL_WELL_FED:
+		return spellSpec1 == spellSpec2;
+	case SPELL_FLASK_ELIXIR:
+		return spellSpec2 == SPELL_FLASK_ELIXIR;
+	case SPELL_FOOD:
+		return spellSpec2 == SPELL_FOOD
+			|| spellSpec2 == SPELL_FOOD_AND_DRINK;
+	case SPELL_DRINK:
+		return spellSpec2 == SPELL_DRINK
+			|| spellSpec2 == SPELL_FOOD_AND_DRINK;
+	case SPELL_FOOD_AND_DRINK:
+		return spellSpec2 == SPELL_FOOD
+			|| spellSpec2 == SPELL_DRINK
+			|| spellSpec2 == SPELL_FOOD_AND_DRINK;
+	default:
+		return false;
+	}
 }
 
 bool IsExplicitPositiveTarget(uint32 targetA)
@@ -535,97 +580,6 @@ bool IsExplicitNegativeTarget(uint32 targetA)
 		break;
 	}
 	return false;
-}
-
-bool IsSingleTargetSpell(SpellEntry const* spellInfo)
-{
-	// Not AoE
-	if (IsAreaOfEffectSpell(spellInfo))
-		return false;
-
-	// Mechanics
-	switch (spellInfo->Mechanic)
-	{
-	case MECHANIC_FEAR:         // Includes: Warlock's Fear, Scare Beast
-	case MECHANIC_TURN:         // Turn Undead
-								// Always single-target in classic
-		return true;
-	case MECHANIC_ROOT:
-	case MECHANIC_SLEEP:        // Includes: Hibernate, Wyvern Sting
-	case MECHANIC_KNOCKOUT:     // Includes: Sap, Gouge
-	case MECHANIC_POLYMORPH:
-	case MECHANIC_BANISH:
-	case MECHANIC_SHACKLE:
-		// Only spells used by players seem to be subjects to single target mechanics in classic
-		return (spellInfo->SpellFamilyName && spellInfo->SpellFamilyFlags.Flags);
-	}
-
-	// Hunter's Mark mechanics (Mind Vision also uses this spell, but it has no practical side effects)
-	if (IsSpellHaveAura(spellInfo, SPELL_AURA_MOD_STALKED))
-		return true;
-
-	return false;
-}
-
-// target not allow have more one spell specific from same caster
-bool IsSingleFromSpellSpecificPerTargetPerCaster(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
- {
-	switch (spellSpec1)
-	{
-		case SPELL_BLESSING:
-		case SPELL_AURA:
-		case SPELL_STING:
-		case SPELL_CURSE:
-		case SPELL_ASPECT:		
-		case SPELL_JUDGEMENT:
-			return spellSpec1 == spellSpec2;
-		default:
-			return false;
-		}
-}
-
-// target not allow have more one ranks from spell from spell specific per target
-bool IsSingleFromSpellSpecificSpellRanksPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
- {
-	switch (spellSpec1)
-	{
-		case SPELL_BLESSING:
-		case SPELL_AURA:
-		case SPELL_CURSE:
-		case SPELL_ASPECT:
-			return spellSpec1 == spellSpec2;
-		default:
-			return false;
-		}
-}
-
-// target not allow have more one spell specific per target from any caster
-bool IsSingleFromSpellSpecificPerTarget(SpellSpecific spellSpec1, SpellSpecific spellSpec2)
- {
-	switch (spellSpec1)
-	{
-		case SPELL_SEAL:
-		case SPELL_TRACKER:
-		case SPELL_WARLOCK_ARMOR:
-		case SPELL_MAGE_ARMOR:
-		case SPELL_ELEMENTAL_SHIELD:
-		case SPELL_WELL_FED:
-			return spellSpec1 == spellSpec2;
-		case SPELL_FLASK_ELIXIR:
-			return  spellSpec2 == SPELL_FLASK_ELIXIR;
-		case SPELL_FOOD:
-			return spellSpec2 == SPELL_FOOD
-			|| spellSpec2 == SPELL_FOOD_AND_DRINK;
-		case SPELL_DRINK:
-			return spellSpec2 == SPELL_DRINK
-			|| spellSpec2 == SPELL_FOOD_AND_DRINK;
-		case SPELL_FOOD_AND_DRINK:
-			return spellSpec2 == SPELL_FOOD
-			|| spellSpec2 == SPELL_DRINK
-			|| spellSpec2 == SPELL_FOOD_AND_DRINK;
-		default:
-			return false;
-	}
 }
 
 SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form)
