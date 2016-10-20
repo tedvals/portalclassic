@@ -375,6 +375,7 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS,                      "Rate.Rage.Loss",                            1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_FOCUS,                          "Rate.Focus",                                1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_LOYALTY,                              "Rate.Loyalty",                              1.0f);
+	setConfigPos(CONFIG_FLOAT_RATE_PET_HAPPINESS_GAIN,                   "Rate.Happiness",                            1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_ENERGY,                         "Rate.Energy",                               1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_SKILL_DISCOVERY,                      "Rate.Skill.Discovery",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_POOR,                       "Rate.Drop.Item.Poor",                       1.0f);

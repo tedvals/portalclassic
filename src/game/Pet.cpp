@@ -1331,15 +1331,16 @@ bool Pet::HaveInDiet(ItemPrototype const* item) const
 
 uint32 Pet::GetCurrentFoodBenefitLevel(uint32 itemlevel)
 {
+	float rate = sWorld.getConfig(CONFIG_FLOAT_RATE_PET_HAPPINESS_GAIN);
     // -5 or greater food level
     if (getLevel() <= itemlevel + 5)                        // possible to feed level 60 pet with level 55 level food for full effect
-        return 35000;
+        return 35000*rate;
     // -10..-6
     else if (getLevel() <= itemlevel + 10)                  // pure guess, but sounds good
-        return 17000;
+        return 17000*rate;
     // -14..-11
     else if (getLevel() <= itemlevel + 14)                  // level 55 food gets green on 70, makes sense to me
-        return 8000;
+        return 8000*rate;
     // -15 or less
     else
         return 0;                                           // food too low level
