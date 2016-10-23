@@ -5541,6 +5541,41 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
                 DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
                 break;
             }
+			case 8005: //Shaman (Natural Guidance)
+			{
+				if (pVictim->GetHealth() < pVictim->GetMaxHealth() * 0.35f)
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+			case 8006: //Paladin (Bringer of Justice)
+			{
+				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * 0.8f)
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+			case 8007: //Mage (Magic Attunement)
+			{
+				if (pVictim->isFrozen() || pVictim->IsStunned())
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+			case 8008: //Warlock (Masochism)
+			{
+				if (GetHealth() < pVictim->GetMaxHealth() * 0.8f)
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+			case 8009: //Warlock (Masochism)
+			{
+				if (pVictim->isFeared() || pVictim->isCharmed())
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
         }
     }
 
@@ -5591,6 +5626,29 @@ uint32 Unit::SpellDamageBonusTaken(Unit* pCaster, SpellEntry const* spellProto, 
 	}
 	//End
 
+
+	// special dummys/class scripts and other effects
+	// =============================================
+	Unit* owner = GetOwner();
+	if (!owner)
+		owner = this;
+
+	// ..done pct (by aura state)
+	AuraList const& mAuraOverrideClassScripts = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+	for (AuraList::const_iterator i = mAuraOverrideClassScripts.begin(); i != mAuraOverrideClassScripts.end(); ++i)
+	{
+		switch ((*i)->GetMiscValue())
+		{
+			// Elemental Warding (Shaman)
+			case 8003:
+			{
+				if (GetHealth() < GetMaxHealth() * 0.35f)
+					TakenTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+		}
+	}
 
     // ..taken
     TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, schoolMask);
@@ -5717,6 +5775,10 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
                         case 911: if (pVictim->isFrozen()) crit_chance += 30.0f; break;
                         case 912: if (pVictim->isFrozen()) crit_chance += 40.0f; break;
                         case 913: if (pVictim->isFrozen()) crit_chance += 50.0f; break;
+						// Animal Instict
+						case 8100: if (pVictim->isFrozen() || pVictim->IsFleeing() || pVictim->IsImmobilized()) crit_chance += 5.0f; break;
+						case 8101: if (pVictim->isFrozen() || pVictim->IsFleeing() || pVictim->IsImmobilized()) crit_chance += 10.0f; break;
+						case 8102: if (pVictim->isFrozen() || pVictim->IsFleeing() || pVictim->IsImmobilized()) crit_chance += 15.0f; break;
                         default:
                             break;
                     }
@@ -5843,12 +5905,22 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
     {
         if (!(*i)->isAffectedOnSpell(spellProto))
             continue;
+
         switch ((*i)->GetModifier()->m_miscvalue)
         {
             case 4415: // Increased Rejuvenation Healing
             case 3736: // Hateful Totem of the Third Wind / Increased Lesser Healing Wave / Savage Totem of the Third Wind
                 DoneTotal += (*i)->GetModifier()->m_amount;
                 break;
+			case 8001: //
+				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * 0.80f)
+					DoneTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+				break;
+			case 8002: //
+				if (pVictim->GetHealth() < pVictim->GetMaxHealth() * 0.20f)
+					DoneTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+				break;
+
             default:
                 break;
         }
@@ -6149,6 +6221,27 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
     if (!owner)
         owner = this;
 
+	// ..done pct (by aura state)
+	AuraList const& mAuraOverrideClassScripts = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+	for (AuraList::const_iterator i = mAuraOverrideClassScripts.begin(); i != mAuraOverrideClassScripts.end(); ++i)
+	{
+		
+		if (!(*i)->isAffectedOnSpell(spellProto))
+			continue;
+
+		switch ((*i)->GetMiscValue())
+		{
+			// Toughness (Warrior)
+			case 8000:
+			{
+				if (pVictim->GetHealth() > GetMaxHealth() * 0.80f)
+					DonePercent *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+		}
+	}
+
     // final calculation
     // =================
 
@@ -6241,6 +6334,28 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackTy
     else
         TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_MELEE_DAMAGE_TAKEN_PCT);
 
+	// special dummys/class scripts and other effects
+	// =============================================
+	Unit* owner = GetOwner();
+	if (!owner)
+		owner = this;
+
+	// ..done pct (by aura state)
+	AuraList const& mAuraOverrideClassScripts = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+	for (AuraList::const_iterator i = mAuraOverrideClassScripts.begin(); i != mAuraOverrideClassScripts.end(); ++i)
+	{
+		switch ((*i)->GetMiscValue())
+		{
+			// Kindle (Mage)
+		case 8004:
+		{
+			if (GetHealth() < GetMaxHealth() * 0.35f)
+				TakenPercent *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+			break;
+		}
+		}
+	}
     // final calculation
     // =================
 
