@@ -2911,6 +2911,21 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit* pVict
                 crit = 0.0f;
                 break;
         }
+
+		// scripted (increase crit chance ... against ... target by x%)
+		AuraList const& mOverrideClassScript = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+		for (AuraList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
+		{
+			switch ((*i)->GetModifier()->m_miscvalue)
+			{
+			// Provocing Actions
+			case 8103: if (pVictim->IsStunned()) crit += 5.0f; break;
+			case 8104: if (pVictim->IsStunned()) crit += 10.0f; break;
+				//
+			default:
+				break;
+			}
+		}
     }
     else
     {
@@ -5779,6 +5794,7 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
 						case 8100: if (pVictim->isFrozen() || pVictim->IsFleeing() || pVictim->IsImmobilized()) crit_chance += 5.0f; break;
 						case 8101: if (pVictim->isFrozen() || pVictim->IsFleeing() || pVictim->IsImmobilized()) crit_chance += 10.0f; break;
 						case 8102: if (pVictim->isFrozen() || pVictim->IsFleeing() || pVictim->IsImmobilized()) crit_chance += 15.0f; break;
+						//
                         default:
                             break;
                     }
@@ -5989,6 +6005,27 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
             }
         }
     }
+
+	// done scripted mod (take it from owner)
+	Unit* owner = GetOwner();
+	if (!owner) owner = this;
+	AuraList const& mOverrideClassScript = owner->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+	for (AuraList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
+	{
+		if (!(*i)->isAffectedOnSpell(spellProto))
+			continue;
+
+		switch ((*i)->GetModifier()->m_miscvalue)
+		{
+			case 8010: //		
+			if (GetHealth() < GetMaxHealth() * 0.35f)
+				TakenTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+			break;
+
+		default:
+			break;
+		}
+	}
 
     // apply benefit affected by spell power implicit coeffs and spell level penalties
     TakenTotal = pCaster->SpellBonusWithCoeffs(spellProto, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
