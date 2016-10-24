@@ -783,6 +783,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 				}
 		}
     m_playerLoading = false;
+	m_clientTimeDelay = 0;
     delete holder;
 }
 

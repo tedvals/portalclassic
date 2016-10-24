@@ -64,78 +64,78 @@ float baseMoveSpeed[MAX_MOVE_TYPE] =
 
 void MovementInfo::Read(ByteBuffer& data)
 {
-    data >> moveFlags;
-    data >> time;
-    data >> pos.x;
-    data >> pos.y;
-    data >> pos.z;
-    data >> pos.o;
+	data >> moveFlags;
+	data >> time;
+	data >> pos.x;
+	data >> pos.y;
+	data >> pos.z;
+	data >> pos.o;
 
-    if (HasMovementFlag(MOVEFLAG_ONTRANSPORT))
-    {
-        data >> t_guid;
-        data >> t_pos.x;
-        data >> t_pos.y;
-        data >> t_pos.z;
-        data >> t_pos.o;
-    }
-    if (HasMovementFlag(MOVEFLAG_SWIMMING))
-    {
-        data >> s_pitch;
-    }
+	if (HasMovementFlag(MOVEFLAG_ONTRANSPORT))
+	{
+		data >> t_guid;
+		data >> t_pos.x;
+		data >> t_pos.y;
+		data >> t_pos.z;
+		data >> t_pos.o;
+	}
+	if (HasMovementFlag(MOVEFLAG_SWIMMING))
+	{
+		data >> s_pitch;
+	}
 
-    data >> fallTime;
+	data >> fallTime;
 
-    if (HasMovementFlag(MOVEFLAG_FALLING))
-    {
-        data >> jump.velocity;
-        data >> jump.sinAngle;
-        data >> jump.cosAngle;
-        data >> jump.xyspeed;
-    }
+	if (HasMovementFlag(MOVEFLAG_FALLING))
+	{
+		data >> jump.velocity;
+		data >> jump.sinAngle;
+		data >> jump.cosAngle;
+		data >> jump.xyspeed;
+	}
 
-    if (HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
-    {
-        data >> u_unk1;                                     // unknown
-    }
+	if (HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
+	{
+		data >> u_unk1;                                     // unknown
+	}
 }
 
 void MovementInfo::Write(ByteBuffer& data) const
 {
-    data << moveFlags;
-    data << time;
-    data << pos.x;
-    data << pos.y;
-    data << pos.z;
-    data << pos.o;
+	data << moveFlags;
+	data << time;
+	data << pos.x;
+	data << pos.y;
+	data << pos.z;
+	data << pos.o;
 
-    if (HasMovementFlag(MOVEFLAG_ONTRANSPORT))
-    {
-        data << t_guid;
-        data << t_pos.x;
-        data << t_pos.y;
-        data << t_pos.z;
-        data << t_pos.o;
-    }
-    if (HasMovementFlag(MOVEFLAG_SWIMMING))
-    {
-        data << s_pitch;
-    }
+	if (HasMovementFlag(MOVEFLAG_ONTRANSPORT))
+	{
+		data << t_guid;
+		data << t_pos.x;
+		data << t_pos.y;
+		data << t_pos.z;
+		data << t_pos.o;
+	}
+	if (HasMovementFlag(MOVEFLAG_SWIMMING))
+	{
+		data << s_pitch;
+	}
 
-    data << fallTime;
+	data << fallTime;
 
-    if (HasMovementFlag(MOVEFLAG_FALLING))
-    {
-        data << jump.velocity;
-        data << jump.sinAngle;
-        data << jump.cosAngle;
-        data << jump.xyspeed;
-    }
+	if (HasMovementFlag(MOVEFLAG_FALLING))
+	{
+		data << jump.velocity;
+		data << jump.sinAngle;
+		data << jump.cosAngle;
+		data << jump.xyspeed;
+	}
 
-    if (HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
-    {
-        data << u_unk1;                                     // unknown
-    }
+	if (HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
+	{
+		data << u_unk1;                                     // unknown
+	}
 }
 
 ////////////////////////////////////////////////////////////
