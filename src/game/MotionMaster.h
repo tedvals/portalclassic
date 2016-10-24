@@ -22,6 +22,7 @@
 #include "Common.h"
 #include <stack>
 #include <vector>
+#include "GameObject.h"
 
 class MovementGenerator;
 class Unit;

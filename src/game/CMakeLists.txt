@@ -404,11 +404,8 @@ set(SRC_GRP_WORLD_HANDLERS
 )
 
 set(LIBRARY_SRCS
-<<<<<<< HEAD
-	${SRC_GRP_PLAYERBOT}
-=======
+    ${SRC_GRP_PLAYERBOT}
     ${SRC_GRP_AI}
->>>>>>> a7eea43d58ef8173cb6c98d1837bb3fbc40c9a8a
     ${SRC_GRP_AHBOT}
     ${SRC_GRP_BATTLEGROUND}
     ${SRC_GRP_CHAT_COMMANDS}
@@ -425,15 +422,15 @@ set(LIBRARY_SRCS
     pchdef.h
 )
 
-<<<<<<< HEAD
+
 source_group("PlayerBot"
   FILES
     ${SRC_GRP_PLAYERBOT}
-=======
+)
+
 source_group("AI"
   FILES
     ${SRC_GRP_AI}
->>>>>>> a7eea43d58ef8173cb6c98d1837bb3fbc40c9a8a
 )
 
 source_group("AhBot"
