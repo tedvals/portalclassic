@@ -92,6 +92,17 @@ enum SpellAuraInterruptFlags
     AURA_INTERRUPT_FLAG_DIRECT_DAMAGE               = 0x01000000    // 24   removed by any direct damage
 };
 
+enum SpellPartialResist
+{
+    SPELL_PARTIAL_RESIST_NONE = 0,  // 0%, full hit
+    SPELL_PARTIAL_RESIST_PCT_25,    // 25%
+    SPELL_PARTIAL_RESIST_PCT_50,    // 50%
+    SPELL_PARTIAL_RESIST_PCT_75,    // 75%
+    SPELL_PARTIAL_RESIST_PCT_100,   // 100%, full resist
+};
+
+#define NUM_SPELL_PARTIAL_RESISTS 5
+
 enum SpellModOp
 {
     SPELLMOD_DAMAGE                 = 0,
@@ -1822,8 +1833,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         virtual bool IsImmuneToDamage(SpellSchoolMask meleeSchoolMask);
         virtual bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index, bool castOnSelf) const;
 
-        uint32 CalculateEffectiveMagicResistance(Unit* attacker, SpellSchoolMask schoolMask, bool binary) const;
-        float CalculateMagicResistanceMitigation(Unit* attacker, uint32 resistance) const;
+        uint32 CalculateEffectiveMagicResistance(Unit* attacker, SpellSchoolMask schoolMask) const;
+        float CalculateMagicResistanceMitigation(Unit* attacker, uint32 resistance, bool binary) const;
         uint32 CalcArmorReducedDamage(Unit* pVictim, const uint32 damage);
         void CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32* absorb, uint32* resist, bool canReflect = false, bool ignoreResists = false);
         void CalculateAbsorbResistBlock(Unit* pCaster, SpellNonMeleeDamage* damageInfo, SpellEntry const* spellProto, WeaponAttackType attType = BASE_ATTACK);
