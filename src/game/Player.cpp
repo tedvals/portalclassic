@@ -19305,20 +19305,21 @@ void Player::AddAdventureXP(int32 xp)
 
 bool Player::SubstractAdventureXP(int32 xp)
 {
-	adventure_xp -= xp;
+	int _adventure_xp = adventure_xp;
+	_adventure_xp -= xp;
 	uint32 currentLevel = adventure_level;
 	uint32 max_xp = sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_LEVELXP) * adventure_level;
 
 	sLog.outString("Granting %d xp to player %s. Lvl:%u. Current xp: %u Max xp: %u", xp, GetName(), adventure_level, adventure_xp, max_xp);			//custom-debug
-	while (adventure_xp < 0 && currentLevel > 1)
+	while (_adventure_xp < 0 && currentLevel > 1)
 	{
 		currentLevel--;
-		adventure_xp += max_xp;
+		_adventure_xp += max_xp;
 		SetAdventureLevel(currentLevel);
+		adventure_xp = _adventure_xp;
 		return true;
 	}
 
-	SetAdventureLevel(currentLevel);
 	return false;	
 }
 
