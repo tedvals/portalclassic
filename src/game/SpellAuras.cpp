@@ -623,6 +623,9 @@ void Aura::ApplyModifier(bool apply, bool Real)
 
 bool Aura::isAffectedOnSpell(SpellEntry const* spell) const
 {
+	if (!spell)
+		return  false;
+
     if (m_spellmod)
         return m_spellmod->isAffectedOnSpell(spell);
 

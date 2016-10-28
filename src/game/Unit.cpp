@@ -5963,11 +5963,11 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
             case 3736: // Hateful Totem of the Third Wind / Increased Lesser Healing Wave / Savage Totem of the Third Wind
                 DoneTotal += (*i)->GetModifier()->m_amount;
                 break;
-			case 8001: //
+			case 8001: //Druid:Growing Rage
 				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * 0.80f)
 					DoneTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 				break;
-			case 8002: //
+			case 8002: //Priest Mental Strength
 				if (pVictim->GetHealth() < pVictim->GetMaxHealth() * 0.20f)
 					DoneTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 				break;
@@ -6052,7 +6052,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
 
 		switch ((*i)->GetModifier()->m_miscvalue)
 		{
-			case 8010: //		
+			case 8010: //Druid: Thick Hide
 			if (GetHealth() < GetMaxHealth() * 0.35f)
 				TakenTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 			break;
