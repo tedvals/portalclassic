@@ -556,6 +556,9 @@ class MANGOS_DLL_SPEC Creature : public Unit
             if (IsPet())
                 return false;
 
+			if (!GetCreatureInfo())
+				return false;
+
             return GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS;
         }
 
