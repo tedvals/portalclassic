@@ -161,7 +161,7 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, std::m
         // any log level
         void outErrorScriptLib(const char* str, ...)     ATTR_PRINTF(2, 3);
 
-        void outWorldPacketDump(const char* socket, uint32 opcode, char const* opcodeName, ByteBuffer const* packet, bool incoming);
+        void outWorldPacketDump(const char* socket, uint32 opcode, char const* opcodeName, ByteBuffer const& packet, bool incoming);
         // any log level
         void outCharDump(const char* str, uint32 account_id, uint32 guid, const char* name);
         void outRALog(const char* str, ...)       ATTR_PRINTF(2, 3);
@@ -268,12 +268,12 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, std::m
     ERROR_DB_FILTER_LOG(LOG_FILTER_DB_STRICTED_CHECK, __VA_ARGS__)
 
 // primary for script library
-void MANGOS_DLL_SPEC outstring_log(const char* str, ...) ATTR_PRINTF(1, 2);
-void MANGOS_DLL_SPEC detail_log(const char* str, ...) ATTR_PRINTF(1, 2);
-void MANGOS_DLL_SPEC debug_log(const char* str, ...) ATTR_PRINTF(1, 2);
-void MANGOS_DLL_SPEC error_log(const char* str, ...) ATTR_PRINTF(1, 2);
-void MANGOS_DLL_SPEC error_db_log(const char* str, ...) ATTR_PRINTF(1, 2);
-void MANGOS_DLL_SPEC setScriptLibraryErrorFile(char const* fname, char const* libName);
-void MANGOS_DLL_SPEC script_error_log(const char* str, ...) ATTR_PRINTF(1, 2);
+void outstring_log(const char* str, ...) ATTR_PRINTF(1, 2);
+void detail_log(const char* str, ...) ATTR_PRINTF(1, 2);
+void debug_log(const char* str, ...) ATTR_PRINTF(1, 2);
+void error_log(const char* str, ...) ATTR_PRINTF(1, 2);
+void error_db_log(const char* str, ...) ATTR_PRINTF(1, 2);
+void setScriptLibraryErrorFile(char const* fname, char const* libName);
+void script_error_log(const char* str, ...) ATTR_PRINTF(1, 2);
 
 #endif

@@ -54,7 +54,7 @@ if(PCH)
   )
 endif()
 
-add_library(mangosscript SHARED
+add_library(mangosscript STATIC
   ${mangosscript_SRCS}
 )
 
@@ -65,7 +65,7 @@ if(WIN32)
   )
 endif()
 
-add_dependencies(mangosscript mangosd)
+add_dependencies(mangosscript game)
 
 if(UNIX)
   set(mangosscript_LINK_FLAGS "-pthread")
@@ -121,9 +121,3 @@ endif()
 if(PCH)
   cotire(mangosscript)
 endif()
-
-# LIBRARY = dyld / so, RUNTIME = dll
-install(TARGETS mangosscript
-  LIBRARY DESTINATION ${LIBS_DIR}
-  RUNTIME DESTINATION ${LIBS_DIR}
-)

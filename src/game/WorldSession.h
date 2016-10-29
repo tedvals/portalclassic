@@ -32,6 +32,7 @@
 
 #include <deque>
 #include <mutex>
+#include <memory>
 
 struct ItemPrototype;
 struct AuctionEntry;
@@ -118,7 +119,7 @@ class WorldSessionFilter : public PacketFilter
 };
 
 /// Player session in the World
-class MANGOS_DLL_SPEC WorldSession
+class WorldSession
 {
         friend class CharacterHandler;
 
@@ -129,10 +130,6 @@ class MANGOS_DLL_SPEC WorldSession
         bool PlayerLoading() const { return m_playerLoading; }
         bool PlayerLogout() const { return m_playerLogout; }
         bool PlayerLogoutWithSave() const { return m_playerLogout && m_playerSave; }
-
-        // marks this session as finalized in the socket which owns it.  this lets
-        // the socket handling code know that the session can be safely deleted
-        void Finalize() { m_Socket->FinalizeSession(); }
 
         void SizeError(WorldPacket const& packet, uint32 size) const;
 
@@ -175,7 +172,7 @@ class MANGOS_DLL_SPEC WorldSession
         void LogoutPlayer(bool save);
         void KickPlayer();
 
-        void QueuePacket(WorldPacket* new_packet);
+        void QueuePacket(std::unique_ptr<WorldPacket> new_packet);
 
         bool Update(PacketFilter& updater);
 
@@ -654,11 +651,11 @@ class MANGOS_DLL_SPEC WorldSession
         bool VerifyMovementInfo(MovementInfo const& movementInfo) const;
         void HandleMoverRelocation(MovementInfo& movementInfo);
 
-        void ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket* packet);
+        void ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket& packet);
 
         // logging helper
-        void LogUnexpectedOpcode(WorldPacket* packet, const char* reason);
-        void LogUnprocessedTail(WorldPacket* packet);
+        void LogUnexpectedOpcode(WorldPacket const& packet, const char* reason);
+        void LogUnprocessedTail(WorldPacket const& packet);
 
         std::mutex m_logoutMutex;                           // this mutex is necessary to avoid two simultaneous logouts due to a valid logout request and socket error
         Player * _player;
@@ -683,7 +680,7 @@ class MANGOS_DLL_SPEC WorldSession
         TutorialDataState m_tutorialState;
 
         std::mutex m_recvQueueLock;
-        std::deque<WorldPacket *> m_recvQueue;
+        std::deque<std::unique_ptr<WorldPacket>> m_recvQueue;
 };
 #endif
 /// @}
