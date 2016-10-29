@@ -19320,6 +19320,7 @@ bool Player::SubstractAdventureXP(int32 xp)
 		return true;
 	}
 
+	SetAdventureLevel(currentLevel);
 	return false;	
 }
 
