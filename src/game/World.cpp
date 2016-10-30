@@ -63,6 +63,10 @@
 #include "CreatureLinkingMgr.h"
 #include "Weather.h"
 
+//#include "..\modules\Bots\Ah\AhBot.h"
+#include "..\modules\Bots\playerbot\PlayerbotAIConfig.h"
+#include "..\modules\Bots\playerbot\RandomPlayerbotMgr.h"
+
 #include <algorithm>
 #include <mutex>
 #include <cstdarg>
@@ -1284,7 +1288,7 @@ void World::SetInitialWorldSettings()
     sAuctionBot.Initialize();
     sLog.outString();
 
-    PlayerbotMgr::SetInitialWorldSettings();
+	sPlayerbotAIConfig.Initialize();
     //Get playerbot configuration file
 
     sLog.outString("---------------------------------------");
@@ -1386,6 +1390,10 @@ void World::Update(uint32 diff)
     }
 
     /// <li> Handle session updates
+
+	sRandomPlayerbotMgr.UpdateAI(diff);
+	sRandomPlayerbotMgr.UpdateSessions(diff);
+
     UpdateSessions(diff);
 
     /// <li> Update uptime table
@@ -1760,6 +1768,8 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
         m_ShutdownTimer = time;
         ShutdownMsg(true);
     }
+
+	sRandomPlayerbotMgr.LogoutAllBots();
 }
 
 /// Display a shutdown message to the user(s)

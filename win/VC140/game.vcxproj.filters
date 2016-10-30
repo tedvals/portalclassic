@@ -40,9 +40,6 @@
     <Filter Include="AI">
       <UniqueIdentifier>{fec503db-493c-43c0-96dd-8c0321d71407}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Playerbot">
-      <UniqueIdentifier>{6ebda934-2361-481a-94fd-f383b0daeed7}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp">
@@ -484,42 +481,6 @@
     <ClCompile Include="..\..\src\game\AI\GuardianAI.cpp">
       <Filter>AI</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotClassAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotDruidAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotHunterAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotMageAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotMgr.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotPaladinAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotPriestAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotRogueAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotShamanAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotWarlockAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\playerbot\PlayerbotWarriorAI.cpp">
-      <Filter>Playerbot</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -960,42 +921,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\AI\GuardianAI.h">
       <Filter>AI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotClassAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotDruidAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotHunterAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotMageAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotMgr.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotPaladinAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotPriestAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotRogueAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotShamanAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotWarlockAI.h">
-      <Filter>Playerbot</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\playerbot\PlayerbotWarriorAI.h">
-      <Filter>Playerbot</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -644,6 +644,7 @@ class MANGOS_DLL_SPEC WorldSession
 
         void HandleSetTaxiBenchmarkOpcode(WorldPacket& recv_data);
 
+		void HandleBotPackets();
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);

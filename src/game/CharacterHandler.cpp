@@ -41,8 +41,8 @@
 #include "SpellMgr.h"
 
 #ifdef ENABLE_PLAYERBOTS
-#include "playerbot.h"
-#include "PlayerbotAIConfig.h"
+#include "..\modules\Bots\playerbot\playerbot.h"
+#include "..\modules\Bots\playerbot\PlayerbotAIConfig.h"
 #endif
 
 // config option SkipCinematics supported values
@@ -536,46 +536,6 @@ void WorldSession::HandlePlayerLoginOpcode(WorldPacket& recv_data)
     CharacterDatabase.DelayQueryHolder(&chrHandler, &CharacterHandler::HandlePlayerLoginCallback, holder);
 }
 
-// Playerbot mod. Can't easily reuse HandlePlayerLoginOpcode for logging in bots because it assumes
-// a WorldSession exists for the bot. The WorldSession for a bot is created after the character is loaded.
-void PlayerbotMgr::LoginPlayerBot(ObjectGuid playerGuid)
-{
-    // has bot already been added?
-    if (sObjectMgr.GetPlayer(playerGuid))
-        return;
-
-    uint32 accountId = sObjectMgr.GetPlayerAccountIdByGUID(playerGuid);
-    if (accountId == 0)
-        return;
-
-    LoginQueryHolder *holder = new LoginQueryHolder(accountId, playerGuid);
-    if(!holder->Initialize())
-    {
-        delete holder;                                      // delete all unprocessed queries
-        return;
-    }
-    CharacterDatabase.DelayQueryHolder(&chrHandler, &CharacterHandler::HandlePlayerBotLoginCallback, holder);
-}
-// Added this method to allow bots to be added from a different account other than the masters. Accomodates 40 man raid teams of bots
-void PlayerbotMgr::LoginPlayerBot(ObjectGuid playerGuid, uint32 masterAccountId)
- {
-		// has bot already been added?
-		if (sObjectMgr.GetPlayer(playerGuid))
-		 return;
-	
-		uint32 accountId = sObjectMgr.GetPlayerAccountIdByGUID(playerGuid);
-	if (accountId == 0)
-		 return;
-	
-		LoginQueryHolder *holder = new LoginQueryHolder(accountId, masterAccountId, playerGuid);
-	if (!holder->Initialize())
-		 {
-		delete holder;                                      // delete all unprocessed queries
-		return;
-		}
-	CharacterDatabase.DelayQueryHolder(&chrHandler, &CharacterHandler::HandlePlayerBotLoginCallback, holder);
-	}
-
 void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 {
     ObjectGuid playerGuid = holder->GetGuid();
@@ -799,48 +759,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     if (!pCurrChar->IsStandState() && !pCurrChar->hasUnitState(UNIT_STAT_STUNNED))
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
-	// If we are in a guild, load all guild members as bots. No need to give a command to load them then! Yay!
-	if (pCurrChar->GetGuildId() != 0 && guild)
-		{
-		PlayerbotMgr* mgr = pCurrChar->GetPlayerbotMgr();
-		if (!mgr)
-			 {
-			mgr = new PlayerbotMgr(pCurrChar);
-			pCurrChar->SetPlayerbotMgr(mgr);
-			}
-		
-			QueryResult* guildMembersResult = CharacterDatabase.Query("SELECT guildid,guild_member.guid,rank,pnote,offnote,"
-																				//   5                6                 7                 8                9                       10
-			"characters.name, characters.level, characters.class, characters.zone, characters.logout_time, characters.account "
-			 "FROM guild_member LEFT JOIN characters ON characters.guid = guild_member.guid");
-		
-			if (guildMembersResult)                                             // wrong data found
-			{
-			do
-				 {
-				Field* fields = guildMembersResult->Fetch();
-				
-					uint32 guildid = fields[0].GetUInt32();
-				std::string name = fields[5].GetCppString();
-				
-									// Do if same guild
-					if (guildid == guild->GetId())
-					 {
-										// Do if not same character that is logging in
-						if (name != pCurrChar->GetName())
-						 {
-						ObjectGuid guid = sObjectMgr.GetPlayerGuidByName(name.c_str());
-						CharacterDatabase.DirectPExecute("UPDATE characters SET online = 1 WHERE guid = '%u'", guid.GetCounter());
-												// Modified to allow bot to originate from an account not on the masters account
-							mgr->LoginPlayerBot(guid, mgr->GetMaster()->GetSession()->GetAccountId());
-												//ChatHandler(pCurrChar).PSendSysMessage("Bot '%s' added successfully.", name);
-							}
-					}
-				} while (guildMembersResult->NextRow());
-				
-					delete guildMembersResult;
-				}
-		}
+	
     m_playerLoading = false;
     delete holder;
 }

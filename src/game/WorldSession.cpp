@@ -44,7 +44,7 @@
 #include <memory>
 #include <cstdarg>
 
-#include "playerbot.h"
+#include "..\modules\Bots\playerbot\playerbot.h"
 
 // select opcodes appropriate for processing in Map::Update context for current session state
 static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
@@ -330,6 +330,7 @@ bool WorldSession::Update(PacketFilter& updater)
 
 void WorldSession::HandleBotPackets()
 {
+	/*
 	WorldPacket* packet;
 	while (_recvQueue.next(packet))
 	{
@@ -337,6 +338,15 @@ void WorldSession::HandleBotPackets()
 		(this->*opHandle.handler)(*packet);
 		delete packet;
 	}
+	*/
+
+	std::for_each(m_recvQueue.begin(), m_recvQueue.end(), [this](std::unique_ptr<WorldPacket> &packet)
+	{
+		OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+		(this->*opHandle.handler)(*packet);
+		//delete packet;
+	});
+	this->m_recvQueue.clear();
 }
 
 /// %Log the player out

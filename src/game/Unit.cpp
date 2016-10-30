@@ -47,8 +47,8 @@
 #include "movement/MoveSpline.h"
 #include "CreatureLinkingMgr.h"
 
-#include "playerbot.h"
-#include "GuildTaskMgr.h"
+#include "..\modules\Bots\playerbot\playerbot.h"
+#include "..\modules\Bots\playerbot\GuildTaskMgr.h"
 
 #include <math.h>
 #include <array>
