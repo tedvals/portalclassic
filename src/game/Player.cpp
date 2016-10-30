@@ -62,8 +62,8 @@
 #include "LootMgr.h"
 
 // Playerbot mod:
-#include "..\modules\Bots\playerbot\PlayerbotAI.h"
-#include "..\modules\Bots\playerbot\PlayerbotMgr.h"
+#include "../modules/Bots/playerbot/PlayerbotAI.h"
+#include "../modules/Bots/playerbot/PlayerbotMgr.h"
 #include "Config/Config.h"
 
 #include <cmath>

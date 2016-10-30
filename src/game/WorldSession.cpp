@@ -44,7 +44,7 @@
 #include <memory>
 #include <cstdarg>
 
-#include "..\modules\Bots\playerbot\playerbot.h"
+#include "../modules/Bots/playerbot/playerbot.h"
 
 // select opcodes appropriate for processing in Map::Update context for current session state
 static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
