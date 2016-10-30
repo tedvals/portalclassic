@@ -35,6 +35,10 @@
 #include "GameEventMgr.h"
 #include "AuctionHouseBot/AuctionHouseBot.h"
 
+#include "../../../modules/Bots/ahbot/AhBot.h"
+#include "../../../modules/Bots/playerbot/playerbot.h"
+#include "../../../modules/Bots/playerbot/GuildTaskMgr.h"
+
 #include <cstdarg>
 
 // Supported shift-links (client generated and server side)
@@ -762,8 +766,10 @@ ChatCommand* ChatHandler::getCommandTable()
         { "stable",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleStableCommand,              "", nullptr },
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", nullptr },
 		//Playerbot mod
-		{ "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
-        { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
+		{ "ahbot",            SEC_GAMEMASTER,    true,  &ChatHandler::HandleAhBotCommand,                      "" },
+		{ "rndbot",           SEC_GAMEMASTER,    true,  &ChatHandler::HandleRandomPlayerbotCommand,     ""		},
+		{ "bot",              SEC_PLAYER,        false, &ChatHandler::HandlePlayerbotCommand,               "" },
+		{ "gtask",            SEC_GAMEMASTER,    true,  &ChatHandler::HandleGuildTaskCommand,           "" },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
 
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
