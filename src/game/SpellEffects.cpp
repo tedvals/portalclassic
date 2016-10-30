@@ -3415,6 +3415,19 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
             }
             break;
         }
+		case SPELLFAMILY_WARRIOR:
+		{
+			//Harsh Bash for Heroic Strike
+			if (m_spellInfo->SpellFamilyFlags & uint64(0x00000000000040))
+			{				
+				// check for dazeHasAuraType()
+				if (m_caster->HasAura(12311) && (unitTarget->HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED) || unitTarget->HasAuraType(SPELL_AURA_MOD_SILENCE) || unitTarget->HasAuraType(SPELL_AURA_MOD_STUN)))
+					bonusDamagePercentMod = 1.15f;
+				if (m_caster->HasAura(12958) && (unitTarget->HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED) || unitTarget->HasAuraType(SPELL_AURA_MOD_SILENCE) || unitTarget->HasAuraType(SPELL_AURA_MOD_STUN)))
+					bonusDamagePercentMod = 1.3f;
+			}
+			break;
+		}
     }
 
     int32 fixed_bonus = 0;
@@ -5038,8 +5051,8 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
    if (!unitTarget)
         return;
 
-   if (!((Creature*)unitTarget)->IsWorldBoss())
-	unitTarget->KnockBackFrom(m_caster, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
+   if (!((Creature*)unitTarget)->IsWorldBoss() || !((Creature*)unitTarget)->IsElite())		 
+		unitTarget->KnockBackFrom(m_caster, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
 }
 
 void Spell::EffectSendTaxi(SpellEffectIndex eff_idx)

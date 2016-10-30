@@ -2642,9 +2642,11 @@ float Unit::MeleeSpellMissChance(Unit* pVictim, WeaponAttackType attType, int32 
     float hitChance = 0.0f;
 
     // PvP - PvE melee chances
+	if (GetTypeId() == TYPEID_PLAYER)
+		hitChance = 100.f - sWorld.getConfig(CONFIG_FLOAT_RATE_PLAYER_MISS_CHANCE) + skillDiff * 0.04f;
     if (pVictim->GetTypeId() == TYPEID_PLAYER)
         hitChance = 95.0f + skillDiff * 0.04f;
-    else if (skillDiff < -10)
+    else if (skillDiff < -10) // custom
         hitChance = 93.0f + (skillDiff + 10) * 0.4f;        // 7% base chance to miss for big skill diff (%6 in 3.x)
     else
         hitChance = 95.0f + skillDiff * 0.1f;
@@ -2919,7 +2921,13 @@ float Unit::MeleeMissChanceCalc(const Unit* pVictim, WeaponAttackType attType) c
         return 0.0f;
 
     // Base misschance 5%
-    float missChance = 5.0f;
+    //float missChance = 5.0f;
+	float missChance;
+	
+	if (GetTypeId() == TYPEID_PLAYER)
+		missChance = sWorld.getConfig(CONFIG_FLOAT_RATE_PLAYER_MISS_CHANCE);
+	else
+		missChance = 5.0f;	
 
     // DualWield - white damage has additional 19% miss penalty
     if (haveOffhandWeapon() && attType != RANGED_ATTACK)
