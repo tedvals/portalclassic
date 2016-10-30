@@ -13,4 +13,3 @@
 #include "ObjectMgr.h"
 #include "ScriptMgr.h"
 
-#include "playerbot.h"
