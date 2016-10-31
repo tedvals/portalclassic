@@ -151,7 +151,8 @@ enum Target
     TARGET_T_HOSTILE_RANDOM_PLAYER          = 8,            // Just any random player on our threat list
     TARGET_T_HOSTILE_RANDOM_NOT_TOP_PLAYER  = 9,            // Any random player from threat list except top threat
 
-	TARGET_T_FRIENDLY                       =11,
+    // Summon targeting
+    TARGET_T_SUMMONER                       = 11,           // Owner of unit if exists
 };
 
 enum EventFlags

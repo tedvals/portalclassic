@@ -183,9 +183,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u (must target player)", eventId, action, targetType, eventType);
                 return false;
             }
-		case TARGET_T_FRIENDLY:
-            return true;                                    // Can always be used
-        case TARGET_T_HOSTILE_RANDOM:
+		case TARGET_T_HOSTILE_RANDOM:
         case TARGET_T_HOSTILE_RANDOM_NOT_TOP:
             if (actionType == ACTION_T_QUEST_EVENT || actionType == ACTION_T_CAST_EVENT || actionType == ACTION_T_QUEST_EVENT_ALL || actionType == ACTION_T_KILLED_MONSTER)
                 sLog.outErrorEventAI("Event %u Action%u uses LIKELY bad Target type %u for event-type %u (must target player)", eventId, action, targetType, eventType);
@@ -233,6 +231,8 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u", eventId, action, targetType, eventType);
                 return false;
             }
+            return true;
+        case TARGET_T_SUMMONER:
             return true;
         default:
             sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type", eventId, action);
