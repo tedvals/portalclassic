@@ -3672,6 +3672,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                                 case RACE_DWARF:            spellId = 24107; break;
                                 case RACE_NIGHTELF:         spellId = 24108; break;
                                 case RACE_GNOME:            spellId = 24106; break;
+									// next case not exist in 2.x officially (quest has been broken for race until 3.x time)
+								case RACE_DRAENEI:          spellId = 24108; break;
                             }
                             break;
                         case 24195:
@@ -3681,6 +3683,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                                 case RACE_UNDEAD:           spellId = 24103; break;
                                 case RACE_TAUREN:           spellId = 24102; break;
                                 case RACE_TROLL:            spellId = 24101; break;
+									// next case not exist in 2.x officially (quest has been broken for race until 3.x time)
+								case RACE_BLOODELF:         spellId = 24101; break;
                             }
                             break;
                     }
