@@ -19,7 +19,7 @@
 #ifndef MANGOS_DBCSFRM_H
 #define MANGOS_DBCSFRM_H
 
-const char AreaTableEntryfmt[] = "niiiixxxxxissssssssxixxxi";
+const char AreaTableEntryfmt[] = "niiiixxxxxissssssssxixxxix";
 const char AreaTriggerEntryfmt[] = "niffffffff";
 const char AuctionHouseEntryfmt[] = "niiixxxxxxxxx";
 const char BankBagSlotPricesEntryfmt[] = "ni";
@@ -48,7 +48,7 @@ const char ItemSetEntryfmt[] = "dssssssssxxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii";
 const char LiquidTypefmt[] = "niii";
 const char LockEntryfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";
 const char MailTemplateEntryfmt[] = "nxxxxxxxxx";
-const char MapEntryfmt[] = "nxixssssssssxxxxxxxixxxxxxxxxxxxxxxxxxixxx";
+const char MapEntryfmt[] = "nxixssssssssxxxxxxxixxxxxxxxxxxxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char QuestSortEntryfmt[] = "nxxxxxxxxx";
 const char SkillLinefmt[] = "nixssssssssxxxxxxxxxxi";
 const char SkillLineAbilityfmt[] = "niiiixxiiiiixxi";
@@ -56,12 +56,12 @@ const char SkillRaceClassInfofmt[] = "diiiiixx";
 const char SoundEntriesfmt[] = "nxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char SpellCastTimefmt[] = "nixx";
 const char SpellDurationfmt[] = "niii";
-const char SpellEntryfmt[] = "niixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiifffixiixssssssssxssssssssxxxxxxxxxxxxxxxxxxxiiiiiiiiiixfffxxx";
+const char SpellEntryfmt[] = "niixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiifffixiixssssssssxssssssssxxxxxxxxxxxxxxxxxxxiiiiiiiiiixfffxxxxx";
 const char SpellFocusObjectfmt[] = "nxxxxxxxxx";
-const char SpellItemEnchantmentfmt[] = "niiiiiixxxiiissssssssxii";
+const char SpellItemEnchantmentfmt[] = "niiiiiixxxiiissssssssxiixx";
 const char SpellRadiusfmt[] = "nfxx";
 const char SpellRangefmt[] = "nffxxxxxxxxxxxxxxxxxxx";
-const char SpellShapeshiftfmt[] = "nxxxxxxxxxxiix";
+const char SpellShapeshiftfmt[] = "nxxxxxxxxxxiixx";
 const char StableSlotPricesfmt[] = "ni";
 const char TalentEntryfmt[] = "niiiiiiiixxxxixxixxxi";
 const char TalentTabEntryfmt[] = "nxxxxxxxxxxxiix";
