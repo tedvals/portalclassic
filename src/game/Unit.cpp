@@ -47,9 +47,6 @@
 #include "movement/MoveSpline.h"
 #include "CreatureLinkingMgr.h"
 
-#include "..\modules\Bots\playerbot\playerbot.h"
-#include "..\modules\Bots\playerbot\GuildTaskMgr.h"
-
 #include <math.h>
 #include <array>
 
@@ -1137,8 +1134,6 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
         if (BattleGround* bg = responsiblePlayer->GetBattleGround())
             bg->HandleKillUnit(victim, responsiblePlayer);
 
-	 sGuildTaskMgr.CheckKillTask(responsiblePlayer, victim);
-	
     // Notify the outdoor pvp script
     if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(responsiblePlayer ? responsiblePlayer->GetCachedZoneId() : GetZoneId()))
         outdoorPvP->HandleCreatureDeath(victim);

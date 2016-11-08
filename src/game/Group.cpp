@@ -30,6 +30,8 @@
 #include "MapManager.h"
 #include "MapPersistentStateMgr.h"
 
+#include "playerbot/PlayerbotMgr.h"
+
 
 //===================================================
 //============== Group ==============================
@@ -276,7 +278,14 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
 uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 {
-   
+    //Playerbot mod - if master leaves group, all bots leave group
+    {
+        Player* const player = sObjectMgr.GetPlayer(guid);
+        if (player && player->GetPlayerbotMgr())
+            player->GetPlayerbotMgr()->RemoveAllBotsFromGroup();
+    }
+    //END Playerbot mod
+
     // remove member and change leader (if need) only if strong more 2 members _before_ member remove
     if (GetMembersCount() > GetMembersMinCount())
     {

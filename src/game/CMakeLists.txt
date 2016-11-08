@@ -43,6 +43,34 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/shared
 )
 
+set(SRC_GRP_PLAYERBOT
+	playerbot/config.h
+	playerbot/PlayerbotAI.cpp
+	playerbot/PlayerbotAI.h
+	playerbot/PlayerbotClassAI.cpp
+	playerbot/PlayerbotClassAI.h
+	playerbot/PlayerbotDruidAI.cpp
+	playerbot/PlayerbotDruidAI.h
+	playerbot/PlayerbotHunterAI.cpp
+	playerbot/PlayerbotHunterAI.h
+	playerbot/PlayerbotMageAI.cpp
+	playerbot/PlayerbotMageAI.h
+	playerbot/PlayerbotMgr.cpp
+	playerbot/PlayerbotMgr.h
+	playerbot/PlayerbotPaladinAI.cpp
+	playerbot/PlayerbotPaladinAI.h
+	playerbot/PlayerbotPriestAI.cpp
+	playerbot/PlayerbotPriestAI.h
+	playerbot/PlayerbotRogueAI.cpp
+	playerbot/PlayerbotRogueAI.h
+	playerbot/PlayerbotShamanAI.cpp
+	playerbot/PlayerbotShamanAI.h
+	playerbot/PlayerbotWarlockAI.cpp
+	playerbot/PlayerbotWarlockAI.h
+	playerbot/PlayerbotWarriorAI.cpp
+	playerbot/PlayerbotWarriorAI.h
+)
+
 set(SRC_GRP_AI
     AI/AggressorAI.cpp
     AI/AggressorAI.h
@@ -376,6 +404,7 @@ set(SRC_GRP_WORLD_HANDLERS
 )
 
 set(LIBRARY_SRCS
+    ${SRC_GRP_PLAYERBOT}
     ${SRC_GRP_AI}
     ${SRC_GRP_AHBOT}
     ${SRC_GRP_BATTLEGROUND}
@@ -393,6 +422,11 @@ set(LIBRARY_SRCS
     pchdef.h
 )
 
+
+source_group("PlayerBot"
+  FILES
+    ${SRC_GRP_PLAYERBOT}
+)
 
 source_group("AI"
   FILES
@@ -487,3 +521,5 @@ add_dependencies(${LIBRARY_NAME} revision.h)
 if(PCH)
   cotire(${LIBRARY_NAME})
 endif()
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/playerbot.conf.dist.in DESTINATION ${CONF_DIR} RENAME playerbot.conf.dist)
