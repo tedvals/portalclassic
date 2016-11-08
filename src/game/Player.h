@@ -53,11 +53,10 @@ class DungeonPersistentState;
 class Spell;
 class Item;
 
-// Playerbot mod
-#include "playerbot/PlayerbotMgr.h"
-#include "playerbot/PlayerbotAI.h"
-
 struct AreaTrigger;
+
+class PlayerbotAI;
+class PlayerbotMgr;
 
 typedef std::deque<Mail*> PlayerMails;
 
