@@ -153,6 +153,7 @@ void ReputationMgr::SendState(FactionState const* faction)
 
 void ReputationMgr::SendInitialReputations()
 {
+	/*
     WorldPacket data(SMSG_INITIALIZE_FACTIONS, (4 + 64 * 5));
     data << uint32(0x00000040);
 
@@ -184,6 +185,39 @@ void ReputationMgr::SendInitialReputations()
     }
 
     m_player->SendDirectMessage(&data);
+	*/
+	// Reputation from BC
+	WorldPacket data(SMSG_INITIALIZE_FACTIONS, (4 + 128 * 5));
+	data << uint32(0x00000080);
+
+	RepListID a = 0;
+
+	for (FactionStateList::iterator itr = m_factions.begin(); itr != m_factions.end(); ++itr)
+	{
+		// fill in absent fields
+		for (; a != itr->first; ++a)
+		{
+			data << uint8(0x00);
+			data << uint32(0x00000000);
+		}
+
+		// fill in encountered data
+		data << uint8(itr->second.Flags);
+		data << uint32(itr->second.Standing);
+
+		itr->second.needSend = false;
+
+		++a;
+	}
+
+	// fill in absent fields
+	for (; a != 128; ++a)
+	{
+		data << uint8(0x00);
+		data << uint32(0x00000000);
+	}
+
+	m_player->SendDirectMessage(&data);
 }
 
 void ReputationMgr::SendVisible(FactionState const* faction) const
