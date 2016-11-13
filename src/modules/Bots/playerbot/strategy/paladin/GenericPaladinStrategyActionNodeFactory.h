@@ -7,6 +7,8 @@ namespace ai
     public:
         GenericPaladinStrategyActionNodeFactory()
         {
+            creators["seal of vengeance"] = &seal_of_vengeance;
+            creators["seal of command"] = &seal_of_command;
             creators["seal of light"] = &seal_of_light;
             creators["cleanse poison"] = &cleanse_poison;
             creators["cleanse disease"] = &cleanse_disease;
@@ -14,66 +16,75 @@ namespace ai
             creators["cleanse poison on party"] = &cleanse_poison_on_party;
             creators["cleanse disease on party"] = &cleanse_disease_on_party;
             creators["seal of wisdom"] = &seal_of_wisdom;
-            creators["seal of justice"] = &seal_of_justice;
+            creators["seal of righteousness"] = &seal_of_righteousness;
+//            creators["seal of justice"] = &seal_of_justice;
             creators["hand of reckoning"] = &hand_of_reckoning;
             creators["judgement of wisdom"] = &judgement_of_wisdom;
             creators["divine shield"] = &divine_shield;
             creators["flash of light"] = &flash_of_light;
             creators["flash of light on party"] = &flash_of_light_on_party;
+            creators["flash of light on master"] = &flash_of_light_on_master;
             creators["holy wrath"] = &holy_wrath;
             creators["lay on hands"] = &lay_on_hands;
             creators["lay on hands on party"] = &lay_on_hands_on_party;
+            creators["hand of protection on party"] = &hand_of_protection_on_party;
             creators["hammer of wrath"] = &hammer_of_wrath;
-            creators["retribution aura"] = &retribution_aura;
-            creators["blessing of kings"] = &blessing_of_kings;
-            creators["blessing of wisdom"] = &blessing_of_wisdom;
-            creators["blessing of kings on party"] = &blessing_of_kings_on_party;
-            creators["blessing of wisdom on party"] = &blessing_of_wisdom_on_party;
-            creators["blessing of sanctuary"] = &blessing_of_sanctuary;
+			creators["blessing of kings"] = &blessing_of_kings;
+			creators["blessing of wisdom"] = &blessing_of_wisdom;
+			creators["blessing of kings on party"] = &blessing_of_kings_on_party;
+			creators["blessing of wisdom on party"] = &blessing_of_wisdom_on_party;
+			creators["blessing of sanctuary"] = &blessing_of_sanctuary;
         }
     private:
-        static ActionNode* blessing_of_sanctuary(PlayerbotAI* ai)
-        {
-            return new ActionNode ("blessing of sanctuary",
-                /*P*/ NULL,
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* blessing_of_kings(PlayerbotAI* ai)
-        {
-            return new ActionNode ("blessing of kings",
-                /*P*/ NULL,
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* blessing_of_wisdom(PlayerbotAI* ai)
-        {
-            return new ActionNode ("blessing of wisdom",
-                /*P*/ NULL,
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* blessing_of_kings_on_party(PlayerbotAI* ai)
-        {
-            return new ActionNode ("blessing of kings on party",
-                /*P*/ NULL,
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* blessing_of_wisdom_on_party(PlayerbotAI* ai)
-        {
-            return new ActionNode ("blessing of wisdom on party",
-                /*P*/ NULL,
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* retribution_aura(PlayerbotAI* ai)
-        {
-            return new ActionNode ("retribution aura",
-                /*P*/ NULL,
-                /*A*/ NextAction::array(0, new NextAction("devotion aura"), NULL),
-                /*C*/ NULL);
-        }
+		static ActionNode* blessing_of_sanctuary(PlayerbotAI* ai)
+		{
+			return new ActionNode("blessing of sanctuary",
+				/*P*/ NULL,
+				/*A*/ NextAction::array(0, new NextAction("blessing of kings"), NULL),
+				/*C*/ NULL);
+		}
+		static ActionNode* blessing_of_kings(PlayerbotAI* ai)
+		{
+			return new ActionNode("blessing of kings",
+				/*P*/ NULL,
+				/*A*/ NULL,
+				/*C*/ NULL);
+		}
+		static ActionNode* blessing_of_wisdom(PlayerbotAI* ai)
+		{
+			return new ActionNode("blessing of wisdom",
+				/*P*/ NULL,
+				/*A*/ NULL,
+				/*C*/ NULL);
+		}
+		static ActionNode* blessing_of_kings_on_party(PlayerbotAI* ai)
+		{
+			return new ActionNode("blessing of kings on party",
+				/*P*/ NULL,
+				/*A*/ NULL,
+				/*C*/ NULL);
+		}
+		static ActionNode* blessing_of_wisdom_on_party(PlayerbotAI* ai)
+		{
+			return new ActionNode("blessing of wisdom on party",
+				/*P*/ NULL,
+				/*A*/ NULL,
+				/*C*/ NULL);
+		}
+        static ActionNode* seal_of_vengeance(PlayerbotAI* ai)
+		{
+			return new ActionNode ("seal of vengeance",
+				/*P*/ NULL,
+				/*A*/ NextAction::array(0, new NextAction("seal of righteousness"), NULL),
+				/*C*/ NULL);
+		}
+		static ActionNode* seal_of_command(PlayerbotAI* ai)
+		{
+			return new ActionNode ("seal of command",
+				/*P*/ NULL,
+				/*A*/ NextAction::array(0, new NextAction("seal of righteousness"), NULL),
+				/*C*/ NULL);
+		}
         static ActionNode* lay_on_hands(PlayerbotAI* ai)
         {
             return new ActionNode ("lay on hands",
@@ -85,7 +96,7 @@ namespace ai
         {
             return new ActionNode ("lay on hands on party",
                 /*P*/ NULL,
-                /*A*/ NextAction::array(0, new NextAction("flash of light"), NULL),
+                /*A*/ NextAction::array(0, new NextAction("flash of light on party"), NULL),
                 /*C*/ NULL);
         }
         static ActionNode* seal_of_light(PlayerbotAI* ai)
@@ -134,14 +145,14 @@ namespace ai
         {
             return new ActionNode ("seal of wisdom",
                 /*P*/ NULL,
-                /*A*/ NextAction::array(0, new NextAction("seal of justice"), NULL),
+                /*A*/ NextAction::array(0, new NextAction("seal of righteousness"), NULL),
                 /*C*/ NULL);
         }
-        static ActionNode* seal_of_justice(PlayerbotAI* ai)
+        static ActionNode* seal_of_righteousness(PlayerbotAI* ai)
         {
-            return new ActionNode ("seal of justice",
+            return new ActionNode ("seal of righteousness",
                 /*P*/ NULL,
-                /*A*/ NextAction::array(0, new NextAction("seal of righteousness"), NULL),
+                /*A*/ NextAction::array(0, new NextAction("seal_of_light"), NULL),
                 /*C*/ NULL);
         }
         static ActionNode* hand_of_reckoning(PlayerbotAI* ai)
@@ -163,7 +174,7 @@ namespace ai
             return new ActionNode ("divine shield",
                 /*P*/ NULL,
                 /*A*/ NextAction::array(0, new NextAction("divine protection"), NULL),
-                /*C*/ NULL);
+                /*C*/ NextAction::array(0, new NextAction("holy light"), NULL));
         }
         static ActionNode* flash_of_light(PlayerbotAI* ai)
         {
@@ -179,11 +190,25 @@ namespace ai
                 /*A*/ NextAction::array(0, new NextAction("holy light on party"), NULL),
                 /*C*/ NULL);
         }
+         static ActionNode* flash_of_light_on_master(PlayerbotAI* ai)
+        {
+            return new ActionNode ("flash of light on master",
+                /*P*/ NULL,
+                /*A*/ NextAction::array(0, new NextAction("holy light on master"), NULL),
+                /*C*/ NULL);
+        }
         static ActionNode* holy_wrath(PlayerbotAI* ai)
         {
             return new ActionNode ("holy wrath",
                 /*P*/ NULL,
                 /*A*/ NextAction::array(0, new NextAction("consecration"), NULL),
+                /*C*/ NULL);
+        }
+        static ActionNode* hand_of_protection_on_party(PlayerbotAI* ai)
+        {
+            return new ActionNode ("hand of protection on party",
+                /*P*/ NULL,
+                /*A*/ NextAction::array(0, new NextAction("hand of salvation on party"), NULL),
                 /*C*/ NULL);
         }
         static ActionNode* hammer_of_wrath(PlayerbotAI* ai)

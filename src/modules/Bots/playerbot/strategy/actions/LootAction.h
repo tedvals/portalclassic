@@ -11,6 +11,8 @@ namespace ai
     public:
         LootAction(PlayerbotAI* ai) : MovementAction(ai, "loot") {}
         virtual bool Execute(Event event);
+
+        virtual bool isUseful() {return (!AI_VALUE2(bool, "combat", "self target"));}
     };
 
     class OpenLootAction : public MovementAction
@@ -23,7 +25,7 @@ namespace ai
         bool DoLoot(LootObject& lootObject);
         uint32 GetOpeningSpell(LootObject& lootObject);
         uint32 GetOpeningSpell(LootObject& lootObject, GameObject* go);
-        bool CanOpenLock(LootObject& lootObject, const SpellEntry* pSpellInfo, GameObject* go);
+        bool CanOpenLock(LootObject& lootObject, const SpellInfo* pSpellInfo, GameObject* go);
         bool CanOpenLock(uint32 skillId, uint32 reqSkillValue);
     };
 

@@ -1,4 +1,4 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "playerbot.h"
 #include "ChatFilter.h"
 #include "strategy/values/RtiTargetValue.h"
@@ -93,10 +93,10 @@ public:
             case CLASS_WARRIOR:
             case CLASS_PALADIN:
             case CLASS_ROGUE:
-            /*case CLASS_DEATH_KNIGHT:
+            case CLASS_DEATH_KNIGHT:
                 if (ranged)
                     return "";
-                break;*/
+                break;
 
             case CLASS_HUNTER:
             case CLASS_PRIEST:
@@ -157,14 +157,14 @@ public:
                 continue;
 
             ObjectGuid rtiTarget = group->GetTargetIcon(RtiTargetValue::GetRtiIndex(rti.substr(1)));
-            if (bot->GetObjectGuid() == rtiTarget)
+            if (bot->GetGUID() == rtiTarget)
                 return ChatFilter::Filter(message);
 
             Unit* target = *ai->GetAiObjectContext()->GetValue<Unit*>("current target");
             if (!target)
                 return "";
 
-            if (target->GetObjectGuid() != rtiTarget)
+            if (target->GetGUID() != rtiTarget)
                 return "";
 
             if (found |= isRti)
@@ -186,7 +186,7 @@ class ClassChatFilter : public ChatFilter
 public:
     ClassChatFilter(PlayerbotAI* ai) : ChatFilter(ai)
     {
-        //classNames["@death_knight"] = CLASS_DEATH_KNIGHT;
+        classNames["@death_knight"] = CLASS_DEATH_KNIGHT;
         classNames["@druid"] = CLASS_DRUID;
         classNames["@hunter"] = CLASS_HUNTER;
         classNames["@mage"] = CLASS_MAGE;

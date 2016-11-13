@@ -1,7 +1,8 @@
-#include "../../botpch.h"
+#include "../../pchdef.h"
 #include "../playerbot.h"
 #include "Trigger.h"
 #include "Action.h"
+#include "../PlayerbotAIConfig.h"
 
 using namespace ai;
 
@@ -9,6 +10,19 @@ Event Trigger::Check()
 {
 	if (IsActive())
 	{
+	    //Debug only
+/*
+	    Player* master = GetMaster();
+        if (master)
+        {
+            if (getName() != "often" && getName() != "timer" && getName() != "no possible targets")
+            //if (sPlayerbotAIConfig.outputTriggers && (GetLastEvent() != getName()) && (getName() != "timer" && getName() != "no possible targets"))
+            {
+                ai->TellMaster(getName());
+                }
+        }
+        //Stop debug
+*/
 		Event event(getName());
 		return event;
 	}

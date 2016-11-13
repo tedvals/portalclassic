@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "MageMultipliers.h"
 #include "GenericMageStrategy.h"
@@ -11,14 +11,15 @@ public:
     GenericMageStrategyActionNodeFactory()
     {
         creators["frostbolt"] = &frostbolt;
-        creators["fire blast"] = &fire_blast;
-        creators["scorch"] = &scorch;
+        creators["fireball"] = &fireball;
+        creators["pyroblast"] = &pyroblast;
         creators["frost nova"] = &frost_nova;
-        creators["icy veins"] = &icy_veins;
-        creators["combustion"] = &combustion;
+        creators["blink"] = &blink;
         creators["evocation"] = &evocation;
-        creators["dragon's breath"] = &dragons_breath;
-        creators["blast wave"] = &blast_wave;
+        creators["frostfire bolt"] = &frostfire_bolt;
+        creators["ice block"] = &ice_block;
+        creators["ice lance"] = &ice_lance;
+        creators["cone of cold"] = &cone_of_cold;
     }
 private:
     static ActionNode* frostbolt(PlayerbotAI* ai)
@@ -28,39 +29,39 @@ private:
             /*A*/ NextAction::array(0, new NextAction("shoot"), NULL),
             /*C*/ NULL);
     }
-    static ActionNode* fire_blast(PlayerbotAI* ai)
+    static ActionNode* pyroblast(PlayerbotAI* ai)
     {
-        return new ActionNode ("fire blast",
+        return new ActionNode ("pyroblast",
             /*P*/ NULL,
-            /*A*/ NextAction::array(0, new NextAction("scorch"), NULL),
+            /*A*/ NextAction::array(0, new NextAction("fireball"), NULL),
             /*C*/ NULL);
     }
-    static ActionNode* scorch(PlayerbotAI* ai)
+    static ActionNode* fireball(PlayerbotAI* ai)
     {
-        return new ActionNode ("scorch",
+        return new ActionNode ("fireball",
             /*P*/ NULL,
-            /*A*/ NextAction::array(0, new NextAction("shoot"), NULL),
+            /*A*/ NextAction::array(0, new NextAction("frostbolt"), NULL),
             /*C*/ NULL);
     }
     static ActionNode* frost_nova(PlayerbotAI* ai)
     {
         return new ActionNode ("frost nova",
             /*P*/ NULL,
-            /*A*/ NextAction::array(0, new NextAction("flee"), NULL),
-            /*C*/ NextAction::array(0, new NextAction("flee"), NULL));
+            /*A*/ NextAction::array(0, new NextAction("cone of cold",70), NULL),
+            /*C*/ NextAction::array(0, new NextAction("relocate",ACTION_MOVE + 5), NULL));
     }
-    static ActionNode* icy_veins(PlayerbotAI* ai)
+    static ActionNode* cone_of_cold(PlayerbotAI* ai)
     {
-        return new ActionNode ("icy veins",
+        return new ActionNode ("cone of cold",
             /*P*/ NULL,
-            /*A*/ NULL,
-            /*C*/ NULL);
+            /*A*/ NextAction::array(0, new NextAction("blink",ACTION_MOVE + 5), NULL),
+            /*C*/ NextAction::array(0, new NextAction("relocate",ACTION_MOVE + 5), NULL));
     }
-    static ActionNode* combustion(PlayerbotAI* ai)
+    static ActionNode* blink(PlayerbotAI* ai)
     {
-        return new ActionNode ("combustion",
+        return new ActionNode ("blink",
             /*P*/ NULL,
-            /*A*/ NULL,
+            /*A*/ NextAction::array(0, new NextAction("flee",ACTION_MOVE + 5), NULL),
             /*C*/ NULL);
     }
     static ActionNode* evocation(PlayerbotAI* ai)
@@ -70,30 +71,57 @@ private:
             /*A*/ NextAction::array(0, new NextAction("mana potion"), NULL),
             /*C*/ NULL);
     }
-    static ActionNode* dragons_breath(PlayerbotAI* ai)
+    static ActionNode* frostfire_bolt(PlayerbotAI* ai)
     {
-        return new ActionNode ("dragon's breath",
+        return new ActionNode ("frostfire bolt",
             /*P*/ NULL,
-            /*A*/ NextAction::array(0, new NextAction("blast wave"), NULL),
-            /*C*/ NextAction::array(0, new NextAction("flamestrike", 71.0f), NULL));
+            /*A*/ NextAction::array(0, new NextAction("fireball"), NULL),
+            /*C*/ NULL);
     }
-    static ActionNode* blast_wave(PlayerbotAI* ai)
+    static ActionNode* ice_block(PlayerbotAI* ai)
     {
-        return new ActionNode ("blast wave",
+        return new ActionNode ("ice block",
             /*P*/ NULL,
-            /*A*/ NextAction::array(0, new NextAction("frost nova"), NULL),
-            /*C*/ NextAction::array(0, new NextAction("flamestrike", 71.0f), NULL));
+            /*A*/ NextAction::array(0, new NextAction("cold snap"), NULL),
+            /*C*/ NextAction::array(0, new NextAction("ice block"), NULL));
+    }
+    static ActionNode* ice_lance(PlayerbotAI* ai)
+    {
+        return new ActionNode ("ice block",
+            /*P*/ NULL,
+            /*A*/ NextAction::array(0, new NextAction("fire blast"), NULL),
+            /*C*/ NULL);
     }
 };
 
-GenericMageStrategy::GenericMageStrategy(PlayerbotAI* ai) : RangedCombatStrategy(ai)
+GenericMageStrategy::GenericMageStrategy(PlayerbotAI* ai) : CombatStrategy(ai)
 {
     actionNodeFactories.Add(new GenericMageStrategyActionNodeFactory());
 }
 
 void GenericMageStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 {
-    RangedCombatStrategy::InitTriggers(triggers);
+    CombatStrategy::InitTriggers(triggers);
+
+    triggers.push_back(new TriggerNode(
+        "takes periodic damage",
+        NextAction::array(0, new NextAction("blink", ACTION_MOVE + 5), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "enemy too close for spell",
+        NextAction::array(0, new NextAction("frost nova", ACTION_MOVE + 6), new NextAction("flee",ACTION_MOVE + 7), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "enemy out of spell",
+        NextAction::array(0, new NextAction("reach spell", ACTION_MOVE + 7), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "have aggro",
+        NextAction::array(0, new NextAction("frost nova",ACTION_MOVE + 9), new NextAction("flee",ACTION_MOVE + 8), NULL)));
+
+   triggers.push_back(new TriggerNode(
+        "runaway",
+        NextAction::array(0, new NextAction("frost nova", ACTION_EMERGENCY + 7), new NextAction("blink", ACTION_EMERGENCY + 6), NULL)));
 
     triggers.push_back(new TriggerNode(
         "remove curse",
@@ -102,10 +130,6 @@ void GenericMageStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "remove curse on party",
         NextAction::array(0, new NextAction("remove curse on party", 40.0f), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "enemy too close for spell",
-        NextAction::array(0, new NextAction("frost nova", 50.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "counterspell",
@@ -121,11 +145,23 @@ void GenericMageStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 
     triggers.push_back(new TriggerNode(
         "polymorph",
-        NextAction::array(0, new NextAction("polymorph", 30.0f), NULL)));
+        NextAction::array(0, new NextAction("polymorph", 50.0f), NULL)));
+
+     triggers.push_back(new TriggerNode(
+        "polymorph on cc",
+        NextAction::array(0, new NextAction("polymorph", 50.0f), NULL)));
 
 	triggers.push_back(new TriggerNode(
 		"spellsteal",
 		NextAction::array(0, new NextAction("spellsteal", 40.0f), NULL)));
+
+    triggers.push_back(new TriggerNode(
+		"stunned",
+		NextAction::array(0, new NextAction("blink", 40.0f), NULL)));
+
+    triggers.push_back(new TriggerNode(
+		"rooted",
+		NextAction::array(0, new NextAction("blink", 40.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "medium threat",
@@ -134,4 +170,12 @@ void GenericMageStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "low mana",
         NextAction::array(0, new NextAction("evocation", ACTION_EMERGENCY + 5), NULL)));
+
+     triggers.push_back(new TriggerNode(
+        "boost",
+        NextAction::array(0, new NextAction("icy veins", 50.0f), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "almost dead",
+        NextAction::array(0, new NextAction("bandage", ACTION_CRITICAL_HEAL), NULL)));
 }

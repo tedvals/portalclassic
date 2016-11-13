@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "EnemyPlayerValue.h"
 #include "TargetValue.h"
@@ -19,7 +19,7 @@ public:
         if (!result)
         {
             Player* enemy = dynamic_cast<Player*>(attacker);
-            if (enemy && ai->IsOpposing(enemy) && enemy->IsPvP())
+            if (enemy && ai->IsOpposing(enemy) && enemy->IsOutdoorPvPActive())
                 result = attacker;
         }
     }

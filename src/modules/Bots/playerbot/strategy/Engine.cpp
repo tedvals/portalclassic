@@ -1,4 +1,4 @@
-#include "../../botpch.h"
+#include "../../pchdef.h"
 #include "../playerbot.h"
 
 #include "Engine.h"
@@ -107,14 +107,18 @@ void Engine::Init()
 
 	if (testMode)
 	{
-        FILE* file = fopen("test.log", "w");
+		FILE* file;
+		if (testPrefix.length()>0)
+			 file = fopen((testPrefix + ".log").c_str(), "a");
+		else
+			 file = fopen("test.log", "a");
         fprintf(file, "\n");
         fclose(file);
 	}
 }
 
 
-bool Engine::DoNextAction(Unit* unit, int depth)
+bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
 {
     LogAction("--- AI Tick ---");
     if (sPlayerbotAIConfig.logValuesPerTick)
@@ -148,35 +152,47 @@ bool Engine::DoNextAction(Unit* unit, int depth)
             }
             else if (action->isUseful())
             {
-                for (list<Multiplier*>::iterator i = multipliers.begin(); i!= multipliers.end(); i++)
+                if (action->hasMultipliers())
                 {
-                    Multiplier* multiplier = *i;
-                    relevance *= multiplier->GetValue(action);
-                    if (!relevance)
+
+                    for (list<Multiplier*>::iterator i = multipliers.begin(); i!= multipliers.end(); i++)
                     {
-                        LogAction("Multiplier %s made action %s useless", multiplier->getName().c_str(), action->getName().c_str());
-                        break;
+                        Multiplier* multiplier = *i;
+                        relevance *= multiplier->GetValue(action);
+                        if ( !relevance)
+                        {
+                            LogAction("Multiplier %s made action %s useless", multiplier->getName().c_str(), action->getName().c_str());
+                            break;
+                        }
                     }
                 }
 
                 if (action->isPossible() && relevance)
                 {
+                    if (instantonly)
+                    {
+                        if (!action->isInstant())
+                        {
+                            MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, instantonly,(actionNode->getName()+= "-instant"));
+                            continue;
+                        }
+                    }
+
                     if (!skipPrerequisites)
                     {
-                        LogAction("A:%s - PREREQ", action->getName().c_str());
-                        if (MultiplyAndPush(actionNode->getPrerequisites(), relevance + 0.02, false, event, "prereq"))
+
+                        if (MultiplyAndPush(actionNode->getPrerequisites(), relevance + 0.02, false, event,instantonly,actionNode->getName()+= "-prereq"))
                         {
                             PushAgain(actionNode, relevance + 0.01, event);
                             continue;
                         }
                     }
-
                     actionExecuted = ListenAndExecute(action, event);
 
                     if (actionExecuted)
                     {
                         LogAction("A:%s - OK", action->getName().c_str());
-                        MultiplyAndPush(actionNode->getContinuers(), 0, false, event, "cont");
+                        MultiplyAndPush(actionNode->getContinuers(), 0, false, event, instantonly,(actionNode->getName()+= "-cont"));
                         lastRelevance = relevance;
                         delete actionNode;
                         break;
@@ -184,13 +200,13 @@ bool Engine::DoNextAction(Unit* unit, int depth)
                     else
                     {
                         LogAction("A:%s - FAILED", action->getName().c_str());
-                        MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, "alt");
+                        MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, instantonly,(actionNode->getName()+= "-alt"));
                     }
                 }
                 else
                 {
                     LogAction("A:%s - IMPOSSIBLE", action->getName().c_str());
-                    MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, "alt");
+                    MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, instantonly,(actionNode->getName()+= "-alt2"));
                 }
             }
             else
@@ -208,7 +224,7 @@ bool Engine::DoNextAction(Unit* unit, int depth)
         lastRelevance = 0.0f;
         PushDefaultActions();
         if (queue.Peek() && depth < 2)
-            return DoNextAction(unit, depth + 1);
+            return DoNextAction(unit, depth + 1,instantonly,noflee);
     }
 
     if (time(0) - currentTime > 1) {
@@ -236,16 +252,20 @@ ActionNode* Engine::CreateActionNode(string name)
         /*C*/ NULL);
 }
 
-bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool skipPrerequisites, Event event, const char* pushType)
+bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool skipPrerequisites, Event event,bool instantonly, string referrer)
 {
     bool pushed = false;
     if (actions)
     {
-        for (int j=0; j<10; j++) // TODO: remove 10
+        for (int j=0; j<20; j++) // TODO: remove 10
         {
             NextAction* nextAction = actions[j];
             if (nextAction)
             {
+                //Check if already exists
+
+
+
                 ActionNode* action = CreateActionNode(nextAction->getName());
                 InitializeAction(action);
 
@@ -257,7 +277,11 @@ bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool sk
 
                 if (k > 0)
                 {
-                    LogAction("PUSH:%s - %f (%s)", action->getName().c_str(), k, pushType);
+                    if (instantonly)
+                        LogAction("INSTANT PUSH:%s %f %s", action->getName().c_str(), k, referrer.c_str());
+                    else
+                        LogAction("PUSH:%s - %f %s", action->getName().c_str(), k, referrer.c_str());
+
                     queue.Push(new ActionBasket(action, k, skipPrerequisites, event));
                     pushed = true;
                 }
@@ -267,7 +291,7 @@ bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool sk
             else
                 break;
         }
-        delete actions;
+        delete[] actions;
     }
     return pushed;
 }
@@ -298,6 +322,7 @@ ActionResult Engine::ExecuteAction(string name)
 
     action->MakeVerbose();
     Event emptyEvent;
+
     result = ListenAndExecute(action, emptyEvent);
     MultiplyAndPush(action->getContinuers(), 0.0f, false, emptyEvent, "default");
     delete actionNode;
@@ -394,7 +419,7 @@ void Engine::ProcessTriggers()
                 continue;
 
             LogAction("T:%s", trigger->getName().c_str());
-            MultiplyAndPush(node->getHandlers(), 0.0f, false, event, "trigger");
+            MultiplyAndPush(node->getHandlers(), 0.0f, false, event, false,"-trigger");
         }
     }
     for (list<TriggerNode*>::iterator i = triggers.begin(); i != triggers.end(); i++)
@@ -410,7 +435,7 @@ void Engine::PushDefaultActions()
     {
         Strategy* strategy = i->second;
         Event emptyEvent;
-        MultiplyAndPush(strategy->getDefaultActions(), 0.0f, false, emptyEvent, "default");
+        MultiplyAndPush(strategy->getDefaultActions(), 0.0f, false, emptyEvent, false,"default");
     }
 }
 
@@ -434,7 +459,7 @@ void Engine::PushAgain(ActionNode* actionNode, float relevance, Event event)
     NextAction** nextAction = new NextAction*[2];
     nextAction[0] = new NextAction(actionNode->getName(), relevance);
     nextAction[1] = NULL;
-    MultiplyAndPush(nextAction, relevance, true, event, "again");
+    MultiplyAndPush(nextAction, relevance, true, event,false,(actionNode->getName()+= "-default"));
     delete actionNode;
 }
 
@@ -464,6 +489,9 @@ bool Engine::ListenAndExecute(Action* action, Event event)
 {
     bool actionExecuted = false;
 
+        //Debug only
+   // ai->TellMaster(action->getName());
+
     if (actionExecutionListeners.Before(action, event))
     {
         actionExecuted = actionExecutionListeners.AllowExecution(action, event) ? action->Execute(event) : true;
@@ -482,14 +510,14 @@ void Engine::LogAction(const char* format, ...)
     va_start(ap, format);
     vsprintf(buf, format, ap);
     va_end(ap);
-    lastAction += "|";
-    lastAction += buf;
-    if (lastAction.size() > 512)
-    {
-        lastAction = lastAction.substr(512);
-        size_t pos = lastAction.find("|");
-        lastAction = (pos == string::npos ? "" : lastAction.substr(pos));
-    }
+	lastAction += "|";
+	lastAction += buf;
+	if (lastAction.size() > 512)
+	{
+		lastAction = lastAction.substr(512);
+		size_t pos = lastAction.find("|");
+		lastAction = (pos == string::npos ? "" : lastAction.substr(pos));
+		}
 
     if (testMode)
     {
@@ -504,7 +532,7 @@ void Engine::LogAction(const char* format, ...)
         if (sPlayerbotAIConfig.logInGroupOnly && !bot->GetGroup())
             return;
 
-        sLog.outDebug( "%s %s", bot->GetName(), buf);
+        sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "%s %s", bot->GetName().c_str(), buf);
     }
 }
 
@@ -542,5 +570,5 @@ void Engine::LogValues()
         return;
 
     string text = ai->GetAiObjectContext()->FormatValues();
-    sLog.outDebug( "Values for %s: %s", bot->GetName(), text.c_str());
+    sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Values for %s: %s", bot->GetName().c_str(), text.c_str());
 }

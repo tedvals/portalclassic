@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "SaveManaAction.h"
 #include "../../AiFactory.h"

@@ -1,8 +1,7 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "SuggestWhatToDoAction.h"
 #include "../../../ahbot/AhBot.h"
-#include "ChannelMgr.h"
 #include "../../PlayerbotAIConfig.h"
 
 using namespace ai;
@@ -17,6 +16,7 @@ SuggestWhatToDoAction::SuggestWhatToDoAction(PlayerbotAI* ai) : InventoryAction(
     suggestions.push_back(&SuggestWhatToDoAction::grindReputation);
     suggestions.push_back(&SuggestWhatToDoAction::nothing);
     suggestions.push_back(&SuggestWhatToDoAction::relax);
+    suggestions.push_back(&SuggestWhatToDoAction::achievement);
 }
 
 bool SuggestWhatToDoAction::Execute(Event event)
@@ -93,7 +93,7 @@ void SuggestWhatToDoAction::specificQuest()
 
     int index = rand() % quests.size();
 
-    Quest const* quest = sObjectMgr.GetQuestTemplate(quests[index]);
+    Quest const* quest = sObjectMgr->GetQuestTemplate(quests[index]);
     ostringstream out; out << "We could do some quest, for instance " << chat->formatQuest(quest);
     spam(out.str());
 }
@@ -142,6 +142,12 @@ void SuggestWhatToDoAction::relax()
     ai->TellMasterNoFacing("It is so boring... We could relax a bit", PLAYERBOT_SECURITY_ALLOW_ALL);
 }
 
+void SuggestWhatToDoAction::achievement()
+{
+    if (bot->getLevel() > 15)
+        spam("I would like to get some achievement. Would you like to join me?");
+}
+
 class FindTradeItemsVisitor : public IterateItemsVisitor
 {
 public:
@@ -149,7 +155,7 @@ public:
 
     virtual bool Visit(Item* item)
     {
-        ItemPrototype const* proto = item->GetProto();
+        ItemTemplate const* proto = item->GetTemplate();
         if (proto->Quality != quality)
             return true;
 
@@ -219,7 +225,7 @@ void SuggestWhatToDoAction::trade()
     if (!item || !count)
         return;
 
-    ItemPrototype const* proto = sObjectMgr.GetItemPrototype(item);
+    ItemTemplate const* proto = sObjectMgr->GetItemTemplate(item);
     if (!proto)
         return;
 
@@ -245,5 +251,5 @@ void SuggestWhatToDoAction::spam(string msg)
             (bot->GetMapId() != player->GetMapId() || bot->GetDistance(player) > sPlayerbotAIConfig.whisperDistance))
         return;
 
-    bot->Whisper(msg, LANG_UNIVERSAL, player->GetObjectGuid());
+    bot->Whisper(msg, LANG_UNIVERSAL, player);
 }

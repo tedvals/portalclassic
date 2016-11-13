@@ -1,4 +1,4 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "LootObjectStack.h"
 #include "playerbot.h"
 
@@ -45,7 +45,7 @@ void LootTargetList::shrink(time_t fromTime)
 }
 
 LootObject::LootObject(Player* bot, ObjectGuid guid)
-	: guid(), skillId(SKILL_NONE), reqSkillValue(0), reqItem(0)
+	: guid(), skillId(SKILL_NONE), reqSkillValue(0), reqItem(NULL)
 {
     Refresh(bot, guid);
 }
@@ -54,19 +54,19 @@ void LootObject::Refresh(Player* bot, ObjectGuid guid)
 {
     skillId = SKILL_NONE;
     reqSkillValue = 0;
-    reqItem = 0;
+    reqItem = NULL;
     this->guid = ObjectGuid();
 
     PlayerbotAI* ai = bot->GetPlayerbotAI();
     Creature *creature = ai->GetCreature(guid);
-    if (creature && creature->GetDeathState() == CORPSE)
+    if (creature && creature->getDeathState() == CORPSE)
     {
         if (creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE))
             this->guid = guid;
 
         if (creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
         {
-            skillId = creature->GetCreatureInfo()->GetRequiredLootSkill();
+            skillId = creature->GetCreatureTemplate()->GetRequiredLootSkill();
             uint32 targetLevel = creature->getLevel();
             reqSkillValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
             if (bot->HasSkill(skillId) && bot->GetSkillValue(skillId) >= reqSkillValue)
@@ -83,8 +83,17 @@ void LootObject::Refresh(Player* bot, ObjectGuid guid)
         LockEntry const *lockInfo = sLockStore.LookupEntry(lockId);
         if (!lockInfo)
             return;
+		/*
+        GameObjectQuestItemList const* items = sObjectMgr->GetGameObjectQuestItemList(guid);
+        if (items)
+        {
+            this->guid =  guid;
+            return;
+        }
+		*/
 
-        this->guid = guid;
+		this->guid = guid;
+
         for (int i = 0; i < 8; ++i)
         {
             switch (lockInfo->Type[i])
@@ -116,7 +125,7 @@ WorldObject* LootObject::GetWorldObject(Player* bot)
     PlayerbotAI* ai = bot->GetPlayerbotAI();
 
     Creature *creature = ai->GetCreature(guid);
-    if (creature && creature->GetDeathState() == CORPSE)
+    if (creature && creature->getDeathState() == CORPSE)
         return creature;
 
     GameObject* go = ai->GetGameObject(guid);
@@ -158,6 +167,12 @@ bool LootObject::IsLootPossible(Player* bot)
 
     uint32 skillValue = uint32(bot->GetPureSkillValue(skillId));
     if (reqSkillValue > skillValue)
+        return false;
+
+    if (skillId == SKILL_MINING && !bot->HasItemTotemCategory(TC_MINING_PICK))
+        return false;
+
+    if (skillId == SKILL_SKINNING && !bot->HasItemTotemCategory(TC_SKINNING_KNIFE))
         return false;
 
     return true;

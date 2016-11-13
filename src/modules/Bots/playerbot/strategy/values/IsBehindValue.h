@@ -8,18 +8,19 @@ namespace ai
 	public:
         IsBehindValue(PlayerbotAI* ai) : BoolCalculatedValue(ai) {}
 
-        virtual bool Calculate() 
+        virtual bool Calculate()
         {
             Unit* target = AI_VALUE(Unit*, qualifier);
             if (!target)
                 return false;
 
-            
             float targetOrientation = target->GetOrientation();
             float orientation = bot->GetOrientation();
             float distance = bot->GetDistance(target);
 
             return distance <= ATTACK_DISTANCE && abs(targetOrientation - orientation) < M_PI / 2;
+         //   return distance <= ATTACK_DISTANCE && !bot->isInFront(target, M_PI / 3.0f);
+	    //return distance <= ATTACK_DISTANCE &&  !bot->HasInArc(float(M_PI), target);
         }
     };
 }

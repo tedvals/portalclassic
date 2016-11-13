@@ -21,7 +21,7 @@ namespace ai
 
         virtual bool isUseful()
         {
-            return UseItemAction::isUseful() && AI_VALUE2(uint8, "mana", "self target") < sPlayerbotAIConfig.lowMana;
+            return UseItemAction::isUseful() && AI_VALUE2(uint8, "mana", "self target") < sPlayerbotAIConfig.mediumMana;
         }
     };
 
@@ -40,7 +40,11 @@ namespace ai
 
         virtual bool isUseful()
         {
-            return UseItemAction::isUseful() && AI_VALUE2(uint8, "health", "self target") < sPlayerbotAIConfig.lowHealth;
+
+            list<ObjectGuid> targets = AI_VALUE(list<ObjectGuid>, "possible targets");
+            list<ObjectGuid> attackers = AI_VALUE(list<ObjectGuid>, "attackers");
+
+            return targets.size() == attackers.size() && UseItemAction::isUseful() && AI_VALUE2(uint8, "health", "self target") < sPlayerbotAIConfig.lowHealth;
         }
     };
 

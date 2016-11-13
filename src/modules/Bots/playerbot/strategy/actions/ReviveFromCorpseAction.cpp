@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ReviveFromCorpseAction.h"
 #include "../../PlayerbotFactory.h"
@@ -20,7 +20,7 @@ bool ReviveFromCorpseAction::Execute(Event event)
     bot->SpawnCorpseBones();
     bot->SaveToDB();
     context->GetValue<Unit*>("current target")->Set(NULL);
-    bot->SetSelectionGuid(ObjectGuid());
+    bot->SetSelection(ObjectGuid::Empty);
     return true;
 }
 
@@ -41,7 +41,7 @@ bool SpiritHealerAction::Execute(Event event)
             bot->SpawnCorpseBones();
             bot->SaveToDB();
             context->GetValue<Unit*>("current target")->Set(NULL);
-            bot->SetSelectionGuid(ObjectGuid());
+            bot->SetSelection(ObjectGuid::Empty);
             return true;
         }
     }

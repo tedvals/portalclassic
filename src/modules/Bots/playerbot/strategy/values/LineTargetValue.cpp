@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "LineTargetValue.h"
 
@@ -18,7 +18,7 @@ Unit* LineTargetValue::Calculate()
     Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
     for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
     {
-        Player *player = sObjectMgr.GetPlayer(itr->guid);
+        Player *player = sObjectMgr->GetPlayerByLowGUID(itr->guid);
         if( !player || !player->IsAlive() || player == master)
             continue;
 

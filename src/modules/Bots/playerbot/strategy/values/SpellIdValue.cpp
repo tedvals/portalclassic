@@ -1,7 +1,8 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "SpellIdValue.h"
 #include "../../PlayerbotAIConfig.h"
+#include "../../../Entities/Pet/Pet.h"
 
 using namespace ai;
 
@@ -31,14 +32,14 @@ uint32 SpellIdValue::Calculate()
     {
         uint32 spellId = itr->first;
 
-        if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
-            continue;
-
-        const SpellEntry* pSpellInfo = sSpellStore.LookupEntry(spellId);
+        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
         if (!pSpellInfo)
             continue;
 
-        if (pSpellInfo->Effect[0] == SPELL_EFFECT_LEARN_SPELL)
+        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellInfo->IsPassive())
+            continue;
+
+        if (pSpellInfo->Effects[0].Effect == SPELL_EFFECT_LEARN_SPELL)
             continue;
 
         char* spellName = pSpellInfo->SpellName[loc];
@@ -70,11 +71,11 @@ uint32 SpellIdValue::Calculate()
                 continue;
 
             uint32 spellId = itr->first;
-            const SpellEntry* pSpellInfo = sSpellStore.LookupEntry(spellId);
+            const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
             if (!pSpellInfo)
                 continue;
 
-            if (pSpellInfo->Effect[0] == SPELL_EFFECT_LEARN_SPELL)
+            if (pSpellInfo->Effects[0].Effect == SPELL_EFFECT_LEARN_SPELL)
                 continue;
 
             char* spellName = pSpellInfo->SpellName[loc];

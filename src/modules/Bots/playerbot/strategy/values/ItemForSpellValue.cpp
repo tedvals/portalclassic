@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ItemForSpellValue.h"
 
@@ -18,7 +18,7 @@ Item* ItemForSpellValue::Calculate()
     if (!spellid)
         return NULL;
 
-    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid );
+    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid);
     if (!spellInfo)
         return NULL;
 
@@ -39,11 +39,11 @@ Item* ItemForSpellValue::Calculate()
             !strcmpi(spellInfo->SpellName[0], "windfury weapon"))
     {
         itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_MAINHAND, spellInfo);
-        if (itemForSpell && itemForSpell->GetProto()->Class == ITEM_CLASS_WEAPON)
+        if (itemForSpell && itemForSpell->GetTemplate()->Class == ITEM_CLASS_WEAPON)
             return itemForSpell;
 
         itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_OFFHAND, spellInfo);
-        if (itemForSpell && itemForSpell->GetProto()->Class == ITEM_CLASS_WEAPON)
+        if (itemForSpell && itemForSpell->GetTemplate()->Class == ITEM_CLASS_WEAPON)
             return itemForSpell;
 
         return NULL;
@@ -57,7 +57,7 @@ Item* ItemForSpellValue::Calculate()
     return NULL;
 }
 
-Item* ItemForSpellValue::GetItemFitsToSpellRequirements(uint8 slot, SpellEntry const *spellInfo)
+Item* ItemForSpellValue::GetItemFitsToSpellRequirements(uint8 slot, SpellInfo const *spellInfo)
 {
     Item* const itemForSpell = bot->GetItemByPos( INVENTORY_SLOT_BAG_0, slot );
     if (!itemForSpell || itemForSpell->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))

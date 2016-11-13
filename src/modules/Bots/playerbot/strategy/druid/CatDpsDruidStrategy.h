@@ -1,11 +1,12 @@
 #pragma once
 
-#include "FeralDruidStrategy.h"
+//#include "FeralDruidStrategy.h"
 #include "../generic/CombatStrategy.h"
+#include "../generic/MeleeCombatStrategy.h"
 
 namespace ai
 {
-    class CatDpsDruidStrategy : public FeralDruidStrategy
+    class CatDpsDruidStrategy : public MeleeCombatStrategy
     {
     public:
         CatDpsDruidStrategy(PlayerbotAI* ai);

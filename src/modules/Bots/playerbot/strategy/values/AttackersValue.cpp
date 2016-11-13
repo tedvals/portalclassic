@@ -1,13 +1,10 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "AttackersValue.h"
 
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
-#include "CellImpl.h"
+#include "../../../../server/game/Entities/Pet/Pet.h"
 
 using namespace ai;
-using namespace MaNGOS;
 
 list<ObjectGuid> AttackersValue::Calculate()
 {
@@ -23,10 +20,10 @@ list<ObjectGuid> AttackersValue::Calculate()
 
     list<ObjectGuid> result;
 	for (set<Unit*>::iterator i = targets.begin(); i != targets.end(); i++)
-		result.push_back((*i)->GetObjectGuid());
+		result.push_back((*i)->GetGUID());
 
     if (bot->duel && bot->duel->opponent)
-        result.push_back(bot->duel->opponent->GetObjectGuid());
+        result.push_back(bot->duel->opponent->GetGUID());
 
 	return result;
 }
@@ -36,25 +33,37 @@ void AttackersValue::AddAttackersOf(Group* group, set<Unit*>& targets)
     Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
     for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
     {
-        Player *member = sObjectMgr.GetPlayer(itr->guid);
+        Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
         if (!member || !member->IsAlive() || member == bot)
             continue;
 
+        if (member->IsBeingTeleported())
+            return;
+
         AddAttackersOf(member, targets);
+
+        Pet* pet = member->GetPet();
+        if (pet)
+            AddAttackersOf(pet, targets);
     }
 }
 
-void AttackersValue::AddAttackersOf(Player* player, set<Unit*>& targets)
+void AttackersValue::AddAttackersOf(Unit* unit, set<Unit*>& targets)
 {
-    if (player->IsBeingTeleported())
+    HostileRefManager& refManager = unit->getHostileRefManager();
+    HostileReference *ref = refManager.getFirst();
+    if (!ref)
         return;
 
-	list<Unit*> units;
-	MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(player, sPlayerbotAIConfig.sightDistance);
-    MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(units, u_check);
-    Cell::VisitAllObjects(player, searcher, sPlayerbotAIConfig.sightDistance);
-	for (list<Unit*>::iterator i = units.begin(); i != units.end(); i++)
-		targets.insert(*i);
+    while( ref )
+    {
+        ThreatManager *threatManager = ref->GetSource();
+        Unit *attacker = threatManager->GetOwner();
+        Unit *victim = attacker->GetVictim();
+        if (victim == unit)
+            targets.insert(attacker);
+        ref = ref->next();
+    }
 }
 
 void AttackersValue::RemoveNonThreating(set<Unit*>& targets)
@@ -79,7 +88,7 @@ bool AttackersValue::hasRealThreat(Unit *attacker)
         attacker->IsInWorld() &&
         attacker->IsAlive() &&
         !attacker->IsPolymorphed() &&
-        !attacker->IsInRoots() &&
+        !attacker->isInRoots() &&
         !attacker->IsFriendlyTo(bot) &&
-        (attacker->GetThreatManager().getCurrentVictim() || attacker->GetObjectGuid().IsPlayer());
+        (attacker->getThreatManager().getCurrentVictim() || dynamic_cast<Player*>(attacker));
 }

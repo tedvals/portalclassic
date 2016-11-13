@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "UseMeetingStoneAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -14,11 +14,11 @@ bool UseMeetingStoneAction::Execute(Event event)
     ObjectGuid guid;
     p >> guid;
 
-	if (master->GetSelectionGuid() && master->GetSelectionGuid() != bot->GetObjectGuid())
-		return false;
+    if (master->GetSelectedPlayer() && master->GetSelectedPlayer() != bot)
+        return false;
 
-	if (!master->GetSelectionGuid() && master->GetGroup() != bot->GetGroup())
-		return false;
+    if (!master->GetSelectedPlayer() && master->GetGroup() != bot->GetGroup())
+        return false;
 
     if (master->IsBeingTeleported())
         return false;
@@ -37,8 +37,8 @@ bool UseMeetingStoneAction::Execute(Event event)
     if (!gameObject)
         return false;
 
-	const GameObjectInfo* goInfo = gameObject->GetGOInfo();
-	if (!goInfo || goInfo->type != GAMEOBJECT_TYPE_SUMMONING_RITUAL)
+    const GameObjectTemplate* goInfo = gameObject->GetGOInfo();
+    if (!goInfo || goInfo->type != GAMEOBJECT_TYPE_SUMMONING_RITUAL)
         return false;
 
     return Teleport();
@@ -51,7 +51,7 @@ bool SummonAction::Execute(Event event)
     if (!master)
         return false;
 
-    if (master->GetSession()->GetSecurity() < SEC_GAMEMASTER)
+    if (master->GetSession()->GetSecurity() < SEC_PLAYER)
     {
         ai->TellMasterNoFacing("You cannot summon me");
         return false;

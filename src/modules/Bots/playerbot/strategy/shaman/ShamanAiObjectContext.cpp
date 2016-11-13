@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ShamanActions.h"
 #include "ShamanAiObjectContext.h"
@@ -105,16 +105,18 @@ namespace ai
                 creators["party member cleanse spirit disease"] = &TriggerFactoryInternal::party_member_cleanse_disease;
                 creators["shock"] = &TriggerFactoryInternal::shock;
                 creators["frost shock snare"] = &TriggerFactoryInternal::frost_shock_snare;
-                creators["heroism"] = &TriggerFactoryInternal::heroism;
-                creators["bloodlust"] = &TriggerFactoryInternal::bloodlust;
+                //creators["heroism"] = &TriggerFactoryInternal::heroism;
+                //creators["bloodlust"] = &TriggerFactoryInternal::bloodlust;
                 creators["maelstrom weapon"] = &TriggerFactoryInternal::maelstrom_weapon;
                 creators["wind shear on enemy healer"] = &TriggerFactoryInternal::wind_shear_on_enemy_healer;
+                creators["hex"] = &TriggerFactoryInternal::hex;
+                creators["recall totems"] = &TriggerFactoryInternal::recall_totems;
             }
 
         private:
             static Trigger* maelstrom_weapon(PlayerbotAI* ai) { return new MaelstromWeaponTrigger(ai); }
-            static Trigger* heroism(PlayerbotAI* ai) { return new HeroismTrigger(ai); }
-            static Trigger* bloodlust(PlayerbotAI* ai) { return new BloodlustTrigger(ai); }
+            //static Trigger* heroism(PlayerbotAI* ai) { return new HeroismTrigger(ai); }
+            //static Trigger* bloodlust(PlayerbotAI* ai) { return new BloodlustTrigger(ai); }
             static Trigger* party_member_cleanse_disease(PlayerbotAI* ai) { return new PartyMemberCleanseSpiritDiseaseTrigger(ai); }
             static Trigger* party_member_cleanse_curse(PlayerbotAI* ai) { return new PartyMemberCleanseSpiritCurseTrigger(ai); }
             static Trigger* party_member_cleanse_poison(PlayerbotAI* ai) { return new PartyMemberCleanseSpiritPoisonTrigger(ai); }
@@ -135,10 +137,13 @@ namespace ai
             static Trigger* purge(PlayerbotAI* ai) { return new PurgeTrigger(ai); }
             static Trigger* shaman_weapon(PlayerbotAI* ai) { return new ShamanWeaponTrigger(ai); }
             static Trigger* water_shield(PlayerbotAI* ai) { return new WaterShieldTrigger(ai); }
+            static Trigger* earth_shield_on_master(PlayerbotAI* ai) { return new EarthShieldOnMasterTrigger(ai); }
             static Trigger* lightning_shield(PlayerbotAI* ai) { return new LightningShieldTrigger(ai); }
             static Trigger* shock(PlayerbotAI* ai) { return new ShockTrigger(ai); }
             static Trigger* frost_shock_snare(PlayerbotAI* ai) { return new FrostShockSnareTrigger(ai); }
             static Trigger* wind_shear_on_enemy_healer(PlayerbotAI* ai) { return new WindShearInterruptEnemyHealerSpellTrigger(ai); }
+            static Trigger* hex(PlayerbotAI* ai) { return new HexTrigger(ai); }
+            static Trigger* recall_totems(PlayerbotAI* ai) { return new RecallTotemTrigger(ai); }
         };
     };
 };
@@ -160,6 +165,7 @@ namespace ai
                 creators["strength of earth totem"] = &AiObjectContextInternal::strength_of_earth_totem;
                 creators["flametongue totem"] = &AiObjectContextInternal::flametongue_totem;
                 creators["searing totem"] = &AiObjectContextInternal::searing_totem;
+                creators["stoneclaw totem"] = &AiObjectContextInternal::stoneclaw_totem;
                 creators["magma totem"] = &AiObjectContextInternal::magma_totem;
                 creators["windfury totem"] = &AiObjectContextInternal::windfury_totem;
                 creators["mana spring totem"] = &AiObjectContextInternal::mana_spring_totem;
@@ -174,17 +180,25 @@ namespace ai
                 creators["earthliving weapon"] = &AiObjectContextInternal::earthliving_weapon;
                 creators["purge"] = &AiObjectContextInternal::purge;
                 creators["healing wave"] = &AiObjectContextInternal::healing_wave;
+                creators["urgent heal"] = &AiObjectContextInternal::lesser_healing_wave;
                 creators["lesser healing wave"] = &AiObjectContextInternal::lesser_healing_wave;
                 creators["healing wave on party"] = &AiObjectContextInternal::healing_wave_on_party;
+                creators["healing wave on master"] = &AiObjectContextInternal::healing_wave_on_master;
+                creators["lesser healing wave on master"] = &AiObjectContextInternal::lesser_healing_wave_on_master;
                 creators["lesser healing wave on party"] = &AiObjectContextInternal::lesser_healing_wave_on_party;
                 creators["earth shield"] = &AiObjectContextInternal::earth_shield;
                 creators["earth shield on party"] = &AiObjectContextInternal::earth_shield_on_party;
+                creators["earth shield on master"] = &AiObjectContextInternal::earth_shield_on_master;
                 creators["chain heal"] = &AiObjectContextInternal::chain_heal;
+                creators["chain heal on party"] = &AiObjectContextInternal::chain_heal_on_party;
+                creators["chain heal on master"] = &AiObjectContextInternal::chain_heal_on_master;
                 creators["riptide"] = &AiObjectContextInternal::riptide;
                 creators["riptide on party"] = &AiObjectContextInternal::riptide_on_party;
+                creators["riptide on master"] = &AiObjectContextInternal::riptide_on_master;
                 creators["stormstrike"] = &AiObjectContextInternal::stormstrike;
                 creators["lava lash"] = &AiObjectContextInternal::lava_lash;
                 creators["fire nova"] = &AiObjectContextInternal::fire_nova;
+                creators["tidal force"] = &AiObjectContextInternal::tidal_force;
                 creators["ancestral spirit"] = &AiObjectContextInternal::ancestral_spirit;
                 creators["water walking"] = &AiObjectContextInternal::water_walking;
                 creators["water breathing"] = &AiObjectContextInternal::water_breathing;
@@ -194,14 +208,42 @@ namespace ai
                 creators["cleanse spirit poison on party"] = &AiObjectContextInternal::cleanse_spirit_poison_on_party;
                 creators["cleanse spirit disease on party"] = &AiObjectContextInternal::cleanse_spirit_disease_on_party;
                 creators["cleanse spirit curse on party"] = &AiObjectContextInternal::cleanse_spirit_curse_on_party;
+                creators["cure toxins"] = &AiObjectContextInternal::cure_toxins;
+                creators["cure toxins poison on party"] = &AiObjectContextInternal::cure_toxins_poison_on_party;
+                creators["cure toxins disease on party"] = &AiObjectContextInternal::cure_toxins_disease_on_party;
+                creators["totemic recall"] = &AiObjectContextInternal::totemic_recall;
                 creators["flame shock"] = &AiObjectContextInternal::flame_shock;
+                creators["instant action"] = &AiObjectContextInternal::flame_shock;
                 creators["earth shock"] = &AiObjectContextInternal::earth_shock;
                 creators["frost shock"] = &AiObjectContextInternal::frost_shock;
                 creators["chain lightning"] = &AiObjectContextInternal::chain_lightning;
                 creators["lightning bolt"] = &AiObjectContextInternal::lightning_bolt;
+                creators["lightning bolt heal"] = &AiObjectContextInternal::lightning_bolt_heal;
                 creators["thunderstorm"] = &AiObjectContextInternal::thunderstorm;
                 creators["heroism"] = &AiObjectContextInternal::heroism;
-                creators["bloodlust"] = &AiObjectContextInternal::bloodlust;
+                creators["stoneskin totem"] = &AiObjectContextInternal::stoneskin_totem;
+                creators["tremor totem"] = &AiObjectContextInternal::tremor_totem;
+                creators["tremor totem on party"] = &AiObjectContextInternal::tremor_totem_on_party;
+                creators["earthbind totem"] = &AiObjectContextInternal::earthbind_totem;
+                creators["totem of wrath"] = &AiObjectContextInternal::totem_of_wrath;
+                creators["wrath of air totem"] = &AiObjectContextInternal::wrath_of_air_totem;
+                creators["summon earth elemental"] = &AiObjectContextInternal::summon_earth_elemental;
+                creators["summon fire elemental"] = &AiObjectContextInternal::summon_fire_elemental;
+                creators["elemental mastery"] = &AiObjectContextInternal::elemental_mastery;
+                creators["lava burst"] = &AiObjectContextInternal::lava_burst;
+                creators["feral spirit"] = &AiObjectContextInternal::feral_spirit;
+                creators["shamanistic rage"] = &AiObjectContextInternal::shamanistic_rage;
+                creators["nature's swiftness"] = &AiObjectContextInternal::natures_swiftness;
+                creators["burst"] =&AiObjectContextInternal::burst_shaman;
+                creators["boost"] =&AiObjectContextInternal::boost_shaman;
+                creators["finish target"] =&AiObjectContextInternal::earth_shock;
+                creators["party boost"] =&AiObjectContextInternal::party_boost;
+                creators["hex"] =&AiObjectContextInternal::hex;
+                creators["hex on cc"] =&AiObjectContextInternal::hex_on_cc;
+                creators["prepare attack"] =&AiObjectContextInternal::call_of_the_elements;
+                creators["call of the elements"] =&AiObjectContextInternal::call_of_the_elements;
+                creators["call of the spirits"] =&AiObjectContextInternal::call_of_the_spirits;
+                creators["call of the ancestors"] =&AiObjectContextInternal::call_of_the_ancestors;
             }
 
         private:
@@ -209,6 +251,7 @@ namespace ai
             static Action* bloodlust(PlayerbotAI* ai) { return new CastBloodlustAction(ai); }
             static Action* thunderstorm(PlayerbotAI* ai) { return new CastThunderstormAction(ai); }
             static Action* lightning_bolt(PlayerbotAI* ai) { return new CastLightningBoltAction(ai); }
+            static Action* lightning_bolt_heal(PlayerbotAI* ai) { return new CastLightningBoltHealAction(ai); }
             static Action* chain_lightning(PlayerbotAI* ai) { return new CastChainLightningAction(ai); }
             static Action* frost_shock(PlayerbotAI* ai) { return new CastFrostShockAction(ai); }
             static Action* earth_shock(PlayerbotAI* ai) { return new CastEarthShockAction(ai); }
@@ -217,6 +260,10 @@ namespace ai
             static Action* cleanse_spirit_disease_on_party(PlayerbotAI* ai) { return new CastCleanseSpiritDiseaseOnPartyAction(ai); }
             static Action* cleanse_spirit_curse_on_party(PlayerbotAI* ai) { return new CastCleanseSpiritCurseOnPartyAction(ai); }
             static Action* cleanse_spirit(PlayerbotAI* ai) { return new CastCleanseSpiritAction(ai); }
+            static Action* cure_toxins_poison_on_party(PlayerbotAI* ai) { return new CastCureToxinsPoisonOnPartyAction(ai); }
+            static Action* cure_toxins_disease_on_party(PlayerbotAI* ai) { return new CastCureToxinsDiseaseOnPartyAction(ai); }
+            static Action* cure_toxins(PlayerbotAI* ai) { return new CastCureToxinsAction(ai); }
+            static Action* totemic_recall(PlayerbotAI* ai) { return new CastTotemicRecallAction(ai); }
             static Action* water_walking(PlayerbotAI* ai) { return new CastWaterWalkingAction(ai); }
             static Action* water_breathing(PlayerbotAI* ai) { return new CastWaterBreathingAction(ai); }
             static Action* water_walking_on_party(PlayerbotAI* ai) { return new CastWaterWalkingOnPartyAction(ai); }
@@ -226,6 +273,7 @@ namespace ai
             static Action* strength_of_earth_totem(PlayerbotAI* ai) { return new CastStrengthOfEarthTotemAction(ai); }
             static Action* flametongue_totem(PlayerbotAI* ai) { return new CastFlametongueTotemAction(ai); }
             static Action* magma_totem(PlayerbotAI* ai) { return new CastMagmaTotemAction(ai); }
+            static Action* stoneclaw_totem(PlayerbotAI* ai) { return new CastStoneclawTotemAction(ai); }
             static Action* searing_totem(PlayerbotAI* ai) { return new CastSearingTotemAction(ai); }
             static Action* fire_nova(PlayerbotAI* ai) { return new CastFireNovaAction(ai); }
             static Action* windfury_totem(PlayerbotAI* ai) { return new CastWindfuryTotemAction(ai); }
@@ -243,15 +291,43 @@ namespace ai
             static Action* lesser_healing_wave(PlayerbotAI* ai) { return new CastLesserHealingWaveAction(ai); }
             static Action* healing_wave_on_party(PlayerbotAI* ai) { return new CastHealingWaveOnPartyAction(ai); }
             static Action* lesser_healing_wave_on_party(PlayerbotAI* ai) { return new CastLesserHealingWaveOnPartyAction(ai); }
+            static Action* healing_wave_on_master(PlayerbotAI* ai) { return new CastHealingWaveOnMasterAction(ai); }
+            static Action* lesser_healing_wave_on_master(PlayerbotAI* ai) { return new CastLesserHealingWaveOnMasterAction(ai); }
             static Action* earth_shield(PlayerbotAI* ai) { return new CastEarthShieldAction(ai); }
             static Action* earth_shield_on_party(PlayerbotAI* ai) { return new CastEarthShieldOnPartyAction(ai); }
+            static Action* earth_shield_on_master(PlayerbotAI* ai) { return new CastEarthShieldOnMasterAction(ai); }
             static Action* chain_heal(PlayerbotAI* ai) { return new CastChainHealAction(ai); }
+            static Action* chain_heal_on_party(PlayerbotAI* ai) { return new CastChainHealOnPartyAction(ai); }
+            static Action* chain_heal_on_master(PlayerbotAI* ai) { return new CastChainHealOnMasterAction(ai); }
+            static Action* tidal_force(PlayerbotAI* ai) { return new CastTidalForceAction(ai); }
             static Action* riptide(PlayerbotAI* ai) { return new CastRiptideAction(ai); }
             static Action* riptide_on_party(PlayerbotAI* ai) { return new CastRiptideOnPartyAction(ai); }
+            static Action* riptide_on_master(PlayerbotAI* ai) { return new CastRiptideOnMasterAction(ai); }
             static Action* stormstrike(PlayerbotAI* ai) { return new CastStormstrikeAction(ai); }
             static Action* lava_lash(PlayerbotAI* ai) { return new CastLavaLashAction(ai); }
             static Action* ancestral_spirit(PlayerbotAI* ai) { return new CastAncestralSpiritAction(ai); }
             static Action* wind_shear_on_enemy_healer(PlayerbotAI* ai) { return new CastWindShearOnEnemyHealerAction(ai); }
+            static Action* stoneskin_totem(PlayerbotAI* ai) { return new CastStoneskinTotemAction(ai); }
+            static Action* earthbind_totem(PlayerbotAI* ai) { return new CastEarthbindTotemAction(ai); }
+            static Action* tremor_totem(PlayerbotAI* ai) { return new CastTremorTotemAction(ai); }
+            static Action* tremor_totem_on_party(PlayerbotAI* ai) { return new CastTremorTotemAction(ai); }
+            static Action* totem_of_wrath(PlayerbotAI* ai) { return new CastTotemOfWrathAction(ai); }
+            static Action* wrath_of_air_totem(PlayerbotAI* ai) { return new CastWrathOfAirTotemAction(ai); }
+            static Action* summon_earth_elemental(PlayerbotAI* ai) { return new CastSummonEarthElementalAction(ai); }
+            static Action* summon_fire_elemental(PlayerbotAI* ai) { return new CastSummonFireElementalAction(ai); }
+            static Action* elemental_mastery(PlayerbotAI* ai) { return new CastElementalMasteryAction(ai); }
+            static Action* lava_burst(PlayerbotAI* ai) { return new CastLavaBurstAction(ai); }
+            static Action* feral_spirit(PlayerbotAI* ai) { return new CastFeralSpiritAction(ai); }
+            static Action* shamanistic_rage(PlayerbotAI* ai) { return new CastShamanisticRageAction(ai); }
+            static Action* natures_swiftness(PlayerbotAI* ai) { return new CastNaturesSwiftnessAction(ai); }
+            static Action* burst_shaman(PlayerbotAI* ai) { return new CastElementalMasteryAction(ai); }
+            static Action* boost_shaman(PlayerbotAI* ai) { return new CastFeralSpiritAction(ai); }
+            static Action* party_boost(PlayerbotAI* ai) { return new CastBloodlustAction(ai); }
+            static Action* hex(PlayerbotAI* ai) { return new CastHexAction(ai); }
+            static Action* hex_on_cc(PlayerbotAI* ai) { return new CastHexCcAction(ai); }
+            static Action* call_of_the_ancestors(PlayerbotAI* ai) { return new CastCallOfTheAncestorsTotemAction(ai); }
+            static Action* call_of_the_elements(PlayerbotAI* ai) { return new CastCallOfTheElementsTotemAction(ai); }
+            static Action* call_of_the_spirits(PlayerbotAI* ai) { return new CastCallOfTheSpiritsTotemAction(ai); }
         };
     };
 };

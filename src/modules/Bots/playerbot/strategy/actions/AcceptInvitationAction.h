@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Action.h"
+#include "../../../Globals/ObjectMgr.h"
 
 namespace ai
 {
@@ -16,7 +17,7 @@ namespace ai
             if (!grp)
                 return false;
 
-            Player* inviter = sObjectMgr.GetPlayer(grp->GetLeaderGuid());
+            Player* inviter = sObjectMgr->GetPlayerByLowGUID(grp->GetLeaderGUID());
             if (!inviter)
                 return false;
 

@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "TradeStatusAction.h"
 
@@ -22,7 +22,7 @@ bool TradeStatusAction::Execute(Event event)
 
     if (trader != master)
     {
-		bot->Whisper("I'm kind of busy now", LANG_UNIVERSAL, trader->GetGUID());
+		bot->Whisper("I'm kind of busy now", LANG_UNIVERSAL, trader);
     }
 
     if (trader != master || !ai->GetSecurity()->CheckLevelFor(PLAYERBOT_SECURITY_ALLOW_ALL, true, master))
@@ -54,7 +54,7 @@ bool TradeStatusAction::Execute(Event event)
             {
                 Item* item = master->GetTradeData()->GetItem((TradeSlots)slot);
                 if (item)
-                    itemIds[item->GetProto()->ItemId] += item->GetCount();
+                    itemIds[item->GetTemplate()->ItemId] += item->GetCount();
             }
 
             bot->GetSession()->HandleAcceptTradeOpcode(p);
@@ -74,7 +74,7 @@ bool TradeStatusAction::Execute(Event event)
     }
     else if (status == TRADE_STATUS_BEGIN_TRADE)
     {
-        if (!bot->isInFront(trader, sPlayerbotAIConfig.sightDistance, M_PI / 2))
+        if (!bot->isInFront(trader, M_PI / 2))
             bot->SetFacingToObject(trader);
         BeginTrade();
         return true;
@@ -118,10 +118,10 @@ bool TradeStatusAction::CheckTrade()
     for (uint32 slot = 0; slot < TRADE_SLOT_TRADED_COUNT; ++slot)
     {
         Item* item = bot->GetTradeData()->GetItem((TradeSlots)slot);
-        if (item && !auctionbot.GetSellPrice(item->GetProto()))
+        if (item && !auctionbot.GetSellPrice(item->GetTemplate()))
         {
             ostringstream out;
-            out << chat->formatItem(item->GetProto()) << " - This is not for sale";
+            out << chat->formatItem(item->GetTemplate()) << " - This is not for sale";
             ai->TellMaster(out);
             return false;
         }
@@ -129,12 +129,12 @@ bool TradeStatusAction::CheckTrade()
         item = master->GetTradeData()->GetItem((TradeSlots)slot);
         if (item)
         {
-            ostringstream out; out << item->GetProto()->ItemId;
+            ostringstream out; out << item->GetTemplate()->ItemId;
             ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", out.str());
-            if (!auctionbot.GetBuyPrice(item->GetProto()) || usage == ITEM_USAGE_NONE)
+            if (!auctionbot.GetBuyPrice(item->GetTemplate()) || usage == ITEM_USAGE_NONE)
             {
                 ostringstream out;
-                out << chat->formatItem(item->GetProto()) << " - I don't need this";
+                out << chat->formatItem(item->GetTemplate()) << " - I don't need this";
                 ai->TellMaster(out);
                 return false;
             }
@@ -195,7 +195,7 @@ int32 TradeStatusAction::CalculateCost(TradeData* data, bool sell)
         if (!item)
             continue;
 
-        ItemPrototype const* proto = item->GetProto();
+        ItemTemplate const* proto = item->GetTemplate();
         if (!proto)
             continue;
 

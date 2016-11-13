@@ -1,4 +1,4 @@
-#include "../../botpch.h"
+#include "../../pchdef.h"
 #include "../playerbot.h"
 #include "CustomStrategy.h"
 #include <regex>
@@ -15,7 +15,7 @@ NextAction* toNextAction(string action)
     else if (tokens.size() == 1)
         return new NextAction(tokens[0], ACTION_NORMAL);
 
-    sLog.outError("Invalid action '%s'", action);
+    sLog->outMessage("playerbot", LOG_LEVEL_ERROR, "Invalid action '%s'", action);
     return NULL;
 }
 
@@ -38,7 +38,7 @@ TriggerNode* toTriggerNode(string actionLine)
     if (tokens.size() == 2)
         return new TriggerNode(tokens[0], toNextActionArray(tokens[1]));
 
-    sLog.outError("Invalid action line '%s'", actionLine);
+    sLog->outMessage("playerbot", LOG_LEVEL_ERROR, "Invalid action line '%s'", actionLine);
     return NULL;
 }
 
@@ -48,22 +48,21 @@ void CustomStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     {
         if (actionLinesCache[qualifier].empty())
         {
-            QueryResult* results = CharacterDatabase.PQuery("SELECT action_line FROM ai_playerbot_custom_strategy WHERE name = '%s'", qualifier.c_str());
+            QueryResult results = CharacterDatabase.PQuery("SELECT action_line FROM ai_playerbot_custom_strategy WHERE name = '%s'", qualifier.c_str());
             if (results)
             {
                 do
                 {
                     Field* fields = results->Fetch();
-                    string action = fields[0].GetString();
+                    string action = fields[0].GetCString();
                     this->actionLines.push_back(action);
                 } while (results->NextRow());
-
-				delete results;
             }
         }
         else
         {
             vector<string> tokens = split(actionLinesCache[qualifier], '\n');
+
             regex tpl("\\(NULL,\\s*'.+',\\s*'(.+)'\\)(,|;)");
             for (vector<string>::iterator i = tokens.begin(); i != tokens.end(); ++i)
             {

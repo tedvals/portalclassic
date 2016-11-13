@@ -5,12 +5,12 @@
 
 namespace ai
 {
-    class SendMailAction : public InventoryAction
-    {
-    public:
-        SendMailAction(PlayerbotAI* ai) : InventoryAction(ai, "sendmail") {}
+	class SendMailAction : public InventoryAction
+	{
+	public:
+		SendMailAction(PlayerbotAI* ai) : InventoryAction(ai, "sendmail") {}
 
-        virtual bool Execute(Event event);
-    };
+		virtual bool Execute(Event event);
+	};
 
 }

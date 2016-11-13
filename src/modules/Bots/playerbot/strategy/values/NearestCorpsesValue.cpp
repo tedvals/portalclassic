@@ -1,13 +1,13 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "NearestCorpsesValue.h"
 
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
-#include "CellImpl.h"
+#include "../../../Grids/Notifiers/GridNotifiers.h"
+#include "../../../Grids/Notifiers/GridNotifiersImpl.h"
+#include "../../../Grids/Cells/CellImpl.h"
 
 using namespace ai;
-using namespace MaNGOS;
+using namespace Trinity;
 
 class AnyDeadUnitInObjectRangeCheck
 {
@@ -25,9 +25,9 @@ private:
 
 void NearestCorpsesValue::FindUnits(list<Unit*> &targets)
 {
-    AnyDeadUnitInObjectRangeCheck u_check(bot,  range);
-    UnitListSearcher<AnyDeadUnitInObjectRangeCheck> searcher(targets, u_check);
-    Cell::VisitAllObjects(bot, searcher, range);
+    AnyDeadUnitInObjectRangeCheck u_check(bot, range);
+    UnitListSearcher<AnyDeadUnitInObjectRangeCheck> searcher(bot, targets, u_check);
+    bot->VisitNearbyObject(bot->GetMap()->GetVisibilityRange(), searcher);
 }
 
 bool NearestCorpsesValue::AcceptUnit(Unit* unit)

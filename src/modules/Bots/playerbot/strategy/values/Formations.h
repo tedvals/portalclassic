@@ -14,7 +14,6 @@ namespace ai
         virtual WorldLocation GetLocation() { return NullLocation; }
         virtual float GetMaxDistance() { return sPlayerbotAIConfig.followDistance; }
         static WorldLocation NullLocation;
-		static bool IsNullLocation(WorldLocation const& loc);
 
     protected:
         float GetFollowAngle();

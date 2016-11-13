@@ -1,6 +1,7 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "PartyMemberToDispel.h"
+#include "../../../Entities/Pet/Pet.h"
 
 using namespace ai;
 
@@ -13,9 +14,12 @@ public:
 public:
     virtual bool Check(Unit* unit)
     {
-        Pet* pet = dynamic_cast<Pet*>(unit);
-        if (pet && (pet->getPetType() == MINI_PET || pet->getPetType() == SUMMON_PET))
-            return false;
+        if (unit->IsPet())
+        {
+            Pet* pet = unit->ToPet();
+            if (pet && pet->getPetType() == SUMMON_PET)
+                return false;
+        }
 
         return unit->IsAlive() && ai->HasAuraToDispel(unit, dispelType);
     }

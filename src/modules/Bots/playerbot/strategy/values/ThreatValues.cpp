@@ -1,7 +1,6 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ThreatValues.h"
-#include "ThreatManager.h"
 
 using namespace ai;
 
@@ -34,24 +33,24 @@ uint8 ThreatValue::Calculate(Unit* target)
     if (!target)
         return 0;
 
-    if (target->GetObjectGuid().IsPlayer())
+    if (dynamic_cast<Player*>(target))
         return 0;
 
     Group* group = bot->GetGroup();
     if (!group)
         return 0;
 
-    float botThreat = target->GetThreatManager().getThreat(bot);
+    float botThreat = target->getThreatManager().getThreat(bot);
     float maxThreat = 0;
 
     Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
     for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
     {
-        Player *player = sObjectMgr.GetPlayer(itr->guid);
+        Player *player = sObjectMgr->GetPlayerByLowGUID(itr->guid);
         if( !player || !player->IsAlive() || player == bot)
             continue;
 
-        float threat = target->GetThreatManager().getThreat(player);
+        float threat = target->getThreatManager().getThreat(player);
         if (maxThreat < threat)
             maxThreat = threat;
     }

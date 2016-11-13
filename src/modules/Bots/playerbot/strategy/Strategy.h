@@ -36,7 +36,7 @@ namespace ai
     {
     public:
         Strategy(PlayerbotAI* ai);
-        virtual ~Strategy() {}
+        virtual ~Strategy();
 
     public:
         virtual NextAction** getDefaultActions() { return NULL; }
@@ -50,6 +50,7 @@ namespace ai
 
     protected:
         NamedObjectFactoryList<ActionNode> actionNodeFactories;
+        NamedObjectFactory<ActionNode>* factoryInternal;
     };
 
 }

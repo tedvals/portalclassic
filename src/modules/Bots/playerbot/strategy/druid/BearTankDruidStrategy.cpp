@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "DruidMultipliers.h"
 #include "BearTankDruidStrategy.h"
@@ -10,6 +10,7 @@ class BearTankDruidStrategyActionNodeFactory : public NamedObjectFactory<ActionN
 public:
     BearTankDruidStrategyActionNodeFactory()
     {
+        creators["enrage"] = &enrage;
         creators["melee"] = &melee;
         creators["feral charge - bear"] = &feral_charge_bear;
         creators["swipe (bear)"] = &swipe_bear;
@@ -22,8 +23,18 @@ public:
         creators["swipe"] = &swipe;
         creators["lacerate"] = &lacerate;
         creators["demoralizing roar"] = &demoralizing_roar;
+        creators["boost"] = &berserk;
+        creators["berserk"] = &berserk;
+        creators["rejuvenation"] = &rejuvenation;
     }
 private:
+    static ActionNode* enrage(PlayerbotAI* ai)
+    {
+        return new ActionNode ("enrage",
+            /*P*/ NULL,
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
     static ActionNode* melee(PlayerbotAI* ai)
     {
         return new ActionNode ("melee",
@@ -115,6 +126,20 @@ private:
             /*A*/ NULL,
             /*C*/ NULL);
     }
+    static ActionNode* berserk(PlayerbotAI* ai)
+    {
+        return new ActionNode ("berserk",
+            /*P*/ NULL,
+            /*A*/ NextAction::array(0, new NextAction("mangle (bear)"), NULL),
+            /*C*/ NULL);
+    }
+    static ActionNode* rejuvenation(PlayerbotAI* ai)
+    {
+        return new ActionNode ("rejuvenation",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NextAction::array(0, new NextAction("dire bear form"), NULL));
+    }
 };
 
 BearTankDruidStrategy::BearTankDruidStrategy(PlayerbotAI* ai) : FeralDruidStrategy(ai)
@@ -125,8 +150,8 @@ BearTankDruidStrategy::BearTankDruidStrategy(PlayerbotAI* ai) : FeralDruidStrate
 NextAction** BearTankDruidStrategy::getDefaultActions()
 {
     return NextAction::array(0,
-            new NextAction("lacerate", ACTION_NORMAL + 4),
-            new NextAction("mangle (bear)", ACTION_NORMAL + 3),
+            new NextAction("lacerate", ACTION_NORMAL + 3),
+            new NextAction("mangle (bear)", ACTION_NORMAL + 4),
             new NextAction("maul", ACTION_NORMAL + 2),
             new NextAction("faerie fire (feral)", ACTION_NORMAL + 1),
             new NextAction("melee", ACTION_NORMAL),
@@ -138,11 +163,23 @@ void BearTankDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     FeralDruidStrategy::InitTriggers(triggers);
 
     triggers.push_back(new TriggerNode(
+        "enemy out of melee",
+        NextAction::array(0, new NextAction("feral charge - bear", ACTION_NORMAL + 5), NULL)));
+/*
+    triggers.push_back(new TriggerNode(
         "thorns",
         NextAction::array(0, new NextAction("thorns", ACTION_HIGH + 9), NULL)));
-
+*/
     triggers.push_back(new TriggerNode(
         "bear form",
+        NextAction::array(0, new NextAction("dire bear form", ACTION_HIGH + 8), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "low health",
+        NextAction::array(0, new NextAction("rejuvenation", ACTION_MEDIUM_HEAL + 2), NULL)));
+
+     triggers.push_back(new TriggerNode(
+        "rooted",
         NextAction::array(0, new NextAction("dire bear form", ACTION_HIGH + 8), NULL)));
 
     triggers.push_back(new TriggerNode(
@@ -158,7 +195,7 @@ void BearTankDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("demoralizing roar", ACTION_HIGH + 6), new NextAction("swipe (bear)", ACTION_HIGH + 6), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "light aoe",
+        "melee light aoe",
         NextAction::array(0, new NextAction("swipe (bear)", ACTION_HIGH + 5), NULL)));
 
     triggers.push_back(new TriggerNode(
@@ -168,5 +205,10 @@ void BearTankDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "bash on enemy healer",
         NextAction::array(0, new NextAction("bash on enemy healer", ACTION_INTERRUPT + 1), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "boost",
+        NextAction::array(0, new NextAction("enrage", ACTION_HIGH + 8), new NextAction("berserk", ACTION_HIGH + 7), new NextAction("mangle (bear)", ACTION_HIGH + 6), new NextAction("mangle (bear)", ACTION_HIGH + 6), new NextAction("lacerate", ACTION_NORMAL + 3),
+                             new NextAction("mangle (bear)", ACTION_HIGH + 6), new NextAction("mangle (bear)", ACTION_HIGH + 6), new NextAction("mangle (bear)", ACTION_HIGH + 6), NULL)));
 
 }

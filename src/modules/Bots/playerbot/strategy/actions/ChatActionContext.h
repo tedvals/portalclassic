@@ -46,6 +46,7 @@
 #include "PositionAction.h"
 #include "TellTargetAction.h"
 #include "UseMeetingStoneAction.h"
+#include "UseConsumableAction.h"
 #include "WhoAction.h"
 #include "SaveManaAction.h"
 #include "../values/Formations.h"
@@ -93,12 +94,17 @@ namespace ai
             creators["destroy"] = &ChatActionContext::destroy;
             creators["reset ai"] = &ChatActionContext::reset_ai;
             creators["buff"] = &ChatActionContext::buff;
+            creators["enhance"] = &ChatActionContext::enhance;
+            creators["inventory"] = &ChatActionContext::inventory;
             creators["help"] = &ChatActionContext::help;
             creators["gb"] = &ChatActionContext::gb;
             creators["bank"] = &ChatActionContext::bank;
             creators["follow chat shortcut"] = &ChatActionContext::follow_chat_shortcut;
             creators["stay chat shortcut"] = &ChatActionContext::stay_chat_shortcut;
+            creators["resume attack chat shortcut"] = &ChatActionContext::resume_attack_chat_shortcut;
+            creators["stop attack chat shortcut"] = &ChatActionContext::stop_attack_chat_shortcut;
             creators["flee chat shortcut"] = &ChatActionContext::flee_chat_shortcut;
+            creators["move behind chat shortcut"] = &ChatActionContext::move_behind_chat_shortcut;
             creators["runaway chat shortcut"] = &ChatActionContext::runaway_chat_shortcut;
             creators["grind chat shortcut"] = &ChatActionContext::grind_chat_shortcut;
             creators["tank attack chat shortcut"] = &ChatActionContext::tank_attack_chat_shortcut;
@@ -116,11 +122,16 @@ namespace ai
             creators["max dps chat shortcut"] = &ChatActionContext::max_dps_chat_shortcut;
             creators["tell attackers"] = &ChatActionContext::tell_attackers;
             creators["formation"] = &ChatActionContext::formation;
-            creators["sendmail"] = &ChatActionContext::sendmail;
+            creators["move to point chat shortcut"] = &ChatActionContext::move_to_point_chat_shortcut;
+            creators["reposition chat shortcut"] = &ChatActionContext::reposition_chat_shortcut;
+            creators["disperse chat shortcut"] = &ChatActionContext::disperse_chat_shortcut;
+            creators["boost chat shortcut"] = &ChatActionContext::boost_chat_shortcut;
+            creators["burst chat shortcut"] = &ChatActionContext::burst_chat_shortcut;
+			creators["sendmail"] = &ChatActionContext::sendmail;
         }
 
     private:
-        static Action* sendmail(PlayerbotAI* ai) { return new SendMailAction(ai); }
+		static Action* sendmail(PlayerbotAI* ai) { return new SendMailAction(ai); }
         static Action* formation(PlayerbotAI* ai) { return new SetFormationAction(ai); }
         static Action* tell_attackers(PlayerbotAI* ai) { return new TellAttackersAction(ai); }
         static Action* max_dps_chat_shortcut(PlayerbotAI* ai) { return new MaxDpsChatShortcutAction(ai); }
@@ -137,13 +148,23 @@ namespace ai
         static Action* tank_attack_chat_shortcut(PlayerbotAI* ai) { return new TankAttackChatShortcutAction(ai); }
         static Action* grind_chat_shortcut(PlayerbotAI* ai) { return new GrindChatShortcutAction(ai); }
         static Action* flee_chat_shortcut(PlayerbotAI* ai) { return new FleeChatShortcutAction(ai); }
+        static Action* disperse_chat_shortcut(PlayerbotAI* ai) { return new DisperseChatShortcutAction(ai); }
+        static Action* resume_attack_chat_shortcut(PlayerbotAI* ai) { return new ResumeAttackChatShortcutAction(ai); }
+        static Action* stop_attack_chat_shortcut(PlayerbotAI* ai) { return new StopAttackChatShortcutAction(ai); }
+        static Action* move_behind_chat_shortcut(PlayerbotAI* ai) { return new MoveBehindChatShortcutAction(ai); }
+        static Action* move_to_point_chat_shortcut(PlayerbotAI* ai) { return new MoveToPointChatShortcutAction(ai); }
+        static Action* reposition_chat_shortcut(PlayerbotAI* ai) { return new RepositionChatShortcutAction(ai); }
         static Action* runaway_chat_shortcut(PlayerbotAI* ai) { return new GoawayChatShortcutAction(ai); }
         static Action* stay_chat_shortcut(PlayerbotAI* ai) { return new StayChatShortcutAction(ai); }
         static Action* follow_chat_shortcut(PlayerbotAI* ai) { return new FollowChatShortcutAction(ai); }
+        static Action* boost_chat_shortcut(PlayerbotAI* ai) { return new BoostChatShortcutAction(ai); }
+        static Action* burst_chat_shortcut(PlayerbotAI* ai) { return new BurstChatShortcutAction(ai); }
         static Action* gb(PlayerbotAI* ai) { return new GuildBankAction(ai); }
         static Action* bank(PlayerbotAI* ai) { return new BankAction(ai); }
         static Action* help(PlayerbotAI* ai) { return new HelpAction(ai); }
-        static Action* buff(PlayerbotAI* ai) { return new BuffAction(ai); }
+        static Action* inventory(PlayerbotAI* ai) { return new BuffAction(ai); }
+        static Action* buff(PlayerbotAI* ai) { return new UseConsumableAction(ai); }
+        static Action* enhance(PlayerbotAI* ai) { return new UseEnhancementAction(ai); }
         static Action* destroy(PlayerbotAI* ai) { return new DestroyItemAction(ai); }
         static Action* home(PlayerbotAI* ai) { return new SetHomeAction(ai); }
         static Action* chat(PlayerbotAI* ai) { return new ChangeChatAction(ai); }

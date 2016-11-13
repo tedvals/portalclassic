@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config\Config.h"
+#include "../../common/Configuration/Config.h"
 
 class Player;
 class PlayerbotMgr;
@@ -24,10 +24,11 @@ public:
     bool enabled;
     bool allowGuildBots;
     uint32 globalCoolDown, reactDelay, maxWaitForMove;
-    float sightDistance, spellDistance, reactDistance, grindDistance, lootDistance,
+    float sightDistance, spellDistance, reactDistance, aggroDistance, grindDistance, lootDistance, disperseDistance,
         fleeDistance, tooCloseDistance, meleeDistance, followDistance, whisperDistance, contactDistance;
-    uint32 criticalHealth, lowHealth, mediumHealth, almostFullHealth;
-    uint32 lowMana, mediumMana;
+    float closeDistance, mediumDistance, farDistance, extremeDistance;
+    uint32 criticalHealth, lowHealth, mediumHealth, highHealth, almostFullHealth, almostDead;
+    uint32 lowMana, mediumMana, almostFullMana, almostNoMana;
 
     bool randomBotAutologin;
     std::string randomBotMapsAsString;
@@ -48,13 +49,19 @@ public:
     uint32 minRandomBotsPriceChangeInterval, maxRandomBotsPriceChangeInterval;
     bool randomBotJoinLfg;
     bool randomBotLoginAtStartup;
+
+	bool randomBotJoinBG;
+	bool randomBotBracketPlayer;
+
     uint32 randomBotTeleLevel;
     bool logInGroupOnly, logValuesPerTick;
     bool fleeingEnabled;
-    std::string combatStrategies, nonCombatStrategies;
+	std::string combatStrategies, nonCombatStrategies;
     std::string randomBotCombatStrategies, randomBotNonCombatStrategies;
     uint32 randomBotMinLevel, randomBotMaxLevel;
+    int checkTriggerInterval;
     float randomChangeMultiplier;
+    bool outputTriggers;
     uint32 specProbability[MAX_CLASSES][3];
     std::string commandPrefix;
     std::string randomBotAccountPrefix;
@@ -77,8 +84,7 @@ public:
     void SetValue(std::string name, std::string value);
 
 private:
-    Config config;
+    ConfigMgr config;
 };
 
-#define sPlayerbotAIConfig MaNGOS::Singleton<PlayerbotAIConfig>::Instance()
-
+#define sPlayerbotAIConfig PlayerbotAIConfig::instance()

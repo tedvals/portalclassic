@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "LootAction.h"
 
@@ -31,10 +31,25 @@ enum ProfessionSpells
     FIRST_AID                    = 3273,
     FISHING                      = 7620,
     HERB_GATHERING               = 2366,
+    HERB_GATHERING_J             = 2368,
+    HERB_GATHERING_E             = 3570,
+    HERB_GATHERING_A             = 11993,
+    HERB_GATHERING_M             = 28695,
+    HERB_GATHERING_GM            = 50300,
     INSCRIPTION                  = 45357,
     JEWELCRAFTING                = 25229,
     MINING                       = 2575,
+    MINING_J                     = 2576,
+    MINING_E                     = 3564,
+    MINING_A                     = 10248,
+    MINING_M                     = 29354,
+    MINING_GM                    = 50310,
     SKINNING                     = 8613,
+    SKINNING_J                   = 8617,
+    SKINNING_E                   = 8618,
+    SKINNING_A                   = 10768,
+    SKINNING_M                   = 32678,
+    SKINNING_GM                  = 50305,
     TAILORING                    = 3908
 };
 
@@ -66,11 +81,12 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
         *packet << lootObject.guid;
         bot->GetSession()->QueuePacket(packet);
         return true;
+
     }
 
     if (creature)
     {
-        SkillType skill = creature->GetCreatureInfo()->GetRequiredLootSkill();
+        SkillType skill = creature->GetCreatureTemplate()->GetRequiredLootSkill();
         if (!CanOpenLock(skill, lootObject.reqSkillValue))
             return false;
 
@@ -84,7 +100,7 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
         case SKILL_MINING:
             return bot->HasSkill(SKILL_MINING) ? ai->CastSpell(32606, creature) : false;
         default:
-            return bot->HasSkill(SKILL_SKINNING) ? ai->CastSpell(SKINNING, creature) : false;
+           return bot->HasSkill(SKILL_SKINNING) ? ai->CastSpell(SKINNING, creature) : false;
         }
     }
 
@@ -121,15 +137,15 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
     {
         uint32 spellId = itr->first;
 
-		if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
-			continue;
+        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
+        if (!pSpellInfo)
+            continue;
 
-		if (spellId == MINING || spellId == HERB_GATHERING)
-			continue;
+        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellInfo->IsPassive())
+            continue;
 
-		const SpellEntry* pSpellInfo = sSpellStore.LookupEntry(spellId);
-		if (!pSpellInfo)
-			continue;
+        if (spellId == MINING || spellId == HERB_GATHERING)
+            continue;
 
         if (CanOpenLock(lootObject, pSpellInfo, go))
             return spellId;
@@ -140,8 +156,8 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
         if (spellId == MINING || spellId == HERB_GATHERING)
             continue;
 
-		const SpellEntry* pSpellInfo = sSpellStore.LookupEntry(spellId);
-		if (!pSpellInfo)
+        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
+        if (!pSpellInfo)
             continue;
 
         if (CanOpenLock(lootObject, pSpellInfo, go))
@@ -151,11 +167,11 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
     return 0; //Spell 3365 = Opening?
 }
 
-bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellEntry* pSpellInfo, GameObject* go)
+bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellInfo* pSpellInfo, GameObject* go)
 {
-    for (int effIndex = 0; effIndex <= EFFECT_INDEX_2; effIndex++)
+    for (int effIndex = 0; effIndex <= EFFECT_2; effIndex++)
     {
-        if (pSpellInfo->Effect[effIndex] != SPELL_EFFECT_OPEN_LOCK && pSpellInfo->Effect[effIndex] != SPELL_EFFECT_SKINNING)
+        if (pSpellInfo->Effects[effIndex].Effect != SPELL_EFFECT_OPEN_LOCK && pSpellInfo->Effects[effIndex].Effect != SPELL_EFFECT_SKINNING)
             return false;
 
         uint32 lockId = go->GetGOInfo()->GetLockId();
@@ -178,7 +194,7 @@ bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellEntry* pSpel
             */
             case LOCK_KEY_SKILL:
                 {
-                    if(uint32(pSpellInfo->EffectMiscValue[effIndex]) != lockInfo->Index[j])
+                    if(uint32(pSpellInfo->Effects[effIndex].MiscValue) != lockInfo->Index[j])
                         continue;
 
                     uint32 skillId = SkillByLockType(LockType(lockInfo->Index[j]));
@@ -241,16 +257,16 @@ bool StoreLootAction::Execute(Event event)
         p.read_skip<uint32>();  // randomPropertyId
         p >> lootslot_type;     // 0 = can get, 1 = look only, 2 = master get
 
-		if (lootslot_type != LOOT_SLOT_NORMAL)
-			continue;
+        if (lootslot_type != LOOT_SLOT_TYPE_ALLOW_LOOT && lootslot_type != LOOT_SLOT_TYPE_OWNER)
+            continue;
 
         if (loot_type != LOOT_SKINNING && !IsLootAllowed(itemid))
             continue;
 
         if (sRandomPlayerbotMgr.IsRandomBot(bot))
         {
-			ItemPrototype const *proto = sItemStorage.LookupEntry<ItemPrototype>(itemid);
-			if (proto)
+            ItemTemplate const *proto = sObjectMgr->GetItemTemplate(itemid);
+            if (proto)
             {
                 uint32 price = itemcount * auctionbot.GetSellPrice(proto) * sRandomPlayerbotMgr.GetSellMultiplier(bot) + gold;
                 uint32 lootAmount = sRandomPlayerbotMgr.GetLootAmount(bot);
@@ -268,8 +284,8 @@ bool StoreLootAction::Execute(Event event)
                 {
                     for (GroupReference *ref = group->GetFirstMember(); ref; ref = ref->next())
                     {
-                        if( ref->getSource() != bot)
-                            sGuildTaskMgr.CheckItemTask(itemid, itemcount, ref->getSource(), bot);
+                        if( ref->GetSource() != bot)
+                            sGuildTaskMgr.CheckItemTask(itemid, itemcount, ref->GetSource(), bot);
                     }
                 }
             }
@@ -300,7 +316,7 @@ bool StoreLootAction::IsLootAllowed(uint32 itemid)
     if (lootItems.find(itemid) != lootItems.end())
         return true;
 
-    ItemPrototype const *proto = sObjectMgr.GetItemPrototype(itemid);
+    ItemTemplate const *proto = sObjectMgr->GetItemTemplate(itemid);
     if (!proto)
         return false;
 
@@ -325,7 +341,7 @@ bool StoreLootAction::IsLootAllowed(uint32 itemid)
     if (lootStrategy == LOOTSTRATEGY_SKILL)
         return false;
 
-    if (proto->Quality == ITEM_QUALITY_POOR)
+    if (proto->Class == ITEM_CLASS_MONEY || proto->Quality == ITEM_QUALITY_POOR)
         return true;
 
     if (lootStrategy == LOOTSTRATEGY_GRAY)

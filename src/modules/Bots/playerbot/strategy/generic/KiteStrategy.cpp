@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "KiteStrategy.h"
 
@@ -11,6 +11,6 @@ KiteStrategy::KiteStrategy(PlayerbotAI* ai) : Strategy(ai)
 void KiteStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(
-        "has aggro",
+        "have aggro",
         NextAction::array(0, new NextAction("runaway", 51.0f), NULL)));
 }

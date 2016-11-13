@@ -58,13 +58,26 @@ namespace ai
             creators["ready check"] = &WorldPacketActionContext::ready_check;
             creators["ready check finished"] = &WorldPacketActionContext::ready_check_finished;
             creators["uninvite"] = &WorldPacketActionContext::uninvite;
-            creators["security check"] = &WorldPacketActionContext::security_check;
+            creators["lfg join"] = &WorldPacketActionContext::lfg_join;
+            creators["lfg accept"] = &WorldPacketActionContext::lfg_accept;
+            creators["lfg role check"] = &WorldPacketActionContext::lfg_role_check;
+            creators["lfg leave"] = &WorldPacketActionContext::lfg_leave;
+            creators["lfg teleport"] = &WorldPacketActionContext::lfg_teleport;
             creators["guild accept"] = &WorldPacketActionContext::guild_accept;
+			creators["bg join"] = &WorldPacketActionContext::bg_join;
+			creators["bg status"] = &WorldPacketActionContext::bg_status;
+			creators["bg tactics ws"] = &WorldPacketActionContext::bg_tactics_ws;
+			creators["security check"] = &WorldPacketActionContext::security_check;
         }
 
     private:
         static Action* guild_accept(PlayerbotAI* ai) { return new GuildAcceptAction(ai); }
         static Action* security_check(PlayerbotAI* ai) { return new SecurityCheckAction(ai); }
+        static Action* lfg_teleport(PlayerbotAI* ai) { return new LfgTeleportAction(ai); }
+        static Action* lfg_leave(PlayerbotAI* ai) { return new LfgLeaveAction(ai); }
+        static Action* lfg_accept(PlayerbotAI* ai) { return new LfgAcceptAction(ai); }
+        static Action* lfg_role_check(PlayerbotAI* ai) { return new LfgRoleCheckAction(ai); }
+        static Action* lfg_join(PlayerbotAI* ai) { return new LfgJoinAction(ai); }
         static Action* uninvite(PlayerbotAI* ai) { return new UninviteAction(ai); }
         static Action* ready_check_finished(PlayerbotAI* ai) { return new FinishReadyCheckAction(ai); }
         static Action* ready_check(PlayerbotAI* ai) { return new ReadyCheckAction(ai); }
@@ -92,6 +105,10 @@ namespace ai
         static Action* accept_all_quests(PlayerbotAI* ai) { return new AcceptAllQuestsAction(ai); }
         static Action* accept_quest_share(PlayerbotAI* ai) { return new AcceptQuestShareAction(ai); }
         static Action* loot_roll(PlayerbotAI* ai) { return (QueryItemUsageAction*)new LootRollAction(ai); }
+		static Action* bg_status(PlayerbotAI* ai) { return new BGStatusAction(ai); }
+		static Action* bg_join(PlayerbotAI* ai) { return new BGJoinAction(ai); }
+		static Action* bg_tactics_ws(PlayerbotAI* ai) {return new BGTacticsWS(ai);}
+
     };
 
 

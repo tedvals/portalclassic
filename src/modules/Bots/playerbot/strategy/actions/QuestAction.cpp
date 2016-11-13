@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "QuestAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -14,7 +14,11 @@ bool QuestAction::Execute(Event event)
         return false;
 
     if (!guid)
-        guid = master->GetSelectionGuid();
+    {
+        Unit* target = master->GetSelectedUnit();
+        if (target)
+            guid = target->GetGUID();
+    }
 
     if (!guid)
         return false;
@@ -37,7 +41,7 @@ bool QuestAction::ProcessQuests(ObjectGuid questGiver)
 
 bool QuestAction::ProcessQuests(WorldObject* questGiver)
 {
-    ObjectGuid guid = questGiver->GetObjectGuid();
+    ObjectGuid guid = questGiver->GetGUID();
 
     if (bot->GetDistance(questGiver) > INTERACTION_DISTANCE)
     {
@@ -45,17 +49,17 @@ bool QuestAction::ProcessQuests(WorldObject* questGiver)
         return false;
     }
 
-    if (!bot->isInFront(questGiver, sPlayerbotAIConfig.sightDistance, M_PI / 2))
+    if (!bot->isInFront(questGiver, M_PI / 2))
         bot->SetFacingTo(bot->GetAngle(questGiver));
 
-    bot->SetSelectionGuid(guid);
+    bot->SetSelection(guid);
     bot->PrepareQuestMenu(guid);
     QuestMenu& questMenu = bot->PlayerTalkClass->GetQuestMenu();
-    for (uint32 i = 0; i < questMenu.MenuItemCount(); ++i)
+    for (uint32 i = 0; i < questMenu.GetMenuItemCount(); ++i)
     {
         QuestMenuItem const& menuItem = questMenu.GetItem(i);
-        uint32 questID = menuItem.m_qId;
-        Quest const* quest = sObjectMgr.GetQuestTemplate(questID);
+        uint32 questID = menuItem.QuestId;
+        Quest const* quest = sObjectMgr->GetQuestTemplate(questID);
         if (!quest)
             continue;
 
@@ -93,7 +97,7 @@ bool QuestAction::AcceptQuest(Quest const* quest, uint64 questGiver)
         p.rpos(0);
         bot->GetSession()->HandleQuestgiverAcceptQuestOpcode(p);
 
-        if (bot->GetQuestStatus(questId) != QUEST_STATUS_NONE && bot->GetQuestStatus(questId) != QUEST_STATUS_AVAILABLE)
+        if (bot->GetQuestStatus(questId) != QUEST_STATUS_NONE)
         {
             out << "Accepted " << chat->formatQuest(quest);
             ai->TellMaster(out);
@@ -118,13 +122,13 @@ bool QuestObjectiveCompletedAction::Execute(Event event)
     if (entry & 0x80000000)
     {
         entry &= 0x7FFFFFFF;
-        GameObjectInfo const* info = sObjectMgr.GetGameObjectInfo(entry);
+        GameObjectTemplate const* info = sObjectMgr->GetGameObjectTemplate(entry);
         if (info)
             ai->TellMaster(chat->formatQuestObjective(info->name, available, required));
     }
     else
     {
-        CreatureInfo const* info = sObjectMgr.GetCreatureTemplate(entry);
+        CreatureTemplate const* info = sObjectMgr->GetCreatureTemplate(entry);
         if (info)
             ai->TellMaster(chat->formatQuestObjective(info->Name, available, required));
     }

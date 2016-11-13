@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "AreaTriggerAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -17,7 +17,7 @@ bool ReachAreaTriggerAction::Execute(Event event)
     if(!atEntry)
         return false;
 
-    AreaTrigger const* at = sObjectMgr.GetAreaTrigger(triggerId);
+    AreaTrigger const* at = sObjectMgr->GetAreaTrigger(triggerId);
     if (!at)
     {
         WorldPacket p1(CMSG_AREATRIGGER);
@@ -59,7 +59,7 @@ bool AreaTriggerAction::Execute(Event event)
     if(!atEntry)
         return false;
 
-    AreaTrigger const* at = sObjectMgr.GetAreaTrigger(triggerId);
+    AreaTrigger const* at = sObjectMgr->GetAreaTrigger(triggerId);
     if (!at)
         return true;
 

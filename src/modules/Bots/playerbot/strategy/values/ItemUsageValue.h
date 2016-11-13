@@ -22,7 +22,7 @@ namespace ai
         virtual ItemUsage Calculate();
 
     private:
-        ItemUsage QueryItemUsageForEquip(ItemPrototype const * proto);
-        bool IsItemUsefulForSkill(ItemPrototype const * proto);
+        ItemUsage QueryItemUsageForEquip(ItemTemplate const * proto);
+        bool IsItemUsefulForSkill(ItemTemplate const * proto);
 	};
 }

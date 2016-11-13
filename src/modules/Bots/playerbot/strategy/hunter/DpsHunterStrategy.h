@@ -9,7 +9,10 @@ namespace ai
     {
     public:
         DpsHunterStrategy(PlayerbotAI* ai);
-
+        ~DpsHunterStrategy();
+    protected:
+        NamedObjectFactory<ActionNode>* factoryInternal;
+        NextAction** defaultActions;
     public:
         virtual void InitTriggers(std::list<TriggerNode*> &triggers);
         virtual string getName() { return "dps"; }
@@ -20,8 +23,8 @@ namespace ai
     class DpsAoeHunterStrategy : public CombatStrategy
     {
     public:
-        DpsAoeHunterStrategy(PlayerbotAI* ai) : CombatStrategy(ai) {}
-
+        DpsAoeHunterStrategy(PlayerbotAI* ai);
+        ~DpsAoeHunterStrategy();
     public:
         virtual void InitTriggers(std::list<TriggerNode*> &triggers);
         virtual string getName() { return "aoe"; }

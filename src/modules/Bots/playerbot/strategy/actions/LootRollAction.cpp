@@ -1,6 +1,7 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "LootRollAction.h"
+#include "../../../Groups/Group.h"
 
 
 using namespace ai;
@@ -22,13 +23,13 @@ bool LootRollAction::Execute(Event event)
     if(!group)
         return false;
 
-    RollVote vote = ROLL_PASS;
-    for (vector<Roll*>::iterator i = group->GetRolls().begin(); i != group->GetRolls().end(); ++i)
+    RollVote vote = PASS;
+    for (vector<Roll*>::iterator i = group->GetRolls()->begin(); i != group->GetRolls()->end(); ++i)
     {
-        if ((*i)->isValid() && (*i)->lootedTargetGUID == guid && (*i)->itemSlot == slot)
+        if ((*i)->isValid() && (*i)->itemGUID == guid && (*i)->itemSlot == slot)
         {
             uint32 itemId = (*i)->itemid;
-            ItemPrototype const *proto = sItemStorage.LookupEntry<ItemPrototype>(itemId);
+            ItemTemplate const *proto = sObjectMgr->GetItemTemplate(itemId);
             if (!proto)
                 continue;
 
@@ -37,11 +38,13 @@ bool LootRollAction::Execute(Event event)
             case ITEM_CLASS_WEAPON:
             case ITEM_CLASS_ARMOR:
                 if (QueryItemUsage(proto))
-                    vote = ROLL_NEED;
+                    vote = NEED;
+                else if (bot->HasSkill(SKILL_ENCHANTING))
+                    vote = DISENCHANT;
                 break;
             default:
                 if (IsLootAllowed(itemId))
-                    vote = ROLL_NEED;
+                    vote = NEED;
                 break;
             }
             break;
@@ -52,10 +55,10 @@ bool LootRollAction::Execute(Event event)
     {
     case MASTER_LOOT:
     case FREE_FOR_ALL:
-        group->CountRollVote(bot, guid, slot, ROLL_PASS);
+        group->CountRollVote(bot->GetGUID(), guid, PASS);
         break;
     default:
-        group->CountRollVote(bot, guid, slot, vote);
+        group->CountRollVote(bot->GetGUID(), guid, vote);
         break;
     }
 

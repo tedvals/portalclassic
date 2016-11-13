@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "InventoryChangeFailureAction.h"
 
@@ -35,6 +35,9 @@ bool InventoryChangeFailureAction::Execute(Event event)
         break;
     case EQUIP_ERR_LOOT_CANT_LOOT_THAT_NOW:
         ai->TellMaster("I can't get that now.");
+        break;
+    case EQUIP_ERR_ITEM_UNIQUE_EQUIPABLE:
+        ai->TellMaster("I can only have one of those equipped.");
         break;
     case EQUIP_ERR_BANK_FULL:
         ai->TellMaster("My bank is full.");

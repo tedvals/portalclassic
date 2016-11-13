@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "RewardAction.h"
 #include "../ItemVisitors.h"
@@ -39,12 +39,12 @@ bool RewardAction::Execute(Event event)
 bool RewardAction::Reward(uint32 itemId, Object* questGiver)
 {
     QuestMenu& questMenu = bot->PlayerTalkClass->GetQuestMenu();
-    for (uint32 iI = 0; iI < questMenu.MenuItemCount(); ++iI)
+    for (uint32 iI = 0; iI < questMenu.GetMenuItemCount(); ++iI)
     {
         QuestMenuItem const& qItem = questMenu.GetItem(iI);
 
-        uint32 questID = qItem.m_qId;
-        Quest const* pQuest = sObjectMgr.GetQuestTemplate(questID);
+        uint32 questID = qItem.QuestId;
+        Quest const* pQuest = sObjectMgr->GetQuestTemplate(questID);
         QuestStatus status = bot->GetQuestStatus(questID);
 
         // if quest is complete, turn it in
@@ -55,7 +55,7 @@ bool RewardAction::Reward(uint32 itemId, Object* questGiver)
         {
             for (uint8 rewardIdx=0; rewardIdx < pQuest->GetRewChoiceItemsCount(); ++rewardIdx)
             {
-                ItemPrototype const * const pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[rewardIdx]);
+                ItemTemplate const * const pRewardItem = sObjectMgr->GetItemTemplate(pQuest->RewardChoiceItemId[rewardIdx]);
                 if (itemId == pRewardItem->ItemId)
                 {
                     bot->RewardQuest(pQuest, rewardIdx, questGiver, false);

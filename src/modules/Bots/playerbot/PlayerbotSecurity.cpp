@@ -1,4 +1,4 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "PlayerbotMgr.h"
 #include "playerbot.h"
 #include "PlayerbotAIConfig.h"
@@ -8,7 +8,7 @@
 PlayerbotSecurity::PlayerbotSecurity(Player* const bot) : bot(bot)
 {
     if (bot)
-        account = sObjectMgr.GetPlayerAccountIdByGUID(bot->GetGUID());
+        account = sObjectMgr->GetPlayerAccountIdByGUID(bot->GetGUID());
 }
 
 PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* reason, bool ignoreGroup)
@@ -41,7 +41,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
         {
             for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
             {
-                Player* player = gref->getSource();
+                Player* player = gref->GetSource();
                 if (player == bot && !ignoreGroup)
                     return PLAYERBOT_SECURITY_ALLOW_ALL;
             }
@@ -70,7 +70,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
             return PLAYERBOT_SECURITY_TALK;
         }
 
-        if (bot->IsDead())
+        if (bot->isDead())
         {
             if (reason) *reason = PLAYERBOT_DENY_DEAD;
             return PLAYERBOT_SECURITY_TALK;
@@ -85,7 +85,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
 
         for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
         {
-            Player* player = gref->getSource();
+            Player* player = gref->GetSource();
             if (player == from)
                 return PLAYERBOT_SECURITY_ALLOW_ALL;
         }
@@ -161,7 +161,7 @@ bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent,
                 uint32 area = bot->GetAreaId();
                 if (area)
                 {
-					const AreaTableEntry* entry = sAreaStore.LookupEntry(area);
+					const AreaTableEntry* entry = sAreaTableStore.LookupEntry(area);
                     if (entry)
                     {
                         out << " |cffffffff(|cffff0000" << entry->area_name[0] << "|cffffffff)";
@@ -182,6 +182,6 @@ bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent,
         break;
     }
 
-	bot->Whisper(out.str(), LANG_UNIVERSAL, from->GetGUID());
+	bot->Whisper(out.str(), LANG_UNIVERSAL, from);
     return false;
 }

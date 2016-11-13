@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "BuyAction.h"
 #include "../ItemVisitors.h"
@@ -19,11 +19,11 @@ bool BuyAction::Execute(Event event)
     if (!master)
         return false;
 
-    ObjectGuid vendorguid = master->GetSelectionGuid();
-    if (!vendorguid)
+    Unit* vendor = master->GetSelectedUnit();
+    if (!vendor)
         return false;
 
-    Creature *pCreature = bot->GetNPCIfCanInteractWith(vendorguid,UNIT_NPC_FLAG_VENDOR);
+    Creature *pCreature = bot->GetNPCIfCanInteractWith(vendor->GetGUID(), UNIT_NPC_FLAG_VENDOR);
     if (!pCreature)
     {
         ai->TellMaster("Cannot talk to vendor");
@@ -43,7 +43,7 @@ bool BuyAction::Execute(Event event)
         {
             if (tItems->GetItem(slot)->item == *i)
             {
-                bot->BuyItemFromVendor(vendorguid, *i, 1, NULL_BAG, NULL_SLOT);
+                bot->BuyItemFromVendorSlot(vendor->GetGUID(), slot, *i, 1, NULL_BAG, NULL_SLOT);
                 ai->TellMaster("Bought item");
             }
         }

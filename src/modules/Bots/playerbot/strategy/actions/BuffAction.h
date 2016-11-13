@@ -7,7 +7,7 @@ namespace ai
 {
     class BuffAction : public InventoryAction {
     public:
-        BuffAction(PlayerbotAI* ai) : InventoryAction(ai, "buff") {}
+        BuffAction(PlayerbotAI* ai) : InventoryAction(ai, "inventory") {}
         virtual bool Execute(Event event);
 
     private:

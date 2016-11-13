@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "DestroyItemAction.h"
 
@@ -28,7 +28,7 @@ void DestroyItemAction::DestroyItem(FindItemVisitor* visitor)
     {
 		Item* item = *i;
         bot->DestroyItem(item->GetBagSlot(),item->GetSlot(), true);
-        ostringstream out; out << chat->formatItem(item->GetProto()) << " destroyed";
+        ostringstream out; out << chat->formatItem(item->GetTemplate()) << " destroyed";
         ai->TellMaster(out);
     }
 }

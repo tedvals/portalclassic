@@ -1,7 +1,6 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "TargetValue.h"
-#include "Unit.h"
 
 using namespace ai;
 
@@ -14,7 +13,7 @@ Unit* TargetValue::FindTarget(FindTargetStrategy* strategy)
         if (!unit)
             continue;
 
-        ThreatManager &threatManager = unit->GetThreatManager();
+        ThreatManager &threatManager = unit->getThreatManager();
         strategy->CheckAttacker(unit, &threatManager);
     }
 
@@ -34,14 +33,13 @@ void FindTargetStrategy::GetPlayerCount(Unit* creature, int* tankCount, int* dps
     *tankCount = 0;
     *dpsCount = 0;
 
-    Unit::AttackerSet attackers(creature->getAttackers());
-    for (set<Unit*>::const_iterator i = attackers.begin(); i != attackers.end(); i++)
+    for (HostileReference *ref = creature->getHostileRefManager().getFirst(); ref; ref = ref->next())
     {
-        Unit* attacker = *i;
-        if (!attacker || !attacker->IsAlive() || attacker == bot)
-            continue;
+        ThreatManager *threatManager = ref->GetSource();
+        Unit *attacker = threatManager->GetOwner();
+        Unit *victim = attacker->GetVictim();
+        Player *player = dynamic_cast<Player*>(victim);
 
-        Player* player = dynamic_cast<Player*>(attacker);
         if (!player)
             continue;
 

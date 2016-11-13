@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "AcceptQuestAction.h"
 
@@ -6,7 +6,7 @@ using namespace ai;
 
 void AcceptAllQuestsAction::ProcessQuest(Quest const* quest, WorldObject* questGiver)
 {
-    AcceptQuest(quest, questGiver->GetObjectGuid());
+    AcceptQuest(quest, questGiver->GetGUID());
 }
 
 bool AcceptQuestAction::Execute(Event event)
@@ -25,8 +25,8 @@ bool AcceptQuestAction::Execute(Event event)
     quest = ch.extractQuestId(text);
     if (quest)
     {
-        guid = master->GetSelectionGuid().GetRawValue();
-        if (!guid)
+        Unit* npc = master->GetSelectedUnit();
+        if (!npc)
         {
             ai->TellMaster("Please select quest giver NPC");
             return false;
@@ -45,7 +45,7 @@ bool AcceptQuestAction::Execute(Event event)
     else
         return false;
 
-    Quest const* qInfo = sObjectMgr.GetQuestTemplate(quest);
+    Quest const* qInfo = sObjectMgr->GetQuestTemplate(quest);
     if (!qInfo)
         return false;
 
@@ -61,27 +61,24 @@ bool AcceptQuestShareAction::Execute(Event event)
     p.rpos(0);
     uint32 quest;
     p >> quest;
-    Quest const* qInfo = sObjectMgr.GetQuestTemplate(quest);
+    Quest const* qInfo = sObjectMgr->GetQuestTemplate(quest);
 
-    if (!qInfo || !bot->GetDividerGuid())
+    if (!qInfo || !bot->GetDivider())
         return false;
 
     quest = qInfo->GetQuestId();
     if( !bot->CanTakeQuest( qInfo, false ) )
     {
         // can't take quest
-        bot->SetDividerGuid( ObjectGuid() );
+        bot->SetDivider( ObjectGuid() );
         ai->TellMaster("I can't take this quest");
 
         return false;
     }
 
-    if( !bot->GetDividerGuid().IsEmpty() )
-    {
-        // send msg to quest giving player
-        master->SendPushToPartyResponse( bot, QUEST_PARTY_MSG_ACCEPT_QUEST );
-        bot->SetDividerGuid( ObjectGuid() );
-    }
+    // send msg to quest giving player
+    master->SendPushToPartyResponse( bot, QUEST_PARTY_MSG_ACCEPT_QUEST );
+    bot->SetDivider( ObjectGuid() );
 
     if( bot->CanAddQuest( qInfo, false ) )
     {

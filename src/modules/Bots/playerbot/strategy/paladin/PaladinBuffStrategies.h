@@ -46,10 +46,10 @@ namespace ai
 
 	class PaladinBuffThreatStrategy : public Strategy
 	{
-	public:
+		public:
 		PaladinBuffThreatStrategy(PlayerbotAI* ai) : Strategy(ai) {}
-
-	public:
+			
+		public:
 		virtual void InitTriggers(std::list<TriggerNode*> &triggers);
 		virtual string getName() { return "bthreat"; }
 	};

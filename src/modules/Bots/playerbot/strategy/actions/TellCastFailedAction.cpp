@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "TellCastFailedAction.h"
 
@@ -17,7 +17,7 @@ bool TellCastFailedAction::Execute(Event event)
     if (result == SPELL_CAST_OK)
         return false;
 
-    const SpellEntry *const pSpellInfo =  sSpellStore.LookupEntry(spellId);
+    const SpellInfo *const pSpellInfo =  sSpellMgr->GetSpellInfo(spellId);
     ostringstream out; out << chat->formatSpell(pSpellInfo) << ": ";
     switch (result)
     {
@@ -29,6 +29,10 @@ bool TellCastFailedAction::Execute(Event event)
         break;
     case SPELL_FAILED_REQUIRES_AREA:
         out << "cannot cast here";
+        break;
+    case SPELL_FAILED_TOTEMS:
+    case SPELL_FAILED_TOTEM_CATEGORY:
+        out << "requires totem";
         break;
     case SPELL_FAILED_EQUIPPED_ITEM_CLASS:
         out << "requires item";
@@ -43,9 +47,13 @@ bool TellCastFailedAction::Execute(Event event)
     default:
         out << "cannot cast";
     }
-    int32 castTime = GetSpellCastTime(pSpellInfo);
+    Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE);
+    int32 castTime = spell->GetCastTime();
+    delete spell;
+
     if (castTime >= 2000)
         ai->TellMasterNoFacing(out.str());
+
     return true;
 }
 
@@ -57,7 +65,7 @@ bool TellSpellAction::Execute(Event event)
     if (!spellId)
         return false;
 
-    SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellId );
+    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellId );
     if (!spellInfo)
         return false;
 

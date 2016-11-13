@@ -1,7 +1,8 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ReadyCheckAction.h"
 #include "../../PlayerbotAIConfig.h"
+#include "../../../Entities/Pet/Pet.h"
 
 using namespace ai;
 
@@ -13,7 +14,7 @@ bool ReadyCheckAction::Execute(Event event)
     if (!p.empty())
         p >> player;
 
-	if (player == bot->GetObjectGuid())
+	if (player.GetRawValue() == bot->GetGUID())
         return false;
 
 	return ReadyCheck();
@@ -68,7 +69,7 @@ bool ReadyCheckAction::ReadyCheck()
     }
 
     WorldPacket* const packet = new WorldPacket(MSG_RAID_READY_CHECK);
-    *packet << bot->GetObjectGuid();
+    *packet << bot->GetGUID();
     *packet << uint8(1);
     bot->GetSession()->QueuePacket(packet);
 

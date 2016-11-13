@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "LeastHpTargetValue.h"
 #include "TargetValue.h"
@@ -17,7 +17,7 @@ public:
 public:
     virtual void CheckAttacker(Unit* attacker, ThreatManager* threatManager)
     {
-        if (!result || result->GetHealth() > attacker->GetHealth())
+        if (!result || (result->GetHealth() > attacker->GetHealth() && !attacker->UnderCc()))
             result = attacker;
     }
 

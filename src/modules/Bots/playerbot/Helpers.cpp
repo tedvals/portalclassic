@@ -1,4 +1,4 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "playerbot.h"
 #include <algorithm>
 #include <functional>
@@ -88,3 +88,4 @@ std::string &rtrim(std::string &s) {
 std::string &trim(std::string &s) {
         return ltrim(rtrim(s));
 }
+

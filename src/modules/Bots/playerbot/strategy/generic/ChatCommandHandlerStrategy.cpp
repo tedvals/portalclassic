@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ChatCommandHandlerStrategy.h"
 
@@ -89,6 +89,34 @@ void ChatCommandHandlerStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("follow chat shortcut", relevance), NULL)));
 
     triggers.push_back(new TriggerNode(
+        "stop attack",
+        NextAction::array(0, new NextAction("stop attack chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "resume attack",
+        NextAction::array(0, new NextAction("resume attack chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "move behind",
+        NextAction::array(0, new NextAction("move behind chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "reposition",
+        NextAction::array(0, new NextAction("reposition chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "burst",
+        NextAction::array(0, new NextAction("burst chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "boost",
+        NextAction::array(0, new NextAction("boost chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "disperse",
+        NextAction::array(0, new NextAction("disperse chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
         "stay",
         NextAction::array(0, new NextAction("stay chat shortcut", relevance), NULL)));
 
@@ -131,6 +159,14 @@ void ChatCommandHandlerStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "attackers",
         NextAction::array(0, new NextAction("tell attackers", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "move to point",
+        NextAction::array(0, new NextAction("move to point chat shortcut", relevance), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "enhance",
+        NextAction::array(0, new NextAction("enhance chat shortcut", relevance), NULL)));
 }
 
 
@@ -162,7 +198,9 @@ ChatCommandHandlerStrategy::ChatCommandHandlerStrategy(PlayerbotAI* ai) : PassTr
     supported.push_back("destroy");
     supported.push_back("reset ai");
     supported.push_back("emote");
+    supported.push_back("inventory");
     supported.push_back("buff");
+    supported.push_back("enhance");
     supported.push_back("help");
     supported.push_back("gb");
     supported.push_back("bank");
@@ -174,5 +212,6 @@ ChatCommandHandlerStrategy::ChatCommandHandlerStrategy(PlayerbotAI* ai) : PassTr
     supported.push_back("who");
     supported.push_back("save mana");
     supported.push_back("formation");
-    supported.push_back("sendmail");
+    supported.push_back("move to point");
+	supported.push_back("sendmail");
 }

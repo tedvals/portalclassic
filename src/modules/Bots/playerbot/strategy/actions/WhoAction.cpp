@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "WhoAction.h"
 #include "../../AiFactory.h"
@@ -46,7 +46,7 @@ bool WhoAction::Execute(Event event)
         return false;
 
     // ignore random bot chat filter
-	bot->Whisper(tell, LANG_UNIVERSAL, owner->GetObjectGuid());
+	bot->Whisper(tell, LANG_UNIVERSAL, owner);
     return true;
 }
 
@@ -59,11 +59,11 @@ string WhoAction::QueryTrade(string text)
     for (list<Item*>::iterator i = items.begin(); i != items.end(); ++i)
     {
         Item* sell = *i;
-        int32 sellPrice = auctionbot.GetSellPrice(sell->GetProto()) * sRandomPlayerbotMgr.GetSellMultiplier(bot) * sell->GetCount();
+        int32 sellPrice = auctionbot.GetSellPrice(sell->GetTemplate()) * sRandomPlayerbotMgr.GetSellMultiplier(bot) * sell->GetCount();
         if (!sellPrice)
             continue;
 
-        out << "Selling " << chat->formatItem(sell->GetProto(), sell->GetCount()) << " for " << chat->formatMoney(sellPrice);
+        out << "Selling " << chat->formatItem(sell->GetTemplate(), sell->GetCount()) << " for " << chat->formatMoney(sellPrice);
         return out.str();
     }
 
@@ -146,6 +146,8 @@ void WhoAction::InitSkills()
     skills[SKILL_ALCHEMY] = "Alchemy";
     skills[SKILL_ENCHANTING] = "Enchanting";
     skills[SKILL_SKINNING] = "Skinning";
+    skills[SKILL_JEWELCRAFTING] = "Jewelcrafting";
+    skills[SKILL_INSCRIPTION] = "Inscription";
     skills[SKILL_TAILORING] = "Tailoring";
     skills[SKILL_LEATHERWORKING] = "Leatherworking";
     skills[SKILL_ENGINEERING] = "Engineering";

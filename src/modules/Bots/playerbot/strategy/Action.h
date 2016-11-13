@@ -18,6 +18,10 @@ namespace ai
             this->name = o.name;
             this->relevance = o.relevance;
         }
+        ~NextAction()
+        {
+            name.clear();
+        }
 
     public:
         string getName() { return name; }
@@ -50,12 +54,14 @@ namespace ai
 	{
 	public:
         Action(PlayerbotAI* ai, string name = "action") : verbose(false), AiNamedObject(ai, name) { }
-        virtual ~Action(void) {}
+        virtual ~Action(void) {name.clear();}
 
     public:
         virtual bool Execute(Event event) { return true; }
         virtual bool isPossible() { return true; }
         virtual bool isUseful() { return true; }
+        virtual bool hasMultipliers() { return true; }
+        virtual bool isInstant() { return false; }
         virtual NextAction** getPrerequisites() { return NULL; }
         virtual NextAction** getAlternatives() { return NULL; }
         virtual NextAction** getContinuers() { return NULL; }
@@ -87,6 +93,7 @@ namespace ai
             NextAction::destroy(prerequisites);
             NextAction::destroy(alternatives);
             NextAction::destroy(continuers);
+            name.clear();
         }
 
     public:

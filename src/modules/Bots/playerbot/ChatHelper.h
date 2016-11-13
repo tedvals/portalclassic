@@ -5,6 +5,8 @@ using namespace std;
 typedef set<uint32> ItemIds;
 typedef set<uint32> SpellIds;
 
+#include "../pchdef.h"
+
 namespace ai
 {
     class ChatHelper : public PlayerbotAIAware
@@ -18,8 +20,8 @@ namespace ai
         static ItemIds parseItems(string& text);
         uint32 parseSpell(string& text);
         static string formatQuest(Quest const* quest);
-        static string formatItem(ItemPrototype const * proto, int count = 0);
-        static string formatSpell(SpellEntry const *sInfo);
+        static string formatItem(ItemTemplate const * proto, int count = 0);
+        static string formatSpell(SpellInfo const *sInfo);
         static string formatGameobject(GameObject* go);
         static string formatQuestObjective(string name, int available, int required);
         static list<ObjectGuid> parseGameobjects(string& text);

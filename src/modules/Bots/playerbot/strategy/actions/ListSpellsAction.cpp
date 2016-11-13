@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ListSpellsAction.h"
 #include "../ItemVisitors.h"
@@ -24,11 +24,11 @@ bool ListSpellsAction::Execute(Event event)
     for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr) {
         const uint32 spellId = itr->first;
 
-        if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
+        const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
+        if (!pSpellInfo)
             continue;
 
-        const SpellEntry* const pSpellInfo = sSpellStore.LookupEntry(spellId);
-        if (!pSpellInfo)
+        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellInfo->IsPassive())
             continue;
 
         //|| name.find("Teleport") != -1
@@ -46,7 +46,7 @@ bool ListSpellsAction::Execute(Event event)
         alreadySeenList += pSpellInfo->SpellName[loc];
         alreadySeenList += ",";
 
-        if (IsPositiveSpell(spellId))
+        if (pSpellInfo->IsPositive())
             posOut << " |cffffffff|Hspell:" << spellId << "|h["
             << pSpellInfo->SpellName[loc] << "]|h|r";
         else

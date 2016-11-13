@@ -11,7 +11,7 @@ public:
 
     virtual bool IsActive()
     {
-        return AI_VALUE(uint32, "lfg proposal");
+        return AI_VALUE(uint32, "lfg proposal")? true:false;
     }
 };
 }

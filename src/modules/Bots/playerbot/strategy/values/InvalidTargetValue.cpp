@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "InvalidTargetValue.h"
 #include "../../PlayerbotAIConfig.h"
@@ -12,11 +12,11 @@ bool InvalidTargetValue::Calculate()
     {
         return !target ||
                 target->GetMapId() != bot->GetMapId() ||
-                target->IsDead() ||
+                target->isDead() ||
                 target->IsPolymorphed() ||
                 target->IsCharmed() ||
-                target->IsFeared() ||
-                target->hasUnitState(UNIT_STAT_ISOLATED) ||
+                target->isFeared() ||
+                target->HasUnitState(UNIT_STATE_ISOLATED) ||
                 target->IsFriendlyTo(bot) ||
                 !bot->IsWithinDistInMap(target, sPlayerbotAIConfig.sightDistance) ||
                 !bot->IsWithinLOSInMap(target);

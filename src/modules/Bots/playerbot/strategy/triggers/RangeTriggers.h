@@ -4,13 +4,57 @@
 
 namespace ai
 {
+    class TargetOutOfLOSSpellTrigger : public Trigger {
+    public:
+        TargetOutOfLOSSpellTrigger(PlayerbotAI* ai) : Trigger(ai, "target out of los") {}
+        virtual bool IsActive()
+		{
+			Unit* target = AI_VALUE(Unit*, "current target");
+
+			if (target && bot->IsWithinLOSInMap(target))
+			{
+			     return true;
+			}
+            else return false;
+        }
+    };
+
     class EnemyTooCloseForSpellTrigger : public Trigger {
     public:
         EnemyTooCloseForSpellTrigger(PlayerbotAI* ai) : Trigger(ai, "enemy too close for spell") {}
         virtual bool IsActive()
 		{
 			Unit* target = AI_VALUE(Unit*, "current target");
-            return target && AI_VALUE2(float, "distance", "current target") <= sPlayerbotAIConfig.spellDistance / 2;
+
+			if (target && AI_VALUE2(float, "distance", "current target") <= sPlayerbotAIConfig.tooCloseDistance)
+			{
+			    if (bot->getClass() == CLASS_HUNTER)
+                    return true;
+
+				if (AI_VALUE2(bool, "target normal", "current target") && (AI_VALUE(uint8, "melee attacker count") < 2) && (AI_VALUE2(uint8, "health", "self target") > sPlayerbotAIConfig.mediumHealth))
+                    return false;
+				else if (target->UnderCc())
+                    return false;
+                else return true;
+			}
+            else return false;
+        }
+    };
+
+    class EnemyInMeleeRangeTrigger : public Trigger {
+    public:
+        EnemyInMeleeRangeTrigger(PlayerbotAI* ai) : Trigger(ai, "enemy in melee range") {}
+        virtual bool IsActive()
+		{
+			Unit* target = AI_VALUE(Unit*, "current target");
+
+			if (target && AI_VALUE2(float, "distance", "current target") <= sPlayerbotAIConfig.meleeDistance)
+			{
+			    if (target->UnderCc())
+                    return false;
+                else return true;
+			}
+            else return false;
         }
     };
 
@@ -33,6 +77,12 @@ namespace ai
         virtual bool IsActive()
 		{
 			Unit* target = AI_VALUE(Unit*, GetTargetName());
+
+			if (target && !bot->IsWithinLOSInMap(target))
+			{
+			     return true;
+			}
+
 			return target && AI_VALUE2(float, "distance", GetTargetName()) > distance;
         }
         virtual string GetTargetName() { return "current target"; }
@@ -72,10 +122,11 @@ namespace ai
     private:
         float distance;
     };
-
+	/*
     class OutOfReactRangeTrigger : public FarFromMasterTrigger
     {
     public:
         OutOfReactRangeTrigger(PlayerbotAI* ai) : FarFromMasterTrigger(ai, "out of react range", sPlayerbotAIConfig.reactDistance / 2, 10) {}
     };
+	*/
 }

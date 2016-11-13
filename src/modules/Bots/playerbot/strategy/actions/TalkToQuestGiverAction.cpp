@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "TalkToQuestGiverAction.h"
 
@@ -18,7 +18,6 @@ void TalkToQuestGiverAction::ProcessQuest(Quest const* quest, WorldObject* quest
     case QUEST_STATUS_INCOMPLETE:
         out << "|cffff0000Incompleted|r";
         break;
-    case QUEST_STATUS_AVAILABLE:
     case QUEST_STATUS_NONE:
         out << "|cff00ff00Available|r";
         break;
@@ -31,10 +30,10 @@ void TalkToQuestGiverAction::ProcessQuest(Quest const* quest, WorldObject* quest
     ai->TellMaster(out);
 }
 
-void TalkToQuestGiverAction::TurnInQuest(Quest const* quest, WorldObject* questGiver, ostringstream& out) 
+void TalkToQuestGiverAction::TurnInQuest(Quest const* quest, WorldObject* questGiver, ostringstream& out)
 {
     uint32 questID = quest->GetQuestId();
-        
+
     if (bot->GetQuestRewardStatus(questID))
         return;
 
@@ -47,7 +46,7 @@ void TalkToQuestGiverAction::TurnInQuest(Quest const* quest, WorldObject* questG
     }
 }
 
-void TalkToQuestGiverAction::RewardNoItem(Quest const* quest, WorldObject* questGiver, ostringstream& out) 
+void TalkToQuestGiverAction::RewardNoItem(Quest const* quest, WorldObject* questGiver, ostringstream& out)
 {
     if (bot->CanRewardQuest(quest, false))
     {
@@ -60,10 +59,10 @@ void TalkToQuestGiverAction::RewardNoItem(Quest const* quest, WorldObject* quest
     }
 }
 
-void TalkToQuestGiverAction::RewardSingleItem(Quest const* quest, WorldObject* questGiver, ostringstream& out) 
+void TalkToQuestGiverAction::RewardSingleItem(Quest const* quest, WorldObject* questGiver, ostringstream& out)
 {
     int index = 0;
-    ItemPrototype const *item = sObjectMgr.GetItemPrototype(quest->RewChoiceItemId[index]);
+    ItemTemplate const *item = sObjectMgr->GetItemTemplate(quest->RewardChoiceItemId[index]);
     if (bot->CanRewardQuest(quest, index, false))
     {
         bot->RewardQuest(quest, index, questGiver, true);
@@ -76,13 +75,13 @@ void TalkToQuestGiverAction::RewardSingleItem(Quest const* quest, WorldObject* q
     }
 }
 
-void TalkToQuestGiverAction::AskToSelectReward(Quest const* quest, ostringstream& out) 
+void TalkToQuestGiverAction::AskToSelectReward(Quest const* quest, ostringstream& out)
 {
     ostringstream msg;
     msg << "Choose reward: ";
     for (uint8 i=0; i < quest->GetRewChoiceItemsCount(); ++i)
     {
-        ItemPrototype const* item = sObjectMgr.GetItemPrototype(quest->RewChoiceItemId[i]);
+        ItemTemplate const* item = sObjectMgr->GetItemTemplate(quest->RewardChoiceItemId[i]);
         msg << chat->formatItem(item);
     }
     ai->TellMaster(msg);

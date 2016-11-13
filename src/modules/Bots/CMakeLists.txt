@@ -28,13 +28,13 @@ endif()
 file(GLOB Playerbot_Source ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/*.h)
     source_group("Player Bot" FILES ${Playerbot_Source})
     
-file(GLOB AHbot_Source ${CMAKE_CURRENT_SOURCE_DIR}/ahbot/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/ahbot/*.h)
-    source_group("AH Bot" FILES ${AHbot_Source})
+#file(GLOB AHbot_Source ${CMAKE_CURRENT_SOURCE_DIR}/ahbot/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/ahbot/*.h)
+#    source_group("AH Bot" FILES ${AHbot_Source})
     
 #Define base source library
 set(LIBRARY_SRCS 
     ${Playerbot_Source}
-    ${AHbot_Source}
+#    ${AHbot_Source}
     ${bots_PCH}
 )
 
@@ -112,32 +112,25 @@ file(GLOB Playerbot_Warrior ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/warri
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/ahbot
   ${CMAKE_CURRENT_SOURCE_DIR}/playerbot
   ${CMAKE_SOURCE_DIR}/src/game
   ${CMAKE_SOURCE_DIR}/src/game/AuctionHouseBot
   ${CMAKE_SOURCE_DIR}/src/game/BattleGround
-  ${CMAKE_SOURCE_DIR}/src/game/ChatCommands
-  ${CMAKE_SOURCE_DIR}/src/game/Maps
-  ${CMAKE_SOURCE_DIR}/src/game/MotionGenerators
   ${CMAKE_SOURCE_DIR}/src/game/movement
-  ${CMAKE_SOURCE_DIR}/src/game/Object
   ${CMAKE_SOURCE_DIR}/src/game/OutdoorPvP
-  ${CMAKE_SOURCE_DIR}/src/game/References
-  ${CMAKE_SOURCE_DIR}/src/game/Server
-  ${CMAKE_SOURCE_DIR}/src/game/Tools
   ${CMAKE_SOURCE_DIR}/src/game/vmap
-  ${CMAKE_SOURCE_DIR}/src/game/WorldHandlers
   ${CMAKE_SOURCE_DIR}/src/shared
   ${CMAKE_SOURCE_DIR}/src/shared/Config
-  ${CMAKE_SOURCE_DIR}/src/shared/Common
   ${CMAKE_SOURCE_DIR}/src/shared/Database
-  ${CMAKE_SOURCE_DIR}/src/shared/DataStores
-  ${CMAKE_SOURCE_DIR}/src/shared/Log
-  ${CMAKE_SOURCE_DIR}/src/shared/Threading
-  ${CMAKE_SOURCE_DIR}/src/shared/Utilities
+  ${CMAKE_SOURCE_DIR}/src/shared/Auth
+  ${CMAKE_SOURCE_DIR}/src/shared/Network
   ${CMAKE_SOURCE_DIR}/src/framework
   ${CMAKE_SOURCE_DIR}/src/framework/Platform
+  ${CMAKE_SOURCE_DIR}/src/framework/Dynamic
+  ${CMAKE_SOURCE_DIR}/src/framework/GameSystem
+  ${CMAKE_SOURCE_DIR}/src/framework/Platform
+  ${CMAKE_SOURCE_DIR}/src/framework/Policies
+  ${CMAKE_SOURCE_DIR}/src/framework/Utilities
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/src/shared
   ${MYSQL_INCLUDE_DIR}

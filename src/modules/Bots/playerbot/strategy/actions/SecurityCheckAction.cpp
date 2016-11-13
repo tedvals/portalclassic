@@ -1,7 +1,8 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "../../RandomPlayerbotMgr.h"
 #include "SecurityCheckAction.h"
+#include "../../../Groups/Group.h"
 
 using namespace ai;
 

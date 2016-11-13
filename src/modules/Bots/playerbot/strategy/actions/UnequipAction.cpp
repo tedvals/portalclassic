@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "UnequipAction.h"
 
@@ -39,7 +39,7 @@ void UnequipAction::UnequipItem(Item& item)
     *packet << bagIndex << slot << dstBag;
     bot->GetSession()->QueuePacket(packet);
 
-    ostringstream out; out << chat->formatItem(item.GetProto()) << " unequipped";
+    ostringstream out; out << chat->formatItem(item.GetTemplate()) << " unequipped";
     ai->TellMaster(out);
 }
 

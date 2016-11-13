@@ -2,6 +2,7 @@
 #include "Action.h"
 #include "Event.h"
 #include "../PlayerbotAIAware.h"
+#include "../PlayerbotAIConfig.h"
 
 #define NEXT_TRIGGERS(name, relevance) \
     virtual NextAction* getNextAction() { return new NextAction(name, relevance); }
@@ -26,7 +27,7 @@ namespace ai
 			this->checkInterval = checkInterval;
 			ticksElapsed = 0;
         }
-        virtual ~Trigger() {}
+        virtual ~Trigger() {name.clear();}
 
 	public:
         virtual Event Check();
@@ -37,6 +38,8 @@ namespace ai
         void Update() {}
         virtual void Reset() {}
         virtual Unit* GetTarget();
+        virtual string GetLastEvent() { return lastEvent; }
+        virtual void SetLastEvent(string name) {lastEvent = name;}
         virtual Value<Unit*>* GetTargetValue();
         virtual string GetTargetName() { return "self target"; }
 
@@ -49,6 +52,7 @@ namespace ai
 		}
 
     protected:
+        string lastEvent; //debug only
 		int checkInterval;
 		int ticksElapsed;
 	};
@@ -66,6 +70,7 @@ namespace ai
         virtual ~TriggerNode()
         {
             NextAction::destroy(handlers);
+            name.clear();
         }
 
     public:

@@ -11,7 +11,10 @@ namespace ai
     {
     public:
         GenericHunterStrategy(PlayerbotAI* ai);
-
+        ~GenericHunterStrategy();
+    protected:
+        NamedObjectFactory<ActionNode>* factoryInternal;
+        NextAction** defaultActions;
     public:
         virtual void InitTriggers(std::list<TriggerNode*> &triggers);
         virtual string getName() { return "hunter"; }

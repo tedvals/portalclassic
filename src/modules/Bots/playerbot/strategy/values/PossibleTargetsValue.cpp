@@ -1,19 +1,19 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "PossibleTargetsValue.h"
 
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
-#include "CellImpl.h"
+#include "../../../Grids/Notifiers/GridNotifiers.h"
+#include "../../../Grids/Notifiers/GridNotifiersImpl.h"
+#include "../../../Grids/Cells/CellImpl.h"
 
 using namespace ai;
-using namespace MaNGOS;
+using namespace Trinity;
 
 void PossibleTargetsValue::FindUnits(list<Unit*> &targets)
 {
-    MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(bot, range);
-    MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
-    Cell::VisitAllObjects(bot, searcher, range);
+    AnyUnfriendlyUnitInObjectRangeCheck u_check(bot, bot, range);
+    UnitListSearcher<AnyUnfriendlyUnitInObjectRangeCheck> searcher(bot, targets, u_check);
+    bot->VisitNearbyObject(bot->GetMap()->GetVisibilityRange(), searcher);
 }
 
 bool PossibleTargetsValue::AcceptUnit(Unit* unit)

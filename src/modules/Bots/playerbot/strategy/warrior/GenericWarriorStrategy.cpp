@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "GenericWarriorStrategy.h"
 #include "WarriorAiObjectContext.h"
@@ -13,6 +13,7 @@ public:
         creators["hamstring"] = &hamstring;
         creators["heroic strike"] = &heroic_strike;
         creators["battle shout"] = &battle_shout;
+
     }
 private:
     static ActionNode* hamstring(PlayerbotAI* ai)
@@ -36,6 +37,7 @@ private:
             /*A*/ NextAction::array(0, new NextAction("melee"), NULL),
             /*C*/ NULL);
     }
+
 };
 
 GenericWarriorStrategy::GenericWarriorStrategy(PlayerbotAI* ai) : MeleeCombatStrategy(ai)
@@ -52,12 +54,16 @@ void GenericWarriorStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("battle shout", ACTION_HIGH + 1), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "rend",
-        NextAction::array(0, new NextAction("rend", ACTION_NORMAL + 1), NULL)));
+        "demoralizing shout",
+        NextAction::array(0, new NextAction("demoralizing shout", ACTION_NORMAL + 2), NULL)));
 
     triggers.push_back(new TriggerNode(
         "bloodrage",
         NextAction::array(0, new NextAction("bloodrage", ACTION_HIGH + 1), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "high rage available",
+        NextAction::array(0, new NextAction("heroic strike", ACTION_NORMAL + 3), NULL)));
 
     triggers.push_back(new TriggerNode(
         "shield bash",
@@ -70,4 +76,8 @@ void GenericWarriorStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 	triggers.push_back(new TriggerNode(
 		"critical health",
 		NextAction::array(0, new NextAction("intimidating shout", ACTION_EMERGENCY), NULL)));
+
+     triggers.push_back(new TriggerNode(
+        "runaway",
+        NextAction::array(0, new NextAction("intimidating shout", ACTION_EMERGENCY + 7), new NextAction("bandage", ACTION_EMERGENCY + 6), NULL)));
 }

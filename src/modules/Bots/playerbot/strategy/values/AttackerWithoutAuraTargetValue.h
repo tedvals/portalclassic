@@ -12,4 +12,14 @@ namespace ai
     protected:
         virtual Unit* Calculate();
 	};
+
+    class AttackerWithoutOwnAuraTargetValue : public UnitCalculatedValue, public Qualified
+	{
+	public:
+        AttackerWithoutOwnAuraTargetValue(PlayerbotAI* ai) :
+            UnitCalculatedValue(ai, "attacker without aura") {}
+
+    protected:
+        virtual Unit* Calculate();
+	};
 }

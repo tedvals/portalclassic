@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "DruidMultipliers.h"
 #include "CasterDruidStrategy.h"
@@ -21,6 +21,7 @@ public:
         creators["moonfire"] = &moonfire;
         creators["starfire"] = &starfire;
         creators["nature's grasp"] = &natures_grasp;
+        creators["boost"] = &force_nature;
     }
 private:
     static ActionNode* faerie_fire(PlayerbotAI* ai)
@@ -65,6 +66,13 @@ private:
             /*A*/ NextAction::array(0, new NextAction("hurricane"), NULL),
             /*C*/ NULL);
     }
+    static ActionNode* typhoon(PlayerbotAI* ai)
+    {
+        return new ActionNode ("typhoon",
+            /*P*/ NextAction::array(0, new NextAction("moonkin form"), NULL),
+            /*A*/ NextAction::array(0, new NextAction("nature's grasp"),NULL),
+            /*C*/ NULL);
+    }
     static ActionNode* insect_swarm(PlayerbotAI* ai)
     {
         return new ActionNode ("insect swarm",
@@ -91,6 +99,13 @@ private:
         return new ActionNode ("nature's grasp",
             /*P*/ NextAction::array(0, new NextAction("moonkin form"), NULL),
             /*A*/ NULL,
+            /*C*/ NextAction::array(0, new NextAction("flee", 49.0f), NULL));
+    }
+    static ActionNode* force_nature(PlayerbotAI* ai)
+    {
+        return new ActionNode ("force of nature",
+            /*P*/ NextAction::array(0, new NextAction("moonkin form"), NULL),
+            /*A*/ NULL,
             /*C*/ NULL);
     }
 };
@@ -112,23 +127,31 @@ void CasterDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 
     triggers.push_back(new TriggerNode(
         "enemy out of spell",
-        NextAction::array(0, new NextAction("reach spell", ACTION_MOVE), NULL)));
+        NextAction::array(0, new NextAction("reach spell", ACTION_MOVE + 5), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "medium health",
+        "critical health",
         NextAction::array(0, new NextAction("regrowth", ACTION_MEDIUM_HEAL + 2), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "party member medium health",
+        "party member critical health",
         NextAction::array(0, new NextAction("regrowth on party", ACTION_MEDIUM_HEAL + 1), NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "almost full health",
-        NextAction::array(0, new NextAction("rejuvenation", ACTION_LIGHT_HEAL + 2), NULL)));
+     triggers.push_back(new TriggerNode(
+        "moonkin form",
+        NextAction::array(0, new NextAction("moonkin form", ACTION_MOVE + 10), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "party member almost full health",
-        NextAction::array(0, new NextAction("rejuvenation on party", ACTION_LIGHT_HEAL + 1), NULL)));
+        "rooted",
+        NextAction::array(0, new NextAction("moonkin form", ACTION_MOVE + 9), NULL)));
+
+    //triggers.push_back(new TriggerNode(
+     //   "almost full health",
+     //   NextAction::array(0, new NextAction("rejuvenation", ACTION_LIGHT_HEAL + 2), NULL)));
+
+   // triggers.push_back(new TriggerNode(
+    //    "party member almost full health",
+     //   NextAction::array(0, new NextAction("rejuvenation on party", ACTION_LIGHT_HEAL + 1), NULL)));
 
 
 	triggers.push_back(new TriggerNode(
@@ -151,15 +174,21 @@ void CasterDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         "moonfire",
         NextAction::array(0, new NextAction("moonfire", ACTION_NORMAL + 4), NULL)));
 
-
-
-	triggers.push_back(new TriggerNode(
-		"nature's grasp",
-		NextAction::array(0, new NextAction("nature's grasp", ACTION_EMERGENCY), NULL)));
+    triggers.push_back(new TriggerNode(
+		"have aggro",
+		NextAction::array(0, new NextAction("barkskin", ACTION_EMERGENCY), NULL)));
 
     triggers.push_back(new TriggerNode(
         "entangling roots",
         NextAction::array(0, new NextAction("entangling roots on cc", ACTION_HIGH + 2), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "enemy too close  for spell",
+        NextAction::array(0, new NextAction("typhoon", ACTION_MOVE + 9), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "boost",
+        NextAction::array(0, new NextAction("force of nature", ACTION_EMERGENCY), NULL)));
 }
 
 void CasterDruidAoeStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
@@ -167,6 +196,10 @@ void CasterDruidAoeStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 	triggers.push_back(new TriggerNode(
 		"high aoe",
 		NextAction::array(0, new NextAction("starfall", ACTION_HIGH + 1), NULL)));
+
+    triggers.push_back(new TriggerNode(
+		"medium aoe",
+		NextAction::array(0, new NextAction("barkskin", ACTION_HIGH), new NextAction("hurricane", ACTION_HIGH), NULL)));
 }
 
 void CasterDruidDebuffStrategy::InitTriggers(std::list<TriggerNode*> &triggers)

@@ -12,19 +12,36 @@ namespace ai
             bot = ai->GetBot();
         }
 
+        virtual bool isUseful()
+        {
+            return !bot->IsNonPositiveSpellCast(true);
+        }
+
+		virtual bool isInstant()
+		{
+			return false;
+		}
+
     protected:
+		bool ChaseTo(WorldObject *obj);
         bool MoveNear(uint32 mapId, float x, float y, float z, float distance = sPlayerbotAIConfig.followDistance);
         bool MoveTo(uint32 mapId, float x, float y, float z);
+        bool FleeTo(Unit* target, uint32 mapId, float x, float y, float z);
         bool MoveTo(Unit* target, float distance = 0.0f);
+        bool MoveToUnit(Unit* target);
         bool MoveNear(WorldObject* target, float distance = sPlayerbotAIConfig.followDistance);
         float GetFollowAngle();
-        bool Follow(Unit* target, float distance = sPlayerbotAIConfig.followDistance);
-        bool Follow(Unit* target, float distance, float angle);
+		bool Follow(WorldObject* target, float distance = sPlayerbotAIConfig.followDistance * (float)urand(8, 12) / 10.0f);
+		bool GetBehind(WorldObject* target, float distance = sPlayerbotAIConfig.meleeDistance);
+		bool Follow(WorldObject* target, float distance, float angle);
+		bool GetBehind(WorldObject* target, float distance, float angle);
         void WaitForReach(float distance);
-        bool IsMovingAllowed(Unit* target);
+		bool IsMovingAllowed(WorldObject* target);
         bool IsMovingAllowed(uint32 mapId, float x, float y, float z);
         bool IsMovingAllowed();
         bool Flee(Unit *target);
+        bool Disperse(Unit *target);
+        bool Reposition(Unit *target);
 
     protected:
         Player* bot;
@@ -45,6 +62,94 @@ namespace ai
 		float distance;
     };
 
+    class DisperseAction : public MovementAction
+    {
+    public:
+        DisperseAction(PlayerbotAI* ai, float distance = sPlayerbotAIConfig.disperseDistance) : MovementAction(ai, "disperse")
+        {
+			this->distance = distance;
+		}
+
+        virtual bool Execute(Event event);
+
+	private:
+		float distance;
+    };
+
+    class RepositionAction : public MovementAction
+    {
+    public:
+        RepositionAction(PlayerbotAI* ai, float distance = sPlayerbotAIConfig.tooCloseDistance) : MovementAction(ai, "reposition")
+        {
+			this->distance = distance;
+		}
+
+        virtual bool Execute(Event event);
+        virtual bool isUseful();
+
+	private:
+		float distance;
+    };
+
+	class MoveQuestGiverAction : public MovementAction
+	{
+	public:
+		MoveQuestGiverAction(PlayerbotAI* ai, float distance = sPlayerbotAIConfig.grindDistance) : MovementAction(ai, "move to guestgiver")
+		{
+			this->distance = distance;
+		}
+
+		virtual bool Execute(Event event);
+		virtual bool isUseful();
+
+	private:
+		float distance;
+	};	
+
+	class MoveQuestEnderAction : public MovementAction
+	{
+	public:
+		MoveQuestEnderAction(PlayerbotAI* ai, float distance = sPlayerbotAIConfig.grindDistance) : MovementAction(ai, "move to guestender")
+		{
+			this->distance = distance;
+		}
+
+		virtual bool Execute(Event event);
+		virtual bool isUseful();
+
+	private:
+		float distance;
+	};
+
+    class MoveOrderAction : public MovementAction
+    {
+    public:
+        MoveOrderAction(PlayerbotAI* ai, float distance = sPlayerbotAIConfig.tooCloseDistance) : MovementAction(ai, "move to point")
+        {
+			this->distance = distance;
+		}
+
+        virtual bool Execute(Event event);
+        virtual bool isUseful();
+
+	private:
+		float distance;
+    };
+
+	class MoveQuestPositionAction : public MovementAction
+	{
+	public:
+		MoveQuestPositionAction(PlayerbotAI* ai, float distance = sPlayerbotAIConfig.grindDistance) : MovementAction(ai, "move to quest")
+		{
+			this->distance = distance;
+		}
+
+		virtual bool Execute(Event event);
+		virtual bool isUseful();
+
+	private:
+		float distance;
+	};
 
     class RunAwayAction : public MovementAction
     {

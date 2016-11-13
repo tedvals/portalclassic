@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "MageMultipliers.h"
 #include "GenericMageNonCombatStrategy.h"
@@ -55,6 +55,10 @@ void GenericMageNonCombatStrategy::InitTriggers(std::list<TriggerNode*> &trigger
         "arcane intellect on party",
         NextAction::array(0, new NextAction("arcane intellect on party", 20.0f), NULL)));
 
+    triggers.push_back(new TriggerNode(
+        "focus magic on party",
+        NextAction::array(0, new NextAction("focus magic on party", 20.0f), NULL)));
+
 	triggers.push_back(new TriggerNode(
 		"no drink",
 		NextAction::array(0, new NextAction("conjure water", 16.0f), NULL)));
@@ -70,18 +74,22 @@ void GenericMageNonCombatStrategy::InitTriggers(std::list<TriggerNode*> &trigger
     triggers.push_back(new TriggerNode(
         "remove curse on party",
         NextAction::array(0, new NextAction("remove curse on party", 40.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"in battleground without flag",
+		NextAction::array(0, new NextAction("mount", 1.0f), NULL)));
 }
 
 void MageBuffManaStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(
-        "mage armor",
+        "molten armor",
         NextAction::array(0, new NextAction("mage armor", 19.0f), NULL)));
 }
 
 void MageBuffDpsStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 {
     triggers.push_back(new TriggerNode(
-        "mage armor",
+        "molten armor",
         NextAction::array(0, new NextAction("molten armor", 19.0f), NULL)));
 }

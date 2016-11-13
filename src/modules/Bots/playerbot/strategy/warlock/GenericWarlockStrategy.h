@@ -5,7 +5,7 @@
 
 namespace ai
 {
-    class GenericWarlockStrategy : public RangedCombatStrategy
+    class GenericWarlockStrategy : public CombatStrategy
     {
     public:
         GenericWarlockStrategy(PlayerbotAI* ai);

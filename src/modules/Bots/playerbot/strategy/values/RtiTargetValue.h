@@ -1,14 +1,13 @@
 #pragma once
 #include "../Value.h"
-#include "Group.h"
-#include "TargetValue.h"
+#include "../../../Groups/Group.h"
 
 namespace ai
 {
-    class RtiTargetValue : public TargetValue
+    class RtiTargetValue : public UnitCalculatedValue
     {
     public:
-        RtiTargetValue(PlayerbotAI* ai) : TargetValue(ai)
+        RtiTargetValue(PlayerbotAI* ai) : UnitCalculatedValue(ai)
         {}
 
     public:
@@ -43,7 +42,7 @@ namespace ai
                 return NULL;
 
             Unit* unit = ai->GetUnit(ObjectGuid(guid));
-            if (!unit || unit->IsDead())
+            if (!unit || unit->isDead())
                 return NULL;
 
             return unit;

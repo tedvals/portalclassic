@@ -9,8 +9,15 @@ namespace ai
 
 	    virtual bool isUseful()
 	    {
-	        return CastMeleeSpellAction::isUseful() && AI_VALUE2(uint8, "combo", "self target") < 5;
+	        return CastMeleeSpellAction::isUseful() && !ai->HasAura("stealth", AI_VALUE(Unit*, "self target")) && AI_VALUE2(uint8, "combo", "current target") < 5;
 	    }
+
+	    virtual bool IsInstant() {return true;}
+
+        virtual NextAction** getPrerequisites()
+        {
+            return NextAction::merge( NextAction::array(0, new NextAction("move behind"), NULL), CastMeleeSpellAction::getPrerequisites());
+        }
 	};
 
 	class CastSinisterStrikeAction : public CastComboAction
@@ -23,6 +30,14 @@ namespace ai
     {
     public:
         CastMutilateAction(PlayerbotAI* ai) : CastComboAction(ai, "mutilate") {}
+
+        virtual NextAction** getAlternatives();
+    };
+
+    class CastFanOfKnivesAction : public CastComboAction
+    {
+    public:
+        CastFanOfKnivesAction(PlayerbotAI* ai) : CastComboAction(ai, "fan of knives") {}
     };
 
     class CastRiposteAction : public CastComboAction
@@ -35,11 +50,33 @@ namespace ai
 	{
 	public:
 		CastGougeAction(PlayerbotAI* ai) : CastComboAction(ai, "gouge") {}
+		virtual bool isUseful()
+	    {
+//	        return !AI_VALUE2(bool, "behind", "current target") && (AI_VALUE2(bool, "target normal", "current target") || AI_VALUE2(bool, "target player", "current target"));
+		return (AI_VALUE2(bool, "target normal", "current target") || AI_VALUE2(bool, "target player", "current target"));
+	    }
 	};
 
     class CastBackstabAction : public CastComboAction
     {
     public:
         CastBackstabAction(PlayerbotAI* ai) : CastComboAction(ai, "backstab") {}
+
+        virtual bool isUseful()
+        {
+	        return AI_VALUE2(bool, "behind", "current target");
+	    }
+    };
+
+    class CastHemorrhageAction : public CastComboAction
+    {
+    public:
+        CastHemorrhageAction(PlayerbotAI* ai) : CastComboAction(ai, "hemorrhage") {}
+    };
+
+    class CastGhostlyStrikeAction : public CastComboAction
+    {
+    public:
+        CastGhostlyStrikeAction(PlayerbotAI* ai) : CastComboAction(ai, "ghostly strike") {}
     };
 }

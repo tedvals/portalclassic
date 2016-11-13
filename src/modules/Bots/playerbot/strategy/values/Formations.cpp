@@ -1,22 +1,11 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "Formations.h"
-#include "Arrow.h"
+#include "formations/Arrow.h"
 
 using namespace ai;
 
 WorldLocation Formation::NullLocation = WorldLocation();
-
-bool IsSameLocation(WorldLocation const &a, WorldLocation const &b)
-{
-	return a.coord_x == b.coord_x && a.coord_y == b.coord_y && a.coord_z == b.coord_z && a.mapid == b.mapid;
-}
-
-bool Formation::IsNullLocation(WorldLocation const& loc)
-{
-	return IsSameLocation(loc, Formation::NullLocation);
-}
-
 
 namespace ai
 {
@@ -58,7 +47,6 @@ namespace ai
 
         virtual float GetMaxDistance() { return sPlayerbotAIConfig.followDistance; }
     };
-
 
     class ChaosFormation : public MoveFormation
     {
@@ -107,15 +95,15 @@ namespace ai
             case CLASS_MAGE:
             case CLASS_PRIEST:
             case CLASS_WARLOCK:
-                range = sPlayerbotAIConfig.fleeDistance;
+                range = sPlayerbotAIConfig.fleeDistance + (float)urand(8, 15) / 10;
                 break;
             case CLASS_DRUID:
                 if (!ai->IsTank(bot))
-                    range = sPlayerbotAIConfig.fleeDistance;
+                    range = sPlayerbotAIConfig.fleeDistance + (float)urand(8, 15) / 10;
                 break;
             case CLASS_SHAMAN:
-                if (ai->IsHeal(bot))
-                    range = sPlayerbotAIConfig.fleeDistance;
+                if (ai->IsHeal(bot) || ai->IsRanged(bot))
+                    range = sPlayerbotAIConfig.fleeDistance + (float)urand(8, 15) / 10;
                 break;
             }
 
@@ -156,7 +144,7 @@ namespace ai
             GroupReference *gref = group->GetFirstMember();
             while( gref )
             {
-                Player* member = gref->getSource();
+                Player* member = gref->GetSource();
                 if (member != master)
                     players.push_back(member);
 
@@ -195,7 +183,7 @@ namespace ai
             GroupReference *gref = group->GetFirstMember();
             while( gref )
             {
-                Player* member = gref->getSource();
+                Player* member = gref->GetSource();
                 if (member != master)
                 {
                     if (ai->IsTank(member))
@@ -245,10 +233,10 @@ float Formation::GetFollowAngle()
     int index = 1;
     for (GroupReference *ref = group->GetFirstMember(); ref; ref = ref->next())
     {
-        if( ref->getSource() == master)
+        if( ref->GetSource() == master)
             continue;
 
-        if( ref->getSource() == bot)
+        if( ref->GetSource() == bot)
             return 2 * M_PI / (group->GetMembersCount() -1) * index;
 
         index++;
@@ -306,7 +294,7 @@ bool SetFormationAction::Execute(Event event)
     {
         if (value->Get()) delete value->Get();
         value->Set(new ArrowFormation(ai));
-    }
+    }     
     else if (formation == "near" || formation == "default")
     {
         if (value->Get()) delete value->Get();
@@ -347,7 +335,7 @@ WorldLocation MoveFormation::MoveLine(vector<Player*> line, float diff, float cx
         }
 
         WorldLocation loc = MoveSingleLine(singleLine, diff, x, y,cz, orientation, range);
-        if (!Formation::IsNullLocation(loc))
+        if (loc != Formation::NullLocation)
             return loc;
     }
 

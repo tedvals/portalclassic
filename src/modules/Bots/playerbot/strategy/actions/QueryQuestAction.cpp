@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "QueryQuestAction.h"
 
@@ -28,7 +28,7 @@ bool QueryQuestAction::Execute(Event event)
             continue;
 
         ostringstream out;
-        out << "--- " << chat->formatQuest(sObjectMgr.GetQuestTemplate(questId)) << " ";
+        out << "--- " << chat->formatQuest(sObjectMgr->GetQuestTemplate(questId)) << " ";
         if (bot->GetQuestStatus(questId) == QUEST_STATUS_COMPLETE)
         {
             out << "|c0000FF00completed|r ---";
@@ -49,37 +49,38 @@ bool QueryQuestAction::Execute(Event event)
 
 void QueryQuestAction::TellObjectives(uint32 questId)
 {
-    Quest const* questTemplate = sObjectMgr.GetQuestTemplate(questId);
-    QuestStatusData questStatus = bot->getQuestStatusMap()[questId];
+    Quest const* questTemplate = sObjectMgr->GetQuestTemplate(questId);
+    QuestStatusMap &questMap = bot->getQuestStatusMap();
+    QuestStatusData questStatus = questMap[questId];
 
     for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
     {
         if (!questTemplate->ObjectiveText[i].empty())
             ai->TellMaster(questTemplate->ObjectiveText[i]);
 
-        if (questTemplate->ReqItemId[i])
+        if (questTemplate->RequiredItemId[i])
         {
-            int required = questTemplate->ReqItemCount[i];
-            int available = questStatus.m_itemcount[i];
-            ItemPrototype const* proto = sObjectMgr.GetItemPrototype(questTemplate->ReqItemId[i]);
+            int required = questTemplate->RequiredItemCount[i];
+            int available = questStatus.ItemCount[i];
+            ItemTemplate const* proto = sObjectMgr->GetItemTemplate(questTemplate->RequiredItemId[i]);
             TellObjective(chat->formatItem(proto), available, required);
         }
 
-        if (questTemplate->ReqCreatureOrGOId[i])
+        if (questTemplate->RequiredNpcOrGo[i])
         {
-            int required = questTemplate->ReqCreatureOrGOCount[i];
-            int available = questStatus.m_creatureOrGOcount[i];
+            int required = questTemplate->RequiredNpcOrGoCount[i];
+            int available = questStatus.CreatureOrGOCount[i];
 
-            if (questTemplate->ReqCreatureOrGOId[i] < 0)
+            if (questTemplate->RequiredNpcOrGo[i] < 0)
             {
-                GameObjectInfo const* info = sObjectMgr.GetGameObjectInfo(-questTemplate->ReqCreatureOrGOId[i]);
+                GameObjectTemplate const* info = sObjectMgr->GetGameObjectTemplate(questTemplate->RequiredNpcOrGo[i]);
                 if (info)
                     TellObjective(info->name, available, required);
             }
             else
             {
 
-                CreatureInfo const* info = sObjectMgr.GetCreatureTemplate(questTemplate->ReqCreatureOrGOId[i]);
+                CreatureTemplate const* info = sObjectMgr->GetCreatureTemplate(questTemplate->RequiredNpcOrGo[i]);
                 if (info)
                     TellObjective(info->Name, available, required);
             }

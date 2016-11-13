@@ -6,8 +6,20 @@ namespace ai
     BUFF_TRIGGER(BattleShoutTrigger, "battle shout", "battle shout")
 
     DEBUFF_TRIGGER(RendDebuffTrigger, "rend", "rend")
+    DEBUFF_TRIGGER(DemoralizingShoutDebuffTrigger, "demoralizing shout", "demoralizing shout")
     DEBUFF_TRIGGER(DisarmDebuffTrigger, "disarm", "disarm")
     DEBUFF_TRIGGER(SunderArmorDebuffTrigger, "sunder armor", "sunder armor")
+
+    class VigilanceOnMasterTrigger : public BuffTrigger
+    {
+    public:
+        VigilanceOnMasterTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "vigilance") {}
+
+        bool IsActive()
+        {
+            return (BuffTrigger::IsActive() && bot->getLevel() > 39);
+            };
+    };
 
     class RendDebuffOnAttackerTrigger : public DebuffOnAttackerTrigger
     {
@@ -39,10 +51,28 @@ namespace ai
         ShieldBashInterruptSpellTrigger(PlayerbotAI* ai) : InterruptSpellTrigger(ai, "shield bash") {}
     };
 
+    class BloodsurgeTrigger : public HasAuraTrigger
+    {
+    public:
+        BloodsurgeTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "bloodsurge") {}
+    };
+
+    class TasteForBloodTrigger : public HasAuraTrigger
+    {
+    public:
+        TasteForBloodTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "taste for blood") {}
+    };
+
+    class SuddenDeathTrigger : public HasAuraTrigger
+    {
+    public:
+        SuddenDeathTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "sudden death") {}
+    };
+
     class VictoryRushTrigger : public HasAuraTrigger
     {
     public:
-        VictoryRushTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "victory rush") {}
+        VictoryRushTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "victorious") {}
     };
 
     class SwordAndBoardTrigger : public HasAuraTrigger
@@ -63,11 +93,11 @@ namespace ai
         HamstringTrigger(PlayerbotAI* ai) : SnareTargetTrigger(ai, "hamstring") {}
     };
 
-    class DeathWishTrigger : public BoostTrigger
-    {
-    public:
-        DeathWishTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "death wish") {}
-    };
+    //class DeathWishTrigger : public BoostTrigger
+    //{
+    //public:
+    //    DeathWishTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "death wish") {}
+    //};
 
     class ShieldBashInterruptEnemyHealerSpellTrigger : public InterruptEnemyHealerTrigger
     {

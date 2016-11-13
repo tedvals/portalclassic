@@ -28,7 +28,7 @@ namespace ai
 	class HunterBuffDpsStrategy : public NonCombatStrategy
 	{
 	public:
-		HunterBuffDpsStrategy(PlayerbotAI* ai) : NonCombatStrategy(ai) {}
+		HunterBuffDpsStrategy(PlayerbotAI* ai);
 		virtual string getName() { return "bdps"; }
 
 	public:

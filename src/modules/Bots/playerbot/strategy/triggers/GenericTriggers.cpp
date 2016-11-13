@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "GenericTriggers.h"
 #include "../../LootObjectStack.h"
@@ -16,6 +16,25 @@ bool MediumManaTrigger::IsActive()
     return AI_VALUE2(bool, "has mana", "self target") && AI_VALUE2(uint8, "mana", "self target") < sPlayerbotAIConfig.mediumMana;
 }
 
+bool AlmostFullManaTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "has mana", "self target") && AI_VALUE2(uint8, "mana", "self target") <= sPlayerbotAIConfig.almostFullMana;
+}
+
+bool AlmostNoManaTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "has mana", "self target") && AI_VALUE2(uint8, "mana", "self target") < sPlayerbotAIConfig.almostNoMana;
+}
+
+bool FullManaTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "has mana", "self target") && AI_VALUE2(uint8, "mana", "self target") > sPlayerbotAIConfig.almostFullMana;
+}
+
+bool DrinkManaTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "has mana", "self target") && !AI_VALUE2(bool, "combat", "self target") && AI_VALUE2(uint8, "mana", "self target") < sPlayerbotAIConfig.mediumMana;
+}
 
 bool RageAvailable::IsActive()
 {
@@ -32,14 +51,19 @@ bool ComboPointsAvailableTrigger::IsActive()
     return AI_VALUE2(uint8, "combo", "current target") >= amount;
 }
 
+bool ComboPointAvailableTrigger::IsActive()
+{
+    return AI_VALUE2(uint8, "combo", "current target") >= amount;
+}
+
 bool LoseAggroTrigger::IsActive()
 {
-    return !AI_VALUE2(bool, "has aggro", "current target");
+    return !AI_VALUE2(bool, "has aggro", "current target") && AI_VALUE2(bool, "combat", "self target");
 }
 
 bool HasAggroTrigger::IsActive()
 {
-    return AI_VALUE2(bool, "has aggro", "current target");
+    return AI_VALUE2(bool, "has aggro", "current target") && AI_VALUE2(bool, "combat", "self target");
 }
 
 bool PanicTrigger::IsActive()
@@ -53,7 +77,7 @@ bool BuffTrigger::IsActive()
     Unit* target = GetTarget();
 	return SpellTrigger::IsActive() &&
 		!ai->HasAura(spell, target) &&
-		(!AI_VALUE2(bool, "has mana", "self target") || AI_VALUE2(uint8, "mana", "self target") > sPlayerbotAIConfig.lowMana);
+		(!AI_VALUE2(bool, "has mana", "self target") || AI_VALUE2(uint8, "mana", "self target") >= sPlayerbotAIConfig.lowMana);
 }
 
 Value<Unit*>* BuffOnPartyTrigger::GetTargetValue()
@@ -61,9 +85,19 @@ Value<Unit*>* BuffOnPartyTrigger::GetTargetValue()
 	return context->GetValue<Unit*>("party member without aura", spell);
 }
 
+Value<Unit*>* BuffOnMasterTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("master without aura", spell);
+}
+
 Value<Unit*>* DebuffOnAttackerTrigger::GetTargetValue()
 {
 	return context->GetValue<Unit*>("attacker without aura", spell);
+}
+
+Value<Unit*>* OwnDebuffOnAttackerTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("attacker without own aura", spell);
 }
 
 bool NoAttackersTrigger::IsActive()
@@ -88,17 +122,71 @@ bool MyAttackerCountTrigger::IsActive()
 
 bool AoeTrigger::IsActive()
 {
-    return AI_VALUE(uint8, "attacker count") >= amount;
+    return AI_VALUE(uint8, "aoe attacker count") >= amount;
+}
+
+bool MeleeAoeTrigger::IsActive()
+{
+    return AI_VALUE(uint8, "melee attacker count") >= amount;
 }
 
 bool DebuffTrigger::IsActive()
 {
-	return BuffTrigger::IsActive() && AI_VALUE2(uint8, "health", "current target") > 25;
+    if (SpellTrigger::IsActive() &&
+		!ai->HasAura(spell, GetTarget(),BOT_AURA_DAMAGE) &&
+		(!AI_VALUE2(bool, "has mana", "self target") || AI_VALUE2(uint8, "mana", "self target") >= sPlayerbotAIConfig.lowMana))
+    {
+     if (AI_VALUE2(bool, "target normal", "current target"))
+        return (AI_VALUE2(uint8, "health", "current target") > 30);
+     else if (AI_VALUE2(bool, "target boss", "current target"))
+        return (AI_VALUE2(uint8, "health", "current target") > 5);
+     else return (AI_VALUE2(uint8, "health", "current target") > 20);
+    }
+    else return false;
+
+    /*
+    if (AI_VALUE2(bool, "target normal", "current target"))
+        return BuffTrigger::IsActive() && (AI_VALUE2(uint8, "health", "current target") > 30);
+    else if (AI_VALUE2(bool, "target boss", "current target"))
+        return BuffTrigger::IsActive() && (AI_VALUE2(uint8, "health", "current target") > 5);
+    else return BuffTrigger::IsActive() && (AI_VALUE2(uint8, "health", "current target") > 20);
+    */
+}
+
+bool OwnDebuffTrigger::IsActive()
+{
+    if (SpellTrigger::IsActive() &&
+		!ai->HasOwnAura(spell, GetTarget(),BOT_AURA_DAMAGE) &&
+		(!AI_VALUE2(bool, "has mana", "self target") || AI_VALUE2(uint8, "mana", "self target") >= sPlayerbotAIConfig.lowMana))
+    {
+     if (AI_VALUE2(bool, "target normal", "current target"))
+        return (AI_VALUE2(uint8, "health", "current target") > 30);
+     else if (AI_VALUE2(bool, "target boss", "current target"))
+        return (AI_VALUE2(uint8, "health", "current target") > 5);
+     else return (AI_VALUE2(uint8, "health", "current target") > 20);
+    }
+    else return false;
+
+    /*
+    if (AI_VALUE2(bool, "target normal", "current target"))
+        return BuffTrigger::IsActive() && (AI_VALUE2(uint8, "health", "current target") > 30);
+    else if (AI_VALUE2(bool, "target boss", "current target"))
+        return BuffTrigger::IsActive() && (AI_VALUE2(uint8, "health", "current target") > 5);
+    else return BuffTrigger::IsActive() && (AI_VALUE2(uint8, "health", "current target") > 20);
+    */
+}
+
+bool HotTrigger::IsActive()
+{
+    Unit* target = GetTarget();
+	return SpellTrigger::IsActive() &&
+		!ai->HasAura(spell, target,BOT_AURA_HEAL) &&
+		(!AI_VALUE2(bool, "has mana", "self target") || AI_VALUE2(uint8, "mana", "self target") >= sPlayerbotAIConfig.lowMana);
 }
 
 bool SpellTrigger::IsActive()
 {
-	return GetTarget();
+	return GetTarget() && ai->CanCastSpell(spell,GetTarget());
 }
 
 bool SpellCanBeCastTrigger::IsActive()
@@ -109,7 +197,7 @@ bool SpellCanBeCastTrigger::IsActive()
 
 bool RandomTrigger::IsActive()
 {
-    int vl  = rand() % (int)(1 + probability * 10 / sPlayerbotAIConfig.randomChangeMultiplier);
+    int vl  = rand() % (int)(1 + probability * 10 / sPlayerbotAIConfig.randomChangeMultiplier*sPlayerbotAIConfig.randomBotUpdateInterval);
     return vl == 0;
 }
 
@@ -134,7 +222,9 @@ bool BoostTrigger::IsActive()
 bool SnareTargetTrigger::IsActive()
 {
 	Unit* target = GetTarget();
-	return DebuffTrigger::IsActive() && AI_VALUE2(bool, "moving", "current target") && !ai->HasAura(spell, target);
+	if (target && (target->IsFleeing() || AI_VALUE2(bool, "has aggro", "current target")))
+        return DebuffTrigger::IsActive() && AI_VALUE2(bool, "moving", "current target") && !ai->HasAura(spell, target);
+    else return false;
 }
 
 bool ItemCountTrigger::IsActive()
@@ -152,6 +242,11 @@ bool HasAuraTrigger::IsActive()
 	return ai->HasAura(getName(), GetTarget());
 }
 
+bool HasAuraIdTrigger::IsActive()
+{
+	return ai->HasAura(spellId, GetTarget());
+}
+
 bool TankAoeTrigger::IsActive()
 {
     if (!AI_VALUE(uint8, "attacker count"))
@@ -165,13 +260,19 @@ bool TankAoeTrigger::IsActive()
     if (!tankTarget || currentTarget == tankTarget)
         return false;
 
-    return currentTarget->getVictim() == AI_VALUE(Unit*, "self target");
+    return currentTarget->GetVictim() == AI_VALUE(Unit*, "self target");
 }
 
 bool IsBehindTargetTrigger::IsActive()
 {
     Unit* target = AI_VALUE(Unit*, "current target");
     return target && AI_VALUE2(bool, "behind", "current target");
+}
+
+bool IsFrontTargetTrigger::IsActive()
+{
+    Unit* target = AI_VALUE(Unit*, "current target");
+    return target && !AI_VALUE2(bool, "behind", "current target");
 }
 
 bool IsNotFacingTargetTrigger::IsActive()
@@ -181,7 +282,37 @@ bool IsNotFacingTargetTrigger::IsActive()
 
 bool HasCcTargetTrigger::IsActive()
 {
-    return AI_VALUE(uint8, "attacker count") > 2 && AI_VALUE2(Unit*, "cc target", getName()) &&
+    return AI_VALUE(uint8, "attacker count") > 1 && AI_VALUE2(Unit*, "cc target", getName()) &&
+        !AI_VALUE2(Unit*, "current cc target", getName());
+}
+
+bool HasCcTarget2Trigger::IsActive()
+{
+    return AI_VALUE(uint8, "attacker count") > 1 && AI_VALUE2(Unit*, "cc target2", getName()) &&
+        !AI_VALUE2(Unit*, "current cc target", getName());
+}
+
+bool HasCcTarget3Trigger::IsActive()
+{
+    return AI_VALUE(uint8, "attacker count") > 1 && AI_VALUE2(Unit*, "cc target3", getName()) &&
+        !AI_VALUE2(Unit*, "current cc target", getName());
+}
+
+bool HasCcTarget4Trigger::IsActive()
+{
+    return AI_VALUE(uint8, "attacker count") > 1 && AI_VALUE2(Unit*, "cc target4", getName()) &&
+        !AI_VALUE2(Unit*, "current cc target", getName());
+}
+
+bool HasCcTarget5Trigger::IsActive()
+{
+    return AI_VALUE(uint8, "attacker count") > 1 && AI_VALUE2(Unit*, "cc target5", getName()) &&
+        !AI_VALUE2(Unit*, "current cc target", getName());
+}
+
+bool HasCcTarget6Trigger::IsActive()
+{
+    return AI_VALUE(uint8, "attacker count") > 1 && AI_VALUE2(Unit*, "cc target6", getName()) &&
         !AI_VALUE2(Unit*, "current cc target", getName());
 }
 
@@ -196,11 +327,11 @@ bool NoPossibleTargetsTrigger::IsActive()
     return !targets.size();
 }
 
-bool NotDpsTargetActiveTrigger::IsActive()
+bool NotLeastHpTargetActiveTrigger::IsActive()
 {
-    Unit* dps = AI_VALUE(Unit*, "dps target");
+    Unit* leastHp = AI_VALUE(Unit*, "least hp target");
     Unit* target = AI_VALUE(Unit*, "current target");
-    return dps && target != dps;
+    return leastHp && target != leastHp;
 }
 
 bool EnemyPlayerIsAttacking::IsActive()
@@ -221,6 +352,22 @@ bool HasNearestAddsTrigger::IsActive()
     return targets.size();
 }
 
+bool  HasGroupMemberNearTrigger::IsActive()
+{
+    list<ObjectGuid> targets = AI_VALUE(list<ObjectGuid>, "party members near");
+    return targets.size();
+}
+
+bool MainhandEnhanceTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "mainhand enhanced", "self target") && !AI_VALUE2(bool, "mounted", "self target");
+}
+
+bool OffhandEnhanceTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "offhand enhanced", "self target") && !AI_VALUE2(bool, "mounted", "self target");
+}
+
 bool HasItemForSpellTrigger::IsActive()
 {
 	string spell = getName();
@@ -239,4 +386,266 @@ bool TargetChangedTrigger::IsActive()
 Value<Unit*>* InterruptEnemyHealerTrigger::GetTargetValue()
 {
     return context->GetValue<Unit*>("enemy healer target", spell);
+}
+
+bool CharmedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "charmed", GetTargetName());
+}
+
+bool SilencedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "silenced", GetTargetName());
+}
+
+bool FearedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "feared", GetTargetName());
+}
+
+bool BleedingTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "bleeding", GetTargetName());
+}
+
+bool PossessedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "possessed", GetTargetName());
+}
+
+bool DisorientedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "disoriented", GetTargetName());
+}
+
+bool TakesPeriodicDamageTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "periodic damage", GetTargetName());
+}
+
+bool PolymorphedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "polymorphed", GetTargetName());
+}
+
+bool SnaredTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "snared", GetTargetName());
+}
+
+bool FrozenTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "frozen", GetTargetName());
+}
+
+bool RootedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "rooted", GetTargetName());
+}
+
+bool StunnedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "stunned", GetTargetName());
+}
+
+bool TargetPossessedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "possessed", GetTargetName());
+}
+
+bool TargetCharmedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "charmed", GetTargetName());
+}
+
+bool TargetDisorientedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "disoriented", GetTargetName());
+}
+
+bool TargetBleedingTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "bleeding", GetTargetName());
+}
+
+bool TargetPolymorphedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "polymorphed", GetTargetName());
+}
+
+bool TargetSnaredTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "snared", GetTargetName());
+}
+
+bool TargetFrozenTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "frozen", GetTargetName());
+}
+
+bool TargetSilencedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "silenced", GetTargetName());
+}
+
+bool TargetFearedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "feared", GetTargetName());
+}
+
+bool TargetRootedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "rooted", GetTargetName());
+}
+
+bool TargetFleeingTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "fleeing", GetTargetName());
+}
+
+bool TargetStunnedTrigger::IsActive()
+{
+    return AI_VALUE2(bool, "stunned", GetTargetName());
+}
+
+bool TargetNotSnaredTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "snared", GetTargetName());
+}
+
+bool TargetNotFrozenTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "frozen", GetTargetName());
+}
+
+bool TargetNotBleedingTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "bleeding", GetTargetName());
+}
+
+bool TargetNotPolymorphedTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "polymorphed", GetTargetName());
+}
+
+bool TargetNotRootedTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "rooted", GetTargetName());
+}
+
+bool TargetNotStunnedTrigger::IsActive()
+{
+    return !AI_VALUE2(bool, "stunned", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberPossessedTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel possess");
+}
+
+bool PartyMemberPossessedTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "possessed", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberCharmedTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel charm");
+}
+
+bool PartyMemberCharmedTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "charmed", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberFearedTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel fear");
+}
+
+bool PartyMemberFearedTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "feared", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberRootedTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel root");
+}
+
+bool PartyMemberRootedTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "rooted", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberSnaredTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel snare");
+}
+
+bool PartyMemberSnaredTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "snared", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberPolymorphedTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel polymorph");
+}
+
+bool PartyMemberPolymorphedTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "polymorphed", GetTargetName());
+}
+
+Value<Unit*>*  PartyMemberFrozenTrigger::GetTargetValue()
+{
+	return context->GetValue<Unit*>("party member dispel frozen");
+}
+
+bool PartyMemberFrozenTrigger::IsActive()
+{
+	return !AI_VALUE2(bool, "frozen", GetTargetName());
+}
+
+bool PlayerHasNoFlag::IsActive()
+{
+	if (ai->GetBot()->InBattleground())
+		{
+		if (ai->GetBot()->GetBattlegroundTypeId() == BattlegroundTypeId::BATTLEGROUND_WS)
+			{
+			BattlegroundWS *bg = (BattlegroundWS*)ai->GetBot()->GetBattleground();
+			if (!(bg->GetFlagState(bg->GetOtherTeam(bot->GetTeam())) == BG_WS_FLAG_STATE_ON_PLAYER))
+				 return false;
+			if (bot->GetGUID() == bg->GetFlagPickerGUID(bg->GetOtherTeam(bot->GetTeam()) == ALLIANCE ? TEAM_ALLIANCE : TEAM_HORDE)) //flag-Carrier, bring it home
+				{
+				return false;
+				}
+			}
+		}
+	return true;
+	}
+
+bool PlayerIsInBattleground::IsActive()
+{
+	return ai->GetBot()->InBattleground();
+	}
+
+bool PlayerIsInBattlegroundWithoutFlag::IsActive()
+ {
+	if (ai->GetBot()->InBattleground())
+		{
+		if (ai->GetBot()->GetBattlegroundTypeId() == BattlegroundTypeId::BATTLEGROUND_WS)
+			{
+			BattlegroundWS *bg = (BattlegroundWS*)ai->GetBot()->GetBattleground();
+			if (!(bg->GetFlagState(bg->GetOtherTeam(bot->GetTeam())) == BG_WS_FLAG_STATE_ON_PLAYER))
+				return true;
+			if (bot->GetGUID() == bg->GetFlagPickerGUID(bg->GetOtherTeam(bot->GetTeam()) == ALLIANCE ? TEAM_ALLIANCE : TEAM_HORDE)) //flag-Carrier, bring it home
+			{
+				return false;
+				}
+			}
+		return true;
+		}
+	return true;
 }

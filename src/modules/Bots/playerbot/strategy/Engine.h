@@ -75,7 +75,7 @@ namespace ai
 		string GetLastAction() { return lastAction; }
 
     public:
-	    virtual bool DoNextAction(Unit*, int depth = 0);
+	    virtual bool DoNextAction(Unit*, int depth = 0, bool instantonly = false, bool noflee = false);
 	    ActionResult ExecuteAction(string name);
 
     public:
@@ -92,12 +92,13 @@ namespace ai
 	    virtual ~Engine(void);
 
     private:
-        bool MultiplyAndPush(NextAction** actions, float forceRelevance, bool skipPrerequisites, Event event, const char* pushType);
+        bool MultiplyAndPush(NextAction** actions, float forceRelevance, bool skipPrerequisites, Event event, bool instantonly = false, string referrer = "original");
         void Reset();
         void ProcessTriggers();
         void PushDefaultActions();
         void PushAgain(ActionNode* actionNode, float relevance, Event event);
         ActionNode* CreateActionNode(string name);
+        ActionNode* CreateActionNode(string name,string referrer);
         Action* InitializeAction(ActionNode* actionNode);
         bool ListenAndExecute(Action* action, Event event);
 
@@ -115,6 +116,7 @@ namespace ai
         std::string lastAction;
 
     public:
+		string testPrefix = "";
 		bool testMode;
 
     private:

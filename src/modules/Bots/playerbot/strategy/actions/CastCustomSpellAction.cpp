@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "CastCustomSpellAction.h"
 
@@ -9,8 +9,8 @@ bool CastCustomSpellAction::Execute(Event event)
     Unit* target = NULL;
 
     Player* master = GetMaster();
-    if (master && master->GetSelectionGuid())
-        target = ai->GetUnit(master->GetSelectionGuid());
+    if (master)
+        target = master->GetSelectedUnit();
 
     if (!target)
         target = bot;

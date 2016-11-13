@@ -10,56 +10,50 @@ namespace ai
     public:
         ShapeshiftDruidStrategyActionNodeFactory()
         {
-            creators["rejuvenation"] = &rejuvenation;
-            creators["regrowth"] = &regrowth;
-            creators["healing touch"] = &healing_touch;
-            creators["rejuvenation on party"] = &rejuvenation_on_party;
-            creators["regrowth on party"] = &regrowth_on_party;
-            creators["healing touch on party"] = &healing_touch_on_party;
+        creators["thorns"] = &thorns;
+        creators["cure poison"] = &cure_poison;
+        creators["cure poison on party"] = &cure_poison_on_party;
+        creators["abolish poison"] = &abolish_poison;
+        creators["abolish poison on party"] = &abolish_poison_on_party;
         }
+
     private:
-        static ActionNode* regrowth(PlayerbotAI* ai)
-        {
-            return new ActionNode ("regrowth",
-                /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
-                /*A*/ NextAction::array(0, new NextAction("healing touch"), NULL),
-                /*C*/ NextAction::array(0, new NextAction("melee", 10.0f), NULL));
-        }
-        static ActionNode* rejuvenation(PlayerbotAI* ai)
-        {
-            return new ActionNode ("rejuvenation",
-                /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* healing_touch(PlayerbotAI* ai)
-        {
-            return new ActionNode ("healing touch",
-                /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* regrowth_on_party(PlayerbotAI* ai)
-        {
-            return new ActionNode ("regrowth on party",
-                /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
-                /*A*/ NextAction::array(0, new NextAction("healing touch on party"), NULL),
-                /*C*/ NextAction::array(0, new NextAction("melee", 10.0f), NULL));
-        }
-        static ActionNode* rejuvenation_on_party(PlayerbotAI* ai)
-        {
-            return new ActionNode ("rejuvenation on party",
-                /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
-        static ActionNode* healing_touch_on_party(PlayerbotAI* ai)
-        {
-            return new ActionNode ("healing touch on party",
-                /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
-                /*A*/ NULL,
-                /*C*/ NULL);
-        }
+
+    static ActionNode* thorns(PlayerbotAI* ai)
+    {
+        return new ActionNode ("thorns",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
+    static ActionNode* cure_poison(PlayerbotAI* ai)
+    {
+        return new ActionNode ("cure poison",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
+    static ActionNode* cure_poison_on_party(PlayerbotAI* ai)
+    {
+        return new ActionNode ("cure poison on party",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
+    static ActionNode* abolish_poison(PlayerbotAI* ai)
+    {
+        return new ActionNode ("abolish poison",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
+    static ActionNode* abolish_poison_on_party(PlayerbotAI* ai)
+    {
+        return new ActionNode ("abolish poison on party",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
     };
 
     class FeralDruidStrategy : public GenericDruidStrategy

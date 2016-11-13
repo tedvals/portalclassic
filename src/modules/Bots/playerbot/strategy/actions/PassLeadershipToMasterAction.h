@@ -11,10 +11,10 @@ namespace ai
         virtual bool Execute(Event event)
         {
             Player* master = GetMaster();
-            if (master && bot->GetGroup() && bot->GetGroup()->IsMember(master->GetObjectGuid()))
+            if (master && bot->GetGroup() && bot->GetGroup()->IsMember(master->GetGUID()))
             {
                 WorldPacket p(SMSG_GROUP_SET_LEADER, 8);
-                p << master->GetObjectGuid();
+                p << master->GetGUID();
                 bot->GetSession()->HandleGroupSetLeaderOpcode(p);
                 return true;
             }

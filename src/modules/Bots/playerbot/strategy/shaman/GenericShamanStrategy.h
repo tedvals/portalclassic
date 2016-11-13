@@ -9,6 +9,9 @@ namespace ai
     {
     public:
         GenericShamanStrategy(PlayerbotAI* ai);
+        ~GenericShamanStrategy();
+    protected:
+        NamedObjectFactory<ActionNode>* factoryInternal;
 
     public:
         virtual void InitTriggers(std::list<TriggerNode*> &triggers);

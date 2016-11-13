@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "SpellCastUsefulValue.h"
 #include "LastSpellCastValue.h"
@@ -11,15 +11,15 @@ bool SpellCastUsefulValue::Calculate()
 	if (!spellid)
 		return true; // there can be known alternatives
 
-	SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid);
+	SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid);
 	if (!spellInfo)
 		return true; // there can be known alternatives
 
-	if (spellInfo->Attributes & SPELL_ATTR_ON_NEXT_SWING_1 ||
-		spellInfo->Attributes & SPELL_ATTR_ON_NEXT_SWING_2)
+	if (spellInfo->Attributes & SPELL_ATTR0_ON_NEXT_SWING ||
+		spellInfo->Attributes & SPELL_ATTR0_ON_NEXT_SWING_2)
 	{
 		Spell* spell = bot->GetCurrentSpell(CURRENT_MELEE_SPELL);
-		if (spell && spell->m_spellInfo->Id == spellid && spell->IsNextMeleeSwingSpell() && bot->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+		if (spell && spell->m_spellInfo->Id == spellid && spell->IsNextMeleeSwingSpell() && bot->HasUnitState(UNIT_STATE_MELEE_ATTACKING))
 			return false;
 	}
 	else
@@ -33,7 +33,7 @@ bool SpellCastUsefulValue::Calculate()
         }
 	}
 
-    if (IsAutoRepeatRangedSpell(spellInfo) && bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
+	if (spellInfo->IsAutoRepeatRangedSpell() && bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
             bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL)->m_spellInfo->Id == spellid)
     {
         return false;
@@ -41,7 +41,8 @@ bool SpellCastUsefulValue::Calculate()
 
     // TODO: workaround
     if (qualifier == "windfury weapon" || qualifier == "flametongue weapon" || qualifier == "frostbrand weapon" ||
-            qualifier == "rockbiter weapon" || qualifier == "earthliving weapon" || qualifier == "spellstone")
+            qualifier == "rockbiter weapon" || qualifier == "earthliving weapon" || qualifier == "spellstone" || qualifier == "firestone"
+            || qualifier == "instant poison" || qualifier == "deadly poison" || qualifier == "mind-numbing poison" || qualifier == "crippling poison")
     {
         Item *item = AI_VALUE2(Item*, "item for spell", spellid);
         if (item && item->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))

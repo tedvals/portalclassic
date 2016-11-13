@@ -20,7 +20,7 @@ namespace ai
             if(!atEntry)
                 return false;
 
-            AreaTrigger const* at = sObjectMgr.GetAreaTrigger(movement.lastAreaTrigger);
+            AreaTrigger const* at = sObjectMgr->GetAreaTrigger(movement.lastAreaTrigger);
             if (!at)
                 return false;
 

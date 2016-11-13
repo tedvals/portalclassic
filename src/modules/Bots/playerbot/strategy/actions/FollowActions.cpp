@@ -1,11 +1,10 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "FollowActions.h"
 #include "../../PlayerbotAIConfig.h"
 #include "../values/Formations.h"
 
 using namespace ai;
-
 
 bool FollowAction::Execute(Event event)
 {
@@ -18,10 +17,14 @@ bool FollowAction::Execute(Event event)
     else
     {
         WorldLocation loc = formation->GetLocation();
-        if (Formation::IsNullLocation(loc) || loc.mapid == -1)
+
+       // if (bot->GetMapId() == loc.GetMapId())
+       //    bot->UpdateAllowedPositionZ(loc.m_positionX, loc.m_positionY, loc.m_positionZ);
+
+        if (loc == Formation::NullLocation || loc.GetMapId() == -1)
             return false;
 
-        return MoveTo(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+        return MoveTo(loc.GetMapId(), loc.m_positionX, loc.m_positionY, loc.m_positionZ);
     }
 }
 
@@ -38,10 +41,10 @@ bool FollowAction::isUseful()
     else
     {
         WorldLocation loc = formation->GetLocation();
-        if (Formation::IsNullLocation(loc) || bot->GetMapId() != loc.mapid)
+        if (loc == Formation::NullLocation || bot->GetMapId() != loc.GetMapId())
             return false;
 
-        distance = bot->GetDistance(loc.coord_x, loc.coord_y, loc.coord_z);
+        distance = bot->GetDistance(loc);
     }
 
     return distance > formation->GetMaxDistance() &&

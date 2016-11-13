@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "TeleportAction.h"
 #include "../values/LastMovementValue.h"
@@ -14,13 +14,13 @@ bool TeleportAction::Execute(Event event)
         if (!go)
             continue;
 
-        GameObjectInfo const *goInfo = go->GetGOInfo();
+        GameObjectTemplate const *goInfo = go->GetGOInfo();
         if (goInfo->type != GAMEOBJECT_TYPE_SPELLCASTER)
             continue;
 
         uint32 spellId = goInfo->spellcaster.spellId;
-        const SpellEntry* const pSpellInfo = sSpellStore.LookupEntry(spellId);
-        if (pSpellInfo->Effect[0] != SPELL_EFFECT_TELEPORT_UNITS && pSpellInfo->Effect[1] != SPELL_EFFECT_TELEPORT_UNITS && pSpellInfo->Effect[2] != SPELL_EFFECT_TELEPORT_UNITS)
+        const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
+        if (pSpellInfo->Effects[0].Effect != SPELL_EFFECT_TELEPORT_UNITS && pSpellInfo->Effects[1].Effect != SPELL_EFFECT_TELEPORT_UNITS && pSpellInfo->Effects[2].Effect != SPELL_EFFECT_TELEPORT_UNITS)
             continue;
 
         ostringstream out; out << "Teleporting using " << goInfo->name;
@@ -28,10 +28,10 @@ bool TeleportAction::Execute(Event event)
 
         ai->ChangeStrategy("-follow,+stay", BOT_STATE_NON_COMBAT);
 
-        Spell *spell = new Spell(bot, pSpellInfo, false);
+        Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE);
         SpellCastTargets targets;
-        targets.setUnitTarget(bot);
-        spell->prepare(&targets, NULL);
+        targets.SetUnitTarget(bot);
+        spell->prepare(&targets);
         spell->cast(true);
         return true;
     }

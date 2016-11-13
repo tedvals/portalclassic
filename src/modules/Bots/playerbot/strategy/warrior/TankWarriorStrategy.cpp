@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "WarriorMultipliers.h"
 #include "TankWarriorStrategy.h"
@@ -77,12 +77,16 @@ TankWarriorStrategy::TankWarriorStrategy(PlayerbotAI* ai) : GenericWarriorStrate
 
 NextAction** TankWarriorStrategy::getDefaultActions()
 {
-    return NextAction::array(0, new NextAction("devastate", ACTION_NORMAL + 1), new NextAction("revenge", ACTION_NORMAL + 1), NULL);
+    return NextAction::array(0, new NextAction("devastate", ACTION_NORMAL + 1), new NextAction("revenge", ACTION_NORMAL + 2), NULL);
 }
 
 void TankWarriorStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 {
     GenericWarriorStrategy::InitTriggers(triggers);
+
+     triggers.push_back(new TriggerNode(
+        "rend",
+        NextAction::array(0, new NextAction("rend", ACTION_NORMAL + 6), NULL)));
 
     triggers.push_back(new TriggerNode(
         "medium rage available",
@@ -97,24 +101,32 @@ void TankWarriorStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("taunt", ACTION_HIGH + 9), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "medium health",
+        "party member critical health",
+        NextAction::array(0, new NextAction("intervene on party", ACTION_EMERGENCY + 1), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "critical health",
         NextAction::array(0, new NextAction("shield wall", ACTION_MEDIUM_HEAL), NULL)));
 
+    triggers.push_back(new TriggerNode(
+        "medium health",
+        NextAction::array(0, new NextAction("shield block", ACTION_LIGHT_HEAL), NULL)));
+
 	triggers.push_back(new TriggerNode(
-		"critical health",
+		"almost dead",
 		NextAction::array(0, new NextAction("last stand", ACTION_EMERGENCY + 3), NULL)));
 
 	triggers.push_back(new TriggerNode(
-		"medium aoe",
+		"melee medium aoe",
 		NextAction::array(0, new NextAction("shockwave", ACTION_HIGH + 2), NULL)));
 
 	triggers.push_back(new TriggerNode(
-        "light aoe",
-        NextAction::array(0, new NextAction("thunder clap", ACTION_HIGH + 2), new NextAction("demoralizing shout", ACTION_HIGH + 2),  new NextAction("cleave", ACTION_HIGH + 1), NULL)));
+        "melee light aoe",
+        NextAction::array(0, new NextAction("thunder clap", ACTION_HIGH + 2), new NextAction("cleave", ACTION_HIGH + 1), NULL)));
 
     triggers.push_back(new TriggerNode(
         "high aoe",
-        NextAction::array(0, new NextAction("challenging shout", ACTION_HIGH + 3), NULL)));
+        NextAction::array(0, new NextAction("challenging shout", ACTION_HIGH + 3), new NextAction("retaliation", ACTION_HIGH + 3),NULL)));
 
 	triggers.push_back(new TriggerNode(
 		"concussion blow",
@@ -122,5 +134,9 @@ void TankWarriorStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 
     triggers.push_back(new TriggerNode(
         "sword and board",
-        NextAction::array(0, new NextAction("shield slam", ACTION_HIGH + 3), NULL)));
+        NextAction::array(0, new NextAction("shield slam", ACTION_HIGH + 4), NULL)));
+
+     triggers.push_back(new TriggerNode(
+        "has nearest adds",
+        NextAction::array(0, new NextAction("cleave", ACTION_NORMAL + 6), NULL)));
 }

@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "SellAction.h"
 #include "../ItemVisitors.h"
@@ -30,7 +30,7 @@ public:
 
     virtual bool Visit(Item* item)
     {
-        if (item->GetProto()->Quality != ITEM_QUALITY_POOR)
+        if (item->GetTemplate()->Quality != ITEM_QUALITY_POOR)
             return true;
 
         return SellItemsVisitor::Visit(item);
@@ -76,20 +76,20 @@ void SellAction::Sell(FindItemVisitor* visitor)
 void SellAction::Sell(Item* item)
 {
     Player* master = GetMaster();
-    ObjectGuid vendorguid = master->GetSelectionGuid();
-    if (!vendorguid)
+    Unit* vendor = master->GetSelectedUnit();
+    if (!vendor)
     {
         ai->TellMaster("Select a vendor first");
         return;
     }
 
-    ObjectGuid itemguid = item->GetObjectGuid();
+    ObjectGuid itemguid = item->GetGUID();
     uint32 count = item->GetCount();
 
     WorldPacket p;
-    p << vendorguid << itemguid << count;
+    p << vendor->GetGUID() << itemguid << count;
     bot->GetSession()->HandleSellItemOpcode(p);
 
-    ostringstream out; out << chat->formatItem(item->GetProto()) << " sold";
+    ostringstream out; out << chat->formatItem(item->GetTemplate()) << " sold";
     ai->TellMaster(out);
 }

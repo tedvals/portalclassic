@@ -22,6 +22,7 @@ namespace ai
         void grindReputation();
         void nothing();
         void relax();
+        void achievement();
         void trade();
         void spam(string msg);
 

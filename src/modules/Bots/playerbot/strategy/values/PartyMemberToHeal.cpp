@@ -1,18 +1,20 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "PartyMemberToHeal.h"
 #include "../../PlayerbotAIConfig.h"
+#include "../../../Entities/Pet/Pet.h"
 
 using namespace ai;
 
 class IsTargetOfHealingSpell : public SpellEntryPredicate
 {
 public:
-    virtual bool Check(SpellEntry const* spell) {
+    virtual bool Check(SpellInfo const* spell) {
         for (int i=0; i<3; i++) {
-            if (spell->Effect[i] == SPELL_EFFECT_HEAL ||
-                spell->Effect[i] == SPELL_EFFECT_HEAL_MAX_HEALTH ||
-                spell->Effect[i] == SPELL_EFFECT_HEAL_MECHANICAL)
+            if (spell->Effects[i].Effect == SPELL_EFFECT_HEAL ||
+                spell->Effects[i].Effect == SPELL_EFFECT_HEAL_MAX_HEALTH ||
+                spell->Effects[i].Effect == SPELL_EFFECT_HEAL_MECHANICAL ||
+                spell->Effects[i].Effect == SPELL_EFFECT_HEAL_PCT)
                 return true;
         }
         return false;
@@ -22,7 +24,7 @@ public:
 
 Unit* PartyMemberToHeal::Calculate()
 {
-    
+
     IsTargetOfHealingSpell predicate;
 
     Group* group = bot->GetGroup();
@@ -31,20 +33,23 @@ Unit* PartyMemberToHeal::Calculate()
 
     bool isRaid = bot->GetGroup()->isRaidGroup();
     MinValueCalculator calc(100);
-    for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next()) 
+    for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
     {
-        Player* player = gref->getSource();
+        Player* player = gref->GetSource();
         if (!Check(player) || !player->IsAlive())
             continue;
 
-        uint8 health = player->GetHealthPercent();
-        if (isRaid || health < sPlayerbotAIConfig.mediumHealth || !IsTargetOfSpellCast(player, predicate))
+        uint8 health = player->GetHealthPct();
+
+        if (player->GetPlayerbotAI()->IsTank(player))
+            calc.probe(health, player);
+        else if (isRaid || health < sPlayerbotAIConfig.almostFullHealth || !IsTargetOfSpellCast(player, predicate))
             calc.probe(health, player);
 
         Pet* pet = player->GetPet();
-        if (pet && CanHealPet(pet)) 
+        if (pet && CanHealPet(pet))
         {
-            health = pet->GetHealthPercent();
+            health = ((Unit*)pet)->GetHealthPct();
             if (isRaid || health < sPlayerbotAIConfig.mediumHealth || !IsTargetOfSpellCast(player, predicate))
                 calc.probe(health, player);
         }
@@ -52,7 +57,7 @@ Unit* PartyMemberToHeal::Calculate()
     return (Unit*)calc.param;
 }
 
-bool PartyMemberToHeal::CanHealPet(Pet* pet) 
+bool PartyMemberToHeal::CanHealPet(Pet* pet)
 {
-    return MINI_PET != pet->getPetType();
+    return HUNTER_PET == pet->getPetType();
 }

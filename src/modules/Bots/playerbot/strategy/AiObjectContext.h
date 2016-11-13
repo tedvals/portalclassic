@@ -12,7 +12,7 @@ namespace ai
     {
     public:
         AiObjectContext(PlayerbotAI* ai);
-        virtual ~AiObjectContext() {}
+        ~AiObjectContext();
 
     public:
         virtual Strategy* GetStrategy(string name) { return strategyContexts.GetObject(name, ai); }
@@ -77,5 +77,20 @@ namespace ai
         NamedObjectContextList<Action> actionContexts;
         NamedObjectContextList<Trigger> triggerContexts;
         NamedObjectContextList<UntypedValue> valueContexts;
+
+        NamedObjectContext<Strategy>* strategyContext;
+        NamedObjectContext<Strategy>* movementStrategyContext;
+        NamedObjectContext<Strategy>* assistStrategyContext;
+        NamedObjectContext<Strategy>* questStrategyContext;
+
+        NamedObjectContext<Action>* actionContext;
+        NamedObjectContext<Action>* chatActionContext;
+        NamedObjectContext<Action>* worldPacketActionContext;
+
+        NamedObjectContext<Trigger>* triggerContext;
+        NamedObjectContext<Trigger>* chatTriggerContext;
+        NamedObjectContext<Trigger>* worldPacketTriggerContext;
+
+        NamedObjectContext<UntypedValue>* valueContext;
     };
 }

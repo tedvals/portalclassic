@@ -1,4 +1,4 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "playerbot.h"
 #include "PlayerbotAIConfig.h"
 
@@ -28,7 +28,7 @@ void PlayerbotAIBase::SetNextCheckDelay(const uint32 delay)
     nextAICheckDelay = delay;
 
     if (nextAICheckDelay > sPlayerbotAIConfig.globalCoolDown)
-        sLog.outDetail( "set next check delay: %d", nextAICheckDelay);
+        sLog->outMessage("playerbot", LOG_LEVEL_TRACE, "set next check delay: %d", nextAICheckDelay);
 }
 
 void PlayerbotAIBase::IncreaseNextCheckDelay(uint32 delay)
@@ -36,7 +36,7 @@ void PlayerbotAIBase::IncreaseNextCheckDelay(uint32 delay)
     nextAICheckDelay += delay;
 
     if (nextAICheckDelay > sPlayerbotAIConfig.globalCoolDown)
-        sLog.outDetail( "increase next check delay: %d", nextAICheckDelay);
+        sLog->outMessage("playerbot", LOG_LEVEL_TRACE, "increase next check delay: %d", nextAICheckDelay);
 }
 
 bool PlayerbotAIBase::CanUpdateAI()

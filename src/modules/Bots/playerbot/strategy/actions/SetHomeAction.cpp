@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "SetHomeAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -12,21 +12,17 @@ bool SetHomeAction::Execute(Event event)
     if (!master)
         return false;
 
-    ObjectGuid selection = master->GetSelectionGuid();
-    if (selection)
+    Unit* unit = master->GetSelectedUnit();
+    if (unit && unit->IsInnkeeper())
     {
-        Unit* unit = master->GetMap()->GetUnit(selection);
-        if (unit && unit->IsInnkeeper())
-        {
-            float angle = GetFollowAngle();
-            float x = unit->GetPositionX() + sPlayerbotAIConfig.followDistance * cos(angle);
-            float y = unit->GetPositionY() + sPlayerbotAIConfig.followDistance * sin(angle);
-            float z = unit->GetPositionZ();
-            WorldLocation loc(unit->GetMapId(), x, y, z);
-            bot->SetHomebindToLocation(loc, unit->GetAreaId());
-            ai->TellMaster("This inn is my new home");
-            return true;
-        }
+        float angle = GetFollowAngle();
+        float x = unit->GetPositionX() + sPlayerbotAIConfig.followDistance * cos(angle);
+        float y = unit->GetPositionY() + sPlayerbotAIConfig.followDistance * sin(angle);
+        float z = unit->GetPositionZ();
+        WorldLocation loc(unit->GetMapId(), x, y, z);
+        bot->SetHomebind(loc, unit->GetAreaId());
+        ai->TellMaster("This inn is my new home");
+        return true;
     }
 
     list<ObjectGuid> npcs = AI_VALUE(list<ObjectGuid>, "nearest npcs");

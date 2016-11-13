@@ -14,4 +14,4 @@ namespace ai
 	public:
         LastEmoteValue(PlayerbotAI* ai) : ManualSetValue<time_t>(ai, time(0) - 120, "last emote") {}
     };
-}
+} 

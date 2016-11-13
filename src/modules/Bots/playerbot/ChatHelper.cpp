@@ -1,7 +1,6 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "playerbot.h"
 #include "ChatHelper.h"
-#include "AiFactory.h"
 
 using namespace ai;
 using namespace std;
@@ -49,19 +48,19 @@ ChatHelper::ChatHelper(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     consumableSubClasses["bandage"] = ITEM_SUBCLASS_BANDAGE;
     consumableSubClasses["enchant"] = ITEM_SUBCLASS_CONSUMABLE_OTHER;
 
-    //tradeSubClasses["cloth"] = ITEM_SUBCLASS_CLOTH;
-    //tradeSubClasses["leather"] = ITEM_SUBCLASS_LEATHER;
-    //tradeSubClasses["metal"] = ITEM_SUBCLASS_METAL_STONE;
-    //tradeSubClasses["stone"] = ITEM_SUBCLASS_METAL_STONE;
-    //tradeSubClasses["ore"] = ITEM_SUBCLASS_METAL_STONE;
-    //tradeSubClasses["meat"] = ITEM_SUBCLASS_MEAT;
-    //tradeSubClasses["herb"] = ITEM_SUBCLASS_HERB;
-    //tradeSubClasses["elemental"] = ITEM_SUBCLASS_ELEMENTAL;
-    //tradeSubClasses["disenchants"] = ITEM_SUBCLASS_ENCHANTING;
-    //tradeSubClasses["enchanting"] = ITEM_SUBCLASS_ENCHANTING;
-    //tradeSubClasses["gems"] = ITEM_SUBCLASS_JEWELCRAFTING;
-    //tradeSubClasses["jewels"] = ITEM_SUBCLASS_JEWELCRAFTING;
-    //tradeSubClasses["jewelcrafting"] = ITEM_SUBCLASS_JEWELCRAFTING;
+    tradeSubClasses["cloth"] = ITEM_SUBCLASS_CLOTH;
+    tradeSubClasses["leather"] = ITEM_SUBCLASS_LEATHER;
+    tradeSubClasses["metal"] = ITEM_SUBCLASS_METAL_STONE;
+    tradeSubClasses["stone"] = ITEM_SUBCLASS_METAL_STONE;
+    tradeSubClasses["ore"] = ITEM_SUBCLASS_METAL_STONE;
+    tradeSubClasses["meat"] = ITEM_SUBCLASS_MEAT;
+    tradeSubClasses["herb"] = ITEM_SUBCLASS_HERB;
+    tradeSubClasses["elemental"] = ITEM_SUBCLASS_ELEMENTAL;
+    tradeSubClasses["disenchants"] = ITEM_SUBCLASS_ENCHANTING;
+    tradeSubClasses["enchanting"] = ITEM_SUBCLASS_ENCHANTING;
+    tradeSubClasses["gems"] = ITEM_SUBCLASS_JEWELCRAFTING;
+    tradeSubClasses["jewels"] = ITEM_SUBCLASS_JEWELCRAFTING;
+    tradeSubClasses["jewelcrafting"] = ITEM_SUBCLASS_JEWELCRAFTING;
 
     slots["head"] = EQUIPMENT_SLOT_HEAD;
     slots["neck"] = EQUIPMENT_SLOT_NECK;
@@ -137,6 +136,13 @@ ChatHelper::ChatHelper(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     specs[CLASS_WARRIOR][1] = "fury";
     specs[CLASS_WARRIOR][2] = "protection";
 
+    classes[CLASS_DEATH_KNIGHT] = "death knight";
+    specs[CLASS_DEATH_KNIGHT][0] = "blood";
+    specs[CLASS_DEATH_KNIGHT][1] = "frost";
+    specs[CLASS_DEATH_KNIGHT][2] = "unholy";
+
+    races[RACE_BLOODELF] = "Blood Elf";
+    races[RACE_DRAENEI] = "Draenei";
     races[RACE_DWARF] = "Dwarf";
     races[RACE_GNOME] = "Gnome";
     races[RACE_HUMAN] = "Human";
@@ -144,7 +150,7 @@ ChatHelper::ChatHelper(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     races[RACE_ORC] = "Orc";
     races[RACE_TAUREN] = "Tauren";
     races[RACE_TROLL] = "Troll";
-    races[RACE_UNDEAD] = "Undead";
+    races[RACE_UNDEAD_PLAYER] = "Undead";
 }
 
 string ChatHelper::formatMoney(uint32 copper)
@@ -240,18 +246,18 @@ string ChatHelper::formatQuest(Quest const* quest)
 string ChatHelper::formatGameobject(GameObject* go)
 {
     ostringstream out;
-    out << "|cFFFFFF00|Hfound:" << go->GetObjectGuid().GetRawValue() << ":" << go->GetEntry() << ":" <<  "|h[" << go->GetGOInfo()->name << "]|h|r";
+    out << "|cFFFFFF00|Hfound:" << go->GetGUID() << ":" << go->GetEntry() << ":" <<  "|h[" << go->GetGOInfo()->name << "]|h|r";
     return out.str();
 }
 
-string ChatHelper::formatSpell(SpellEntry const *sInfo)
+string ChatHelper::formatSpell(SpellInfo const *sInfo)
 {
     ostringstream out;
     out << "|cffffffff|Hspell:" << sInfo->Id << "|h[" << sInfo->SpellName[LOCALE_enUS] << "]|h|r";
     return out.str();
 }
 
-string ChatHelper::formatItem(ItemPrototype const * proto, int count)
+string ChatHelper::formatItem(ItemTemplate const * proto, int count)
 {
     char color[32];
     sprintf(color, "%x", ItemQualityColors[proto->Quality]);
@@ -410,16 +416,31 @@ string ChatHelper::formatClass(Player* player, int spec)
     ostringstream out;
     out << specs[cls][spec] << " (";
 
-    map<uint32, int32> tabs = AiFactory::GetPlayerSpecTabs(player);
-    int c0 = (int)tabs[0];
-    int c1 = (int)tabs[1];
-    int c2 = (int)tabs[2];
+    int c0 = 0, c1 = 0, c2 = 0;
+    PlayerTalentMap& talentMap = player->GetTalentMap(0);
+    for (PlayerTalentMap::iterator i = talentMap.begin(); i != talentMap.end(); ++i)
+    {
+        uint32 spellId = i->first;
+        TalentSpellPos const* talentPos = GetTalentSpellPos(spellId);
+        if(!talentPos)
+            continue;
+
+        TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentPos->talent_id);
+
+        if (!talentInfo)
+            continue;
+
+        uint32 const* talentTabIds = GetTalentTabPages(player->getClass());
+        if (talentInfo->TalentTab == talentTabIds[0]) c0++;
+        if (talentInfo->TalentTab == talentTabIds[1]) c1++;
+        if (talentInfo->TalentTab == talentTabIds[2]) c2++;
+    }
 
     out << (c0 ? "|h|cff00ff00" : "") << c0 << "|h|cffffffff/";
     out << (c1 ? "|h|cff00ff00" : "") << c1 << "|h|cffffffff/";
     out << (c2 ? "|h|cff00ff00" : "") << c2 << "|h|cffffffff";
 
-    out << ") " << classes[cls];
+    out <<  ") " << classes[cls];
     return out.str();
 }
 

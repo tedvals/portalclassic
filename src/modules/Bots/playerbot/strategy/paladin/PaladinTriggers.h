@@ -4,7 +4,13 @@
 namespace ai
 {
 	BUFF_TRIGGER(HolyShieldTrigger, "holy shield", "holy shield")
-    BUFF_TRIGGER(RighteousFuryTrigger, "righteous fury", "righteous fury")
+
+	class RighteousFuryTrigger : public BuffTrigger
+	{
+	public:
+		RighteousFuryTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "righteous fury") {}
+		virtual bool IsActive();
+	};
 
     BUFF_TRIGGER(RetributionAuraTrigger, "retribution aura", "retribution aura")
 
@@ -18,16 +24,32 @@ namespace ai
 	class SealTrigger : public BuffTrigger
 	{
 	public:
-		SealTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "seal of justice") {}
+		SealTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "seal of command") {}
+		virtual bool IsActive();
+	};
+
+	class SealManaLowTrigger : public BuffTrigger
+	{
+	public:
+		SealManaLowTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "seal of wisdom") {}
+		virtual bool IsActive();
+	};
+
+	class SealLowTrigger : public BuffTrigger
+	{
+	public:
+		SealLowTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "seal of light") {}
 		virtual bool IsActive();
 	};
 
     DEBUFF_TRIGGER(JudgementOfLightTrigger, "judgement of light", "judgement of light")
     DEBUFF_TRIGGER(JudgementOfWisdomTrigger, "judgement of wisdom", "judgement of wisdom")
 
-    BUFF_ON_PARTY_TRIGGER(BlessingOnPartyTrigger, "blessing of", "blessing of kings on party")
+    BUFF_ON_PARTY_TRIGGER(BlessingOnPartyTrigger, "blessing of kings", "blessing of kings on party")
+    BUFF_ON_PARTY_TRIGGER(BeaconOfLightOnMasterTrigger, "beacon of light", "beacon of light on master")
     BUFF_TRIGGER(BlessingTrigger, "blessing of sanctuary", "blessing of sanctuary")
 
+		
     class HammerOfJusticeInterruptSpellTrigger : public InterruptSpellTrigger
     {
     public:
@@ -44,6 +66,12 @@ namespace ai
     {
     public:
         ArtOfWarTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "the art of war") {}
+    };
+
+    class LightsGraceTrigger : public HasAuraTrigger
+    {
+    public:
+        LightsGraceTrigger(PlayerbotAI* ai) : HasAuraTrigger(ai, "light's grace") {}
     };
 
     class ShadowResistanceAuraTrigger : public BuffTrigger
@@ -110,5 +138,11 @@ namespace ai
     {
     public:
         HammerOfJusticeEnemyHealerTrigger(PlayerbotAI* ai) : InterruptEnemyHealerTrigger(ai, "hammer of justice") {}
+    };
+
+    class RepentanceTrigger : public HasCcTargetTrigger
+    {
+    public:
+        RepentanceTrigger(PlayerbotAI* ai) : HasCcTargetTrigger(ai, "repentance") {}
     };
 }

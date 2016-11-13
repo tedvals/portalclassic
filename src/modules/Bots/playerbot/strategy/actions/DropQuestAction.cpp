@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "DropQuestAction.h"
 
@@ -16,7 +16,7 @@ bool DropQuestAction::Execute(Event event)
     if (!entry)
         return false;
 
-    Quest const* quest = sObjectMgr.GetQuestTemplate(entry);
+    Quest const* quest = sObjectMgr->GetQuestTemplate(entry);
     if (!quest)
         return false;
 
@@ -30,8 +30,17 @@ bool DropQuestAction::Execute(Event event)
 
             // we ignore unequippable quest items in this case, its' still be equipped
             bot->TakeQuestSourceItem(logQuest, false);
+
+            if (quest->HasFlag(QUEST_FLAGS_FLAGS_PVP))
+            {
+                bot->pvpInfo.IsHostile = bot->pvpInfo.IsInHostileArea || bot->HasPvPForcingQuest();
+                bot->UpdatePvPState();
+            }
         }
     }
+
+    bot->RemoveActiveQuest(entry, false);
+    bot->RemoveRewardedQuest(entry);
 
     ai->TellMaster("Quest removed");
     return true;

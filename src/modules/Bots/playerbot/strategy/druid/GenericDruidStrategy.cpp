@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "GenericDruidStrategy.h"
 #include "DruidAiObjectContext.h"
@@ -18,7 +18,10 @@ public:
         creators["abolish poison on party"] = &abolish_poison_on_party;
         creators["rebirth"] = &rebirth;
         creators["entangling roots on cc"] = &entangling_roots_on_cc;
+        creators["hibernate"] = &hibernate;
+        creators["hibernate on cc"] = &hibernate_on_cc;
         creators["innervate"] = &innervate;
+        creators["dash"] = &dash;
     }
 
 private:
@@ -67,7 +70,7 @@ private:
     static ActionNode* rebirth(PlayerbotAI* ai)
     {
         return new ActionNode ("rebirth",
-            /*P*/ NULL,
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
             /*A*/ NULL,
             /*C*/ NULL);
     }
@@ -78,11 +81,32 @@ private:
             /*A*/ NULL,
             /*C*/ NULL);
     }
+    static ActionNode* hibernate(PlayerbotAI* ai)
+    {
+        return new ActionNode ("hibernate",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
+    static ActionNode* hibernate_on_cc(PlayerbotAI* ai)
+    {
+        return new ActionNode ("hibernate on cc",
+            /*P*/ NextAction::array(0, new NextAction("caster form"), NULL),
+            /*A*/ NULL,
+            /*C*/ NULL);
+    }
     static ActionNode* innervate(PlayerbotAI* ai)
     {
         return new ActionNode ("innervate",
             /*P*/ NULL,
             /*A*/ NextAction::array(0, new NextAction("mana potion"), NULL),
+            /*C*/ NULL);
+    }
+    static ActionNode* dash(PlayerbotAI* ai)
+    {
+        return new ActionNode ("dash",
+            /*P*/ NextAction::array(0, new NextAction("cat form")),
+            /*A*/ NULL,
             /*C*/ NULL);
     }
 };
@@ -97,22 +121,16 @@ void GenericDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     CombatStrategy::InitTriggers(triggers);
 
     triggers.push_back(new TriggerNode(
-        "low health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_MEDIUM_HEAL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member low health",
-        NextAction::array(0, new NextAction("regrowth on party", ACTION_MEDIUM_HEAL + 1), NULL)));
-
-
-    triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_CRITICAL_HEAL + 2), new NextAction("healing touch", ACTION_CRITICAL_HEAL + 2), NULL)));
+        NextAction::array(0, new NextAction("regrowth", ACTION_CRITICAL_HEAL + 3), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member critical health",
-        NextAction::array(0,  new NextAction("regrowth on party", ACTION_CRITICAL_HEAL + 1), new NextAction("healing touch on party", ACTION_CRITICAL_HEAL + 1), NULL)));
+        NextAction::array(0,  new NextAction("regrowth on party", ACTION_CRITICAL_HEAL + 4), new NextAction("rejuvenation on party", ACTION_CRITICAL_HEAL + 3), NULL)));
 
+    triggers.push_back(new TriggerNode(
+        "master critical health",
+        NextAction::array(0,  new NextAction("regrowth on master", ACTION_CRITICAL_HEAL + 4), new NextAction("rejuvenation on master", ACTION_CRITICAL_HEAL + 3), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cure poison",
@@ -129,4 +147,17 @@ void GenericDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "low mana",
         NextAction::array(0, new NextAction("innervate", ACTION_EMERGENCY + 5), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "critical aoe heal",
+        NextAction::array(0, new NextAction("barkskin", ACTION_EMERGENCY + 5), new NextAction("tranquility", ACTION_EMERGENCY + 4), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "hibernate",
+        NextAction::array(0, new NextAction("hibernate on cc", ACTION_HIGH + 2), NULL)));
+/*
+    triggers.push_back(new TriggerNode(
+        "runaway",
+        NextAction::array(0, new NextAction("nature's grasp", ACTION_EMERGENCY + 7), new NextAction("cat form", ACTION_EMERGENCY + 7), new NextAction("dash", ACTION_EMERGENCY + 8), NULL)));
+*/
 }

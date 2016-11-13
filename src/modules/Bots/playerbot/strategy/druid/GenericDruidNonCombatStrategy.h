@@ -13,4 +13,14 @@ namespace ai
     public:
         virtual void InitTriggers(std::list<TriggerNode*> &triggers);
     };
+
+    class GenericDruidStealthStrategy : public NonCombatStrategy
+    {
+    public:
+        GenericDruidStealthStrategy(PlayerbotAI* ai);
+        virtual string getName() { return "stealth"; }
+
+    public:
+        virtual void InitTriggers(std::list<TriggerNode*> &triggers);
+    };
 }

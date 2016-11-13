@@ -1,12 +1,12 @@
-#include "../botpch.h"
+#include "../pchdef.h"
 #include "PlayerbotMgr.h"
 #include "playerbot.h"
 
 #include "AiFactory.h"
 
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
-#include "CellImpl.h"
+#include "../Grids/Notifiers/GridNotifiers.h"
+#include "../Grids/Notifiers/GridNotifiersImpl.h"
+#include "../Grids/Cells/CellImpl.h"
 #include "strategy/values/LastMovementValue.h"
 #include "strategy/actions/LogLevelAction.h"
 #include "strategy/values/LastSpellCastValue.h"
@@ -15,25 +15,23 @@
 #include "PlayerbotAI.h"
 #include "PlayerbotFactory.h"
 #include "PlayerbotSecurity.h"
-#include "Group.h"
-#include "Pet.h"
-#include "SpellAuras.h"
-#include "../AhBot/ahbot.h"
-#include "GuildTaskMgr.h"
+#include "../Groups/Group.h"
+#include "../Spells/SpellHistory.h"
+#include "../Entities/Pet/Pet.h"
+#include "../Spells/Auras/SpellAuraEffects.h"
 
 using namespace ai;
 using namespace std;
 
 vector<string>& split(const string &s, char delim, vector<string> &elems);
 vector<string> split(const string &s, char delim);
-char * strstri (string str1, string str2);
 uint64 extractGuid(WorldPacket& packet);
 std::string &trim(std::string &s);
 
 uint32 PlayerbotChatHandler::extractQuestId(string str)
 {
     char* source = (char*)str.c_str();
-    char* cId = ExtractKeyFromLink(&source,"Hquest");
+    char* cId = extractKeyFromLink(source,"Hquest");
     return cId ? atol(cId) : 0;
 }
 
@@ -70,7 +68,7 @@ PlayerbotAI::PlayerbotAI(Player* bot) :
 {
 	this->bot = bot;
 
-	accountId = sObjectMgr.GetPlayerAccountIdByGUID(bot->GetGUID());
+	accountId = sObjectMgr->GetPlayerAccountIdByGUID(bot->GetGUID());
 
     aiObjectContext = AiFactory::createAiObjectContext(bot, this);
 
@@ -80,7 +78,7 @@ PlayerbotAI::PlayerbotAI(Player* bot) :
     currentEngine = engines[BOT_STATE_NON_COMBAT];
     currentState = BOT_STATE_NON_COMBAT;
 
-    masterIncomingPacketHandlers.AddHandler(CMSG_GAMEOBJ_USE, "use game object");
+    masterIncomingPacketHandlers.AddHandler(CMSG_GAMEOBJ_REPORT_USE, "use game object");
     masterIncomingPacketHandlers.AddHandler(CMSG_AREATRIGGER, "area trigger");
     masterIncomingPacketHandlers.AddHandler(CMSG_GAMEOBJ_USE, "use game object");
     masterIncomingPacketHandlers.AddHandler(CMSG_LOOT_ROLL, "loot roll");
@@ -94,6 +92,7 @@ PlayerbotAI::PlayerbotAI(Player* bot) :
     masterIncomingPacketHandlers.AddHandler(CMSG_GROUP_UNINVITE_GUID, "uninvite");
     masterIncomingPacketHandlers.AddHandler(CMSG_PUSHQUESTTOPARTY, "quest share");
     masterIncomingPacketHandlers.AddHandler(CMSG_GUILD_INVITE, "guild invite");
+    masterIncomingPacketHandlers.AddHandler(CMSG_LFG_TELEPORT, "lfg teleport");
 
     botOutgoingPacketHandlers.AddHandler(SMSG_GROUP_INVITE, "group invite");
     botOutgoingPacketHandlers.AddHandler(BUY_ERR_NOT_ENOUGHT_MONEY, "not enough money");
@@ -109,6 +108,9 @@ PlayerbotAI::PlayerbotAI(Player* bot) :
     botOutgoingPacketHandlers.AddHandler(SMSG_PARTY_COMMAND_RESULT, "party command");
     botOutgoingPacketHandlers.AddHandler(SMSG_CAST_FAILED, "cast failed");
     botOutgoingPacketHandlers.AddHandler(SMSG_DUEL_REQUESTED, "duel requested");
+    botOutgoingPacketHandlers.AddHandler(SMSG_LFG_ROLE_CHOSEN, "lfg role check");
+    botOutgoingPacketHandlers.AddHandler(SMSG_LFG_PROPOSAL_UPDATE, "lfg proposal");
+	botOutgoingPacketHandlers.AddHandler(SMSG_BATTLEFIELD_STATUS, "bg status");
 
     masterOutgoingPacketHandlers.AddHandler(SMSG_PARTY_COMMAND_RESULT, "party command");
     masterOutgoingPacketHandlers.AddHandler(MSG_RAID_READY_CHECK, "ready check");
@@ -132,14 +134,31 @@ void PlayerbotAI::UpdateAI(uint32 elapsed)
     if (bot->IsBeingTeleported())
         return;
 
-    if (nextAICheckDelay > sPlayerbotAIConfig.globalCoolDown &&
-            bot->IsNonMeleeSpellCasted(true, true, false) &&
-            *GetAiObjectContext()->GetValue<bool>("invalid target", "current target"))
+	//DEBUG
+	/*	engines[BOT_STATE_COMBAT]->testMode = bot->InBattleground();
+	 	engines[BOT_STATE_NON_COMBAT]->testMode = bot->InBattleground();
+	 	engines[BOT_STATE_COMBAT]->testPrefix = bot->GetName();
+	 	engines[BOT_STATE_NON_COMBAT]->testPrefix = bot->GetName();*/
+	 
+	 	//EOD
+
+  //  if (nextAICheckDelay > sPlayerbotAIConfig.globalCoolDown &&
+    if (bot->IsNonMeleeSpellCast(true, true, false) &&
+        *GetAiObjectContext()->GetValue<bool>("invalid target", "current target"))
     {
         Spell* spell = bot->GetCurrentSpell(CURRENT_GENERIC_SPELL);
-        if (spell && !IsPositiveSpell(spell->m_spellInfo))
+        if (spell && !spell->GetSpellInfo()->IsPositive())
         {
             InterruptSpell();
+            TellMaster("Interrupted spell for update");
+            SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
+        }
+
+        Spell* channel_spell = bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
+        if (channel_spell && !channel_spell->GetSpellInfo()->IsPositive())
+        {
+            InterruptSpell();
+            TellMaster("Interrupted channel spell for update");
             SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
         }
     }
@@ -182,21 +201,22 @@ void PlayerbotAI::HandleTeleportAck()
 	if (bot->IsBeingTeleportedNear())
 	{
 		WorldPacket p = WorldPacket(MSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
-        p << bot->GetObjectGuid();
-		p << (uint32) 0; // supposed to be flags? not used currently
-		p << (uint32) time(0); // time - not currently used
-        bot->GetSession()->HandleMoveTeleportAckOpcode(p);
+		p.appendPackGUID(bot->GetGUID());
+		p << (uint32)0; // supposed to be flags? not used currently
+		p << (uint32)time(0); // time - not currently used
+		bot->GetSession()->HandleMoveTeleportAck(p);
 	}
 	else if (bot->IsBeingTeleportedFar())
 	{
-        bot->GetSession()->HandleMoveWorldportAckOpcode();
+	    WorldPacket p;
+		bot->GetSession()->HandleMoveWorldportAckOpcode(p);
 		SetNextCheckDelay(1000);
 	}
 }
 
 void PlayerbotAI::Reset()
 {
-    if (bot->IsTaxiFlying())
+    if (bot->IsFlying())
         return;
 
     currentEngine = engines[BOT_STATE_NON_COMBAT];
@@ -215,7 +235,21 @@ void PlayerbotAI::Reset()
 
     bot->GetMotionMaster()->Clear();
     bot->m_taxi.ClearTaxiDestinations();
-    InterruptSpell();
+
+    Spell* spell = bot->GetCurrentSpell(CURRENT_GENERIC_SPELL);
+        if (spell && !spell->GetSpellInfo()->IsPositive())
+        {
+            InterruptSpell();
+            TellMaster("Interrupted spell for reset");
+        }
+
+        Spell* channel_spell = bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
+        if (channel_spell && !channel_spell->GetSpellInfo()->IsPositive())
+        {
+            InterruptSpell();
+            TellMaster("Interrupted channel spell for reset");
+        }
+    //InterruptSpell();
 
     for (int i = 0 ; i < BOT_STATE_MAX; i++)
     {
@@ -272,55 +306,78 @@ void PlayerbotAI::HandleCommand(uint32 type, const string& text, Player& fromPla
 
 void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 {
-	switch (packet.GetOpcode())
-	{
-	case SMSG_CAST_FAILED:
-	{
-		WorldPacket p(packet);
-		p.rpos(0);
-		uint8 status, result;
-		p >> status >> result;
-		if (result != SPELL_CAST_OK)
-		{
-			LastSpellCast& lastSpell = aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get();
-			SpellInterrupted(lastSpell.id);
-			botOutgoingPacketHandlers.AddPacket(packet);
-		}
-		return;
-	}
-	case SMSG_SPELL_FAILURE:
-	{
-		WorldPacket p(packet);
-		p.rpos(0);
-		ObjectGuid casterGuid;
-		p >> casterGuid.ReadAsPacked();
-		if (casterGuid != bot->GetObjectGuid())
-			return;
+    switch (packet.GetOpcode())
+    {
+    case SMSG_MOVE_SET_CAN_FLY:
+        {
+            WorldPacket p(packet);
+            uint64 guid;
+            p.readPackGUID(guid);
+            if (guid != bot->GetGUID())
+                return;
 
-		uint32 spellId;
-		p >> spellId;
-		SpellInterrupted(spellId);
-		return;
-	}
-	case SMSG_SPELL_DELAYED:
-	{
-		WorldPacket p(packet);
-		p.rpos(0);
-		ObjectGuid casterGuid;
-		p >> casterGuid.ReadAsPacked();
+            bot->m_movementInfo.SetMovementFlags((MovementFlags)(MOVEMENTFLAG_FLYING|MOVEMENTFLAG_CAN_FLY));
+            return;
+        }
+    case SMSG_MOVE_UNSET_CAN_FLY:
+        {
+            WorldPacket p(packet);
+            uint64 guid;
+            p.readPackGUID(guid);
+            if (guid != bot->GetGUID())
+                return;
+            bot->m_movementInfo.RemoveMovementFlag(MOVEMENTFLAG_FLYING);
+            return;
+        }
+    case SMSG_CAST_FAILED:
+        {
+            WorldPacket p(packet);
+            p.rpos(0);
+            uint8 castCount, result;
+            uint32 spellId;
+            p >> castCount >> spellId >> result;
+            if (result != SPELL_CAST_OK)
+            {
+                SpellInterrupted(spellId);
+                botOutgoingPacketHandlers.AddPacket(packet);
+            }
+            return;
+        }
+    case SMSG_SPELL_FAILURE:
+        {
+            WorldPacket p(packet);
+            p.rpos(0);
+            uint64 casterGuid;
+            p.readPackGUID(casterGuid);
+            if (casterGuid != bot->GetGUID())
+                return;
 
-		if (casterGuid != bot->GetObjectGuid())
-			return;
+            uint8 castCount;
+            uint32 spellId;
+            p >> castCount;
+            p >> spellId;
+            SpellInterrupted(spellId);
+            return;
+        }
+    case SMSG_SPELL_DELAYED:
+        {
+            WorldPacket p(packet);
+            p.rpos(0);
+            uint64 casterGuid;
+            p.readPackGUID(casterGuid);
 
-		uint32 delaytime;
-		p >> delaytime;
-		if (delaytime <= 1000)
-			IncreaseNextCheckDelay(delaytime);
-		return;
-	}
-	default:
-		botOutgoingPacketHandlers.AddPacket(packet);
-	}
+            if (casterGuid != bot->GetGUID())
+                return;
+
+            uint32 delaytime;
+            p >> delaytime;
+            if (delaytime <= 1000)
+                IncreaseNextCheckDelay(delaytime);
+            return;
+        }
+    default:
+        botOutgoingPacketHandlers.AddPacket(packet);
+    }
 }
 
 void PlayerbotAI::SpellInterrupted(uint32 spellid)
@@ -351,7 +408,9 @@ int32 PlayerbotAI::CalculateGlobalCooldown(uint32 spellid)
     if (!spellid)
         return 0;
 
-    if (bot->HasSpellCooldown(spellid))
+    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid);
+
+    if (bot->GetSpellHistory()->HasGlobalCooldown(spellInfo))
         return sPlayerbotAIConfig.globalCoolDown;
 
     return sPlayerbotAIConfig.reactDelay;
@@ -380,24 +439,52 @@ void PlayerbotAI::ChangeEngine(BotState type)
         switch (type)
         {
         case BOT_STATE_COMBAT:
-            sLog.outDebug( "=== %s COMBAT ===", bot->GetName());
+            sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "=== %s COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_NON_COMBAT:
-            sLog.outDebug( "=== %s NON-COMBAT ===", bot->GetName());
+            sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "=== %s NON-COMBAT ===", bot->GetName().c_str());
             break;
         case BOT_STATE_DEAD:
-            sLog.outDebug( "=== %s DEAD ===", bot->GetName());
+            sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "=== %s DEAD ===", bot->GetName().c_str());
             break;
         }
     }
 }
 
-void PlayerbotAI::DoNextAction()
+void PlayerbotAI::DoNextAction(int depth, bool instantonly, bool noflee)
 {
     if (bot->IsBeingTeleported() || (GetMaster() && GetMaster()->IsBeingTeleported()))
         return;
 
-    currentEngine->DoNextAction(NULL);
+    currentEngine->DoNextAction(NULL,depth,instantonly,noflee);
+
+    if (bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED))
+    {
+        bot->m_movementInfo.SetMovementFlags((MovementFlags)(MOVEMENTFLAG_FLYING|MOVEMENTFLAG_CAN_FLY));
+
+        // TODO
+        //WorldPacket packet(CMSG_MOVE_SET_FLY);
+        //packet.appendPackGUID(bot->GetGUID());
+        //packet << bot->m_movementInfo;
+        bot->SetMover(bot);
+        //bot->GetSession()->HandleMovementOpcodes(packet);
+    }
+
+    Player* master = GetMaster();
+    if (bot->IsMounted() && bot->IsFlying())
+    {
+        bot->m_movementInfo.SetMovementFlags((MovementFlags)(MOVEMENTFLAG_FLYING|MOVEMENTFLAG_CAN_FLY));
+
+        bot->SetSpeed(MOVE_FLIGHT, 1.0f);
+        bot->SetSpeed(MOVE_RUN, 1.0f);
+
+        if (master)
+        {
+            bot->SetSpeed(MOVE_FLIGHT, master->GetSpeedRate(MOVE_FLIGHT));
+            bot->SetSpeed(MOVE_RUN, master->GetSpeedRate(MOVE_FLIGHT));
+        }
+
+    }
 
     if (currentEngine != engines[BOT_STATE_DEAD] && !bot->IsAlive())
         ChangeEngine(BOT_STATE_DEAD);
@@ -406,21 +493,21 @@ void PlayerbotAI::DoNextAction()
         ChangeEngine(BOT_STATE_NON_COMBAT);
 
     Group *group = bot->GetGroup();
-    if (!master && group)
-    {
-        for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
-        {
-            Player* member = gref->getSource();
-            PlayerbotAI* ai = bot->GetPlayerbotAI();
-            if (member && member->IsInWorld() && !member->GetPlayerbotAI() && (!master || master->GetPlayerbotAI()))
-            {
-                ai->SetMaster(member);
-                ai->ResetStrategies();
-                ai->TellMaster("Hello");
-                break;
-            }
-        }
-    }
+	if (!master && group &&!bot->InBattleground())
+		 {
+			for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
+			 {
+				Player* member = gref->GetSource();
+				PlayerbotAI* ai = bot->GetPlayerbotAI();
+				if (member && member->IsInWorld() && !member->GetPlayerbotAI() && (!master || master->GetPlayerbotAI()))
+				 {
+					ai->SetMaster(member);
+					ai->ResetStrategies();
+					ai->TellMaster("Hello");
+					break;
+				}
+			}
+		}
 }
 
 void PlayerbotAI::ReInitCurrentEngine()
@@ -451,17 +538,17 @@ void PlayerbotAI::DoSpecificAction(string name)
         case ACTION_RESULT_OK:
             out << name << ": done";
             TellMaster(out);
-            PlaySound(TEXTEMOTE_NOD);
+            PlaySound(TEXT_EMOTE_NOD);
             return;
         case ACTION_RESULT_IMPOSSIBLE:
             out << name << ": impossible";
             TellMaster(out);
-            PlaySound(TEXTEMOTE_NO);
+            PlaySound(TEXT_EMOTE_NO);
             return;
         case ACTION_RESULT_USELESS:
             out << name << ": useless";
             TellMaster(out);
-            PlaySound(TEXTEMOTE_NO);
+            PlaySound(TEXT_EMOTE_NO);
             return;
         case ACTION_RESULT_FAILED:
             out << name << ": failed";
@@ -476,7 +563,422 @@ void PlayerbotAI::DoSpecificAction(string name)
 
 bool PlayerbotAI::PlaySound(uint32 emote)
 {
+    if (EmotesTextSoundEntry const* soundEntry = FindTextSoundEmoteFor(emote, bot->getRace(), bot->getGender()))
+    {
+        bot->PlayDistanceSound(soundEntry->SoundId);
+        return true;
+    }
+
     return false;
+}
+
+//thesawolf - emotion responses
+void PlayerbotAI::ReceiveEmote(Player* player, uint32 emote)
+{
+	// thesawolf - lets clear any running emotes first
+	bot->HandleEmoteCommand(EMOTE_ONESHOT_NONE);
+	switch (emote)
+	{
+	case TEXT_EMOTE_BONK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+		break;
+	case TEXT_EMOTE_SALUTE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
+		break;
+	case TEXT_EMOTE_WAIT:
+		//SetBotCommandState(COMMAND_STAY);
+		bot->Say("Fine.. I'll stay right here..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BECKON:
+	case TEXT_EMOTE_FOLLOW:
+		//SetBotCommandState(COMMAND_FOLLOW, true);
+		bot->Say("Wherever you go, I'll follow..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_WAVE:
+	case TEXT_EMOTE_GREET:
+	case TEXT_EMOTE_HAIL:
+	case TEXT_EMOTE_HELLO:
+	case TEXT_EMOTE_WELCOME:
+	case TEXT_EMOTE_INTRODUCE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_WAVE);
+		bot->Say("Hey there!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_DANCE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_DANCE);
+		bot->Say("Shake what your mama gave you!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_FLIRT:
+	case TEXT_EMOTE_KISS:
+	case TEXT_EMOTE_HUG:
+	case TEXT_EMOTE_BLUSH:
+	case TEXT_EMOTE_SMILE:
+	case TEXT_EMOTE_LOVE:
+	case TEXT_EMOTE_HOLDHAND:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_SHY);
+		bot->Say("Awwwww...", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_FLEX:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_APPLAUD);
+		bot->Say("Hercules! Hercules!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_ANGRY:
+	case TEXT_EMOTE_FACEPALM:
+	case TEXT_EMOTE_GLARE:
+	case TEXT_EMOTE_BLAME:
+	case TEXT_EMOTE_FAIL:
+	case TEXT_EMOTE_REGRET:
+	case TEXT_EMOTE_SCOLD:
+	case TEXT_EMOTE_CROSSARMS:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_QUESTION);
+		bot->Say("Did I do thaaaaat?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_FART:
+	case TEXT_EMOTE_BURP:
+	case TEXT_EMOTE_GASP:
+	case TEXT_EMOTE_NOSEPICK:
+	case TEXT_EMOTE_SNIFF:
+	case TEXT_EMOTE_STINK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("Wasn't me! Just sayin'..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_JOKE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
+		bot->Say("Oh.. was I not supposed to laugh so soon?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_CHICKEN:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_RUDE);
+		bot->Say("We'll see who's chicken soon enough!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_APOLOGIZE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("You damn right you're sorry!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_APPLAUD:
+	case TEXT_EMOTE_CLAP:
+	case TEXT_EMOTE_CONGRATULATE:
+	case TEXT_EMOTE_HAPPY:
+	case TEXT_EMOTE_GOLFCLAP:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
+		bot->Say("Thank you.. Thank you.. I'm here all week.", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BEG:
+	case TEXT_EMOTE_GROVEL:
+	case TEXT_EMOTE_PLEAD:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
+		bot->Say("Beg all you want.. I have nothing for you.", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BITE:
+	case TEXT_EMOTE_POKE:
+	case TEXT_EMOTE_SCRATCH:
+	case TEXT_EMOTE_PINCH:
+	case TEXT_EMOTE_PUNCH:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+		bot->Yell("OUCH! Dammit, that hurt!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BORED:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
+		bot->Say("My job description doesn't include entertaining you..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BOW:
+	case TEXT_EMOTE_CURTSEY:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
+		break;
+	case TEXT_EMOTE_BRB:
+	case TEXT_EMOTE_SIT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_EAT);
+		bot->Say("Looks like time for an AFK break..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_AGREE:
+	case TEXT_EMOTE_NOD:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_EXCLAMATION);
+		bot->Say("At least SOMEONE agrees with me!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_AMAZE:
+	case TEXT_EMOTE_COWER:
+	case TEXT_EMOTE_CRINGE:
+	case TEXT_EMOTE_EYE:
+	case TEXT_EMOTE_KNEEL:
+	case TEXT_EMOTE_PEER:
+	case TEXT_EMOTE_SURRENDER:
+	case TEXT_EMOTE_PRAISE:
+	case TEXT_EMOTE_SCARED:
+	case TEXT_EMOTE_COMMEND:
+	case TEXT_EMOTE_AWE:
+	case TEXT_EMOTE_JEALOUS:
+	case TEXT_EMOTE_PROUD:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_FLEX);
+		bot->Say("Yes, Yes. I know I'm amazing..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BLEED:
+	case TEXT_EMOTE_MOURN:
+	case TEXT_EMOTE_FLOP:
+	case TEXT_EMOTE_FAINT:
+	case TEXT_EMOTE_PULSE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL);
+		bot->Yell("MEDIC! Stat!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BLINK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_KICK);
+		bot->Say("What? You got something in your eye?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BOUNCE:
+	case TEXT_EMOTE_BARK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("Who's a good doggy? You're a good doggy!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BYE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_WAVE);
+		bot->Say("Umm.... wait! Where are you going?!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_CACKLE:
+	case TEXT_EMOTE_LAUGH:
+	case TEXT_EMOTE_CHUCKLE:
+	case TEXT_EMOTE_GIGGLE:
+	case TEXT_EMOTE_GUFFAW:
+	case TEXT_EMOTE_ROFL:
+	case TEXT_EMOTE_SNICKER:
+	case TEXT_EMOTE_SNORT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
+		bot->Say("Wait... what are we laughing at again?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_CONFUSED:
+	case TEXT_EMOTE_CURIOUS:
+	case TEXT_EMOTE_FIDGET:
+	case TEXT_EMOTE_FROWN:
+	case TEXT_EMOTE_SHRUG:
+	case TEXT_EMOTE_SIGH:
+	case TEXT_EMOTE_STARE:
+	case TEXT_EMOTE_TAP:
+	case TEXT_EMOTE_SURPRISED:
+	case TEXT_EMOTE_WHINE:
+	case TEXT_EMOTE_BOGGLE:
+	case TEXT_EMOTE_LOST:
+	case TEXT_EMOTE_PONDER:
+	case TEXT_EMOTE_SNUB:
+	case TEXT_EMOTE_SERIOUS:
+	case TEXT_EMOTE_EYEBROW:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_QUESTION);
+		bot->Say("Don't look at  me.. I just work here", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_COUGH:
+	case TEXT_EMOTE_DROOL:
+	case TEXT_EMOTE_SPIT:
+	case TEXT_EMOTE_LICK:
+	case TEXT_EMOTE_BREATH:
+	case TEXT_EMOTE_SNEEZE:
+	case TEXT_EMOTE_SWEAT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("Ewww! Keep your nasty germs over there!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_CRY:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+		bot->Say("Don't you start crying or it'll make me start crying!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_CRACK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+		bot->Say("It's clobbering time!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_EAT:
+	case TEXT_EMOTE_DRINK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_EAT);
+		bot->Say("I hope you brought enough for the whole class...", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_GLOAT:
+	case TEXT_EMOTE_MOCK:
+	case TEXT_EMOTE_TEASE:
+	case TEXT_EMOTE_EMBARRASS:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+		bot->Say("Doesn't mean you need to be an ass about it..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_HUNGRY:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_EAT);
+		bot->Say("What? You want some of this?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_LAYDOWN:
+	case TEXT_EMOTE_TIRED:
+	case TEXT_EMOTE_YAWN:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL);
+		bot->Say("Is it break time already?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_MOAN:
+	case TEXT_EMOTE_MOON:
+	case TEXT_EMOTE_SEXY:
+	case TEXT_EMOTE_SHAKE:
+	case TEXT_EMOTE_WHISTLE:
+	case TEXT_EMOTE_CUDDLE:
+	case TEXT_EMOTE_PURR:
+	case TEXT_EMOTE_SHIMMY:
+	case TEXT_EMOTE_SMIRK:
+	case TEXT_EMOTE_WINK:
+	case TEXT_EMOTE_CHARM:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
+		bot->Say("Keep it in your pants, boss..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_NO:
+	case TEXT_EMOTE_VETO:
+	case TEXT_EMOTE_DISAGREE:
+	case TEXT_EMOTE_DOUBT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_QUESTION);
+		bot->Say("Aww.... why not?!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_PANIC:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_EXCLAMATION);
+		bot->Say("Now is NOT the time to panic!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_POINT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("What?! I can do that TOO!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_RUDE:
+	case TEXT_EMOTE_RASP:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_RUDE);
+		bot->Say("Right back at you, bub!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_ROAR:
+	case TEXT_EMOTE_THREATEN:
+	case TEXT_EMOTE_CALM:
+	case TEXT_EMOTE_DUCK:
+	case TEXT_EMOTE_TAUNT:
+	case TEXT_EMOTE_PITY:
+	case TEXT_EMOTE_GROWL:
+	case TEXT_EMOTE_TRAIN:
+	case TEXT_EMOTE_INCOMING:
+	case TEXT_EMOTE_CHARGE:
+	case TEXT_EMOTE_FLEE:
+	case TEXT_EMOTE_ATTACKMYTARGET:
+	case TEXT_EMOTE_OPENFIRE:
+	case TEXT_EMOTE_ENCOURAGE:
+	case TEXT_EMOTE_ENEMY:
+	case TEXT_EMOTE_CHALLENGE:
+	case TEXT_EMOTE_REVENGE:
+	case TEXT_EMOTE_SHAKEFIST:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+		bot->Yell("RAWR!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_TALK:
+	case TEXT_EMOTE_TALKEX:
+	case TEXT_EMOTE_TALKQ:
+	case TEXT_EMOTE_LISTEN:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+		bot->Say("Blah Blah Blah Yakety Smackety..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_THANK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
+		bot->Say("You are quite welcome!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_VICTORY:
+	case TEXT_EMOTE_CHEER:
+	case TEXT_EMOTE_TOAST:
+	case TEXT_EMOTE_HIGHFIVE:
+	case TEXT_EMOTE_DING:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CHEER);
+		bot->Say("Yay!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_COLD:
+	case TEXT_EMOTE_SHIVER:
+	case TEXT_EMOTE_THIRSTY:
+	case TEXT_EMOTE_OOM:
+	case TEXT_EMOTE_HEALME:
+	case TEXT_EMOTE_POUT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_QUESTION);
+		bot->Say("And what exactly am I supposed to do about that?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_COMFORT:
+	case TEXT_EMOTE_SOOTHE:
+	case TEXT_EMOTE_PAT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+		bot->Say("Thanks...", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_INSULT:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+		bot->Say("You hurt my feelings..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_JK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("You.....", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_RAISE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("Yes.. you.. at the back of the class..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_READY:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
+		bot->Say("Ready here, too!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_SHOO:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_KICK);
+		bot->Say("Shoo yourself!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_SLAP:
+	case TEXT_EMOTE_SMACK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_CRY);
+		bot->Say("What did I do to deserve that?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_STAND:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NONE);
+		bot->Say("What? Break time's over? Fine..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_TICKLE:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
+		bot->Say("Hey! Stop that!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_VIOLIN:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+		bot->Say("Har Har.. very funny..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_HELPME:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Yell("Quick! Someone HELP!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_GOODLUCK:
+	case TEXT_EMOTE_LUCK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+		bot->Say("Thanks... I'll need it..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BRANDISH:
+	case TEXT_EMOTE_MERCY:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_BEG);
+		bot->Say("Please don't kill me!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_BADFEELING:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_QUESTION);
+		bot->Say("I'm just waiting for the ominous music now...", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_MAP:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
+		bot->Say("Noooooooo.. you just couldn't ask for directions, huh?", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_IDEA:
+	case TEXT_EMOTE_THINK:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
+		bot->Say("Oh boy.. another genius idea...", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_OFFER:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
+		bot->Say("No thanks.. I had some back at the last village", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_PET:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+		bot->Say("Do I look like a dog to you?!", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_ROLLEYES:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_POINT);
+		bot->Say("Keep doing that and I'll roll those eyes right out of your head..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_SING:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_APPLAUD);
+		bot->Say("Lovely... just lovely..", LANG_UNIVERSAL);
+		break;
+	case TEXT_EMOTE_COVEREARS:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_EXCLAMATION);
+		bot->Yell("You think that's going to help you?!", LANG_UNIVERSAL);
+		break;
+	default:
+		bot->HandleEmoteCommand(EMOTE_ONESHOT_QUESTION);
+		bot->Say("Mmmmmkaaaaaay...", LANG_UNIVERSAL);
+		break;
+	}
+	return;
 }
 
 bool PlayerbotAI::ContainsStrategy(StrategyType type)
@@ -507,29 +1009,176 @@ void PlayerbotAI::ResetStrategies()
 bool PlayerbotAI::IsRanged(Player* player)
 {
     PlayerbotAI* botAi = player->GetPlayerbotAI();
-    if (botAi)
-        return botAi->ContainsStrategy(STRATEGY_TYPE_RANGED);
+
+    if (botAi && botAi->ContainsStrategy(STRATEGY_TYPE_RANGED))
+        return true;
 
     switch (player->getClass())
     {
+    case CLASS_DEATH_KNIGHT:
     case CLASS_PALADIN:
     case CLASS_WARRIOR:
     case CLASS_ROGUE:
         return false;
+    case CLASS_SHAMAN:
+        return HasAnyAuraOf(player, "water shield", NULL);
     case CLASS_DRUID:
         return !HasAnyAuraOf(player, "cat form", "bear form", "dire bear form", NULL);
     }
     return true;
 }
 
-bool PlayerbotAI::IsTank(Player* player)
+bool PlayerbotAI::CanHeal(Player* player)
 {
     PlayerbotAI* botAi = player->GetPlayerbotAI();
-    if (botAi)
-        return botAi->ContainsStrategy(STRATEGY_TYPE_TANK);
+
+    if (botAi && botAi->ContainsStrategy(STRATEGY_TYPE_HEAL))
+        return true;
 
     switch (player->getClass())
     {
+    case CLASS_DEATH_KNIGHT:
+    case CLASS_WARRIOR:
+    case CLASS_ROGUE:
+    case CLASS_HUNTER:
+    case CLASS_MAGE:
+    case CLASS_WARLOCK:
+        return false;
+    }
+    return true;
+}
+
+bool PlayerbotAI::IsSpellcaster(Player* player)
+{
+    switch (player->getClass())
+    {
+    case CLASS_DEATH_KNIGHT:
+    case CLASS_WARRIOR:
+    case CLASS_ROGUE:
+        return false;
+    case CLASS_DRUID:
+        return HasAnyAuraOf(player, "moonkin form", "caster form", NULL);
+    case CLASS_SHAMAN:
+        return HasAnyAuraOf(player, "water shield", NULL);
+    }
+    return true;
+}
+
+bool PlayerbotAI::DoMovingAction(Player* player, Unit* target)
+{
+    if (!target || !player)
+        return true;
+
+    PlayerbotAI* ai = player->GetPlayerbotAI();
+
+    if (!ai)
+        return true;
+
+    if (ai->IsHeal(player))
+    {
+        Group *group = player->GetGroup();
+        if (!master && group)
+        {
+            float health = player->GetHealthPct();
+
+            for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
+            {
+                Player* member = gref->GetSource();
+                if (member && member->IsInWorld() && member->GetDistance(player) < sPlayerbotAIConfig.spellDistance)
+                {
+                    if (member->GetHealthPct() < health)
+                        health = member->GetHealthPct();
+                }
+            }
+
+            if (health > sPlayerbotAIConfig.almostFullHealth)
+                return true;
+            else if (health > sPlayerbotAIConfig.lowHealth)
+            {
+                switch (player->getClass())
+                {
+                case CLASS_PRIEST:
+                    if (health == player->GetHealthPct())
+                        ai->DoSpecificAction("renew");
+                    else
+                        ai->DoSpecificAction("renew on party");
+                    return true;
+                case CLASS_DRUID:
+                    if (health == player->GetHealthPct())
+                        ai->DoSpecificAction("rejuvenation");
+                    else
+                        ai->DoSpecificAction("rejuvenation on party");
+                    return true;
+                case CLASS_SHAMAN:
+                    if (health == player->GetHealthPct())
+                        ai->DoSpecificAction("riptide");
+                    else
+                        ai->DoSpecificAction("riptide on party");
+                    return true;
+                case CLASS_PALADIN:
+                    if (health == player->GetHealthPct())
+                        ai->DoSpecificAction("holy shock");
+                    else
+                        ai->DoSpecificAction("holy shock on party");
+                    return true;
+                }
+            }
+            else return false; //stop moving someone is dying!
+        }
+    }
+
+//damage dealers
+    if (!target->IsHostileTo(player))
+        return true;
+
+	if (!GetMaster())
+		return true;
+
+    if (!ai->IsTank(bot) && !ai->GetMaster()->IsInCombat())
+        return true;
+
+    switch (player->getClass())
+    {
+    case CLASS_HUNTER:
+        ai->DoSpecificAction("explosive shot");
+        ai->DoSpecificAction("chimera shot");
+        ai->DoSpecificAction("arcane shot");
+        return true;
+    case CLASS_MAGE:
+        if (player->getLevel() >= 66)
+            ai->DoSpecificAction("ice lance");
+        else ai->DoSpecificAction("fire blast");
+
+        return true;
+    case CLASS_DRUID:
+        if (HasAnyAuraOf(player, "moonkin form",NULL))
+            ai->DoSpecificAction("moonfire");
+        return true;
+    case CLASS_WARLOCK:
+        ai->DoSpecificAction("corruption");
+        return true;
+    case CLASS_PRIEST:
+         if (HasAnyAuraOf(player, "shadow form", NULL))
+            ai->DoSpecificAction("shadow word:pain");
+        return true;
+    case CLASS_SHAMAN:
+            ai->DoSpecificAction("flame shock");
+            return true;
+    }
+    return true;
+}
+
+
+bool PlayerbotAI::IsTank(Player* player)
+{
+    PlayerbotAI* botAi = player->GetPlayerbotAI();
+
+    if (botAi && botAi->ContainsStrategy(STRATEGY_TYPE_TANK))
+        return true;
+
+    switch (player->getClass())
+    {
+    case CLASS_DEATH_KNIGHT:
     case CLASS_PALADIN:
     case CLASS_WARRIOR:
         return true;
@@ -542,15 +1191,19 @@ bool PlayerbotAI::IsTank(Player* player)
 bool PlayerbotAI::IsHeal(Player* player)
 {
     PlayerbotAI* botAi = player->GetPlayerbotAI();
-    if (botAi)
-        return botAi->ContainsStrategy(STRATEGY_TYPE_HEAL);
+    if (botAi && botAi->ContainsStrategy(STRATEGY_TYPE_HEAL))
+        return true;
 
     switch (player->getClass())
     {
     case CLASS_PRIEST:
-        return true;
+        return !HasAnyAuraOf(player, "shadow form", NULL);
+    case CLASS_SHAMAN:
+        return HasAnyAuraOf(player, "water shield", NULL);
+    case CLASS_PALADIN:
+        return HasAnyAuraOf(player, "seal of wisdom", NULL);
     case CLASS_DRUID:
-        return HasAnyAuraOf(player, "tree of life form", NULL);
+        return HasAnyAuraOf(player, "tree of life form", "caster form", NULL);
     }
     return false;
 }
@@ -605,7 +1258,15 @@ Unit* PlayerbotAI::GetUnit(ObjectGuid guid)
     if (!map)
         return NULL;
 
-    return ObjectAccessor::GetUnit(*bot, guid);
+    if (guid.IsPlayer())
+        return ObjectAccessor::GetPlayer(map,guid);
+
+    if (guid.IsPet())
+        return map->GetPet(guid);
+
+    return map->GetCreature(guid);
+
+//    return ObjectAccessor::GetObjectInMap(guid, map, (Unit*)NULL);
 }
 
 
@@ -647,7 +1308,7 @@ bool PlayerbotAI::TellMasterNoFacing(string text, PlayerbotSecurityLevel securit
             (bot->GetMapId() != master->GetMapId() || bot->GetDistance(master) > sPlayerbotAIConfig.whisperDistance))
         return false;
 
-    bot->Whisper(text, LANG_UNIVERSAL, master->GetGUID());
+    bot->Whisper(text, LANG_UNIVERSAL, master);
     return true;
 }
 
@@ -658,7 +1319,7 @@ bool PlayerbotAI::TellMaster(string text, PlayerbotSecurityLevel securityLevel)
 
     if (!bot->isMoving() && !bot->IsInCombat() && bot->GetMapId() == master->GetMapId())
     {
-        if (!bot->isInFront(master, sPlayerbotAIConfig.sightDistance, M_PI / 2))
+        if (!bot->isInFront(master, M_PI / 2))
             bot->SetFacingTo(bot->GetAngle(master));
 
         bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
@@ -667,25 +1328,73 @@ bool PlayerbotAI::TellMaster(string text, PlayerbotSecurityLevel securityLevel)
     return true;
 }
 
-bool IsRealAura(Player* bot, Aura const* aura, Unit* unit)
+bool IsRealAura(Player* bot, Aura const* aura, Unit* unit, BotAuraType auratype)
 {
     if (!aura)
         return false;
+//Debug
+//    if (aura->GetSpellInfo()->Is
+
+//  if (!unit->IsHostileTo(bot))
+//      return true;
+
+    if (auratype == BOT_AURA_NORMAL)
+    {
+        if (!unit->IsHostileTo(bot))
+            return true;
+    }
+
+    uint32 stacks = aura->GetStackAmount();
+    if (aura->GetSpellInfo()->StackAmount > 0 && stacks >= aura->GetSpellInfo()->StackAmount)
+        return true;
+
+    if (aura->GetCaster() == bot || aura->GetSpellInfo()->IsPositive() || aura->IsArea())
+        return true;
+
+    if (aura->GetMaxDuration() > 1500 && aura->GetDuration() > 0 && (aura->GetMaxDuration() - aura->GetDuration() < 1500))
+        return false;
+
+    if (aura->IsArea())
+        return true;
+
+    if  (aura->GetSpellInfo()->IsStackableOnOneSlotWithDifferentCasters())
+    {
+        if (aura->GetCaster())
+            return (aura->GetCaster()->GetGUID() == bot->GetGUID());
+    }
+    else return false;
+
+/*
+    if (auratype == BOT_AURA_NORMAL)
+      return (aura->GetCaster() == bot || aura->GetSpellInfo()->IsPositive() || aura->IsArea());
+    else if (auratype == BOT_AURA_HEAL)
+        return (aura->GetCaster() == bot || aura->IsArea());
+    else return (aura->GetCaster() == bot || aura->IsArea());
+*/
+}
+
+bool IsRealOwnAura(Player* bot, Aura const* aura, Unit* unit, BotAuraType auratype)
+{
+   if (!aura)
+        return false;
+    //Debug
 
     if (!unit->IsHostileTo(bot))
         return true;
 
     uint32 stacks = aura->GetStackAmount();
-    if (stacks >= aura->GetSpellProto()->StackAmount)
+
+    if (stacks >= aura->GetSpellInfo()->StackAmount)
         return true;
 
-    if (aura->GetCaster() == bot || IsPositiveSpell(aura->GetSpellProto()) || aura->IsAreaAura())
+    if (aura->GetCaster() == bot || aura->GetSpellInfo()->IsPositive() || aura->IsArea())
         return true;
 
     return false;
 }
 
-bool PlayerbotAI::HasAura(string name, Unit* unit)
+
+bool PlayerbotAI::HasAura(string name, Unit* unit, BotAuraType auratype)
 {
     if (!unit)
         return false;
@@ -700,43 +1409,88 @@ bool PlayerbotAI::HasAura(string name, Unit* unit)
 
     wstrToLower(wnamepart);
 
-	for (uint32 auraType = SPELL_AURA_BIND_SIGHT; auraType < TOTAL_AURAS; auraType++)
-	{
-		Unit::AuraList const& auras = unit->GetAurasByType((AuraType)auraType);
-		for (Unit::AuraList::const_iterator i = auras.begin(); i != auras.end(); i++)
-		{
-			Aura* aura = *i;
-			if (!aura)
-				continue;
+    Unit::AuraApplicationMap& map = unit->GetAppliedAuras();
+    for (Unit::AuraApplicationMap::iterator i = map.begin(); i != map.end(); ++i)
+    {
+        Aura const* aura  = i->second->GetBase();
+        if (!aura)
+            continue;
 
-			const string auraName = aura->GetSpellProto()->SpellName[0];
-			if (auraName.empty() || auraName.length() != wnamepart.length() || !Utf8FitTo(auraName, wnamepart))
-				continue;
+        const string auraName = aura->GetSpellInfo()->SpellName[0];
+        if (auraName.empty() || auraName.length() != wnamepart.length() || !Utf8FitTo(auraName, wnamepart))
+            continue;
 
-			if (IsRealAura(bot, aura, unit))
-				return true;
-		}
+        if (IsRealAura(bot, aura, unit,auratype))
+            return true;
     }
 
     return false;
 }
 
-bool PlayerbotAI::HasAura(uint32 spellId, const Unit* unit)
+bool PlayerbotAI::HasOwnAura(string name, Unit* unit, BotAuraType auratype)
 {
-	if (!spellId || !unit)
-		return false;
+    if (!unit)
+        return false;
 
-	for (uint32 effect = EFFECT_INDEX_0; effect <= EFFECT_INDEX_2; effect++)
-	{
-		Aura* aura = ((Unit*)unit)->GetAura(spellId, (SpellEffectIndex)effect);
+    uint32 spellId = aiObjectContext->GetValue<uint32>("spell id", name)->Get();
+    if (spellId)
+        return HasOwnAura(spellId, unit);
 
-		if (IsRealAura(bot, aura, (Unit*)unit))
-			return true;
-	}
+    wstring wnamepart;
+    if (!Utf8toWStr(name, wnamepart))
+        return 0;
 
-	return false;
+    wstrToLower(wnamepart);
+
+    Unit::AuraApplicationMap& map = unit->GetAppliedAuras();
+    for (Unit::AuraApplicationMap::iterator i = map.begin(); i != map.end(); ++i)
+    {
+        Aura const* aura  = i->second->GetBase();
+        if (!aura)
+            continue;
+
+        const string auraName = aura->GetSpellInfo()->SpellName[0];
+        if (auraName.empty() || auraName.length() != wnamepart.length() || !Utf8FitTo(auraName, wnamepart))
+            continue;
+
+        if (IsRealOwnAura(bot, aura, unit,auratype))
+            return true;
+    }
+
+    return false;
 }
 
+bool PlayerbotAI::HasAura(uint32 spellId, const Unit* unit, BotAuraType auratype)
+{
+    if (!spellId || !unit)
+        return false;
+
+    for (uint32 effect = EFFECT_0; effect <= EFFECT_2; effect++)
+    {
+        Aura* aura = ((Unit*)unit)->GetAura(spellId);
+
+        if (IsRealAura(bot, aura, (Unit*)unit,auratype))
+            return true;
+    }
+
+    return false;
+}
+
+bool PlayerbotAI::HasOwnAura(uint32 spellId, const Unit* unit, BotAuraType auratype)
+{
+    if (!spellId || !unit)
+        return false;
+
+    for (uint32 effect = EFFECT_0; effect <= EFFECT_2; effect++)
+    {
+        Aura* aura = ((Unit*)unit)->GetAura(spellId);
+
+        if (IsRealOwnAura(bot, aura, (Unit*)unit,auratype))
+            return true;
+    }
+
+    return false;
+}
 
 bool PlayerbotAI::HasAnyAuraOf(Unit* player, ...)
 {
@@ -760,63 +1514,145 @@ bool PlayerbotAI::HasAnyAuraOf(Unit* player, ...)
     return false;
 }
 
-bool PlayerbotAI::CanCastSpell(string name, Unit* target)
+bool PlayerbotAI::CanCastSpell(string name, Unit* target, bool interruptcasting)
 {
-    return CanCastSpell(aiObjectContext->GetValue<uint32>("spell id", name)->Get(), target);
+    return CanCastSpell(aiObjectContext->GetValue<uint32>("spell id", name)->Get(), target,true,interruptcasting);
 }
 
-bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell)
+bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell, bool interruptcasting)
 {
     if (!spellid)
         return false;
 
     if (!target)
+
         target = bot;
 
     if (checkHasSpell && !bot->HasSpell(spellid))
         return false;
+//?
+    if (bot->GetSpellHistory()->HasCooldown(spellid))
+       return false;
 
-    if (bot->HasSpellCooldown(spellid))
+    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid );
+    if (!spellInfo)
         return false;
 
-	SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid);
-	if (!spellInfo)
+    if (!bot->GetSpellHistory()->IsReady(spellInfo))
         return false;
 
-    bool positiveSpell = IsPositiveSpell(spellInfo);
+    bool positiveSpell = spellInfo->IsPositive();
     if (positiveSpell && bot->IsHostileTo(target))
         return false;
 
     if (!positiveSpell && bot->IsFriendlyTo(target))
         return false;
 
-    if (target->IsImmuneToSpell(spellInfo, false))
+    if (target->IsImmunedToSpell(spellInfo))
+        return false;
+
+    if (target->IsImmunedToDamage(spellInfo->GetSchoolMask()))
         return false;
 
     if (bot != target && bot->GetDistance(target) > sPlayerbotAIConfig.sightDistance)
         return false;
+/*
+    if (positiveSpell)
+    {
+        Spell* castingSpell = bot->GetCurrentSpell(CURRENT_GENERIC_SPELL);
+        if (castingSpell && castingSpell->GetSpellInfo()->IsPositive())
+            return false;
 
-	ObjectGuid oldSel = bot->GetSelectionGuid();
-	bot->SetSelectionGuid(target->GetObjectGuid());
-	Spell *spell = new Spell(bot, spellInfo, false);
+        Spell* channelSpell = bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
+        if (channelSpell && channelSpell->GetSpellInfo()->IsPositive())
+            return false;
+        }
+*/
 
-    spell->m_targets.setUnitTarget(target);
+   if (!interruptcasting)
+   {
+	if (bot->IsNonMeleeSpellCast(true))
+	    return false;
+
+        Spell* castingSpell = bot->GetCurrentSpell(CURRENT_GENERIC_SPELL);
+        if (castingSpell)
+            return false;
+
+        Spell* channelSpell = bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
+        if (channelSpell)
+            return false;
+	}
+
+    Unit* oldSel = bot->GetSelectedUnit();
+    bot->SetSelection(target->GetGUID());
+    Spell *spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
+
+    spell->m_targets.SetUnitTarget(target);
     spell->m_CastItem = aiObjectContext->GetValue<Item*>("item for spell", spellid)->Get();
-    spell->m_targets.setItemTarget(spell->m_CastItem);
+    spell->m_targets.SetItemTarget(spell->m_CastItem);
     SpellCastResult result = spell->CheckCast(false);
     delete spell;
 	if (oldSel)
-		bot->SetSelectionGuid(oldSel);
+		bot->SetSelection(oldSel->GetGUID());
 
     switch (result)
     {
     case SPELL_FAILED_NOT_INFRONT:
+    {
+        TellMaster("Cast failed: Not in front");
+        return true;
+        }
     case SPELL_FAILED_NOT_STANDING:
+    {
+        TellMaster("Cast failed: Not standing");
+        return true;
+    }
     case SPELL_FAILED_UNIT_NOT_INFRONT:
+    {
+        TellMaster("Cast failed: Not in front");
+        return true;
+        }
+    case SPELL_FAILED_SUCCESS:
+    {
+        TellMaster("Cast failed");
+        return true;
+        }
     case SPELL_FAILED_MOVING:
+     {
+        TellMaster("Cast failed: Moving");
+        return true;
+        }
     case SPELL_FAILED_TRY_AGAIN:
+    {
+        TellMaster("Cast failed: Try again");
+        return true;
+        }
+    case SPELL_FAILED_NOT_IDLE:
+    {
+        TellMaster("Cast failed: Not idle");
+        return true;
+        }
+    case SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW:
+    {
+        TellMaster("Cast failed: Busy");
+        return true;
+        }
+    case SPELL_FAILED_SUMMON_PENDING:
+    {
+        TellMaster("Cast failed: Summon pending");
+        return true;
+        }
     case SPELL_FAILED_BAD_IMPLICIT_TARGETS:
     case SPELL_FAILED_BAD_TARGETS:
+    {
+        TellMaster("Cast failed: Bad target");
+        return true;
+        }
+    case SPELL_FAILED_ITEM_NOT_FOUND:
+    {
+        TellMaster("Cast failed: Item not found");
+        return true;
+        }
     case SPELL_CAST_OK:
         return true;
     default:
@@ -845,10 +1681,11 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
         target = bot;
 
     Pet* pet = bot->GetPet();
-	SpellEntry const *pSpellInfo = sSpellStore.LookupEntry(spellId);
-	if (pet && pet->HasSpell(spellId))
+    const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
+    if (pet && pet->HasSpell(spellId))
     {
-		pet->ToggleAutocast(spellId, true);
+        pet->GetCharmInfo()->SetSpellAutocast(pSpellInfo, true);
+        pet->GetCharmInfo()->ToggleCreatureAutocast(pSpellInfo, true);
         TellMaster("My pet will auto-cast this spell");
         return true;
     }
@@ -861,13 +1698,12 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
     if (bot->IsFlying())
         return false;
 
-	bot->clearUnitState(UNIT_STAT_CHASE);
-	bot->clearUnitState(UNIT_STAT_FOLLOW);
+    bot->ClearUnitState( UNIT_STATE_ALL_STATE_SUPPORTED );
 
-	ObjectGuid oldSel = bot->GetSelectionGuid();
-	bot->SetSelectionGuid(target->GetGUID());
+    Unit* oldSel = bot->GetSelectedUnit();
+    bot->SetSelection(target->GetGUID());
 
-    Spell *spell = new Spell(bot, pSpellInfo, false);
+    Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE);
     if (bot->isMoving() && spell->GetCastTime())
     {
         delete spell;
@@ -880,21 +1716,21 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
     if (pSpellInfo->Targets & TARGET_FLAG_SOURCE_LOCATION ||
             pSpellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
     {
-        targets.setSource(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ());
+        targets.SetDst(target->GetPosition());
     }
     else
     {
-        targets.setUnitTarget(target);
+        targets.SetUnitTarget(target);
     }
 
     if (pSpellInfo->Targets & TARGET_FLAG_ITEM)
     {
         spell->m_CastItem = aiObjectContext->GetValue<Item*>("item for spell", spellId)->Get();
-        targets.setItemTarget(spell->m_CastItem);
+        targets.SetItemTarget(spell->m_CastItem);
     }
 
-    if (pSpellInfo->Effect[0] == SPELL_EFFECT_OPEN_LOCK ||
-        pSpellInfo->Effect[0] == SPELL_EFFECT_SKINNING)
+    if (pSpellInfo->Effects[0].Effect == SPELL_EFFECT_OPEN_LOCK ||
+        pSpellInfo->Effects[0].Effect == SPELL_EFFECT_SKINNING)
     {
         LootObject loot = *aiObjectContext->GetValue<LootObject>("loot target");
         if (!loot.IsLootPossible(bot))
@@ -906,10 +1742,10 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
         GameObject* go = GetGameObject(loot.guid);
         if (go && go->isSpawned())
         {
-            WorldPacket* const packetgouse = new WorldPacket(CMSG_GAMEOBJ_USE, 8);
+            WorldPacket* const packetgouse = new WorldPacket(CMSG_GAMEOBJ_REPORT_USE, 8);
             *packetgouse << loot.guid;
             bot->GetSession()->QueuePacket(packetgouse);
-            targets.setGOTarget(go);
+            targets.SetGOTarget(go);
             faceTo = go;
         }
         else
@@ -917,14 +1753,15 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
             Unit* creature = GetUnit(loot.guid);
             if (creature)
             {
-                targets.setUnitTarget(creature);
+                targets.SetUnitTarget(creature);
                 faceTo = creature;
             }
         }
     }
 
 
-    if (!bot->isInFront(faceTo, sPlayerbotAIConfig.sightDistance, M_PI / 2))
+    //if (!bot->isInFront(faceTo, M_PI / 2))
+    if (!bot->HasInArc(float(M_PI), faceTo) && !spell->GetSpellInfo()->IsPositive())
     {
         bot->SetFacingTo(bot->GetAngle(faceTo));
         delete spell;
@@ -932,24 +1769,27 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
         return false;
     }
 
+	if (spell->GetCastTime()>0)
+		bot->GetMotionMaster()->MovementExpired();
+	
 	spell->prepare(&targets);
 	WaitForSpellCast(spell);
-
-    if (oldSel)
-        bot->SetSelectionGuid(oldSel);
-
-    LastSpellCast& lastSpell = aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get();
-    return lastSpell.id == spellId;
+	
+	if (oldSel)
+		bot->SetSelection(oldSel->GetGUID());
+	
+	LastSpellCast& lastSpell = aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get();
+	return lastSpell.id == spellId;
 }
 
 void PlayerbotAI::WaitForSpellCast(Spell *spell)
 {
-    const SpellEntry* const pSpellInfo = spell->m_spellInfo;
+    const SpellInfo* const pSpellInfo = spell->GetSpellInfo();
 
     float castTime = spell->GetCastTime();
-	if (IsChanneledSpell(pSpellInfo))
+    if (pSpellInfo->IsChanneled())
     {
-        int32 duration = GetSpellDuration(pSpellInfo);
+        int32 duration = pSpellInfo->GetDuration();
         if (duration > 0)
             castTime += duration;
     }
@@ -968,6 +1808,7 @@ void PlayerbotAI::InterruptSpell()
     if (bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
         return;
 
+    TellMaster("Interrupting...");
     LastSpellCast& lastSpell = aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get();
 
     for (int type = CURRENT_MELEE_SPELL; type < CURRENT_CHANNELED_SPELL; type++)
@@ -976,8 +1817,8 @@ void PlayerbotAI::InterruptSpell()
         if (!spell)
             continue;
 
-        if (IsPositiveSpell(spell->m_spellInfo))
-            continue;
+		if (spell->m_spellInfo->IsPositive())
+			continue;
 
         bot->InterruptSpell((CurrentSpellTypes)type);
 
@@ -1011,55 +1852,57 @@ void PlayerbotAI::RemoveAura(string name)
 
 bool PlayerbotAI::IsInterruptableSpellCasting(Unit* target, string spell)
 {
-	uint32 spellid = aiObjectContext->GetValue<uint32>("spell id", spell)->Get();
-	if (!spellid || !target->IsNonMeleeSpellCasted(true))
-		return false;
+    uint32 spellid = aiObjectContext->GetValue<uint32>("spell id", spell)->Get();
+    if (!spellid || !target->IsNonMeleeSpellCast(true))
+        return false;
 
-	SpellEntry const *spellInfo = sSpellStore.LookupEntry(spellid);
-	if (!spellInfo)
-		return false;
+    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid );
+    if (!spellInfo)
+        return false;
 
-	if (target->IsImmuneToSpell(spellInfo, false))
-		return false;
+    if (target->IsImmunedToSpell(spellInfo))
+        return false;
 
-	for (int32 i = EFFECT_INDEX_0; i <= EFFECT_INDEX_2; i++)
-	{
-		if ((spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) && spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
-			return true;
+    for (uint32 i = EFFECT_0; i <= EFFECT_2; i++)
+    {
+        if ((spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) && spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
+            return true;
 
-		if ((spellInfo->Effect[i] == SPELL_EFFECT_INTERRUPT_CAST) &&
-			!target->IsImmuneToSpellEffect(spellInfo, (SpellEffectIndex)i, true))
-			return true;
-	}
+        if ((spellInfo->Effects[i].Effect == SPELL_EFFECT_REMOVE_AURA || spellInfo->Effects[i].Effect == SPELL_EFFECT_INTERRUPT_CAST) &&
+                !target->IsImmunedToSpellEffect(spellInfo, i))
+            return true;
+    }
 
-	return false;
+    return false;
 }
 
 bool PlayerbotAI::HasAuraToDispel(Unit* target, uint32 dispelType)
 {
-	for (uint32 type = SPELL_AURA_NONE; type < TOTAL_AURAS; ++type)
-	{
-		Unit::AuraList const& auras = target->GetAurasByType((AuraType)type);
-		for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-		{
-			const Aura* aura = *itr;
-			const SpellEntry* entry = aura->GetSpellProto();
-			uint32 spellId = entry->Id;
+    if (target->getClass() == CLASS_DEATH_KNIGHT)
+        return false;
 
-			bool isPositiveSpell = IsPositiveSpell(spellId);
-			if (isPositiveSpell && bot->IsFriendlyTo(target))
-				continue;
+    for (uint32 type = SPELL_AURA_NONE; type < TOTAL_AURAS; ++type)
+    {
+        Unit::AuraEffectList const& auras = target->GetAuraEffectsByType((AuraType)type);
+        for (Unit::AuraEffectList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+        {
+            const AuraEffect *const aura = *itr;
+			const SpellInfo* entry = aura->GetSpellInfo();
+            uint32 spellId = entry->Id;
 
-			if (!isPositiveSpell && bot->IsHostileTo(target))
-				continue;
+            bool isPositiveSpell = entry->IsPositive();
+            if (isPositiveSpell && bot->IsFriendlyTo(target))
+                continue;
 
-			if (canDispel(entry, dispelType))
-				return true;
-		}
-	}
-	return false;
+            if (!isPositiveSpell && bot->IsHostileTo(target))
+                continue;
+
+            if (canDispel(entry, dispelType))
+                return true;
+        }
+    }
+    return false;
 }
-
 
 
 #ifndef WIN32
@@ -1070,7 +1913,7 @@ inline int strcmpi(const char* s1, const char* s2)
 }
 #endif
 
-bool PlayerbotAI::canDispel(const SpellEntry* entry, uint32 dispelType)
+bool PlayerbotAI::canDispel(const SpellInfo* entry, uint32 dispelType)
 {
     if (entry->Dispel != dispelType)
         return false;
@@ -1087,7 +1930,7 @@ bool PlayerbotAI::canDispel(const SpellEntry* entry, uint32 dispelType)
 bool IsAlliance(uint8 race)
 {
     return race == RACE_HUMAN || race == RACE_DWARF || race == RACE_NIGHTELF ||
-            race == RACE_GNOME;
+            race == RACE_GNOME || race == RACE_DRAENEI;
 }
 
 bool PlayerbotAI::IsOpposing(Player* player)
@@ -1203,11 +2046,11 @@ void PlayerbotAI::_fillGearScoreData(Player *player, Item* item, std::vector<uin
     if (!item)
         return;
 
-    if (player->CanUseItem(item->GetProto()) != EQUIP_ERR_OK)
+    if (player->CanUseItem(item->GetTemplate()) != EQUIP_ERR_OK)
         return;
 
-    uint8 type   = item->GetProto()->InventoryType;
-    uint32 level = item->GetProto()->ItemLevel;
+    uint8 type   = item->GetTemplate()->InventoryType;
+    uint32 level = item->GetTemplate()->ItemLevel;
 
     switch (type)
     {
@@ -1328,6 +2171,17 @@ string PlayerbotAI::HandleRemoteCommand(string command)
         ostringstream out; out << data.lastMoveToX << " " << data.lastMoveToY << " " << data.lastMoveToZ << " " << bot->GetMapId() << " " << data.lastMoveToOri;
         return out.str();
     }
+	else if (command == "tpos")
+		 {
+		Unit* target = *GetAiObjectContext()->GetValue<Unit*>("current target");
+		if (!target) {
+			return "";
+
+		}
+
+		ostringstream out; out << target->GetPositionX() << " " << target->GetPositionY() << " " << target->GetPositionZ() << " " << target->GetMapId() << " " << target->GetOrientation();
+		return out.str();
+		}
     else if (command == "target")
     {
         Unit* target = *GetAiObjectContext()->GetValue<Unit*>("current target");
@@ -1336,6 +2190,12 @@ string PlayerbotAI::HandleRemoteCommand(string command)
         }
 
         return target->GetName();
+    }
+     else if (command == "movement")
+    {
+        LastMovement& data = *GetAiObjectContext()->GetValue<LastMovement&>("last movement");
+        ostringstream out; out << data.lastMoveToX << " " << data.lastMoveToY << " " << data.lastMoveToZ << " " << bot->GetMapId() << " " << data.lastMoveToOri;
+        return out.str();
     }
     else if (command == "hp")
     {
@@ -1363,27 +2223,23 @@ string PlayerbotAI::HandleRemoteCommand(string command)
     {
         return GetAiObjectContext()->FormatValues();
     }
+
     ostringstream out; out << "invalid command: " << command;
     return out.str();
 }
 
-bool ChatHandler::HandlePlayerbotCommand(char* args)
+void PlayerbotAI::LogAction(const char* format, ...)
 {
-    return PlayerbotMgr::HandlePlayerbotMgrCommand(this, args);
-}
+    char buf[1024];
 
-bool ChatHandler::HandleRandomPlayerbotCommand(char* args)
-{
-    return RandomPlayerbotMgr::HandlePlayerbotConsoleCommand(this, args);
-}
+    va_list ap;
+    va_start(ap, format);
+    vsprintf(buf, format, ap);
+    va_end(ap);
 
-bool ChatHandler::HandleAhBotCommand(char* args)
-{
-    return ahbot::AhBot::HandleAhBotCommand(this, args);
-}
+    Player* bot = GetBot();
+    if (sPlayerbotAIConfig.logInGroupOnly && !bot->GetGroup())
+        return;
 
-bool ChatHandler::HandleGuildTaskCommand(char* args)
-{
-    return GuildTaskMgr::HandleConsoleCommand(this, args);
+    sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "%s %s", bot->GetName().c_str(), buf);
 }
-

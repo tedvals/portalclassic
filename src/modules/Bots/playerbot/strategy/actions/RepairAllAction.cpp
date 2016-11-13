@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "RepairAllAction.h"
 
@@ -14,12 +14,9 @@ bool RepairAllAction::Execute(Event event)
         if (!unit)
             continue;
 
-        if(bot->hasUnitState(UNIT_STAT_DIED))
-            bot->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
-
         bot->SetFacingToObject(unit);
         float discountMod = bot->GetReputationPriceDiscount(unit);
-        uint32 totalCost = bot->DurabilityRepairAll(true, discountMod);
+        uint32 totalCost = bot->DurabilityRepairAll(true, discountMod, false);
 
         ostringstream out;
         out << "Repair: " << chat->formatMoney(totalCost) << " (" << unit->GetName() << ")";

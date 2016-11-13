@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "ItemUsageValue.h"
 
@@ -11,7 +11,7 @@ ItemUsage ItemUsageValue::Calculate()
     if (!itemId)
         return ITEM_USAGE_NONE;
 
-    const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itemId);
+    const ItemTemplate* proto = sObjectMgr->GetItemTemplate(itemId);
     if (!proto)
         return ITEM_USAGE_NONE;
 
@@ -31,7 +31,7 @@ ItemUsage ItemUsageValue::Calculate()
     return QueryItemUsageForEquip(proto);
 }
 
-ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemPrototype const * item)
+ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const * item)
 {
     if (bot->CanUseItem(item) != EQUIP_ERR_OK)
         return ITEM_USAGE_NONE;
@@ -55,7 +55,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemPrototype const * item)
     if (!existingItem)
         return ITEM_USAGE_EQUIP;
 
-    const ItemPrototype* oldItem = existingItem->GetProto();
+    const ItemTemplate* oldItem = existingItem->GetTemplate();
     if (oldItem->ItemLevel < item->ItemLevel && oldItem->ItemId != item->ItemId)
     {
         switch (item->Class)
@@ -73,12 +73,45 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemPrototype const * item)
     return ITEM_USAGE_NONE;
 }
 
-bool ItemUsageValue::IsItemUsefulForSkill(ItemPrototype const * proto)
+bool ItemUsageValue::IsItemUsefulForSkill(ItemTemplate const * proto)
 {
     switch (proto->Class)
     {
+    case ITEM_CLASS_GEM:
+        if (proto->SubClass == ITEM_SUBCLASS_GEM_SIMPLE && bot->HasSkill(SKILL_JEWELCRAFTING))
+            return true;
+        if (proto->SubClass != ITEM_SUBCLASS_GEM_SIMPLE)
+            return true;
+        break;
     case ITEM_CLASS_TRADE_GOODS:
-		return true;
+        switch (proto->SubClass)
+        {
+        case ITEM_SUBCLASS_PARTS:
+        case ITEM_SUBCLASS_EXPLOSIVES:
+        case ITEM_SUBCLASS_DEVICES:
+            return bot->HasSkill(SKILL_ENGINEERING);
+        case ITEM_SUBCLASS_JEWELCRAFTING:
+            return bot->HasSkill(SKILL_JEWELCRAFTING);
+        case ITEM_SUBCLASS_CLOTH:
+            return bot->HasSkill(SKILL_TAILORING);
+        case ITEM_SUBCLASS_LEATHER:
+            return bot->HasSkill(SKILL_LEATHERWORKING) || bot->HasSkill(SKILL_SKINNING);
+        case ITEM_SUBCLASS_METAL_STONE:
+            return (bot->HasSkill(SKILL_BLACKSMITHING) ||
+                bot->HasSkill(SKILL_ENGINEERING) ||
+                bot->HasSkill(SKILL_MINING));
+        case ITEM_SUBCLASS_MEAT:
+            return bot->HasSkill(SKILL_COOKING);
+        case ITEM_SUBCLASS_HERB:
+            return (bot->HasSkill(SKILL_HERBALISM) ||
+                bot->HasSkill(SKILL_ALCHEMY) ||
+                bot->HasSkill(SKILL_INSCRIPTION));
+        case ITEM_SUBCLASS_ELEMENTAL:
+            return true;
+        case ITEM_SUBCLASS_ENCHANTING:
+            return bot->HasSkill(SKILL_ENCHANTING);
+        }
+        break;
     case ITEM_CLASS_RECIPE:
         {
             if (bot->HasSpell(proto->Spells[2].SpellId))
@@ -104,6 +137,8 @@ bool ItemUsageValue::IsItemUsefulForSkill(ItemPrototype const * proto)
                 return bot->HasSkill(SKILL_ENCHANTING);
             case ITEM_SUBCLASS_FISHING_MANUAL:
                 return bot->HasSkill(SKILL_FISHING);
+            case ITEM_SUBCLASS_JEWELCRAFTING_RECIPE:
+                return bot->HasSkill(SKILL_JEWELCRAFTING);
             }
         }
     }

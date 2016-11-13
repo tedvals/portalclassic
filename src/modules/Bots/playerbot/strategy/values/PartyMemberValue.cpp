@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "PartyMemberValue.h"
 #include "../../PlayerbotAIConfig.h"
@@ -19,8 +19,12 @@ Unit* PartyMemberValue::FindPartyMember(list<Player*>* party, FindPlayerPredicat
             return player;
 
         Pet* pet = player->GetPet();
-        if (pet && Check(pet) && predicate.Check(pet))
-            return pet;
+        if (!pet)
+            continue;
+
+        Unit* unit = (Unit*)pet;
+        if (unit && Check(unit) && predicate.Check(unit))
+            return unit;
     }
 
     return NULL;
@@ -37,7 +41,7 @@ Unit* PartyMemberValue::FindPartyMember(FindPlayerPredicate &predicate)
     masters.push_back(master);
     for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
     {
-        Player* player = gref->getSource();
+        Player* player = gref->GetSource();
 
         if (ai->IsHeal(player))
             healers.push_back(player);
@@ -77,25 +81,25 @@ bool PartyMemberValue::IsTargetOfSpellCast(Player* target, SpellEntryPredicate &
 {
 
     Group* group = bot->GetGroup();
-    ObjectGuid targetGuid = target ? target->GetObjectGuid() : bot->GetObjectGuid();
-    ObjectGuid corpseGuid = target && target->GetCorpse() ? target->GetCorpse()->GetObjectGuid() : ObjectGuid();
+    ObjectGuid targetGuid = target ? target->GetGUID() : bot->GetGUID();
+    ObjectGuid corpseGuid = target && target->GetCorpse() ? target->GetCorpse()->GetGUID() : ObjectGuid();
 
     for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
     {
-        Player* player = gref->getSource();
+        Player* player = gref->GetSource();
         if (player == bot)
             continue;
 
-        if (player->IsNonMeleeSpellCasted(true))
+        if (player->IsNonMeleeSpellCast(true))
         {
             for (int type = CURRENT_GENERIC_SPELL; type < CURRENT_MAX_SPELL; type++) {
                 Spell* spell = player->GetCurrentSpell((CurrentSpellTypes)type);
                 if (spell && predicate.Check(spell->m_spellInfo)) {
-                    ObjectGuid unitTarget = spell->m_targets.getUnitTargetGuid();
+                    ObjectGuid unitTarget = spell->m_targets.GetUnitTargetGUID();
                     if (unitTarget == targetGuid)
                         return true;
 
-                    ObjectGuid corpseTarget = spell->m_targets.getCorpseTargetGuid();
+                    ObjectGuid corpseTarget = spell->m_targets.GetCorpseTargetGUID();
                     if (corpseTarget == corpseGuid)
                         return true;
                 }

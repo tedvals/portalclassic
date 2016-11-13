@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "BuffAction.h"
 
@@ -14,10 +14,10 @@ public:
 
     virtual bool Visit(Item* item)
     {
-        if (bot->CanUseItem(item->GetProto()) != EQUIP_ERR_OK)
+        if (bot->CanUseItem(item->GetTemplate()) != EQUIP_ERR_OK)
             return true;
 
-        const ItemPrototype* proto = item->GetProto();
+        const ItemTemplate* proto = item->GetTemplate();
 
         if (proto->Class != ITEM_CLASS_CONSUMABLE)
             return true;
@@ -76,6 +76,9 @@ void BuffAction::TellHeader(uint32 subClass)
     case ITEM_SUBCLASS_FOOD:
         ai->TellMaster("--- Food ---");
         return;
+    case ITEM_SUBCLASS_GENERIC:
+        ai->TellMaster("--- Other ---");
+        return;
     case ITEM_SUBCLASS_ITEM_ENHANCEMENT:
         ai->TellMaster("--- Enchant ---");
         return;
@@ -106,7 +109,7 @@ bool BuffAction::Execute(Event event)
         {
             Item* item = *j;
             ostringstream out;
-            out << chat->formatItem(item->GetProto(), item->GetCount());
+            out << chat->formatItem(item->GetTemplate(), item->GetCount());
             ai->TellMaster(out);
         }
     }

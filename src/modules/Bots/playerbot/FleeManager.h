@@ -39,6 +39,7 @@ namespace ai
 
     public:
         bool isReasonable();
+        bool isBetterByDistance(FleePoint* other);
         bool isBetterByCreatures(FleePoint* other);
         bool isBetterByAll(FleePoint* other);
 
@@ -47,6 +48,7 @@ namespace ai
 		float y;
 		float z;
 
+        RangePair toDestination;
 		RangePair toCreatures;
 		RangePair toAllPlayers;
 		RangePair toMeleePlayers;
@@ -56,10 +58,12 @@ namespace ai
 	class FleeManager
 	{
 	public:
-		FleeManager(Player* bot, float maxAllowedDistance, float followAngle) {
+		FleeManager(Player* bot, float maxAllowedDistance, float followAngle, Unit* target = NULL) {
 			this->bot = bot;
+			this->master = bot->GetPlayerbotAI()->GetMaster();
 			this->maxAllowedDistance = maxAllowedDistance;
 			this->followAngle = followAngle;
+			this->target = target;
 		}
 
 	public:
@@ -68,13 +72,16 @@ namespace ai
 	private:
 		void calculatePossibleDestinations(list<FleePoint*> &points);
 		void calculateDistanceToPlayers(FleePoint *point);
-		void calculateDistanceToCreatures(FleePoint *point);
+		bool calculateDistanceToCreatures(FleePoint *point);
+		void calculateDistanceToDestination(FleePoint *point);
 		void cleanup(list<FleePoint*> &points);
 		FleePoint* selectOptimalDestination(list<FleePoint*> &points);
 		bool isBetterThan(FleePoint* point, FleePoint* other);
 
 	private:
 		Player* bot;
+		Player* master;
+		Unit* target;
 		float maxAllowedDistance;
 		float followAngle;
 	};

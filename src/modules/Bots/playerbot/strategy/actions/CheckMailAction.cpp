@@ -1,15 +1,17 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "CheckMailAction.h"
-#include "Mail.h"
 
 #include "../../GuildTaskMgr.h"
 using namespace ai;
 
 bool CheckMailAction::Execute(Event event)
 {
-    WorldPacket p;
-    bot->GetSession()->HandleQueryNextMailTime(p);
+    if (!bot->IsMailsLoaded())
+    {
+        WorldPacket p;
+        bot->GetSession()->HandleQueryNextMailTime(p);
+    }
 
     if (!bot->GetMailSize())
         return false;
@@ -22,7 +24,7 @@ bool CheckMailAction::Execute(Event event)
         if (!mail || mail->state == MAIL_STATE_DELETED)
             continue;
 
-        Player* owner = sObjectMgr.GetPlayer((uint64)mail->sender);
+        Player* owner = sObjectMgr->GetPlayerByLowGUID(mail->sender);
         if (!owner)
             continue;
 
@@ -35,8 +37,10 @@ bool CheckMailAction::Execute(Event event)
     {
         uint32 id = *i;
         bot->SendMailResult(id, MAIL_DELETED, MAIL_OK);
+        SQLTransaction tran = CharacterDatabase.BeginTransaction();
         CharacterDatabase.PExecute("DELETE FROM mail WHERE id = '%u'", id);
         CharacterDatabase.PExecute("DELETE FROM mail_items WHERE mail_id = '%u'", id);
+        CharacterDatabase.CommitTransaction(tran);
         bot->RemoveMail(id);
     }
 

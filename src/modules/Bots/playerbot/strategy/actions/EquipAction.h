@@ -13,6 +13,9 @@ namespace ai
     private:
         void EquipItem(FindItemVisitor* visitor);
         void EquipItem(Item& item);
+        void TellEquipmentSets();
+        bool UseEquipmentSet(string& name);
+        bool UseEquipmentSet(EquipmentSet& set);
     };
 
 }

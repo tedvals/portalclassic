@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "MeleeCombatStrategy.h"
 
@@ -20,4 +20,8 @@ void MeleeCombatStrategy::InitTriggers(list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "enemy too close for melee",
         NextAction::array(0, new NextAction("move out of enemy contact", ACTION_NORMAL + 8), NULL)));
+
+        triggers.push_back(new TriggerNode(
+        "target out of los",
+        NextAction::array(0, new NextAction("reposition", ACTION_NORMAL + 9), NULL)));
 }

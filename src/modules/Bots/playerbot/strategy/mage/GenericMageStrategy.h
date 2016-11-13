@@ -5,7 +5,7 @@
 
 namespace ai
 {
-    class GenericMageStrategy : public RangedCombatStrategy
+    class GenericMageStrategy : public CombatStrategy
     {
     public:
         GenericMageStrategy(PlayerbotAI* ai);

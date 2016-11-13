@@ -1,4 +1,4 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "StayActions.h"
 #include "../values/LastMovementValue.h"
@@ -15,8 +15,7 @@ void StayActionBase::Stay()
 
     mm.Clear();
     mm.MoveIdle();
-	bot->clearUnitState(UNIT_STAT_CHASE);
-	bot->clearUnitState(UNIT_STAT_FOLLOW);
+    bot->ClearUnitState( UNIT_STATE_ALL_STATE_SUPPORTED );
 
     if (!bot->IsStandState())
         bot->SetStandState(UNIT_STAND_STATE_STAND);

@@ -7,12 +7,24 @@ namespace ai
     BEGIN_TRIGGER(HunterNoStingsActiveTrigger, Trigger)
     END_TRIGGER()
 
+    BUFF_ON_PARTY_TRIGGER(MisdirectionOnPartyTrigger, "misdirection", "misdirection on party")
+
     class HunterAspectOfTheHawkTrigger : public BuffTrigger
     {
     public:
         HunterAspectOfTheHawkTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "aspect of the hawk") {
 			checkInterval = 1;
 		}
+		virtual bool IsActive();
+    };
+
+    class HunterAspectOfTheDragonHawkTrigger : public BuffTrigger
+    {
+    public:
+        HunterAspectOfTheDragonHawkTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "aspect of the dragonhawk") {
+			checkInterval = 1;
+        }
+        virtual bool IsActive();
     };
 
 	class HunterAspectOfTheWildTrigger : public BuffTrigger
@@ -29,7 +41,7 @@ namespace ai
         HunterAspectOfTheViperTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "aspect of the viper") {}
         virtual bool IsActive()
         {
-            return SpellTrigger::IsActive() && !ai->HasAura(spell, GetTarget());
+            return BuffTrigger::IsActive() &&  (AI_VALUE2(uint8, "mana", "self target") <= sPlayerbotAIConfig.lowMana);
         }
     };
 
@@ -38,7 +50,7 @@ namespace ai
     public:
         HunterAspectOfThePackTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "aspect of the pack") {}
         virtual bool IsActive() {
-			return BuffTrigger::IsActive() && !ai->HasAura("aspect of the cheetah", GetTarget());
+			return (BuffTrigger::IsActive() && bot->GetGroup() && !AI_VALUE2(bool, "mounted", "self target"));
         };
     };
 
@@ -48,16 +60,12 @@ namespace ai
     BEGIN_TRIGGER(HuntersPetLowHealthTrigger, Trigger)
     END_TRIGGER()
 
-    class BlackArrowTrigger : public DebuffTrigger
-    {
-    public:
-        BlackArrowTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "black arrow") {}
-    };
+    DEBUFF_TRIGGER(BlackArrowTrigger, "black arrow", "black arrow")
+    DEBUFF_TRIGGER(HuntersMarkTrigger, "hunter's mark", "hunter's mark")
 
-    class HuntersMarkTrigger : public DebuffTrigger
-    {
+    class ConcussiveShotSnareTrigger : public SnareTargetTrigger {
     public:
-        HuntersMarkTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "hunter's mark") {}
+        ConcussiveShotSnareTrigger(PlayerbotAI* ai) : SnareTargetTrigger(ai, "concussive shot snare") {}
     };
 
     class FreezingTrapTrigger : public HasCcTargetTrigger
@@ -72,15 +80,62 @@ namespace ai
         RapidFireTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "rapid fire") {}
     };
 
+    class KillCommandTrigger : public BoostTrigger
+    {
+    public:
+        KillCommandTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "kill command") {}
+    };
+
+    class KillShotTrigger : public BoostTrigger
+    {
+    public:
+        KillShotTrigger(PlayerbotAI* ai) : BoostTrigger(ai, "kill shot") {}
+    };
+
+    class CounterstrikeTrigger : public BuffTrigger
+    {
+    public:
+        CounterstrikeTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "counterstrike") {}
+    };
+
     class TrueshotAuraTrigger : public BuffTrigger
     {
     public:
         TrueshotAuraTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "trueshot aura") {}
+
+        bool IsActive()
+        {
+            return (BuffTrigger::IsActive() && bot->getLevel() > 39);
+            };
     };
 
     class SerpentStingOnAttackerTrigger : public DebuffOnAttackerTrigger
     {
     public:
         SerpentStingOnAttackerTrigger(PlayerbotAI* ai) : DebuffOnAttackerTrigger(ai, "serpent sting") {}
+    };
+
+    class ArcaneShotOnAttackerTrigger : public TargetAuraDispelTrigger
+    {
+    public:
+        ArcaneShotOnAttackerTrigger(PlayerbotAI* ai) : TargetAuraDispelTrigger(ai, "arcane shot", DISPEL_MAGIC) {}
+    };
+
+    class SilencingShotInterruptSpellTrigger : public InterruptSpellTrigger
+    {
+    public:
+        SilencingShotInterruptSpellTrigger(PlayerbotAI* ai) : InterruptSpellTrigger(ai, "silencing shot") {}
+    };
+
+    class SilencingShotEnemyHealerTrigger : public InterruptEnemyHealerTrigger
+    {
+    public:
+        SilencingShotEnemyHealerTrigger(PlayerbotAI* ai) : InterruptEnemyHealerTrigger(ai, "silencing shot") {}
+    };
+
+    class WyvernStingTrigger : public HasCcTarget4Trigger
+    {
+    public:
+        WyvernStingTrigger(PlayerbotAI* ai) : HasCcTarget4Trigger(ai, "wyvern sting") {}
     };
 }

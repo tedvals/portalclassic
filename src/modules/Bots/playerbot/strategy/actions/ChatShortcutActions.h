@@ -12,6 +12,41 @@ namespace ai
         virtual bool Execute(Event event);
     };
 
+    class MoveBehindChatShortcutAction : public Action
+    {
+    public:
+        MoveBehindChatShortcutAction(PlayerbotAI* ai) : Action(ai, "move behind chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
+    class MoveToPointChatShortcutAction : public Action
+    {
+    public:
+        MoveToPointChatShortcutAction(PlayerbotAI* ai) : Action(ai, "move to point chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
+    class BoostChatShortcutAction : public Action
+    {
+    public:
+        BoostChatShortcutAction(PlayerbotAI* ai) : Action(ai, "boost chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
+    class BurstChatShortcutAction : public Action
+    {
+    public:
+        BurstChatShortcutAction(PlayerbotAI* ai) : Action(ai, "burst chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
+    class RepositionChatShortcutAction : public Action
+    {
+    public:
+        RepositionChatShortcutAction(PlayerbotAI* ai) : Action(ai, "reposition chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
     class StayChatShortcutAction : public Action
     {
     public:
@@ -19,10 +54,31 @@ namespace ai
         virtual bool Execute(Event event);
     };
 
+    class StopAttackChatShortcutAction : public Action
+    {
+    public:
+        StopAttackChatShortcutAction(PlayerbotAI* ai) : Action(ai, "stop attack chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
+    class ResumeAttackChatShortcutAction : public Action
+    {
+    public:
+        ResumeAttackChatShortcutAction(PlayerbotAI* ai) : Action(ai, "resume attack chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
     class FleeChatShortcutAction : public Action
     {
     public:
         FleeChatShortcutAction(PlayerbotAI* ai) : Action(ai, "flee chat shortcut") {}
+        virtual bool Execute(Event event);
+    };
+
+    class DisperseChatShortcutAction : public Action
+    {
+    public:
+        DisperseChatShortcutAction(PlayerbotAI* ai) : Action(ai, "disperse chat shortcut") {}
         virtual bool Execute(Event event);
     };
 

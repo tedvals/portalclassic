@@ -1,8 +1,8 @@
-#include "botpch.h"
+#include "../../../pchdef.h"
 #include "../../playerbot.h"
 #include "QueryItemUsageAction.h"
-#include "../../../ahbot/AhBot.h"
 #include "../values/ItemUsageValue.h"
+#include "../../../ahbot/AhBot.h"
 #include "../../RandomPlayerbotMgr.h"
 
 
@@ -18,7 +18,7 @@ bool QueryItemUsageAction::Execute(Event event)
 
         ObjectGuid guid;
         data >> guid;
-        if (guid != bot->GetObjectGuid())
+        if (guid.GetRawValue() != bot->GetGUID())
             return false;
 
         uint32 received, created, isShowChatMessage, notUsed, itemId,
@@ -37,7 +37,7 @@ bool QueryItemUsageAction::Execute(Event event)
         data >> count;
         data >> invCount;
 
-        ItemPrototype const *item = sItemStorage.LookupEntry<ItemPrototype>(itemId);
+        ItemTemplate const *item = sObjectMgr->GetItemTemplate(itemId);
         if (!item)
             return false;
 
@@ -60,7 +60,7 @@ bool QueryItemUsageAction::Execute(Event event)
     return true;
 }
 
-bool QueryItemUsageAction::QueryItemUsage(ItemPrototype const *item)
+bool QueryItemUsageAction::QueryItemUsage(ItemTemplate const *item)
 {
     ostringstream out; out << item->ItemId;
     ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", out.str());
@@ -78,15 +78,15 @@ bool QueryItemUsageAction::QueryItemUsage(ItemPrototype const *item)
     case ITEM_USAGE_USE:
         ai->TellMaster("Use");
         return true;
-	case ITEM_USAGE_GUILD_TASK:
-		ai->TellMaster("Guild task");
-		return true;
-	}
+    case ITEM_USAGE_GUILD_TASK:
+        ai->TellMaster("Guild task");
+        return true;
+    }
 
     return false;
 }
 
-void QueryItemUsageAction::QueryItemPrice(ItemPrototype const *item)
+void QueryItemUsageAction::QueryItemPrice(ItemTemplate const *item)
 {
     if (!sRandomPlayerbotMgr.IsRandomBot(bot))
         return;
@@ -100,9 +100,9 @@ void QueryItemUsageAction::QueryItemPrice(ItemPrototype const *item)
         for (list<Item*>::iterator i = items.begin(); i != items.end(); ++i)
         {
             Item* sell = *i;
-            int32 sellPrice = sell->GetCount() * auctionbot.GetSellPrice(sell->GetProto()) * sRandomPlayerbotMgr.GetSellMultiplier(bot);
+            int32 sellPrice = sell->GetCount() * auctionbot.GetSellPrice(sell->GetTemplate()) * sRandomPlayerbotMgr.GetSellMultiplier(bot);
             ostringstream out;
-            out << "Selling " << chat->formatItem(sell->GetProto(), sell->GetCount()) << " for " << chat->formatMoney(sellPrice);
+            out << "Selling " << chat->formatItem(sell->GetTemplate(), sell->GetCount()) << " for " << chat->formatMoney(sellPrice);
             ai->TellMaster(out.str());
         }
     }
@@ -125,7 +125,7 @@ void QueryItemUsageAction::QueryItemsUsage(ItemIds items)
 {
     for (ItemIds::iterator i = items.begin(); i != items.end(); i++)
     {
-        ItemPrototype const *item = sItemStorage.LookupEntry<ItemPrototype>(*i);
+        ItemTemplate const *item = sObjectMgr->GetItemTemplate(*i);
         QueryItemUsage(item);
         QueryQuestItem(*i);
         QueryItemPrice(item);
@@ -135,10 +135,10 @@ void QueryItemUsageAction::QueryItemsUsage(ItemIds items)
 void QueryItemUsageAction::QueryQuestItem(uint32 itemId)
 {
     Player *bot = ai->GetBot();
-    QuestStatusMap& questMap = bot->getQuestStatusMap();
+    QuestStatusMap const& questMap = bot->getQuestStatusMap();
     for (QuestStatusMap::const_iterator i = questMap.begin(); i != questMap.end(); i++)
     {
-        const Quest *questTemplate = sObjectMgr.GetQuestTemplate( i->first );
+        const Quest *questTemplate = sObjectMgr->GetQuestTemplate( i->first );
         if( !questTemplate )
             continue;
 
@@ -157,11 +157,11 @@ void QueryItemUsageAction::QueryQuestItem(uint32 itemId, const Quest *questTempl
 {
     for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
     {
-        if (questTemplate->ReqItemId[i] != itemId)
+        if (questTemplate->RequiredItemId[i] != itemId)
             continue;
 
-        int required = questTemplate->ReqItemCount[i];
-        int available = questStatus->m_itemcount[i];
+        int required = questTemplate->RequiredItemCount[i];
+        int available = questStatus->ItemCount[i];
 
         if (!required)
             continue;
