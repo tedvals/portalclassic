@@ -49,6 +49,13 @@ bool AttackAction::Attack(Unit* target)
         return false;
     }
 
+	if (target->IsDead())
+	{
+		msg << " is dead";
+		if (verbose) ai->TellMaster(msg.str());
+		return false;
+	}
+
     Player* master = GetMaster();
     if (AI_VALUE(uint8, "balance") < 75 && (master && master->isDead() && !bot->IsInCombat()))
     {
@@ -122,6 +129,8 @@ bool AttackAction::Attack(Unit* target)
 	}
 
 	if (bot->IsMounted() && bot->IsWithinLOSInMap(target))
+
+    if (bot->IsMounted())
     {
         WorldPacket emptyPacket;
         bot->GetSession()->HandleCancelMountAuraOpcode(emptyPacket);

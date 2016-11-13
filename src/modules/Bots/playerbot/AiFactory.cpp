@@ -59,15 +59,44 @@ int AiFactory::GetPlayerSpecTab(Player* player)
     PlayerTalentMap& talentMap = player->GetTalentMap(0);
     for (PlayerTalentMap::iterator i = talentMap.begin(); i != talentMap.end(); ++i)
     {
+<<<<<<< HEAD
         uint32 spellId = i->first;
         TalentSpellPos const* talentPos = GetTalentSpellPos(spellId);
         if(!talentPos)
+=======
+        if (tab == -1 || max < tabs[i])
+        {
+            tab = i;
+            max = tabs[i];
+        }
+    }
+
+    return tab;
+}
+
+map<uint32, int32> AiFactory::GetPlayerSpecTabs(Player* bot)
+{
+    map<uint32, int32> tabs;
+    for (uint32 i = 0; i < uint32(3); i++)
+        tabs[i] = 0;
+
+    uint32 classMask = bot->getClassMask();
+    for (uint32 i = 0; i < sTalentStore.GetNumRows(); ++i)
+    {
+        TalentEntry const *talentInfo = sTalentStore.LookupEntry(i);
+        if (!talentInfo)
+            continue;
+
+        TalentTabEntry const *talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+        if (!talentTabInfo)
+>>>>>>> origin/playerbot
             continue;
 
         TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentPos->talent_id);
         if (!talentInfo)
             continue;
 
+<<<<<<< HEAD
         uint32 const* talentTabIds = GetTalentTabPages(player->getClass());
         if (talentInfo->TalentTab == talentTabIds[0]) c0++;
         if (talentInfo->TalentTab == talentTabIds[1]) c1++;
@@ -79,6 +108,21 @@ int AiFactory::GetPlayerSpecTab(Player* player)
 
     if (c1 >= c0 && c1 >= c2)
         return 1;
+=======
+        int maxRank = 0;
+        for (int rank = MAX_TALENT_RANK - 1; rank >= 0; --rank)
+        {
+            if (!talentInfo->RankID[rank])
+                continue;
+
+            uint32 spellid = talentInfo->RankID[rank];
+            if (spellid && bot->HasSpell(spellid))
+                 maxRank = rank + 1;
+
+        }
+        tabs[talentTabInfo->tabpage] += maxRank;
+    }
+>>>>>>> origin/playerbot
 
     return 2;
 }

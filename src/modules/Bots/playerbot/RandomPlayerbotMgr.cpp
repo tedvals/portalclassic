@@ -10,10 +10,14 @@
 #include "GuildTaskMgr.h"
 #include <thread>
 #include "../../game/Battlegrounds/Battleground.h"
+#include "PlayerbotCommandServer.h"
+
+
+INSTANTIATE_SINGLETON_1(RandomPlayerbotMgr);
 
 RandomPlayerbotMgr::RandomPlayerbotMgr() : PlayerbotHolder(), processTicks(0)
 {
-    sPlayerbotCommandServer.Start();
+sPlayerbotCommandServer.Start();
 }
 
 RandomPlayerbotMgr::~RandomPlayerbotMgr()
@@ -720,8 +724,8 @@ vector<uint32> RandomPlayerbotMgr::GetFreeBots(bool alliance)
             )))
                 guids.push_back(guid);
         } while (result->NextRow());
-    }
-
+		delete result;
+	}
 
     return guids;
 }

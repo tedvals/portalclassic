@@ -71,7 +71,14 @@ bool IsDeadValue::Calculate()
     Unit* target = GetTarget();
     if (!target)
         return false;
-    return target->getDeathState() != ALIVE;
+
+    if (target == bot->GetPet())
+    {
+         PetDatabaseStatus status = Pet::GetStatusFromDB(bot);
+         if (status == PET_DB_DEAD)
+             return true;
+    }
+    return target->GetDeathState() != ALIVE;
 }
 
 bool IsCcValue::Calculate()

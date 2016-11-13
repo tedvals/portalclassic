@@ -687,25 +687,26 @@ string PlayerbotHolder::ListBots(Player* master)
 		out << "+" << name << " " << classNames[bot->getClass()];
 	}
 
-	if (master)
-	{
-		QueryResult results = CharacterDatabase.PQuery("SELECT class,name FROM tc_characters_19.characters where account = '%u'",
-			master->GetSession()->GetAccountId());
-		if (results != NULL)
-		{
-			do
-			{
-				Field* fields = results->Fetch();
-				uint8 cls = fields[0].GetUInt8();
-				string name = fields[1].GetString();
-				if (bots.find(name) == bots.end() && name != master->GetSession()->GetPlayerName())
-				{
-					if (first) first = false; else out << ", ";
-					out << "-" << name << " " << classNames[cls];
-				}
-			} while (results->NextRow());
-		}
-	}
+    if (master)
+    {
+        QueryResult* results = CharacterDatabase.PQuery("SELECT class,name FROM characters where account = '%u'",
+                master->GetSession()->GetAccountId());
+        if (results != NULL)
+        {
+            do
+            {
+                Field* fields = results->Fetch();
+                uint8 cls = fields[0].GetUInt8();
+                string name = fields[1].GetString();
+                if (bots.find(name) == bots.end() && name != master->GetSession()->GetPlayerName())
+                {
+                    if (first) first = false; else out << ", ";
+                    out << "-" << name << " " << classNames[cls];
+                }
+            } while (results->NextRow());
+			delete results;
+        }
+    }
 
 	return out.str();
 }

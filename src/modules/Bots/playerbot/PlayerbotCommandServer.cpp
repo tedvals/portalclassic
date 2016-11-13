@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 #include "../pchdef.h"
+=======
+#include "../botpch.h"
+>>>>>>> origin/playerbot
 #include "playerbot.h"
 #include "PlayerbotAIConfig.h"
 #include "PlayerbotFactory.h"
 #include "PlayerbotCommandServer.h"
 #include <cstdlib>
 #include <iostream>
+<<<<<<< HEAD
 #include <boost/bind.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/asio.hpp>
@@ -16,11 +21,20 @@ using boost::asio::ip::tcp;
 typedef boost::shared_ptr<tcp::socket> socket_ptr;
 
 bool ReadLine(socket_ptr sock, string* buffer, string* line)
+=======
+
+INSTANTIATE_SINGLETON_1(PlayerbotCommandServer);
+
+using namespace std;
+
+bool ReadLine(ACE_SOCK_Stream& client_stream, string* buffer, string* line)
+>>>>>>> origin/playerbot
 {
     // Do the real reading from fd until buffer has '\n'.
     string::iterator pos;
     while ((pos = find(buffer->begin(), buffer->end(), '\n')) == buffer->end())
     {
+<<<<<<< HEAD
         char buf[1025];
         boost::system::error_code error;
         size_t n = sock->read_some(boost::asio::buffer(buf), error);
@@ -28,6 +42,12 @@ bool ReadLine(socket_ptr sock, string* buffer, string* line)
             return false;
         else if (error)
             throw boost::system::system_error(error); // Some other error.
+=======
+        char buf[33];
+        size_t n = client_stream.recv_n(buf, 1, 0);
+        if (n == -1)
+            return false;
+>>>>>>> origin/playerbot
 
         buf[n] = 0;
         *buffer += buf;
@@ -38,6 +58,7 @@ bool ReadLine(socket_ptr sock, string* buffer, string* line)
     return true;
 }
 
+<<<<<<< HEAD
 void session(socket_ptr sock)
 {
     try
@@ -85,10 +106,52 @@ void Run()
         sLog->outMessage("playerbot", LOG_LEVEL_ERROR, e.what());
     }
 }
+=======
+class PlayerbotCommandServerThread: public ACE_Task <ACE_MT_SYNCH>
+{
+public:
+    int svc(void) {
+        if (!sPlayerbotAIConfig.commandServerPort) {
+            return 0;
+        }
+
+        ostringstream s; s << "Starting Playerbot Command Server on port " << sPlayerbotAIConfig.commandServerPort;
+        sLog.outString(s.str().c_str());
+
+        ACE_INET_Addr server(sPlayerbotAIConfig.commandServerPort);
+        ACE_SOCK_Acceptor client_responder(server);
+
+		while (true) 
+		{
+			ACE_SOCK_Stream client_stream;
+			ACE_Time_Value timeout(5);
+			ACE_INET_Addr client;
+			if (-1 != client_responder.accept(client_stream, &client, &timeout))
+			{
+				string buffer, request;
+				while (ReadLine(client_stream, &buffer, &request)) 
+				{
+					string response = sRandomPlayerbotMgr.HandleRemoteCommand(request) + "\n";
+					client_stream.send_n(response.c_str(), response.size(), 0);
+					request = "";
+				}
+				client_stream.close();
+			}
+		}
+
+        return 0;
+    }
+};
+>>>>>>> origin/playerbot
 
 
 void PlayerbotCommandServer::Start()
 {
+<<<<<<< HEAD
     thread serverThread(Run);
     serverThread.detach();
+=======
+    PlayerbotCommandServerThread *thread = new PlayerbotCommandServerThread();
+    thread->activate();
+>>>>>>> origin/playerbot
 }
