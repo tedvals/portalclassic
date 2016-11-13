@@ -63,6 +63,13 @@ bool AttackAction::Attack(Unit* target)
         return false;
     }
 
+    if (target->IsDead())
+    {
+        msg << " is dead";
+        if (verbose) ai->TellMaster(msg.str());
+        return false;
+    }
+
     if (bot->IsMounted())
     {
         WorldPacket emptyPacket;

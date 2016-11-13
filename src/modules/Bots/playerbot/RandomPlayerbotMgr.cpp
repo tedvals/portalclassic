@@ -10,12 +10,14 @@
 #include "Player.h"
 #include "AiFactory.h"
 #include "GuildTaskMgr.h"
+#include "PlayerbotCommandServer.h"
 
 INSTANTIATE_SINGLETON_1(RandomPlayerbotMgr);
 
 
 RandomPlayerbotMgr::RandomPlayerbotMgr() : PlayerbotHolder(), processTicks(0)
 {
+sPlayerbotCommandServer.Start();
 }
 
 RandomPlayerbotMgr::~RandomPlayerbotMgr()

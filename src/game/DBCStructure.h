@@ -302,6 +302,20 @@ struct FactionEntry
     }
 };
 
+* \struct EmotesTextSoundEntry
+ * \brief Entry repsenting the text sound for given emote.
+ */
+ struct EmotesTextSoundEntry
+ {
+     uint32 Id;                                              // 0
+     uint32 EmotesTextId;                                    // 1
+     uint32 RaceId;                                          // 2
+     uint32 SexId;                                           // 3, 0 male / 1 female
+     uint32 SoundId;                                         // 4
+ };
+ 
+ /**
+
 struct FactionTemplateEntry
 {
     uint32      ID;                                         // 0

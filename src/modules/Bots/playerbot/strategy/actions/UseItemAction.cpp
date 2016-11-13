@@ -1,6 +1,7 @@
 #include "botpch.h"
 #include "../../playerbot.h"
 #include "UseItemAction.h"
+#include "../../PlayerbotAIConfig.h"
 
 using namespace ai;
 
@@ -212,14 +213,21 @@ bool UseItemAction::UseItem(Item* item, ObjectGuid goGuid, Item* itemTarget)
     if (!targetSelected)
         return false;
 
-    if (item->GetProto()->Class == ITEM_CLASS_CONSUMABLE && item->GetProto()->SubClass == ITEM_SUBCLASS_FOOD)
+    ItemPrototype const* proto = item->GetProto();
+    if (proto->Class == ITEM_CLASS_CONSUMABLE && (proto->SubClass == ITEM_SUBCLASS_FOOD || proto->SubClass == ITEM_SUBCLASS_CONSUMABLE) &&
+		(proto->Spells[0].SpellCategory == 11 || proto->Spells[0].SpellCategory == 59))
     {
         if (bot->IsInCombat())
             return false;
 
+        bot->addUnitState(UNIT_STAND_STATE_SIT);
         ai->InterruptSpell();
         ai->SetNextCheckDelay(30000);
     }
+    else
+    {
+         ai->SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
+     }
 
     ai->TellMasterNoFacing(out.str());
     bot->GetSession()->QueuePacket(packet);
