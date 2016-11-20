@@ -247,6 +247,76 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleUnused,                                    // 189 SPELL_AURA_MOD_RATING (not used in 1.12.1)
     &Aura::HandleNoImmediateEffect,                         // 190 SPELL_AURA_MOD_FACTION_REPUTATION_GAIN     implemented in Player::CalculateReputationGain
     &Aura::HandleAuraModUseNormalSpeed,                     // 191 SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED
+&Aura::HandleModMeleeRangedSpeedPct,                    //192  SPELL_AURA_MOD_MELEE_RANGED_HASTE - OK
+    &Aura::HandleModCombatSpeedPct,                         //193 SPELL_AURA_HASTE_ALL (in fact combat (any type attack) speed pct) - OK
+    &Aura::HandleUnused,                                    //194 SPELL_AURA_MOD_DEPRICATED_1 not used now (old SPELL_AURA_MOD_SPELL_DAMAGE_OF_INTELLECT)
+    &Aura::HandleUnused,                                    //195 SPELL_AURA_MOD_DEPRICATED_2 not used now (old SPELL_AURA_MOD_SPELL_HEALING_OF_INTELLECT)
+    &Aura::HandleNULL,                                      //196 SPELL_AURA_MOD_COOLDOWN
+    &Aura::HandleNoImmediateEffect,                         //197 SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE implemented in Unit::SpellCriticalBonus Unit::GetUnitCriticalChance
+    &Aura::HandleUnused,                                    //198 SPELL_AURA_MOD_ALL_WEAPON_SKILLS
+    &Aura::HandleNoImmediateEffect,                         //199 SPELL_AURA_MOD_INCREASES_SPELL_PCT_TO_HIT  implemented in Unit::MagicSpellHitResult
+    &Aura::HandleNoImmediateEffect,                         //200 SPELL_AURA_MOD_XP_PCT                      implemented in Player::GiveXP
+    &Aura::HandleNULL,                           //201 SPELL_AURA_FLY                             this aura enable flight mode...
+    &Aura::HandleNoImmediateEffect,                         //202 SPELL_AURA_IGNORE_COMBAT_RESULT            implemented in Unit::MeleeSpellHitResult
+    &Aura::HandleNoImmediateEffect,                         //203 SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE  implemented in Unit::CalculateMeleeDamage and Unit::SpellCriticalDamageBonus
+    &Aura::HandleNoImmediateEffect,                         //204 SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE implemented in Unit::CalculateMeleeDamage and Unit::SpellCriticalDamageBonus
+    &Aura::HandleNoImmediateEffect,                         //205 SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE  implemented in Unit::SpellCriticalDamageBonus
+    &Aura::HandleNULL,                                      //206 SPELL_AURA_MOD_FLIGHT_SPEED
+    &Aura::HandleNULL,                                      //207 SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED
+    &Aura::HandleNULL,                                      //208 SPELL_AURA_MOD_FLIGHT_SPEED_STACKING
+    &Aura::HandleNULL,                                      //209 SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_STACKING
+    &Aura::HandleNULL,                                      //210 SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACKING
+    &Aura::HandleNULL,                                      //211 SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_NOT_STACKING
+    &Aura::HandleNULL,                                      //212 SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT
+    &Aura::HandleNoImmediateEffect,                         //213 SPELL_AURA_MOD_RAGE_FROM_DAMAGE_DEALT implemented in Player::RewardRage
+    &Aura::HandleNULL,                                      //214 Tamed Pet Passive
+    &Aura::HandleNULL,                          	    //215 SPELL_AURA_ARENA_PREPARATION
+    &Aura::HandleModCastingSpeed,                           //216 SPELL_AURA_HASTE_SPELLS
+    &Aura::HandleUnused,                                    //217                                   unused
+    &Aura::HandleAuraModRangedHaste,                        //218 SPELL_AURA_HASTE_RANGED
+    &Aura::HandleModManaRegen,                              //219 SPELL_AURA_MOD_MANA_REGEN_FROM_STAT
+    &Aura::HandleUnused,                                    //220 SPELL_AURA_MOD_RATING_FROM_STAT
+    &Aura::HandleNULL,                                      //221 ignored
+    &Aura::HandleUnused,                                    //222 unused
+    &Aura::HandleNULL,                                      //223 Cold Stare
+    &Aura::HandleUnused,                                    //224 unused
+    &Aura::HandleNoImmediateEffect,                         //225 SPELL_AURA_PRAYER_OF_MENDING
+    &Aura::HandleAuraPeriodicDummy,                         //226 SPELL_AURA_PERIODIC_DUMMY
+    &Aura::HandlePeriodicTriggerSpellWithValue,             //227 SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE
+    &Aura::HandleNoImmediateEffect,                         //228 SPELL_AURA_DETECT_STEALTH
+    &Aura::HandleNoImmediateEffect,                         //229 SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE        implemented in Unit::SpellDamageBonusTaken
+    &Aura::HandleAuraModIncreaseMaxHealth,                  //230 Commanding Shout
+    &Aura::HandleNoImmediateEffect,                         //231 SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE
+    &Aura::HandleNoImmediateEffect,                         //232 SPELL_AURA_MECHANIC_DURATION_MOD           implement in Unit::CalculateAuraDuration
+    &Aura::HandleNULL,                                      //233 set model id to the one of the creature with id m_modifier.m_miscvalue
+    &Aura::HandleNoImmediateEffect,                         //234 SPELL_AURA_MECHANIC_DURATION_MOD_NOT_STACK implement in Unit::CalculateAuraDuration
+    &Aura::HandleAuraModDispelResist,                       //235 SPELL_AURA_MOD_DISPEL_RESIST               implement in Unit::MagicSpellHitResult
+    &Aura::HandleUnused,                                    //236 unused
+    &Aura::HandleModSpellDamagePercentFromAttackPower,      //237 SPELL_AURA_MOD_SPELL_DAMAGE_OF_ATTACK_POWER  implemented in Unit::SpellBaseDamageBonusDone
+    &Aura::HandleModSpellHealingPercentFromAttackPower,     //238 SPELL_AURA_MOD_SPELL_HEALING_OF_ATTACK_POWER implemented in Unit::SpellBaseHealingBonusDone
+    &Aura::HandleNULL,                                      //239 SPELL_AURA_MOD_SCALE_2 only in Noggenfogger Elixir (16595) before 2.3.0 aura 61
+    &Aura::HandleAuraModExpertise,                          //240 SPELL_AURA_MOD_EXPERTISE
+    &Aura::HandleForceMoveForward,                          //241 Forces the caster to move forward
+    &Aura::HandleUnused,                                    //242 unused
+    &Aura::HandleFactionOverride,                           //243 SPELL_AURA_FACTION_OVERRIDE
+    &Aura::HandleComprehendLanguage,                        //244 SPELL_AURA_COMPREHEND_LANGUAGE
+    &Aura::HandleUnused,                                    //245 unused
+    &Aura::HandleUnused,                                    //246 unused
+    &Aura::HandleAuraMirrorImage,                           //247 SPELL_AURA_MIRROR_IMAGE                      target to become a clone of the caster
+    &Aura::HandleNoImmediateEffect,                         //248 SPELL_AURA_MOD_COMBAT_RESULT_CHANCE         implemented in Unit::RollMeleeOutcomeAgainst
+    &Aura::HandleNULL,                                      //249
+    &Aura::HandleAuraModIncreaseHealth,                     //250 SPELL_AURA_MOD_INCREASE_HEALTH_2
+    &Aura::HandleNULL,                                      //251 SPELL_AURA_MOD_ENEMY_DODGE
+    &Aura::HandleUnused,                                    //252 unused
+    &Aura::HandleUnused,                                    //253 unused
+    &Aura::HandleUnused,                                    //254 unused
+    &Aura::HandleUnused,                                    //255 unused
+    &Aura::HandleUnused,                                    //256 unused
+    &Aura::HandleUnused,                                    //257 unused
+    &Aura::HandleUnused,                                    //258 unused
+    &Aura::HandleUnused,                                    //259 unused
+    &Aura::HandleUnused,                                    //260 unused
+    &Aura::HandleNULL                                       //261 SPELL_AURA_261 some phased state (44856 spell)
 };
 
 static AuraType const frozenAuraTypes[] = { SPELL_AURA_MOD_ROOT, SPELL_AURA_MOD_STUN, SPELL_AURA_NONE };
@@ -3612,6 +3682,23 @@ void Aura::HandleModCastingSpeed(bool apply, bool /*Real*/)
     GetTarget()->ApplyCastTimePercentMod(amount, apply);
 }
 
+void Aura::HandleModMeleeRangedSpeedPct(bool apply, bool /*Real*/)
+{
+    Unit* target = GetTarget();
+    target->ApplyAttackTimePercentMod(BASE_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(OFF_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(RANGED_ATTACK, float(m_modifier.m_amount), apply);
+}
+
+void Aura::HandleModCombatSpeedPct(bool apply, bool /*Real*/)
+{
+    Unit* target = GetTarget();
+    target->ApplyCastTimePercentMod(float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(BASE_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(OFF_ATTACK, float(m_modifier.m_amount), apply);
+    target->ApplyAttackTimePercentMod(RANGED_ATTACK, float(m_modifier.m_amount), apply);
+}
+
 void Aura::HandleModAttackSpeed(bool apply, bool /*Real*/)
 {
     float amount = m_modifier.m_amount;
@@ -3715,6 +3802,17 @@ void Aura::HandleAuraModRangedAttackPowerPercent(bool apply, bool /*Real*/)
 
     // UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER = multiplier - 1
     GetTarget()->HandleStatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, amount, apply);
+}
+
+void Aura::HandleAuraModRangedAttackPowerOfStatPercent(bool /*apply*/, bool Real)
+{
+    // spells required only Real aura add/remove
+    if (!Real)
+        return;
+
+    // Recalculate bonus
+    if (GetTarget()->GetTypeId() == TYPEID_PLAYER && !(GetTarget()->getClassMask() & CLASSMASK_WAND_USERS))
+        ((Player*)GetTarget())->UpdateAttackPowerAndDamage(true);
 }
 
 /********************************/

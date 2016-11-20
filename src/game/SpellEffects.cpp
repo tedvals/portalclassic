@@ -184,6 +184,34 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS] =
     &Spell::EffectUnused,                                   // 127 SPELL_EFFECT_127                      future Prospecting spell, not have spells
     &Spell::EffectUnused,                                   // 128 SPELL_EFFECT_128                      future SPELL_EFFECT_APPLY_AREA_AURA_FRIEND, not have spells
     &Spell::EffectUnused,                                   // 129 SPELL_EFFECT_129                      future SPELL_EFFECT_APPLY_AREA_AURA_ENEMY, now only one test spell
+    &Spell::EffectStealBeneficialBuff,                      //126 SPELL_EFFECT_STEAL_BENEFICIAL_BUFF    spell steal effect?
+    &Spell::EffectProspecting,                              //127 SPELL_EFFECT_PROSPECTING              Prospecting spell
+    &Spell::EffectApplyAreaAura,                            //128 SPELL_EFFECT_APPLY_AREA_AURA_FRIEND
+    &Spell::EffectApplyAreaAura,                            //129 SPELL_EFFECT_APPLY_AREA_AURA_ENEMY
+    &Spell::EffectRedirectThreat,                           //130 SPELL_EFFECT_REDIRECT_THREAT
+    &Spell::EffectPlaySound,                                //131 SPELL_EFFECT_PLAY_SOUND               sound id in misc value (SoundEntries.dbc)
+    &Spell::EffectPlayMusic,                                //132 SPELL_EFFECT_PLAY_MUSIC               sound id in misc value (SoundEntries.dbc)
+    &Spell::EffectUnlearnSpecialization,                    //133 SPELL_EFFECT_UNLEARN_SPECIALIZATION   unlearn profession specialization
+    &Spell::EffectKillCreditGroup,                          //134 SPELL_EFFECT_KILL_CREDIT_GROUP        misc value is creature entry
+    &Spell::EffectNULL,                                     //135 SPELL_EFFECT_CALL_PET
+    &Spell::EffectHealPct,                                  //136 SPELL_EFFECT_HEAL_PCT
+    &Spell::EffectEnergisePct,                              //137 SPELL_EFFECT_ENERGIZE_PCT
+    &Spell::EffectLeapBack,                                 //138 SPELL_EFFECT_LEAP_BACK                Leap back
+    &Spell::EffectUnused,                                   //139 SPELL_EFFECT_CLEAR_QUEST              (misc - is quest ID), unused
+    &Spell::EffectForceCast,                                //140 SPELL_EFFECT_FORCE_CAST
+    &Spell::EffectForceCast,                                //141 SPELL_EFFECT_FORCE_CAST_WITH_VALUE
+    &Spell::EffectTriggerSpellWithValue,                    //142 SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE
+    &Spell::EffectApplyAreaAura,                            //143 SPELL_EFFECT_APPLY_AREA_AURA_OWNER
+    &Spell::EffectKnockBackFromPosition,                    //144 SPELL_EFFECT_KNOCKBACK_FROM_POSITION
+    &Spell::EffectNULL,                                     //145 SPELL_EFFECT_145                      Black Hole Effect
+    &Spell::EffectUnused,                                   //146 SPELL_EFFECT_146                      unused
+    &Spell::EffectQuestFail,                                //147 SPELL_EFFECT_QUEST_FAIL               quest fail
+    &Spell::EffectUnused,                                   //148 SPELL_EFFECT_148                      unused
+    &Spell::EffectCharge2,                                  //149 SPELL_EFFECT_CHARGE2                  swoop
+    &Spell::EffectUnused,                                   //150 SPELL_EFFECT_150                      unused
+    &Spell::EffectTriggerRitualOfSummoning,                 //151 SPELL_EFFECT_TRIGGER_SPELL_2
+    &Spell::EffectNULL,                                     //152 SPELL_EFFECT_152                      summon Refer-a-Friend
+    &Spell::EffectNULL,                                     //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
 };
 
 void Spell::EffectEmpty(SpellEffectIndex /*eff_idx*/)
@@ -1899,6 +1927,25 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
     }
 }
 
+void Spell::EffectHealPct(SpellEffectIndex /*eff_idx*/)
+{
+    if (unitTarget && unitTarget->isAlive() && damage >= 0)
+    {
+        // Try to get original caster
+        Unit* caster = GetAffectiveCaster();
+        if (!caster)
+            return;
+
+        uint32 addhealth = unitTarget->GetMaxHealth() * damage / 100;
+
+        addhealth = caster->SpellHealingBonusDone(unitTarget, m_spellInfo, addhealth, HEAL);
+        addhealth = unitTarget->SpellHealingBonusTaken(caster, m_spellInfo, addhealth, HEAL);
+
+        int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo);
+        unitTarget->getHostileRefManager().threatAssist(caster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(m_spellInfo), m_spellInfo);
+    }
+}
+
 void Spell::EffectHealMechanical(SpellEffectIndex /*eff_idx*/)
 {
     // Mechanic creature type should be correctly checked by targetCreatureType field
@@ -2116,6 +2163,26 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
         return;
 
     m_caster->EnergizeBySpell(unitTarget, m_spellInfo->Id, damage, power);
+}
+
+void Spell::EffectEnergisePct(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget)
+        return;
+    if (!unitTarget->isAlive())
+        return;
+
+    if (m_spellInfo->EffectMiscValue[eff_idx] < 0 || m_spellInfo->EffectMiscValue[eff_idx] >= MAX_POWERS)
+        return;
+
+    Powers power = Powers(m_spellInfo->EffectMiscValue[eff_idx]);
+
+    uint32 maxPower = unitTarget->GetMaxPower(power);
+    if (maxPower == 0)
+        return;
+
+    uint32 gain = damage * maxPower / 100;
+    m_caster->EnergizeBySpell(unitTarget, m_spellInfo->Id, gain, power);
 }
 
 void Spell::SendLoot(ObjectGuid guid, LootType loottype, LockType lockType)
@@ -4841,6 +4908,17 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
     unitTarget->NearTeleportTo(nextPos.x, nextPos.y, nextPos.z, orientation, unitTarget == m_caster);
 }
 
+void Spell::EffectLeapBack(SpellEffectIndex eff_idx)
+{
+    if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (unitTarget->IsTaxiFlying())
+        return;
+
+    ((Player*)m_caster)->KnockBackFrom(unitTarget, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
+}
+
 void Spell::EffectReputation(SpellEffectIndex eff_idx)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -4960,6 +5038,29 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
 
     // not all charge effects used in negative spells
     if (unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id, m_caster, unitTarget))
+        m_caster->Attack(unitTarget, true);
+}
+
+void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
+{
+    float x, y, z;
+    if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+    {
+        m_targets.getDestination(x, y, z);
+
+        if (unitTarget->GetTypeId() != TYPEID_PLAYER)
+            ((Creature*)unitTarget)->StopMoving();
+    }
+    else if (unitTarget && unitTarget != m_caster)
+        unitTarget->GetContactPoint(m_caster, x, y, z, 3.666666f);
+    else
+        return;
+
+    // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
+    m_caster->MonsterMoveWithSpeed(x, y, z, 24.f, true, true);
+
+    // not all charge effects used in negative spells
+    if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id, m_caster, unitTarget))
         m_caster->Attack(unitTarget, true);
 }
 
@@ -5364,6 +5465,35 @@ void Spell::EffectSummonDemon(SpellEffectIndex eff_idx)
     }
 }
 
+void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
+{
+    if (m_caster->GetTypeId() != TYPEID_PLAYER || !itemTarget)
+        return;
+
+    Player* p_caster = (Player*)m_caster;
+
+    if (sWorld.getConfig(CONFIG_BOOL_SKILL_PROSPECTING))
+    {
+        uint32 SkillValue = p_caster->GetPureSkillValue(SKILL_JEWELCRAFTING);
+        uint32 reqSkillValue = itemTarget->GetProto()->RequiredSkillRank;
+        p_caster->UpdateGatherSkill(SKILL_JEWELCRAFTING, SkillValue, reqSkillValue);
+    }
+
+    Loot*& loot = itemTarget->loot;
+
+    if (loot)
+        delete loot;
+
+    loot = new Loot(p_caster, itemTarget, LOOT_PROSPECTING);
+
+    loot->ShowContentTo(p_caster);
+}
+
+void Spell::EffectSkill(SpellEffectIndex /*eff_idx*/)
+{
+    DEBUG_LOG("WORLD: SkillEFFECT");
+}
+
 void Spell::EffectSpiritHeal(SpellEffectIndex /*eff_idx*/)
 {
     // TODO player can't see the heal-animation - he should respawn some ticks later
@@ -5425,6 +5555,148 @@ void Spell::EffectBind(SpellEffectIndex eff_idx)
     player->SendDirectMessage(&data);
 }
 
+void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
+{
+    DEBUG_LOG("Effect: StealBeneficialBuff");
+
+    if (!unitTarget || unitTarget == m_caster)              // can't steal from self
+        return;
+
+    typedef std::vector<SpellAuraHolder*> StealList;
+    StealList steal_list;
+    // Create dispel mask by dispel type
+    uint32 dispelMask  = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[eff_idx]));
+    Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
+    for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+    {
+        SpellAuraHolder* holder = itr->second;
+        if (holder && (1 << holder->GetSpellProto()->Dispel) & dispelMask)
+        {
+            // Need check for passive? this
+            if (holder->IsPositive() && !holder->IsPassive() && !holder->GetSpellProto()->HasAttribute(SPELL_ATTR_EX4_NOT_STEALABLE))
+                steal_list.push_back(holder);
+        }
+    }
+    // Ok if exist some buffs for dispel try dispel it
+    if (!steal_list.empty())
+    {
+        typedef std::list < std::pair<uint32, ObjectGuid> > SuccessList;
+        SuccessList success_list;
+        int32 list_size = steal_list.size();
+        // Dispell N = damage buffs (or while exist buffs for dispel)
+        for (int32 count = 0; count < damage && list_size > 0; ++count)
+        {
+            // Random select buff for dispel
+            SpellAuraHolder* holder = steal_list[urand(0, list_size - 1)];
+            // Not use chance for steal
+            // TODO possible need do it
+            success_list.push_back(SuccessList::value_type(holder->GetId(), holder->GetCasterGuid()));
+
+            // Remove buff from list for prevent doubles
+            for (StealList::iterator j = steal_list.begin(); j != steal_list.end();)
+            {
+                SpellAuraHolder* stealed = *j;
+                if (stealed->GetId() == holder->GetId() && stealed->GetCasterGuid() == holder->GetCasterGuid())
+                {
+                    j = steal_list.erase(j);
+                    --list_size;
+                }
+                else
+                    ++j;
+            }
+        }
+        // Really try steal and send log
+        if (!success_list.empty())
+        {
+            int32 count = success_list.size();
+            WorldPacket data(SMSG_SPELLSTEALLOG, 8 + 8 + 4 + 1 + 4 + count * 5);
+            data << unitTarget->GetPackGUID();       // Victim GUID
+            data << m_caster->GetPackGUID();         // Caster GUID
+            data << uint32(m_spellInfo->Id);         // Dispell spell id
+            data << uint8(0);                        // not used
+            data << uint32(count);                   // count
+            for (SuccessList::iterator j = success_list.begin(); j != success_list.end(); ++j)
+            {
+                SpellEntry const* spellInfo = sSpellStore.LookupEntry(j->first);
+                data << uint32(spellInfo->Id);       // Spell Id
+                data << uint8(0);                    // 0 - steals !=0 transfers
+                unitTarget->RemoveAurasDueToSpellBySteal(spellInfo->Id, j->second, m_caster);
+            }
+            m_caster->SendMessageToSet(data, true);
+        }
+    }
+}
+
+void Spell::EffectKillCreditGroup(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    ((Player*)unitTarget)->RewardPlayerAndGroupAtEvent(m_spellInfo->EffectMiscValue[eff_idx], unitTarget);
+}
+
+void Spell::EffectQuestFail(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    ((Player*)unitTarget)->FailQuest(m_spellInfo->EffectMiscValue[eff_idx]);
+}
+
+void Spell::EffectPlaySound(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    uint32 soundId = m_spellInfo->EffectMiscValue[eff_idx];
+    if (!sSoundEntriesStore.LookupEntry(soundId))
+    {
+        sLog.outError("EffectPlaySound: Sound (Id: %u) in spell %u does not exist.", soundId, m_spellInfo->Id);
+        return;
+    }
+
+    unitTarget->PlayDirectSound(soundId, (Player*)unitTarget);
+}
+
+void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    uint32 soundId = m_spellInfo->EffectMiscValue[eff_idx];
+    if (!sSoundEntriesStore.LookupEntry(soundId))
+    {
+        sLog.outError("EffectPlayMusic: Sound (Id: %u) in spell %u does not exist.", soundId, m_spellInfo->Id);
+        return;
+    }
+
+    m_caster->PlayMusic(soundId, (Player*)unitTarget);
+}
+
+void Spell::EffectRedirectThreat(SpellEffectIndex /*eff_idx*/)
+{
+    if (!unitTarget)
+        return;
+
+    m_caster->getHostileRefManager().SetThreatRedirection(unitTarget->GetObjectGuid());
+}
+
+void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    float x, y, z;
+    if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+        m_targets.getDestination(x, y, z);
+    else
+        m_caster->GetPosition(x, y, z);
+
+    float angle = unitTarget->GetAngle(x, y) + M_PI_F;
+    float horizontalSpeed = m_spellInfo->EffectMiscValue[eff_idx] * 0.1f;
+    float verticalSpeed = damage * 0.1f;
+    ((Player*)unitTarget)->GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
+}
 
 void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 {

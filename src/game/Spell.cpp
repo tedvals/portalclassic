@@ -4982,6 +4982,12 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 break;
             }
+            case SPELL_EFFECT_STEAL_BENEFICIAL_BUFF:
+            {
+                if (m_targets.getUnitTarget() == m_caster)
+                    return SPELL_FAILED_BAD_TARGETS;
+                break;
+            }
             default: break;
         }
     }

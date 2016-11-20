@@ -1720,6 +1720,14 @@ enum CreatureFamily
     CREATURE_FAMILY_OWL            = 26,
     CREATURE_FAMILY_WIND_SERPENT   = 27,
     CREATURE_FAMILY_REMOTE_CONTROL = 28,
+    CREATURE_FAMILY_FELGUARD       = 29,
+    CREATURE_FAMILY_DRAGONHAWK     = 30,
+    CREATURE_FAMILY_RAVAGER        = 31,
+    CREATURE_FAMILY_WARP_STALKER   = 32,
+    CREATURE_FAMILY_SPOREBAT       = 33,
+    CREATURE_FAMILY_NETHER_RAY     = 34,
+    CREATURE_FAMILY_SERPENT        = 35,
+    CREATURE_FAMILY_SEA_LION       = 36
 };
 
 enum CreatureTypeFlags
@@ -1958,11 +1966,23 @@ enum SkillType
     SKILL_RACIAL_TROLL             = 733,
     SKILL_RACIAL_GNOME             = 753,
     SKILL_RACIAL_HUMAN             = 754,
+    SKILL_JEWELCRAFTING            = 755,
+    SKILL_RACIAL_BLOODELF          = 756,
     SKILL_PET_EVENT_RC             = 758,
+    SKILL_LANG_DRAENEI             = 759,
+    SKILL_RACIAL_DRAENEI           = 760,
+    SKILL_PET_FELGUARD             = 761,
     SKILL_RIDING                   = 762,
+    SKILL_PET_DRAGONHAWK           = 763,
+    SKILL_PET_NETHER_RAY           = 764,
+    SKILL_PET_SPOREBAT             = 765,
+    SKILL_PET_WARP_STALKER         = 766,
+    SKILL_PET_RAVAGER              = 767,
+    SKILL_PET_SERPENT              = 768,
+    SKILL_INTERNAL                 = 769
 };
 
-#define MAX_SKILL_TYPE               763
+#define MAX_SKILL_TYPE               770
 
 inline SkillType SkillByLockType(LockType locktype)
 {

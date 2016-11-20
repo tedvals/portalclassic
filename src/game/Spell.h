@@ -305,7 +305,18 @@ class Spell
         void EffectSpiritHeal(SpellEffectIndex eff_idx);
         void EffectSkinPlayerCorpse(SpellEffectIndex eff_idx);
         void EffectSummonDemon(SpellEffectIndex eff_idx);
-		void EffectReforgeItem(SpellEffectIndex eff_idx);
+	void EffectReforgeItem(SpellEffectIndex eff_idx);
+        void EffectStealBeneficialBuff(SpellEffectIndex eff_idx);
+        void EffectUnlearnSpecialization(SpellEffectIndex eff_idx);
+        void EffectHealPct(SpellEffectIndex eff_idx);
+        void EffectEnergisePct(SpellEffectIndex eff_idx);
+        void EffectTriggerSpellWithValue(SpellEffectIndex eff_idx);
+        void EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx);
+        void EffectKillCreditGroup(SpellEffectIndex eff_idx);
+        void EffectQuestFail(SpellEffectIndex eff_idx);
+        void EffectPlaySound(SpellEffectIndex eff_idx);
+        void EffectPlayMusic(SpellEffectIndex eff_idx);
+        void EffectKnockBackFromPosition(SpellEffectIndex eff_idx);
 
         Spell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         ~Spell();

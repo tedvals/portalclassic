@@ -339,6 +339,8 @@ class MANGOS_DLL_SPEC Aura
         void HandlePeriodicManaLeech(bool Apply, bool Real);
         void HandlePeriodicHealthFunnel(bool apply, bool Real);
         void HandleModCastingSpeed(bool Apply, bool Real);
+        void HandleModMeleeRangedSpeedPct(bool Apply, bool Real);
+        void HandleModMeleeRangedSpeedPct(bool Apply, bool Real);
         void HandleAuraMounted(bool Apply, bool Real);
         void HandleWaterBreathing(bool Apply, bool Real);
         void HandleModBaseResistance(bool Apply, bool Real);
@@ -375,6 +377,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraGhost(bool Apply, bool Real);
         void HandleAuraModAttackPowerPercent(bool apply, bool Real);
         void HandleAuraModRangedAttackPowerPercent(bool apply, bool Real);
+        void Aura::HandleAuraModRangedAttackPowerOfStatPercent(bool apply, bool Real);
         void HandleSpiritOfRedemption(bool apply, bool Real);
         void HandleShieldBlockValue(bool apply, bool Real);
         void HandleModSpellCritChanceShool(bool apply, bool Real);
