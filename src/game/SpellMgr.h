@@ -206,6 +206,8 @@ inline bool IsSpellEffectTriggerSpellByAura(const SpellEntry* entry, SpellEffect
 	case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
 	case SPELL_AURA_PROC_TRIGGER_SPELL:
 	case SPELL_AURA_PROC_TRIGGER_DAMAGE:
+	case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
+	case SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE:
 		return true;
 	}
 	return false;

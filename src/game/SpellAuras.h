@@ -274,6 +274,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleModPossess(bool Apply, bool Real);
         void HandlePeriodicDamage(bool Apply, bool Real);
         void HandleAuraDummy(bool Apply, bool Real);
+		void HandleAuraPeriodicDummy(bool apply, bool Real);
         void HandleModConfuse(bool Apply, bool Real);
         void HandleModCharm(bool Apply, bool Real);
         void HandleModFear(bool Apply, bool Real);
@@ -294,11 +295,12 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraEmpathy(bool Apply, bool Real);
         void HandleModOffhandDamagePercent(bool apply, bool Real);
         void HandleAuraModRangedAttackPower(bool Apply, bool Real);
+		void HandleAuraModIncreaseMaxHealth(bool apply, bool Real);
         void HandleAuraModIncreaseEnergyPercent(bool Apply, bool Real);
         void HandleAuraModIncreaseHealthPercent(bool Apply, bool Real);
         void HandleAuraModRegenInterrupt(bool Apply, bool Real);
         void HandleModMeleeSpeedPct(bool Apply, bool Real);
-        void HandlePeriodicTriggerSpell(bool Apply, bool Real);
+        void HandlePeriodicTriggerSpell(bool Apply, bool Real);		
         void HandlePeriodicTriggerSpellWithValue(bool apply, bool Real);
         void HandlePeriodicEnergize(bool Apply, bool Real);
         void HandleAuraModResistanceExclusive(bool Apply, bool Real);
@@ -340,13 +342,14 @@ class MANGOS_DLL_SPEC Aura
         void HandlePeriodicHealthFunnel(bool apply, bool Real);
         void HandleModCastingSpeed(bool Apply, bool Real);
         void HandleModMeleeRangedSpeedPct(bool Apply, bool Real);
-        void HandleModMeleeRangedSpeedPct(bool Apply, bool Real);
+        void HandleModCombatSpeedPct(bool Apply, bool Real);
         void HandleAuraMounted(bool Apply, bool Real);
         void HandleWaterBreathing(bool Apply, bool Real);
         void HandleModBaseResistance(bool Apply, bool Real);
         void HandleModRegen(bool Apply, bool Real);
         void HandleModPowerRegen(bool Apply, bool Real);
         void HandleModPowerRegenPCT(bool Apply, bool Real);
+		void HandleModManaRegen(bool apply, bool Real);		
         void HandleChannelDeathItem(bool Apply, bool Real);
         void HandlePeriodicDamagePCT(bool Apply, bool Real);
         void HandleAuraModAttackPower(bool Apply, bool Real);
@@ -377,13 +380,16 @@ class MANGOS_DLL_SPEC Aura
         void HandleAuraGhost(bool Apply, bool Real);
         void HandleAuraModAttackPowerPercent(bool apply, bool Real);
         void HandleAuraModRangedAttackPowerPercent(bool apply, bool Real);
-        void Aura::HandleAuraModRangedAttackPowerOfStatPercent(bool apply, bool Real);
+        void HandleAuraModRangedAttackPowerOfStatPercent(bool apply, bool Real);
         void HandleSpiritOfRedemption(bool apply, bool Real);
         void HandleShieldBlockValue(bool apply, bool Real);
         void HandleModSpellCritChanceShool(bool apply, bool Real);
         void HandleAuraRetainComboPoints(bool apply, bool Real);
         void HandleModSpellDamagePercentFromStat(bool apply, bool Real);
         void HandleModSpellHealingPercentFromStat(bool apply, bool Real);
+		void HandleAuraModDispelResist(bool apply, bool Real);
+		void HandleModSpellDamagePercentFromAttackPower(bool apply, bool Real);
+		void HandleModSpellHealingPercentFromAttackPower(bool apply, bool Real);
         void HandleAuraModPacifyAndSilence(bool Apply, bool Real);
         void HandleAuraModResistenceOfStatPercent(bool apply, bool Real);
         void HandleAuraPowerBurn(bool apply, bool Real);
@@ -391,6 +397,9 @@ class MANGOS_DLL_SPEC Aura
         void HandlePreventFleeing(bool apply, bool Real);
         void HandleManaShield(bool apply, bool Real);
         void HandleInterruptRegen(bool apply, bool Real);
+		void HandleAuraMirrorImage(bool apply, bool Real);
+		void HandleFactionOverride(bool apply, bool Real);
+
 
         virtual ~Aura();
 
@@ -457,6 +466,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleShapeshiftBoosts(bool apply);
 
         void TriggerSpell();
+		void TriggerSpellWithValue();
 
         // more limited that used in future versions (spell_affect table based only), so need be careful with backporting uses
         bool isAffectedOnSpell(SpellEntry const* spell) const;

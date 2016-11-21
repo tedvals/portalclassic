@@ -1474,6 +1474,72 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
     }
 }
 
+void Spell::EffectTriggerSpellWithValue(SpellEffectIndex eff_idx)
+{
+	uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[eff_idx];
+
+	// normal case
+	SpellEntry const* spellInfo = sSpellStore.LookupEntry(triggered_spell_id);
+
+	if (!spellInfo)
+	{
+		// No previous Effect might have started a script
+		bool startDBScript = unitTarget && ScriptMgr::CanSpellEffectStartDBScript(m_spellInfo, eff_idx);
+		if (startDBScript)
+		{
+			DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart spellid %u in EffectTriggerSpell", m_spellInfo->Id);
+			startDBScript = m_caster->GetMap()->ScriptsStart(sSpellScripts, m_spellInfo->Id, m_caster, unitTarget);
+		}
+
+		if (!startDBScript)
+			sLog.outError("EffectTriggerSpell of spell %u: triggering unknown spell id %i", m_spellInfo->Id, triggered_spell_id);
+		return;
+	}
+
+	int32 bp = damage;
+	m_caster->CastCustomSpell(unitTarget, triggered_spell_id, &bp, &bp, &bp, true, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);
+}
+
+void Spell::EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx)
+{
+	uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[eff_idx];
+	SpellEntry const* spellInfo = sSpellStore.LookupEntry(triggered_spell_id);
+
+	if (!spellInfo)
+	{
+		sLog.outError("EffectTriggerRitualOfSummoning of spell %u: triggering unknown spell id %i", m_spellInfo->Id, triggered_spell_id);
+		return;
+	}
+
+	finish();
+
+	m_caster->CastSpell(unitTarget, spellInfo, false);
+}
+
+void Spell::EffectForceCast(SpellEffectIndex eff_idx)
+{
+	if (!unitTarget)
+		return;
+
+	uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[eff_idx];
+
+	// normal case
+	SpellEntry const* spellInfo = sSpellStore.LookupEntry(triggered_spell_id);
+
+	if (!spellInfo)
+	{
+		sLog.outError("EffectForceCast of spell %u: triggering unknown spell id %i", m_spellInfo->Id, triggered_spell_id);
+		return;
+	}
+
+	int32 basePoints = damage;
+
+	// spell effect 141 needs to be cast as custom with basePoints
+	if (m_spellInfo->Effect[eff_idx] == SPELL_EFFECT_FORCE_CAST_WITH_VALUE)
+		unitTarget->CastCustomSpell(unitTarget, spellInfo, &basePoints, &basePoints, &basePoints, true, nullptr, nullptr, m_originalCasterGUID, m_spellInfo);
+	else
+		unitTarget->CastSpell(unitTarget, spellInfo, true, nullptr, nullptr, m_originalCasterGUID, m_spellInfo);
+}
 void Spell::EffectTriggerSpell(SpellEffectIndex eff_idx)
 {
     // only unit case known
@@ -1783,6 +1849,20 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
 
     Aura* aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, caster, m_CastItem);
     m_spellAuraHolder->AddAura(aur, eff_idx);
+}
+
+void Spell::EffectUnlearnSpecialization(SpellEffectIndex eff_idx)
+{
+	if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	Player* _player = (Player*)unitTarget;
+	uint32 spellToUnlearn = m_spellInfo->EffectTriggerSpell[eff_idx];
+
+	_player->removeSpell(spellToUnlearn);
+
+	if (WorldObject const* caster = GetCastingObject())
+		DEBUG_LOG("Spell: %s has unlearned spell %u at %s", _player->GetGuidStr().c_str(), spellToUnlearn, caster->GetGuidStr().c_str());
 }
 
 void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
@@ -5622,10 +5702,11 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
                 data << uint8(0);                    // 0 - steals !=0 transfers
                 unitTarget->RemoveAurasDueToSpellBySteal(spellInfo->Id, j->second, m_caster);
             }
-            m_caster->SendMessageToSet(data, true);
+            m_caster->SendMessageToSet(&data, true);
         }
     }
 }
+
 
 void Spell::EffectKillCreditGroup(SpellEffectIndex eff_idx)
 {

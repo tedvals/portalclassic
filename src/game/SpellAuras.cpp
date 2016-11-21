@@ -247,8 +247,8 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleUnused,                                    // 189 SPELL_AURA_MOD_RATING (not used in 1.12.1)
     &Aura::HandleNoImmediateEffect,                         // 190 SPELL_AURA_MOD_FACTION_REPUTATION_GAIN     implemented in Player::CalculateReputationGain
     &Aura::HandleAuraModUseNormalSpeed,                     // 191 SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED
-&Aura::HandleModMeleeRangedSpeedPct,                    //192  SPELL_AURA_MOD_MELEE_RANGED_HASTE - OK
-    &Aura::HandleModCombatSpeedPct,                         //193 SPELL_AURA_HASTE_ALL (in fact combat (any type attack) speed pct) - OK
+    &Aura::HandleModMeleeRangedSpeedPct,                    //192  SPELL_AURA_MOD_MELEE_RANGED_HASTE
+    &Aura::HandleModCombatSpeedPct,                         //193 SPELL_AURA_HASTE_ALL (in fact combat (any type attack) speed pct)
     &Aura::HandleUnused,                                    //194 SPELL_AURA_MOD_DEPRICATED_1 not used now (old SPELL_AURA_MOD_SPELL_DAMAGE_OF_INTELLECT)
     &Aura::HandleUnused,                                    //195 SPELL_AURA_MOD_DEPRICATED_2 not used now (old SPELL_AURA_MOD_SPELL_HEALING_OF_INTELLECT)
     &Aura::HandleNULL,                                      //196 SPELL_AURA_MOD_COOLDOWN
@@ -295,14 +295,14 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleModSpellDamagePercentFromAttackPower,      //237 SPELL_AURA_MOD_SPELL_DAMAGE_OF_ATTACK_POWER  implemented in Unit::SpellBaseDamageBonusDone
     &Aura::HandleModSpellHealingPercentFromAttackPower,     //238 SPELL_AURA_MOD_SPELL_HEALING_OF_ATTACK_POWER implemented in Unit::SpellBaseHealingBonusDone
     &Aura::HandleNULL,                                      //239 SPELL_AURA_MOD_SCALE_2 only in Noggenfogger Elixir (16595) before 2.3.0 aura 61
-    &Aura::HandleAuraModExpertise,                          //240 SPELL_AURA_MOD_EXPERTISE
-    &Aura::HandleForceMoveForward,                          //241 Forces the caster to move forward
+    &Aura::HandleNULL,                          //240 SPELL_AURA_MOD_EXPERTISE
+    &Aura::HandleNULL,                          //241 Forces the caster to move forward
     &Aura::HandleUnused,                                    //242 unused
     &Aura::HandleFactionOverride,                           //243 SPELL_AURA_FACTION_OVERRIDE
-    &Aura::HandleComprehendLanguage,                        //244 SPELL_AURA_COMPREHEND_LANGUAGE
+    &Aura::HandleUnused,                        //244 SPELL_AURA_COMPREHEND_LANGUAGE
     &Aura::HandleUnused,                                    //245 unused
     &Aura::HandleUnused,                                    //246 unused
-    &Aura::HandleAuraMirrorImage,                           //247 SPELL_AURA_MIRROR_IMAGE                      target to become a clone of the caster
+    &Aura::HandleUnused,                           //247 SPELL_AURA_MIRROR_IMAGE                      target to become a clone of the caster
     &Aura::HandleNoImmediateEffect,                         //248 SPELL_AURA_MOD_COMBAT_RESULT_CHANCE         implemented in Unit::RollMeleeOutcomeAgainst
     &Aura::HandleNULL,                                      //249
     &Aura::HandleAuraModIncreaseHealth,                     //250 SPELL_AURA_MOD_INCREASE_HEALTH_2
@@ -1191,6 +1191,22 @@ void Aura::TriggerSpell()
         }
     }
 }
+
+void Aura::TriggerSpellWithValue()
+{
+	ObjectGuid casterGuid = GetCasterGuid();
+	Unit* target = GetTriggerTarget();
+
+	if (!casterGuid || !target)
+		return;
+
+	// generic casting code with custom spells and target/caster customs
+	uint32 trigger_spell_id = GetSpellProto()->EffectTriggerSpell[m_effIndex];
+	int32  basepoints0 = GetModifier()->m_amount;
+
+	target->CastCustomSpell(target, trigger_spell_id, &basepoints0, nullptr, nullptr, true, nullptr, this, casterGuid);
+}
+
 
 /*********************************************************/
 /***                  AURA EFFECTS                     ***/
@@ -2983,6 +2999,47 @@ void Aura::HandleAuraPowerBurn(bool apply, bool /*Real*/)
     m_isPeriodic = apply;
 }
 
+void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
+{
+	// spells required only Real aura add/remove
+	if (!Real)
+		return;
+
+	Unit* target = GetTarget();
+
+	// For prevent double apply bonuses
+	bool loading = (target->GetTypeId() == TYPEID_PLAYER && ((Player*)target)->GetSession()->PlayerLoading());
+
+	SpellEntry const* spell = GetSpellProto();
+	switch (spell->SpellFamilyName)
+	{
+	case SPELLFAMILY_ROGUE:
+	{
+		// Master of Subtlety
+		if (spell->Id == 31666 && !apply)
+		{
+			target->RemoveAurasDueToSpell(31665);
+			break;
+		}
+		break;
+	}
+	case SPELLFAMILY_HUNTER:
+	{
+		// Aspect of the Viper
+		if (spell->SpellFamilyFlags & uint64(0x0004000000000000))
+		{
+			// Update regen on remove
+			if (!apply && target->GetTypeId() == TYPEID_PLAYER)
+				((Player*)target)->UpdateManaRegen();
+			break;
+		}
+		break;
+	}
+	}
+
+	m_isPeriodic = apply;
+}
+
 void Aura::HandlePeriodicHeal(bool apply, bool /*Real*/)
 {
     m_isPeriodic = apply;
@@ -3323,6 +3380,37 @@ void Aura::HandleModSpellHealingPercentFromStat(bool /*apply*/, bool /*Real*/)
     ((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
 }
 
+
+void Aura::HandleAuraModDispelResist(bool apply, bool Real)
+{
+	if (!Real || !apply)
+		return;
+
+	if (GetId() == 33206)
+		GetTarget()->CastSpell(GetTarget(), 44416, true, nullptr, this, GetCasterGuid());
+}
+
+void Aura::HandleModSpellDamagePercentFromAttackPower(bool /*apply*/, bool /*Real*/)
+{
+	if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	// Magic damage modifiers implemented in Unit::SpellDamageBonusDone
+	// This information for client side use only
+	// Recalculate bonus
+	((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+}
+
+void Aura::HandleModSpellHealingPercentFromAttackPower(bool /*apply*/, bool /*Real*/)
+{
+	if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	// Recalculate bonus
+	((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+}
+
+
 void Aura::HandleModHealingDone(bool /*apply*/, bool /*Real*/)
 {
     if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
@@ -3472,6 +3560,20 @@ void Aura::HandleModPowerRegenPCT(bool /*apply*/, bool Real)
         ((Player*)GetTarget())->UpdateManaRegen();
 }
 
+void Aura::HandleModManaRegen(bool /*apply*/, bool Real)
+{
+	// spells required only Real aura add/remove
+	if (!Real)
+		return;
+
+	if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	// Note: an increase in regen does NOT cause threat.
+	((Player*)GetTarget())->UpdateManaRegen();
+}
+
+
 void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
 {
     Unit* target = GetTarget();
@@ -3521,6 +3623,25 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
         default:
             target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
     }
+}
+
+void  Aura::HandleAuraModIncreaseMaxHealth(bool apply, bool /*Real*/)
+{
+	Unit* target = GetTarget();
+	uint32 oldhealth = target->GetHealth();
+	double healthPercentage = (double)oldhealth / (double)target->GetMaxHealth();
+
+	target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+
+	// refresh percentage
+	if (oldhealth > 0)
+	{
+		uint32 newhealth = uint32(ceil((double)target->GetMaxHealth() * healthPercentage));
+		if (newhealth == 0)
+			newhealth = 1;
+
+		target->SetHealth(newhealth);
+	}
 }
 
 void Aura::HandleAuraModIncreaseEnergy(bool apply, bool /*Real*/)
@@ -4774,6 +4895,11 @@ void Aura::PeriodicTick()
             TriggerSpell();
             break;
         }
+		case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
+		{
+			TriggerSpellWithValue();
+			break;
+		}
         default:
             break;
     }
@@ -5411,6 +5537,21 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
 void Aura::HandleAuraSafeFall(bool Apply, bool Real)
 {
     // implemented in WorldSession::HandleMovementOpcodes
+}
+
+void Aura::HandleFactionOverride(bool apply, bool Real)
+{
+	if (!Real)
+		return;
+
+	Unit* target = GetTarget();
+	if (!target || !sFactionTemplateStore.LookupEntry(GetMiscValue()))
+		return;
+
+	if (apply)
+		target->setFaction(GetMiscValue());
+	else
+		target->RestoreOriginalFaction();
 }
 
 SpellAuraHolder::~SpellAuraHolder()

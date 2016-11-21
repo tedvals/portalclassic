@@ -1634,6 +1634,16 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
 
             int32 mod = GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, creatureTypeMask);
 
+			// Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS modifier first
+			const int32 bonus = GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, SPELL_SCHOOL_MASK_NORMAL);
+			damageInfo->totalDamage += int32((damageInfo->totalDamage) * float(bonus / 100.0f));
+			
+			// Apply SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE or SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE
+			if (damageInfo->attackType == RANGED_ATTACK)
+				mod += damageInfo->target->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
+			else
+				mod += damageInfo->target->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
+
             damageInfo->totalDamage = uint32((damageInfo->totalDamage) * float((200.0f + mod) / 100.0f));
 
             for (uint8 i = 0; i < m_weaponDamageCount[damageInfo->attackType]; i++)
@@ -2764,6 +2774,23 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
             canParry = false;
     }
 
+	// Ignore combat result aura
+	AuraList const& ignore = GetAurasByType(SPELL_AURA_IGNORE_COMBAT_RESULT);
+	for (AuraList::const_iterator i = ignore.begin(); i != ignore.end(); ++i)
+	{
+		if (!(*i)->isAffectedOnSpell(spell))
+			continue;
+		switch ((*i)->GetModifier()->m_miscvalue)
+		{
+		case MELEE_HIT_DODGE: canDodge = false; break;
+		case MELEE_HIT_BLOCK: break; // Block check in hit step
+		case MELEE_HIT_PARRY: canParry = false; break;
+		default:
+			DEBUG_LOG("Spell %u SPELL_AURA_IGNORE_COMBAT_RESULT have unhandled state %d", (*i)->GetId(), (*i)->GetModifier()->m_miscvalue);
+			break;
+		}
+	}
+
     if (canDodge)
     {
         // Roll dodge
@@ -2814,6 +2841,8 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     // Spellmod from SPELLMOD_RESIST_MISS_CHANCE
     if (Player* modOwner = GetSpellModOwner())
         modOwner->ApplySpellMod(spell->Id, SPELLMOD_RESIST_MISS_CHANCE, modHitChance);
+	// Increase from attacker SPELL_AURA_MOD_INCREASES_SPELL_PCT_TO_HIT auras
+	modHitChance += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_INCREASES_SPELL_PCT_TO_HIT, schoolMask);
     // Chance hit from victim SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE auras
     modHitChance += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE, schoolMask);
     // Reduce spell hit chance for Area of effect spells from victim SPELL_AURA_MOD_AOE_AVOIDANCE aura
@@ -3135,6 +3164,8 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit* pVict
         crit += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_CHANCE);
     else
         crit += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_CHANCE);
+
+	crit += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
 
     // Apply crit chance from defence skill
     crit += (int32(GetMaxSkillValueForLevel(pVictim)) - int32(pVictim->GetDefenseSkillValue(this))) * 0.04f;
@@ -5865,6 +5896,10 @@ uint32 Unit::SpellDamageBonusTaken(Unit* pCaster, SpellEntry const* spellProto, 
     // ..taken
     TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, schoolMask);
 
+	// Mod damage taken from AoE spells
+	if (IsAreaOfEffectSpell(spellProto))
+		TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
+
     // Taken fixed damage bonus auras
     int32 TakenAdvertisedBenefit = SpellBaseDamageBonusTaken(GetSpellSchoolMask(spellProto));
 
@@ -5971,6 +6006,8 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
                 {
                     // Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE
                     crit_chance += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE, schoolMask);
+					// Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE
+					crit_chance += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
                 }
 
                 // scripted (increase crit chance ... against ... target by x%)
@@ -6044,9 +6081,20 @@ uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 damag
     if (!pVictim)
         return damage += crit_bonus;
 
+	int32 critPctDamageMod = 0;
+	if (spellProto->DmgClass >= SPELL_DAMAGE_CLASS_MELEE)
+	{
+		if (GetWeaponAttackType(spellProto) == RANGED_ATTACK)
+			critPctDamageMod += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
+		else
+			critPctDamageMod += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
+	}
+	else
+		critPctDamageMod += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
+	
     uint32 creatureTypeMask = pVictim->GetCreatureTypeMask();
 
-    int32 critPctDamageMod = GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, creatureTypeMask);
+    critPctDamageMod += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, creatureTypeMask);
 
     if (critPctDamageMod != 0)
         crit_bonus = int32(crit_bonus * float((100.0f + critPctDamageMod) / 100.0f));
@@ -6568,6 +6616,10 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackTy
     else
         TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_MELEE_DAMAGE_TAKEN_PCT);
 
+	// ..taken pct (aoe avoidance)
+	if (spellProto && IsAreaOfEffectSpell(spellProto))
+		TakenPercent *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
+
 	// special dummys/class scripts and other effects
 	// =============================================
 	Unit* owner = GetOwner();
@@ -7074,6 +7126,9 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     if (!isInFront)
         return false;
 
+	// if doesn't have stealth detection (Shadow Sight), then check how stealthy the unit is, otherwise just check los
+	if (!u->HasAuraType(SPELL_AURA_DETECT_STEALTH))
+	{
     // Calculation if target is in front
 
     // Visible distance based on stealth value (stealth rank 4 300MOD, 10.5 - 3 = 7.5)
@@ -7096,6 +7151,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // recheck new distance
     if (visibleDistance <= 0 || !IsWithinDist(viewPoint, visibleDistance))
         return false;
+	}
 
     // Now check is target visible with LoS
     float ox, oy, oz;
@@ -7754,6 +7810,39 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
     }
     return value;
 }
+
+int32 Unit::CalculateAuraDuration(SpellEntry const* spellProto, uint32 effectMask, int32 duration, Unit const* caster)
+{
+	if (duration <= 0)
+		return duration;
+
+	int32 mechanicMod = 0;
+	uint32 mechanicMask = GetSpellMechanicMask(spellProto, effectMask);
+
+	for (int32 mechanic = FIRST_MECHANIC; mechanic < MAX_MECHANIC; ++mechanic)
+	{
+		if (!(mechanicMask & (1 << (mechanic - 1))))
+			continue;
+
+		int32 stackingMod = GetTotalAuraModifierByMiscValue(SPELL_AURA_MECHANIC_DURATION_MOD, mechanic);
+		int32 nonStackingMod = GetMaxNegativeAuraModifierByMiscValue(SPELL_AURA_MECHANIC_DURATION_MOD_NOT_STACK, mechanic);
+
+		mechanicMod = std::min(mechanicMod, std::min(stackingMod, nonStackingMod));
+	}
+
+	int32 durationMod = mechanicMod;
+
+	if (durationMod != 0)
+	{
+		duration = int32(int64(duration) * (100 + durationMod) / 100);
+
+		if (duration < 0)
+			duration = 0;
+	}
+
+	return duration;
+}
+
 
 DiminishingLevels Unit::GetDiminishing(DiminishingGroup group)
 {
@@ -9485,6 +9574,24 @@ void Unit::SetPvP(bool state)
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP);
 
     CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
+}
+
+void Unit::RestoreOriginalFaction()
+{
+	if (GetTypeId() == TYPEID_PLAYER)
+		((Player*)this)->setFactionForRace(getRace());
+	else
+	{
+		Creature* creature = (Creature*)this;
+
+		if (creature->IsPet() || creature->IsTotem())
+		{
+			if (Unit* owner = GetOwner())
+				setFaction(owner->getFaction());
+		}
+		else
+			setFaction(creature->GetCreatureInfo()->FactionAlliance);
+	}
 }
 
 struct StopAttackFactionHelper

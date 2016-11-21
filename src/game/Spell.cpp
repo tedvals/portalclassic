@@ -1238,6 +1238,8 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
                 }
             }
 
+			duration = unit->CalculateAuraDuration(m_spellInfo, effectMask, duration, m_caster);
+
             if (duration != originalDuration)
             {
                 m_spellAuraHolder->SetAuraMaxDuration(duration);

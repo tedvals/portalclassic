@@ -1947,6 +1947,9 @@ void Player::RewardRage(uint32 damage, bool attacker)
     if (attacker)
     {
         addRage = damage / rageconversion * 7.5f;
+
+		// talent who gave more rage on attack
+		addRage *= 1.0f + GetTotalAuraModifier(SPELL_AURA_MOD_RAGE_FROM_DAMAGE_DEALT) / 100.0f;
     }
     else
     {
@@ -2356,6 +2359,11 @@ void Player::GiveXP(uint32 xp, Unit* victim)
     // XP to money conversion processed in Player::RewardQuest
     if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         return;
+
+	// handle SPELL_AURA_MOD_XP_PCT auras
+	Unit::AuraList const& ModXPPctAuras = GetAurasByType(SPELL_AURA_MOD_XP_PCT);
+	for (Unit::AuraList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
+		xp = uint32(xp * (1.0f + (*i)->GetModifier()->m_amount / 100.0f));
 
     // XP resting bonus for kill
     uint32 rested_bonus_xp = victim ? GetXPRestBonus(xp) : 0;
