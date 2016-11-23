@@ -375,12 +375,25 @@ AreaAura::AreaAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* cu
 
     switch (spellproto->Effect[eff])
     {
-        case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
-            m_areaAuraType = AREA_AURA_PARTY;
-            break;
-        case SPELL_EFFECT_APPLY_AREA_AURA_PET:
-            m_areaAuraType = AREA_AURA_PET;
-            break;
+	case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
+		m_areaAuraType = AREA_AURA_PARTY;
+		break;
+	case SPELL_EFFECT_APPLY_AREA_AURA_FRIEND:
+		m_areaAuraType = AREA_AURA_FRIEND;
+		break;
+	case SPELL_EFFECT_APPLY_AREA_AURA_ENEMY:
+		m_areaAuraType = AREA_AURA_ENEMY;
+		if (target == caster_ptr)
+			m_modifier.m_auraname = SPELL_AURA_NONE;    // Do not do any effect on self
+		break;
+	case SPELL_EFFECT_APPLY_AREA_AURA_PET:
+		m_areaAuraType = AREA_AURA_PET;
+		break;
+	case SPELL_EFFECT_APPLY_AREA_AURA_OWNER:
+		m_areaAuraType = AREA_AURA_OWNER;
+		if (target == caster_ptr)
+			m_modifier.m_auraname = SPELL_AURA_NONE;
+		break;
         default:
             sLog.outError("Wrong spell effect in AreaAura constructor");
             MANGOS_ASSERT(false);
@@ -5426,8 +5439,12 @@ bool SpellAuraHolder::IsNeedVisibleSlot(Unit const* caster) const
         // special area auras cases
         switch (m_spellProto->Effect[i])
         {
-            case SPELL_EFFECT_APPLY_AREA_AURA_PET:
-            case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
+		case SPELL_EFFECT_APPLY_AREA_AURA_ENEMY:
+			return m_target != caster;
+		case SPELL_EFFECT_APPLY_AREA_AURA_PET:
+		case SPELL_EFFECT_APPLY_AREA_AURA_OWNER:
+		case SPELL_EFFECT_APPLY_AREA_AURA_FRIEND:
+		case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
                 // passive auras (except totem auras) do not get placed in caster slot
                 return (m_target != caster || totemAura || !m_isPassive) && m_auras[i]->GetModifier()->m_auraname != SPELL_AURA_NONE;
             default:

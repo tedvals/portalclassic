@@ -104,6 +104,9 @@ inline bool IsAuraApplyEffect(SpellEntry const* spellInfo, SpellEffectIndex effe
 	case SPELL_EFFECT_PERSISTENT_AREA_AURA:
 	case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
 	case SPELL_EFFECT_APPLY_AREA_AURA_PET:
+	case SPELL_EFFECT_APPLY_AREA_AURA_FRIEND:
+	case SPELL_EFFECT_APPLY_AREA_AURA_ENEMY:
+	case SPELL_EFFECT_APPLY_AREA_AURA_OWNER:
 		return true;
 	}
 	return false;
@@ -490,7 +493,10 @@ inline bool IsAreaOfEffectSpell(SpellEntry const* spellInfo)
 inline bool IsAreaAuraEffect(uint32 effect)
 {
 	if (effect == SPELL_EFFECT_APPLY_AREA_AURA_PARTY ||
-		effect == SPELL_EFFECT_APPLY_AREA_AURA_PET)
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_FRIEND ||
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_ENEMY ||
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_PET ||
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_OWNER)
 		return true;
 	return false;
 }
