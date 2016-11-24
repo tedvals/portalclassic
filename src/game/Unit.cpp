@@ -563,7 +563,7 @@ void Unit::SendHeartBeat()
     WorldPacket data(MSG_MOVE_HEARTBEAT, 31);
     data << GetPackGUID();
     data << m_movementInfo;
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::resetAttackTimer(WeaponAttackType type)
@@ -802,9 +802,9 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
             data << pVictim->GetObjectGuid();               // victim
 
             if (group_tap)
-                group_tap->BroadcastPacket(&data, false, group_tap->GetMemberGroup(player_tap->GetObjectGuid()), player_tap->GetObjectGuid());
+                group_tap->BroadcastPacket(data, false, group_tap->GetMemberGroup(player_tap->GetObjectGuid()), player_tap->GetObjectGuid());
 
-            player_tap->SendDirectMessage(&data);
+            player_tap->SendDirectMessage(data);
         }
         else if (GetTypeId() == TYPEID_UNIT && this != pVictim)
             ProcDamageAndSpell(pVictim, PROC_FLAG_KILL, PROC_FLAG_KILLED, PROC_EX_NONE, 0);
@@ -869,7 +869,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
                 playerVictim->DurabilityLossAll(0.10f, false);
                 // durability lost message
                 WorldPacket data(SMSG_DURABILITY_DAMAGE_DEATH, 0);
-                playerVictim->GetSession()->SendPacket(&data);
+                playerVictim->GetSession()->SendPacket(data);
             }
 
             if (!spiritOfRedemtionTalentReady)              // Before informing Battleground
@@ -1627,7 +1627,6 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
         {
             damageInfo->HitInfo |= HITINFO_CRITICALHIT;
             damageInfo->TargetState = VICTIMSTATE_NORMAL;
-
             damageInfo->procEx |= PROC_EX_CRITICAL_HIT;
 
             uint32 creatureTypeMask = damageInfo->target->GetCreatureTypeMask();
@@ -1647,8 +1646,14 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
             damageInfo->totalDamage = uint32((damageInfo->totalDamage) * float((200.0f + mod) / 100.0f));
 
             for (uint8 i = 0; i < m_weaponDamageCount[damageInfo->attackType]; i++)
-                damageInfo->subDamage[i].damage = uint32((damageInfo->subDamage[i].damage) * float((200.0f + mod) / 100.0f));
-
+            {
+                SubDamageInfo &subDamage = damageInfo->subDamage[i];
+                uint32 clean = 0;
+                const uint32 crit = MeleeCriticalDamageBonus(damageInfo->attackType, subDamage.damageSchoolMask, &clean, subDamage.damage, damageInfo->target);
+                damageInfo->cleanDamage += (clean - crit);
+                damageInfo->totalDamage += (crit - subDamage.damage);
+                subDamage.damage = crit;
+            }
             break;
         }
         case MELEE_HIT_PARRY:
@@ -1929,7 +1934,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss)
                     data << GetObjectGuid();
                     data << uint32(damage);
                     data << uint32(i_spellProto->School);
-                    pVictim->SendMessageToSet(&data, true);
+                    pVictim->SendMessageToSet(data, true);
 
                     pVictim->DealDamage(this, damage, nullptr, SPELL_DIRECT_DAMAGE, GetSpellSchoolMask(i_spellProto), i_spellProto, true);
 
@@ -1947,7 +1952,7 @@ void Unit::HandleEmoteCommand(uint32 emote_id)
     WorldPacket data(SMSG_EMOTE, 4 + 8);
     data << uint32(emote_id);
     data << GetObjectGuid();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::HandleEmoteState(uint32 emote_id)
@@ -2483,13 +2488,11 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
         if (victimLevel > 10)  // No glancing in starting zones or against critters
         {
             uint32 attackerLevel = getLevel();
-            uint8 attackerClass = getClass();
             int32 attackerSkill = (attackerWeaponSkill > attackerMaxSkillValueForLevel) ? attackerMaxSkillValueForLevel : attackerWeaponSkill; // pick whichever is lower
             int32 glancing_chance = 0;
 
             // Caster classes suffer differently from glancing in classic and TBC (not as drastically, though)
-            if (attackerIsPlayer && (attackerClass == CLASS_MAGE
-                || attackerClass == CLASS_PRIEST || attackerClass == CLASS_WARLOCK))
+            if (attackerIsPlayer && getClassMask() & CLASSMASK_WAND_USERS)
             {
                 if (attackerLevel < 30)
                     glancing_chance = (attackerLevel * 100) + ((victimDefenseSkill - attackerSkill) * 200);
@@ -2616,7 +2619,7 @@ void Unit::SendMeleeAttackStart(Unit* pVictim)
     data << GetObjectGuid();
     data << pVictim->GetObjectGuid();
 
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
     DEBUG_LOG("WORLD: Sent SMSG_ATTACKSTART");
 }
 
@@ -2629,7 +2632,7 @@ void Unit::SendMeleeAttackStop(Unit* victim)
     data << GetPackGUID();
     data << victim->GetPackGUID();                          // can be 0x00...
     data << uint32(0);                                      // can be 0x1
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
     DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "%s %u stopped attacking %s %u", (GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), GetGUIDLow(), (victim->GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), victim->GetGUIDLow());
 
     /*if(victim->GetTypeId() == TYPEID_UNIT)
@@ -4721,7 +4724,7 @@ void Unit::SendSpellNonMeleeDamageLog(SpellNonMeleeDamage* log)
     data << uint32(log->blocked);                           // blocked
     data << uint32(log->HitInfo);
     data << uint8(0);                                       // flag to use extend data
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::SendSpellNonMeleeDamageLog(Unit* target, uint32 SpellID, uint32 Damage, SpellSchoolMask damageSchoolMask, uint32 AbsorbedDamage, uint32 Resist, bool PhysicalDamage, uint32 Blocked, bool CriticalHit)
@@ -4777,7 +4780,7 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo)
             return;
     }
 
-    aura->GetTarget()->SendMessageToSet(&data, true);
+    aura->GetTarget()->SendMessageToSet(data, true);
 }
 
 void Unit::ProcDamageAndSpell(Unit* pVictim, uint32 procAttacker, uint32 procVictim, uint32 procExtra, uint32 amount, WeaponAttackType attType, SpellEntry const* procSpell)
@@ -4802,7 +4805,7 @@ void Unit::SendSpellMiss(Unit* target, uint32 spellID, SpellMissInfo missInfo)
     data << target->GetObjectGuid();                        // target GUID
     data << uint8(missInfo);
     // end loop
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::SendAttackStateUpdate(CalcDamageInfo* damageInfo)
@@ -4835,7 +4838,7 @@ void Unit::SendAttackStateUpdate(CalcDamageInfo* damageInfo)
     // HITINFO_NOACTION normally set if spell
     data << uint32(damageInfo->blocked_amount);
 
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::SendAttackStateUpdate(uint32 HitInfo, Unit* target, SpellSchoolMask damageSchoolMask, uint32 Damage, uint32 AbsorbDamage, uint32 Resist, VictimState TargetState, uint32 BlockedAmount)
@@ -5640,7 +5643,7 @@ void Unit::SendHealSpellLog(Unit* pVictim, uint32 SpellID, uint32 Damage, bool c
     data << uint32(Damage);
     data << uint8(critical ? 1 : 0);
     data << uint8(0);                                       // unused in client?
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::SendEnergizeSpellLog(Unit* pVictim, uint32 SpellID, uint32 Damage, Powers powertype)
@@ -5651,7 +5654,7 @@ void Unit::SendEnergizeSpellLog(Unit* pVictim, uint32 SpellID, uint32 Damage, Po
     data << uint32(SpellID);
     data << uint32(powertype);
     data << uint32(Damage);
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Unit::EnergizeBySpell(Unit* pVictim, uint32 SpellID, uint32 Damage, Powers powertype)
@@ -6059,50 +6062,48 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
     return false;
 }
 
-uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 damage, Unit* pVictim)
+uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 amount, Unit* pVictim)
 {
-    // Calculate critical bonus
-    int32 crit_bonus;
+    // Base critical bonus:
+    int32 bonus = (amount / 2);         // magical default bonus is 50% of the amount
     switch (spellProto->DmgClass)
     {
-        case SPELL_DAMAGE_CLASS_MELEE:                      // for melee based spells is 100%
+        case SPELL_DAMAGE_CLASS_MELEE:
         case SPELL_DAMAGE_CLASS_RANGED:
-            crit_bonus = damage;
-            break;
-        default:
-            crit_bonus = damage / 2;                        // for spells is 50%
+            bonus = int32(amount);      // physical default bonus is 100% of the amount
             break;
     }
 
-    // adds additional damage to crit_bonus (from talents)
-    if (Player* modOwner = GetSpellModOwner())
-        modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_CRIT_DAMAGE_BONUS, crit_bonus);
+    // Apply base critical bonus mods first:
+    int32 modPctBonus = 0;
+    // Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS: gem mechanics
+    modPctBonus += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, GetSpellSchoolMask(spellProto));
+    // Apply SPELL_AURA_MOD_CRIT_PERCENT_VERSUS: creature type slaying talents
+    if (pVictim)
+        modPctBonus += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, pVictim->GetCreatureTypeMask());
 
-    if (!pVictim)
-        return damage += crit_bonus;
-
-	int32 critPctDamageMod = 0;
 	if (spellProto->DmgClass >= SPELL_DAMAGE_CLASS_MELEE)
 	{
 		if (GetWeaponAttackType(spellProto) == RANGED_ATTACK)
-			critPctDamageMod += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
+			modPctBonus += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
 		else
-			critPctDamageMod += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
+			modPctBonus += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
 	}
 	else
-		critPctDamageMod += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
-	
-    uint32 creatureTypeMask = pVictim->GetCreatureTypeMask();
+		modPctBonus += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
 
-    critPctDamageMod += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, creatureTypeMask);
+    // Calculate base critical bonus:
+    if (modPctBonus)
+        bonus += int32((int32(amount) + bonus) * float(modPctBonus / 100.0f));
+    // Apply total crit bonus mods (usually from talents)
+    if (Player* modOwner = GetSpellModOwner())
+        modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_CRIT_DAMAGE_BONUS, bonus);
 
-    if (critPctDamageMod != 0)
-        crit_bonus = int32(crit_bonus * float((100.0f + critPctDamageMod) / 100.0f));
+    // A crit cannot deal less damage than a normal hit
+    bonus = std::max(bonus, 0);
 
-    if (crit_bonus > 0)
-        damage += crit_bonus;
-
-    return damage;
+    // Final crit damage
+    return (amount + uint32(bonus));
 }
 
 uint32 Unit::SpellCriticalHealingBonus(SpellEntry const* spellProto, uint32 damage, Unit* pVictim)
@@ -6131,6 +6132,32 @@ uint32 Unit::SpellCriticalHealingBonus(SpellEntry const* spellProto, uint32 dama
         damage += crit_bonus;
 
     return damage;
+}
+
+uint32 Unit::MeleeCriticalDamageBonus(WeaponAttackType attackType, SpellSchoolMask schoolMask, uint32 *cleanDamage, uint32 amount, Unit *pVictim)
+{
+    // Crit bonus calc: default physical crit bonus is 100% of amount
+    int32 bonus = int32(amount);
+    int32 clean = 0;
+
+    // Apply base critical bonus mods first:
+    int32 modPctBonus = 0;
+    // Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS: gem mechanics
+    modPctBonus += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, schoolMask);
+    // Apply SPELL_AURA_MOD_CRIT_PERCENT_VERSUS: creature type slaying talents
+    if (pVictim)
+        modPctBonus += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, pVictim->GetCreatureTypeMask());
+    // Calculate base critical bonus:
+    if (modPctBonus)
+        bonus += int32((int32(amount) + bonus) * float(modPctBonus / 100.0f));
+
+    // A crit cannot deal less damage than a normal hit
+    bonus = std::max(bonus, 0);
+    clean = bonus;
+
+    // Final crit damage
+    *cleanDamage = (amount + uint32(clean));
+    return (amount + uint32(bonus));
 }
 
 /**
@@ -6759,7 +6786,7 @@ void Unit::Unmount(bool from_aura)
     {
         WorldPacket data(SMSG_DISMOUNT, 8);
         data << GetPackGUID();
-        SendMessageToSet(&data, true);
+        SendMessageToSet(data, true);
     }
 
     // only resummon old pet if the player is already added to a map
@@ -7400,12 +7427,12 @@ void Unit::SetSpeedRate(UnitMoveType mtype, float rate, bool forced)
             data << GetPackGUID();
             data << (uint32)0;                              // moveEvent, NUM_PMOVE_EVTS = 0x39
             data << float(GetSpeed(mtype));
-            ((Player*)this)->GetSession()->SendPacket(&data);
+            ((Player*)this)->GetSession()->SendPacket(data);
         }
         WorldPacket data(speedOpcodes[1], 12);
         data << GetPackGUID();
         data << float(GetSpeed(mtype));
-        SendMessageToSet(&data, false);
+        SendMessageToSet(data, false);
     }
 
     CallForAllControlledUnits(SetSpeedRateHelper(mtype, forced), CONTROLLED_PET | CONTROLLED_GUARDIANS | CONTROLLED_CHARM | CONTROLLED_MINIPET);
@@ -8600,10 +8627,10 @@ void CharmInfo::LoadPetActionBar(const std::string& data)
     }
 }
 
-void CharmInfo::BuildActionBar(WorldPacket* data)
+void CharmInfo::BuildActionBar(WorldPacket& data)
 {
     for (uint32 i = 0; i < MAX_UNIT_ACTION_BAR_INDEX; ++i)
-        *data << uint32(PetActionBar[i].packedData);
+        data << uint32(PetActionBar[i].packedData);
 }
 
 void CharmInfo::SetSpellAutocast(uint32 spell_id, bool state)
@@ -8873,7 +8900,7 @@ void Unit::SendPetCastFail(uint32 spellid, SpellCastResult msg)
     WorldPacket data(SMSG_PET_CAST_FAILED, 4 + 1);
     data << uint32(spellid);
     data << uint8(msg);
-    ((Player*)owner)->GetSession()->SendPacket(&data);
+    ((Player*)owner)->GetSession()->SendPacket(data);
 }
 
 void Unit::SendPetActionFeedback(uint8 msg)
@@ -8884,7 +8911,7 @@ void Unit::SendPetActionFeedback(uint8 msg)
 
     WorldPacket data(SMSG_PET_ACTION_FEEDBACK, 1);
     data << uint8(msg);
-    ((Player*)owner)->GetSession()->SendPacket(&data);
+    ((Player*)owner)->GetSession()->SendPacket(data);
 }
 
 void Unit::SendPetTalk(uint32 pettalk)
@@ -8896,7 +8923,7 @@ void Unit::SendPetTalk(uint32 pettalk)
     WorldPacket data(SMSG_PET_ACTION_SOUND, 8 + 4);
     data << GetObjectGuid();
     data << uint32(pettalk);
-    ((Player*)owner)->GetSession()->SendPacket(&data);
+    ((Player*)owner)->GetSession()->SendPacket(data);
 }
 
 void Unit::SendPetAIReaction()
@@ -8908,7 +8935,7 @@ void Unit::SendPetAIReaction()
     WorldPacket data(SMSG_AI_REACTION, 8 + 4);
     data << GetObjectGuid();
     data << uint32(AI_REACTION_HOSTILE);
-    ((Player*)owner)->GetSession()->SendPacket(&data);
+    ((Player*)owner)->GetSession()->SendPacket(data);
 }
 
 ///----------End of Pet responses methods----------
@@ -9086,7 +9113,7 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/)
         WorldPacket data(SMSG_FEIGN_DEATH_RESISTED, 9);
         data<<GetGUID();
         data<<uint8(0);
-        SendMessageToSet(&data,true);
+        SendMessageToSet(data,true);
         */
 
         if (GetTypeId() != TYPEID_PLAYER)
@@ -9117,7 +9144,7 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/)
         WorldPacket data(SMSG_FEIGN_DEATH_RESISTED, 9);
         data<<GetGUID();
         data<<uint8(1);
-        SendMessageToSet(&data,true);
+        SendMessageToSet(data,true);
         */
 
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_29);
@@ -9165,7 +9192,7 @@ void Unit::SetStandState(uint8 state)
     {
         WorldPacket data(SMSG_STANDSTATE_UPDATE, 1);
         data << (uint8)state;
-        ((Player*)this)->GetSession()->SendPacket(&data);
+        ((Player*)this)->GetSession()->SendPacket(data);
     }
 }
 
@@ -9572,6 +9599,9 @@ void Unit::SetPvP(bool state)
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP);
     else
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP);
+
+    if (GetTypeId() == TYPEID_PLAYER && ((Player*)this)->GetGroup())
+        ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
 
     CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
 }

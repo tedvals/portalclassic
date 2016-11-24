@@ -3496,7 +3496,7 @@ void PlayerbotAI::PlaySound(uint32 soundid)
 {
     WorldPacket data(SMSG_PLAY_SOUND, 4);
     data << soundid;
-    GetMaster()->GetSession()->SendPacket(&data);
+    GetMaster()->GetSession()->SendPacket(data);
 }
 
 // PlaySound data from SoundEntries.dbc
@@ -3820,7 +3820,7 @@ void PlayerbotAI::SendWhisper(const std::string& text, Player& player) const
     ChatHandler::BuildChatPacket(data, CHAT_MSG_WHISPER, text.c_str(),
         LANG_UNIVERSAL, m_bot->GetChatTag(), m_bot->GetObjectGuid(),
         m_bot->GetName(), player.GetObjectGuid());
-    player.GetSession()->SendPacket(&data);
+    player.GetSession()->SendPacket(data);
 }
 
 bool PlayerbotAI::canObeyCommandFrom(const Player& player) const
@@ -5429,7 +5429,7 @@ void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream &report, std:
         uint32 cost = item->GetCount() * item->GetProto()->SellPrice;
         m_bot->ModifyMoney(cost);
         m_bot->MoveItemFromInventory(item->GetBagSlot(), item->GetSlot(), true);
-        m_bot->AddItemToBuyBackSlot(item);
+        m_bot->AddItemToBuyBackSlot(item,cost);
 
         ++TotalSold;
         TotalCost += cost;
@@ -5825,7 +5825,7 @@ void PlayerbotAI::Sell(const uint32 itemid)
         uint32 cost = pItem->GetCount() * pItem->GetProto()->SellPrice;
         m_bot->ModifyMoney(cost);
         m_bot->MoveItemFromInventory(pItem->GetBagSlot(), pItem->GetSlot(), true);
-        m_bot->AddItemToBuyBackSlot(pItem);
+        m_bot->AddItemToBuyBackSlot(pItem,cost);
 
         report << "Sold ";
         MakeItemLink(pItem, report, true);
@@ -7330,7 +7330,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
                     WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 12);           // visual effect on trainer
                     data << ObjectGuid(fromPlayer.GetSelectionGuid());
                     data << uint32(0xB3);                                   // index from SpellVisualKit.dbc
-                    GetMaster()->GetSession()->SendPacket(&data);
+                    GetMaster()->GetSession()->SendPacket(data);
 /*
                     data.Initialize(SMSG_PLAY_SPELL_IMPACT, 12);            // visual effect on player
                     data << m_bot->GetObjectGuid();

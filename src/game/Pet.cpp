@@ -658,7 +658,7 @@ void Pet::ModifyLoyalty(int32 addvalue)
                     case 0: // Abandon owner
                     {
                         WorldPacket data(SMSG_PET_BROKEN, 0);
-                        ((Player*)GetOwner())->GetSession()->SendPacket(&data);
+                        ((Player*)GetOwner())->GetSession()->SendPacket(data);
                         Unsummon(PET_SAVE_AS_DELETED, GetOwner());
                         m_loyaltyPoints = 0;
                         break;
@@ -1391,7 +1391,7 @@ void Pet::_LoadSpellCooldowns()
 
         if (!m_CreatureSpellCooldowns.empty() && GetOwner())
         {
-            ((Player*)GetOwner())->GetSession()->SendPacket(&data);
+            ((Player*)GetOwner())->GetSession()->SendPacket(data);
         }
     }
 }
@@ -2085,7 +2085,7 @@ void Pet::SetModeFlags(PetModeFlags mode)
     WorldPacket data(SMSG_PET_MODE, 12);
     data << GetObjectGuid();
     data << uint32(m_petModeFlags);
-    ((Player*)owner)->GetSession()->SendPacket(&data);
+    ((Player*)owner)->GetSession()->SendPacket(data);
 }
 
 void Pet::SetStayPosition(bool stay)

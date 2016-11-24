@@ -39,7 +39,7 @@ class Unit;
 #define MAX_RAID_SUBGROUPS (MAX_RAID_SIZE / MAX_GROUP_SIZE)
 #define TARGET_ICON_COUNT 8
 
-enum GroupMemberOnlineStatus
+enum GroupMemberStatus
 {
     MEMBER_STATUS_OFFLINE   = 0x0000,
     MEMBER_STATUS_ONLINE    = 0x0001,                       // Lua_UnitIsConnected
@@ -51,6 +51,8 @@ enum GroupMemberOnlineStatus
     MEMBER_STATUS_AFK       = 0x0040,                       // Lua_UnitIsAFK
     MEMBER_STATUS_DND       = 0x0080,                       // Lua_UnitIsDND
 };
+
+GroupMemberStatus GetGroupMemberStatus(const Player* member);
 
 enum GroupType
 {
@@ -235,8 +237,8 @@ class MANGOS_DLL_SPEC Group
         void UpdatePlayerOnlineStatus(Player* player, bool online = true);
         void UpdateOfflineLeader(time_t time, uint32 delay);
         // ignore: GUID of player that will be ignored
-        void BroadcastPacket(WorldPacket* packet, bool ignorePlayersInBGRaid, int group = -1, ObjectGuid ignore = ObjectGuid());
-        void BroadcastReadyCheck(WorldPacket* packet);
+        void BroadcastPacket(WorldPacket& packet, bool ignorePlayersInBGRaid, int group = -1, ObjectGuid ignore = ObjectGuid());
+        void BroadcastReadyCheck(WorldPacket& packet);
         void OfflineReadyCheck();
 
         void RewardGroupAtKill(Unit* pVictim, Player* player_tap);
