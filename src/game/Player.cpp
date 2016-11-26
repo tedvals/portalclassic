@@ -1272,71 +1272,71 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 			if (health >= 90)
 			{
 				//Remove Wounded Auras
-				if (HasAura(34601))
-					RemoveAurasDueToSpell(34601);
-				if (HasAura(34602))
-					RemoveAurasDueToSpell(34602);
-				if (HasAura(34603))
-					RemoveAurasDueToSpell(34603);
+				if (HasAura(84601))
+					RemoveAurasDueToSpell(84601);
+				if (HasAura(84602))
+					RemoveAurasDueToSpell(84602);
+				if (HasAura(84603))
+					RemoveAurasDueToSpell(84603);
 				//Add Heartened Aura
-				if (!HasAura(34600))
-					_CreateCustomAura(34600);
+				if (!HasAura(84600))
+					_CreateCustomAura(84600);
 			}
 			else if (health >= 60 && getClass() != CLASS_WARLOCK)
 			{
 				//Remove Wounded Auras
-				if (HasAura(34602))
-					RemoveAurasDueToSpell(34602);
-				if (HasAura(34603))
-					RemoveAurasDueToSpell(34603);
+				if (HasAura(84602))
+					RemoveAurasDueToSpell(84602);
+				if (HasAura(84603))
+					RemoveAurasDueToSpell(84603);
 				//Remove Heartened Aura
-				if (HasAura(34600))
-					RemoveAurasDueToSpell(34600);
+				if (HasAura(84600))
+					RemoveAurasDueToSpell(84600);
 				//Add injured Aura
-				if (!HasAura(34601))
-					_CreateCustomAura(34601);
+				if (!HasAura(84601))
+					_CreateCustomAura(84601);
 			}
 			else if (health >= 40 && getClass() == CLASS_WARLOCK)
 			{
 				//Remove Wounded Auras
-				if (HasAura(34602))
-					RemoveAurasDueToSpell(34602);
-				if (HasAura(34603))
-					RemoveAurasDueToSpell(34603);
+				if (HasAura(84602))
+					RemoveAurasDueToSpell(84602);
+				if (HasAura(84603))
+					RemoveAurasDueToSpell(84603);
 				//Remove Heartened Aura
-				if (HasAura(34600))
-					RemoveAurasDueToSpell(34600);
+				if (HasAura(84600))
+					RemoveAurasDueToSpell(84600);
 				//Add injured Aura
-				if (!HasAura(34601))
-					_CreateCustomAura(34601);
+				if (!HasAura(84601))
+					_CreateCustomAura(84601);
 			}
 			else if (health >= 20)
 			{
 				//Remove Wounded Auras
-				if (HasAura(34601))
-					RemoveAurasDueToSpell(34601);
-				if (HasAura(34603))
-					RemoveAurasDueToSpell(34603);
+				if (HasAura(84601))
+					RemoveAurasDueToSpell(84601);
+				if (HasAura(84603))
+					RemoveAurasDueToSpell(84603);
 				//Remove Heartened Aura
-				if (HasAura(34600))
-					RemoveAurasDueToSpell(34600);
+				if (HasAura(84600))
+					RemoveAurasDueToSpell(84600);
 				//Add wounded Aura
-				if (!HasAura(34602))
-					_CreateCustomAura(34602);
+				if (!HasAura(84602))
+					_CreateCustomAura(84602);
 			}
 			else if (health < 20)
 			{
 				//Remove Wounded Auras
-				if (HasAura(34601))
-					RemoveAurasDueToSpell(34601);
-				if (HasAura(34602))
-					RemoveAurasDueToSpell(34602);
+				if (HasAura(84601))
+					RemoveAurasDueToSpell(84601);
+				if (HasAura(84602))
+					RemoveAurasDueToSpell(84602);
 				//Remove Heartened Aura
-				if (HasAura(34600))
-					RemoveAurasDueToSpell(34600);
+				if (HasAura(84600))
+					RemoveAurasDueToSpell(84600);
 				//Add Grevious wounded Aura
-				if (!HasAura(34603))
-					_CreateCustomAura(34603);
+				if (!HasAura(84603))
+					_CreateCustomAura(84603);
 			}
 		}
 		//Custom

@@ -1573,7 +1573,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
 	//custom
 	// Chance 50% to break Who dares win
 
-	if (HasAura(34554))
+	if (HasAura(84554))
 		if (!roll_chance_i(50))
 		{
 			damageInfo->hitOutCome = MELEE_HIT_DODGE;			

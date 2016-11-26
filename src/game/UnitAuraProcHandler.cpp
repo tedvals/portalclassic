@@ -738,21 +738,21 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     break;
                 }				
 					// Lifebloom
-				case 34418:
-				case 34419:
-				case 34420:
+				case 84418:
+				case 84419:
+				case 84420:
 				{
 					switch (dummySpell->Id)
 					{
-					case 34418: basepoints[0] = int32(0.1f * damage); break;
-					case 34419: basepoints[0] = int32(0.2f * damage); break;
-					case 34420: basepoints[0] = int32(0.3f * damage); break;
+					case 84418: basepoints[0] = int32(0.1f * damage); break;
+					case 84419: basepoints[0] = int32(0.2f * damage); break;
+					case 84420: basepoints[0] = int32(0.3f * damage); break;
 					default:
 						sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (IG)", dummySpell->Id);
 						return SPELL_AURA_PROC_FAILED;
 					}
 
-					triggered_spell_id = 34417;
+					triggered_spell_id = 84417;
 					break;
 				}
             }
@@ -855,8 +855,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     break;
                 }
 				// Spiritual Attunement
-				case 34422:
-				case 34423:
+				case 84422:
+				case 84423:
 				{
 					// if healed by another unit (victim)
 					if (this == pVictim)
@@ -872,27 +872,27 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 					target = this;
 
 					if (basepoints0)
-						CastCustomSpell(pVictim, 34421, &basepoints0, nullptr, nullptr, true, nullptr, triggeredByAura);
+						CastCustomSpell(pVictim, 84421, &basepoints0, nullptr, nullptr, true, nullptr, triggeredByAura);
 					break;
 				}
 				// Light's Grace
-				case 34438:
-				case 34439:
-				case 34440:
-				case 34441:
+				case 84438:
+				case 84439:
+				case 84440:
+				case 84441:
 				{
 					switch (dummySpell->Id)
 					{
-					case 34438: basepoints[0] = int32(0.05f * damage); break;
-					case 34439: basepoints[0] = int32(0.1f * damage); break;
-					case 34440: basepoints[0] = int32(0.15f * damage); break;
-					case 34441: basepoints[0] = int32(0.2f * damage); break;
+					case 84438: basepoints[0] = int32(0.05f * damage); break;
+					case 84439: basepoints[0] = int32(0.1f * damage); break;
+					case 84440: basepoints[0] = int32(0.15f * damage); break;
+					case 84441: basepoints[0] = int32(0.2f * damage); break;
 					default:
 						sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (IG)", dummySpell->Id);
 						return SPELL_AURA_PROC_FAILED;
 					}
 
-					triggered_spell_id = 34442;
+					triggered_spell_id = 84442;
 					break;
 				}
             }
@@ -1163,8 +1163,8 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 			switch (auraSpellInfo->Id)
 			{
 				// Primal Tenacity
-			case 34042:
-			case 34043:
+			case 84042:
+			case 84043:
 				float weaponDamage;
 				// DW should benefit of attack power, damage percent mods etc.
 				// TODO: check if using offhand damage is correct and if it should be divided by 2
@@ -1175,8 +1175,8 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 
 				switch (auraSpellInfo->Id)
 				{
-				case 34042: basepoints[0] = int32(weaponDamage * 0.2f); break;
-				case 34043: basepoints[0] = int32(weaponDamage * 0.4f); break;
+				case 84042: basepoints[0] = int32(weaponDamage * 0.2f); break;
+				case 84043: basepoints[0] = int32(weaponDamage * 0.4f); break;
 					// Impossible case
 				default:
 					sLog.outError("Unit::HandleProcTriggerSpellAuraProc: DW unknown spell rank %u", auraSpellInfo->Id);
@@ -1483,17 +1483,17 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 
 		case 5001:
 		{													//Custom
-			triggered_spell_id = 34269;                     // Lunar Eclipse (Druid)
+			triggered_spell_id = 84269;                     // Lunar Eclipse (Druid)
 			break;
 		}
 		case 5002:
 		{
-			triggered_spell_id = 34271;                     // Solar Eclipse (Druid)
+			triggered_spell_id = 84271;                     // Solar Eclipse (Druid)
 			break;
 		}
 		case 5003:
 		{
-		    triggered_spell_id = 34273;                     // Overload (Shaman)
+		    triggered_spell_id = 84273;                     // Overload (Shaman)
  // accumulated chance to finish the cooldown for Elemental Mastery
 			if (GetTypeId() == TYPEID_PLAYER)
 			{
@@ -1518,22 +1518,22 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5010:
 		{
-			triggered_spell_id = 34312;                     // Vampiric Touch (Priest)
+			triggered_spell_id = 84312;                     // Vampiric Touch (Priest)
 			break;
 		}
 		case 5011:
 		{
-			triggered_spell_id = 34316;                     // Pain and Suffering (Warlock)
+			triggered_spell_id = 84316;                     // Pain and Suffering (Warlock)
 			break;
 		}		
 		case 5012:
 		{
-			triggered_spell_id = 34517;                     // Art of War (Paladin)
+			triggered_spell_id = 84517;                     // Art of War (Paladin)
 			break;
 		}
 		case 5013:
 		{
-			triggered_spell_id = 34533;                     // Cunningness (Hunter)
+			triggered_spell_id = 84533;                     // Cunningness (Hunter)
  // accumulated chance to finish the cooldown for Bestial Wrath
 			if (GetTypeId() == TYPEID_PLAYER)
 			{
@@ -1558,17 +1558,17 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5014:
 		{
-			triggered_spell_id = 34536;                     // Cobra reflexes (Hunter)
+			triggered_spell_id = 84536;                     // Cobra reflexes (Hunter)
 			break;
 		}
 		case 5015:
 		{
-			triggered_spell_id = 34540;                     // Marksman (Hunter)
+			triggered_spell_id = 84540;                     // Marksman (Hunter)
 			break;
 		}
 		case 5016:
 		{
-			triggered_spell_id = 34582;                     // Fire and Frost (Mage)
+			triggered_spell_id = 84582;                     // Fire and Frost (Mage)
 		// accumulated chance to finish the cooldown of Combustion and Cold Snap
 			if (GetTypeId() == TYPEID_PLAYER)
 			{
@@ -1593,7 +1593,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5017:
 		{
-			triggered_spell_id = 34095;                     // Enlightment (Priest)
+			triggered_spell_id = 84095;                     // Enlightment (Priest)
 // accumulated chance to finish the cooldown of Power Infusion
 			if (GetTypeId() == TYPEID_PLAYER)
 			{
@@ -1618,22 +1618,22 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5018:
 		{
-			triggered_spell_id = 34395;                     // Backdraft (Warlock)
+			triggered_spell_id = 84395;                     // Backdraft (Warlock)
 			break;
 		}
 		case 5019:											//Payback (Hunter)
 		{
-			triggered_spell_id = 34395;                     // Backdraft (Warlock)
+			triggered_spell_id = 84395;                     // Backdraft (Warlock)
 			break;
 		}
 		case 5020:                                          // Hit or Miss
 		{
-			triggered_spell_id = 34554; break;			
+			triggered_spell_id = 84554; break;			
 			break;
 		}
 		case 5021:
 		{
-			triggered_spell_id = 34461;                     // Ice veins (Mage)
+			triggered_spell_id = 84461;                     // Ice veins (Mage)
 			break;
 		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus
