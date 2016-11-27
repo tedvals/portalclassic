@@ -149,8 +149,8 @@ struct boss_jeklikAI : public ScriptedAI
         }
 		else if (pSummoned->GetEntry() == NPC_BAT_RIDER)
         {
-            pSummoned->CastSpell(pSummoned, SPELL_LIQUID_FIRE, true);
-			m_lBombRiderGuidsList.push_back(pSummoned->GetObjectGuid());
+            pSummoned->CastSpell(pSummoned, SPELL_LIQUID_FIRE, TRIGGERED_OLD_TRIGGERED);
+            m_lBombRiderGuidsList.push_back(pSummoned->GetObjectGuid());
         }
 
         pSummoned->SetLevitate(true);

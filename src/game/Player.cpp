@@ -1475,7 +1475,7 @@ void Player::SetDeathState(DeathState s)
 
         // restore default warrior stance
         if (getClass() == CLASS_WARRIOR)
-            CastSpell(this, SPELL_ID_PASSIVE_BATTLE_STANCE, true);
+            CastSpell(this, SPELL_ID_PASSIVE_BATTLE_STANCE, TRIGGERED_OLD_TRIGGERED);
     }
 
     if (GetGroup())
@@ -1637,8 +1637,9 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
     MapEntry const* mEntry = sMapStore.LookupEntry(mapid);  // Validity checked in IsValidMapCoord
 
-    // preparing unsummon pet if lost (we must get pet before teleportation or will not find it later)
-    Pet* pet = GetPet();
+    // do not let charmed players/creatures teleport
+    if (isCharmed())
+        return false;
 
     // Playerbot mod: if this user has bots, tell them to stop following master
     // so they don't try to follow the master after the master teleports
@@ -1689,6 +1690,33 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
     DisableSpline();
 
+    if (!(options & TELE_TO_NOT_UNSUMMON_PET) || GetMapId() != mapid)
+    {
+        if (GetMapId() == mapid)
+        {
+            if (Unit* charm = GetCharm())
+            {
+                if (!charm->IsWithinDist3d(x, y, z, GetMap()->GetVisibilityDistance()))
+                    Uncharm();
+            }
+
+            if (Pet* pet = GetPet())
+            {
+                // same map, only remove pet if out of range for new position
+                if (!pet->IsWithinDist3d(x, y, z, GetMap()->GetVisibilityDistance()))
+                    UnsummonPetTemporaryIfAny();
+            }
+        }
+        else
+        {
+            if (Unit* charm = GetCharm())
+                Uncharm();
+
+            if (Pet* pet = GetPet())
+                UnsummonPetTemporaryIfAny();
+        }
+    }
+
     if ((GetMapId() == mapid) && (!m_transport))            // TODO the !m_transport might have unexpected effects when teleporting from transport to other place on same map
     {
         // lets reset far teleport flag if it wasn't reset during chained teleports
@@ -1703,13 +1731,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             m_teleport_dest = WorldLocation(mapid, x, y, z, orientation);
             m_teleport_options = options;
             return true;
-        }
-
-        if (!(options & TELE_TO_NOT_UNSUMMON_PET))
-        {
-            // same map, only remove pet if out of range for new position
-            if (pet && !pet->IsWithinDist3d(x, y, z, GetMap()->GetVisibilityDistance()))
-                UnsummonPetTemporaryIfAny();
         }
 
         if (!(options & TELE_TO_NOT_LEAVE_COMBAT))
@@ -1771,10 +1792,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
                 if (bg->GetMapId() != mapid)
                     LeaveBattleground(false);               // don't teleport to entry point
             }
-
-            // remove pet on map change
-            if (pet)
-                UnsummonPetTemporaryIfAny();
 
             // remove all dyn objects
             RemoveAllDynObjects();
@@ -1897,7 +1914,7 @@ void Player::ProcessDelayedOperations()
 
     if (m_DelayedOperations & DELAYED_SPELL_CAST_DESERTER)
     {
-        CastSpell(this, 26013, true);               // Deserter
+        CastSpell(this, 26013, TRIGGERED_OLD_TRIGGERED);               // Deserter
     }
 
     // we have executed ALL delayed ops, so clear the flag
@@ -2880,7 +2897,7 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
             if (active)
             {
                 if (IsNeedCastPassiveLikeSpellAtLearn(spellInfo))
-                    CastSpell(this, spell_id, true);
+                    CastSpell(this, spell_id, TRIGGERED_OLD_TRIGGERED);
             }
             else if (IsInWorld())
             {
@@ -3075,16 +3092,16 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
     if (talentPos && IsSpellHaveEffect(spellInfo, SPELL_EFFECT_LEARN_SPELL))
     {
         // ignore stance requirement for talent learn spell (stance set for spell only for client spell description show)
-        CastSpell(this, spell_id, true);
+        CastSpell(this, spell_id, TRIGGERED_OLD_TRIGGERED);
     }
     // also cast passive (and passive like) spells (including all talents without SPELL_EFFECT_LEARN_SPELL) with additional checks
     else if (IsNeedCastPassiveLikeSpellAtLearn(spellInfo))
     {
-        CastSpell(this, spell_id, true);
+        CastSpell(this, spell_id, TRIGGERED_OLD_TRIGGERED);
     }
     else if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_SKILL_STEP))
     {
-        CastSpell(this, spell_id, true);
+        CastSpell(this, spell_id, TRIGGERED_OLD_TRIGGERED);
         return false;
     }
 
@@ -4230,8 +4247,8 @@ void Player::SetHover(bool enable)
 void Player::BuildPlayerRepop()
 {
     if (getRace() == RACE_NIGHTELF)
-        CastSpell(this, 20584, true);                       // auras SPELL_AURA_INCREASE_SPEED(+speed in wisp form), SPELL_AURA_INCREASE_SWIM_SPEED(+swim speed in wisp form), SPELL_AURA_TRANSFORM (to wisp form)
-    CastSpell(this, 8326, true);                            // auras SPELL_AURA_GHOST, SPELL_AURA_INCREASE_SPEED(why?), SPELL_AURA_INCREASE_SWIM_SPEED(why?)
+        CastSpell(this, 20584, TRIGGERED_OLD_TRIGGERED);                       // auras SPELL_AURA_INCREASE_SPEED(+speed in wisp form), SPELL_AURA_INCREASE_SWIM_SPEED(+swim speed in wisp form), SPELL_AURA_TRANSFORM (to wisp form)
+    CastSpell(this, 8326, TRIGGERED_OLD_TRIGGERED);                            // auras SPELL_AURA_GHOST, SPELL_AURA_INCREASE_SPEED(why?), SPELL_AURA_INCREASE_SWIM_SPEED(why?)
 
     // the player cannot have a corpse already, only bones which are not returned by GetCorpse
     if (GetCorpse())
@@ -4317,7 +4334,7 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     if (int32(getLevel()) >= startLevel)
     {
         // set resurrection sickness
-        CastSpell(this, SPELL_ID_PASSIVE_RESURRECTION_SICKNESS, true);
+        CastSpell(this, SPELL_ID_PASSIVE_RESURRECTION_SICKNESS, TRIGGERED_OLD_TRIGGERED);
 
         // not full duration
         if (int32(getLevel()) < startLevel + 9)
@@ -5831,7 +5848,7 @@ void Player::CheckAreaExploreAndOutdoor()
                 continue;
             if ((spellInfo->Stances || spellInfo->StancesNot) && !IsNeedCastSpellAtFormApply(spellInfo, GetShapeshiftForm()))
                 continue;
-            CastSpell(this, itr->first, true, nullptr);
+            CastSpell(this, spellInfo, TRIGGERED_OLD_TRIGGERED, nullptr);
         }
     }
     else if (sWorld.getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) && !isGameMaster())
@@ -6949,7 +6966,7 @@ void Player::ApplyEquipSpell(SpellEntry const* spellInfo, Item* item, bool apply
 
         DEBUG_LOG("WORLD: cast %s Equip spellId - %i", (item ? "item" : "itemset"), spellInfo->Id);
 
-        CastSpell(this, spellInfo, true, item);
+        CastSpell(this, spellInfo, TRIGGERED_OLD_TRIGGERED, item);
     }
     else
     {
@@ -7046,7 +7063,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
         }
 
         if (roll_chance_f(chance))
-            CastSpell(Target, spellInfo->Id, true, item);
+            CastSpell(Target, spellInfo->Id, TRIGGERED_OLD_TRIGGERED, item);
     }
 
     // item combat enchantments
@@ -7082,9 +7099,9 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
             if (roll_chance_f(chance))
             {
                 if (IsPositiveSpell(spellInfo->Id, this, Target))
-                    CastSpell(this, spellInfo->Id, true, item);
+                    CastSpell(this, spellInfo->Id, TRIGGERED_OLD_TRIGGERED, item);
                 else
-                    CastSpell(Target, spellInfo->Id, true, item);
+                    CastSpell(Target, spellInfo->Id, TRIGGERED_OLD_TRIGGERED, item);
             }
         }
     }
@@ -10882,7 +10899,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     if (enchant_spell_id)
                     {
                         if (apply)
-                            CastSpell(this, enchant_spell_id, true, item);
+                            CastSpell(this, enchant_spell_id, TRIGGERED_OLD_TRIGGERED, item);
                         else
                             RemoveAurasDueToItemSpell(item, enchant_spell_id);
                     }
@@ -11296,7 +11313,7 @@ void Player::OnGossipSelect(WorldObject* pSource, uint32 gossipListId)
         }
         case GOSSIP_OPTION_SPIRITHEALER:
             if (isDead())
-                ((Creature*)pSource)->CastSpell(((Creature*)pSource), 17251, true, nullptr, nullptr, GetObjectGuid());
+                ((Creature*)pSource)->CastSpell(((Creature*)pSource), 17251, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid());
             break;
         case GOSSIP_OPTION_QUESTGIVER:
             PrepareQuestMenu(guid);
@@ -12163,7 +12180,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
                 }
             }
 
-            caster->CastSpell(this, spellProto, true);
+            caster->CastSpell(this, spellProto, TRIGGERED_OLD_TRIGGERED);
         }
     }
 
@@ -14041,7 +14058,7 @@ void Player::_LoadAuras(QueryResult* result, uint32 timediff)
     }
 
     if (getClass() == CLASS_WARRIOR && !HasAuraType(SPELL_AURA_MOD_SHAPESHIFT))
-        CastSpell(this, SPELL_ID_PASSIVE_BATTLE_STANCE, true);
+        CastSpell(this, SPELL_ID_PASSIVE_BATTLE_STANCE, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Player::LoadCorpse()
@@ -16038,11 +16055,7 @@ void Player::CharmSpellInitialize()
     WorldPacket data(SMSG_PET_SPELLS, 8 + 4 + 1 + 1 + 2 + 4 * MAX_UNIT_ACTION_BAR_INDEX + 1 + 4 * addlist + 1);
     data << charm->GetObjectGuid();
     data << uint32(0x00000000);
-
-    if (charm->GetTypeId() != TYPEID_PLAYER)
-        data << uint8(charmInfo->GetReactState()) << uint8(charmInfo->GetCommandState()) << uint16(0);
-    else
-        data << uint8(0) << uint8(0) << uint16(0);
+    data << uint8(charmInfo->GetReactState()) << uint8(charmInfo->GetCommandState()) << uint16(0);
 
     charmInfo->BuildActionBar(data);
 
@@ -16382,6 +16395,9 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     }
 
     // Prepare to flight start now
+
+    // temporary remove pet
+    UnsummonPetTemporaryIfAny();
 
     // stop combat at start taxi flight if any
     CombatStop();
@@ -17021,7 +17037,7 @@ void Player::LeaveBattleground(bool teleportToEntryPoint)
                     return;
                 }
 
-                CastSpell(this, 26013, true);               // Deserter
+                CastSpell(this, 26013, TRIGGERED_OLD_TRIGGERED);               // Deserter
             }
         }
     }
@@ -17319,7 +17335,7 @@ void Player::SendInitialPacketsAfterAddToMap()
     GetZoneAndAreaId(newzone, newarea);
     UpdateZone(newzone, newarea);                           // also call SendInitWorldStates();
 
-    CastSpell(this, 836, true);                             // LOGINEFFECT
+    CastSpell(this, 836, TRIGGERED_OLD_TRIGGERED);                             // LOGINEFFECT
 
     // set some aura effects that send packet to player client after add player to map
     // SendMessageToSet not send it to player not it map, only for aura that not changed anything at re-apply
@@ -17550,7 +17566,7 @@ void Player::learnQuestRewardedSpells(Quest const* quest)
         }
     }
 
-    CastSpell(this, spell_id, true);
+    CastSpell(this, spell_id, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Player::learnQuestRewardedSpells()
@@ -18457,7 +18473,7 @@ void Player::UpdateUnderwaterState(Map* m, float x, float y, float z)
             if (res & (LIQUID_MAP_UNDER_WATER | LIQUID_MAP_IN_WATER))
             {
                 if (!HasAura(liquid->SpellId))
-                    CastSpell(this, liquid->SpellId, true);
+                    CastSpell(this, liquid->SpellId, TRIGGERED_OLD_TRIGGERED);
             }
             else
                 RemoveAurasDueToSpell(liquid->SpellId);
@@ -18921,6 +18937,20 @@ void Player::UnsummonPetIfAny()
         return;
  
     pet->Unsummon(PET_SAVE_NOT_IN_SLOT, this);
+}
+
+bool Player::IsPetNeedBeTemporaryUnsummoned() const
+{
+    if (!IsInWorld() || !isAlive())
+        return true;
+
+    if (sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT) && IsMounted())
+        return true;
+
+    if (hasUnitState(UNIT_STAT_TAXI_FLIGHT))
+        return true;
+
+    return false;
 }
 
 void Player::ResummonPetTemporaryUnSummonedIfAny()
