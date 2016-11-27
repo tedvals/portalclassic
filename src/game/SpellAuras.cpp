@@ -4858,11 +4858,7 @@ void Aura::PeriodicDummyTick()
                 }
                 case 7057:                                  // Haunting Spirits
                     if (roll_chance_i(33))
-<<<<<<< HEAD
-						target->CastSpell(target, 7067, true, nullptr, this);
-=======
                         target->CastSpell(target, m_modifier.m_amount, TRIGGERED_OLD_TRIGGERED, nullptr, this);
->>>>>>> 57b37410ff16ef2c1ac9a20f093867b5e0b42c19
                     return;
 				case 24596:
 				{

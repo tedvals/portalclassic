@@ -835,12 +835,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 20577:                                 // Cannibalize
                 {
                     if (unitTarget)
-<<<<<<< HEAD
-						AddTriggeredSpell(20578);
-                        m_caster->CastSpell(m_caster, 20578, true, nullptr);
-=======
                         m_caster->CastSpell(m_caster, 20578, TRIGGERED_OLD_TRIGGERED, nullptr);
->>>>>>> 57b37410ff16ef2c1ac9a20f093867b5e0b42c19
 
                     return;
                 }
@@ -3335,15 +3330,6 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
 
                 // Load pet from db; if any to load
                 if (NewSummon->LoadPetFromDB((Player*)m_caster, petentry))
-<<<<<<< HEAD
-                {
-                    NewSummon->SetHealth(NewSummon->GetMaxHealth());
-                    NewSummon->SetPower(POWER_MANA, NewSummon->GetMaxPower(POWER_MANA));
-
-					NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT, m_caster);
-
-=======
->>>>>>> 57b37410ff16ef2c1ac9a20f093867b5e0b42c19
                     return;
 
                 NewSummon->setPetType(SUMMON_PET);
@@ -3732,14 +3718,6 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
             }
         }
     }
-<<<<<<< HEAD
-	pGameObj->SummonLinkedTrapIfAny();
-	pGameObj->SetLootState(GO_READY);
-    if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
-        ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
-    if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
-        ((Creature*)m_originalCaster)->AI()->JustSummoned(pGameObj);
-=======
 
     pGameObj->SummonLinkedTrapIfAny();
 
@@ -3748,7 +3726,6 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
         m_originalCaster->AI()->JustSummoned(pGameObj);
     else if (m_caster->AI())
         m_caster->AI()->JustSummoned(pGameObj);
->>>>>>> 57b37410ff16ef2c1ac9a20f093867b5e0b42c19
 }
 
 void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
