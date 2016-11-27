@@ -1060,7 +1060,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                                 }
                         }
                     }
-                    if (spellMount > 0) m_bot->CastSpell(m_bot, spellMount, false);
+                    if (spellMount > 0) m_bot->CastSpell(m_bot, spellMount, TRIGGERED_NONE);
                 }
             }
             else if (!GetMaster()->IsMounted() && m_bot->IsMounted())
@@ -2911,7 +2911,7 @@ void PlayerbotAI::AcceptQuest(Quest const *qInfo, Player *pGiver)
         // there and there is no default case also.
 
         if (qInfo->GetSrcSpell() > 0)
-            m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), true);
+            m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), TRIGGERED_OLD_TRIGGERED);
     }
 }
 
@@ -4028,9 +4028,9 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
             return false;
 
         if (IsAutoRepeatRangedSpell(pSpellInfo))
-            m_bot->CastSpell(pTarget, pSpellInfo, true);       // cast triggered spell
+            m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_OLD_TRIGGERED);       // cast triggered spell
         else
-            m_bot->CastSpell(pTarget, pSpellInfo, false);      // uni-cast spell
+            m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);      // uni-cast spell
     }
 
     SetIgnoreUpdateTime(CastTime + 1);
@@ -4081,7 +4081,7 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
             pet->SetFacingTo(pet->GetAngle(pTarget));
     }
 
-    pet->CastSpell(pTarget, pSpellInfo, false);
+    pet->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);
 
     Spell* const pSpell = pet->FindCurrentSpellBySpellId(spellId);
     if (!pSpell)
@@ -7315,7 +7315,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
                 m_bot->ModifyMoney(-int32(cost));
                 // learn explicitly or cast explicitly
                 if (trainer_spell->IsCastable())
-                    m_bot->CastSpell(m_bot, trainer_spell->spell, true);
+                    m_bot->CastSpell(m_bot, trainer_spell->spell, TRIGGERED_OLD_TRIGGERED);
                 else
                     m_bot->learnSpell(spellId, false);
                 ++totalSpellLearnt;

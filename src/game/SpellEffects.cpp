@@ -1015,8 +1015,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				{
 					if (Unit* pTarget = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 					{
-						m_caster->CastSpell(pTarget, 24700, true);
-						m_caster->CastSpell(pTarget, 24337, true);
+						m_caster->CastSpell(pTarget, 24700, TRIGGERED_OLD_TRIGGERED);
+						m_caster->CastSpell(pTarget, 24337, TRIGGERED_OLD_TRIGGERED);
 					}
 					return;
 				}
@@ -1048,16 +1048,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				{
 					if (unitTarget&&unitTarget->HasAura(25187))
 					{
-						m_caster->CastSpell(unitTarget, 25191, true);
+						m_caster->CastSpell(unitTarget, 25191, TRIGGERED_OLD_TRIGGERED);
 					}
 					else
-						m_caster->CastSpell(unitTarget, 25190, true);
+						m_caster->CastSpell(unitTarget, 25190, TRIGGERED_OLD_TRIGGERED);
 					return;
 				}
 				case 24019:
 				{
 					if (Unit* pTarget = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-						m_caster->CastSpell(pTarget, 24020, true);
+						m_caster->CastSpell(pTarget, 24020, TRIGGERED_OLD_TRIGGERED);
 				}
             }
 
@@ -1303,7 +1303,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 					m_caster->CastSpell(unitTarget, combatEntry, true, item);
 				}
 
-				m_caster->CastSpell(unitTarget, 34288, true);
+				m_caster->CastSpell(unitTarget, 34288, TRIGGERED_OLD_TRIGGERED);
 				return;
 				}
 			}
@@ -1508,7 +1508,7 @@ void Spell::EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx)
 
 	finish();
 
-	m_caster->CastSpell(unitTarget, spellInfo, false);
+	m_caster->CastSpell(unitTarget, spellInfo, TRIGGERED_NONE);
 }
 
 void Spell::EffectForceCast(SpellEffectIndex eff_idx)
@@ -4057,7 +4057,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 					//if (!unitTarget)
 						//return;
 					if (Unit* pTarget = ((Creature*)m_caster)->SelectRandomUnfriendlyTarget(nullptr, 100))
-						m_caster->CastSpell(pTarget, 23970, true);
+						m_caster->CastSpell(pTarget, 23970, TRIGGERED_OLD_TRIGGERED);
 					return;
 				}
 				case 23970:                                 // 

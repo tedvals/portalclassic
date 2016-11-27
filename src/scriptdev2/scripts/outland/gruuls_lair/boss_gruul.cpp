@@ -134,7 +134,7 @@ struct boss_gruulAI : public ScriptedAI
         if (pSpell->Id == SPELL_SHATTER)
         {
             // this spell must have custom handling in mangos, dealing damage based on distance
-            pTarget->CastSpell(pTarget, SPELL_SHATTER_EFFECT, true);
+            pTarget->CastSpell(pTarget, SPELL_SHATTER_EFFECT, TRIGGERED_OLD_TRIGGERED);
 
             if (pTarget->HasAura(SPELL_STONED))
                 pTarget->RemoveAurasDueToSpell(SPELL_STONED);

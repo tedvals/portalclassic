@@ -160,7 +160,7 @@ struct boss_malchezaarAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_NETHERSPITE_INFERNAL)
-            pSummoned->CastSpell(pSummoned, SPELL_HELLFIRE, false);
+            pSummoned->CastSpell(pSummoned, SPELL_HELLFIRE, TRIGGERED_NONE);
         else if (pSummoned->GetEntry() == NPC_MALCHEZARS_AXE)
             pSummoned->SetInCombatWithZone();
     }
