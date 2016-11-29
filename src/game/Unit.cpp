@@ -2450,6 +2450,9 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
         return MELEE_HIT_CRIT;
     }
 
+	// Modify dodge chance by attacker SPELL_AURA_MOD_COMBAT_RESULT_CHANCE
+	dodge_chance += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_COMBAT_RESULT_CHANCE, VICTIMSTATE_DODGE) * 100;
+
     // only players can't dodge if attacker is behind
     if ((pVictim->GetTypeId() != TYPEID_PLAYER || !from_behind) && dodge_chance > 0)
     {
@@ -2827,6 +2830,9 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
         // Roll dodge
         int32 dodgeChance = int32(pVictim->GetUnitDodgeChance() * 100.0f) - skillDiff * 4;
 
+		// Reduce enemy dodge chance by SPELL_AURA_MOD_COMBAT_RESULT_CHANCE
+		dodgeChance += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_COMBAT_RESULT_CHANCE, VICTIMSTATE_DODGE) * 100;
+
         if (dodgeChance < 0)
             dodgeChance = 0;
 
@@ -2839,6 +2845,10 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     {
         // Roll parry
         int32 parryChance = int32(pVictim->GetUnitParryChance() * 100.0f)  - skillDiff * 4;
+
+		// Reduce enemy dodge chance by SPELL_AURA_MOD_COMBAT_RESULT_CHANCE
+		parryChance += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_COMBAT_RESULT_CHANCE, VICTIMSTATE_PARRY) * 100;
+
         // Can`t parry from behind
         if (parryChance < 0)
             parryChance = 0;
@@ -2852,6 +2862,9 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     {
         // Roll block
         int32 blockChance = int32(pVictim->GetUnitBlockChance() * 100.0f) - skillDiff * 4;
+
+		// Reduce enemy dodge chance by SPELL_AURA_MOD_COMBAT_RESULT_CHANCE
+		blockChance += GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_COMBAT_RESULT_CHANCE, VICTIMSTATE_BLOCKS) * 100;
 
         if (blockChance < 0)
             blockChance = 0;
