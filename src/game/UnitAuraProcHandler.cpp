@@ -875,6 +875,21 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 						CastCustomSpell(pVictim, 84421, &basepoints0, nullptr, nullptr, true, nullptr, triggeredByAura);
 					break;
 				}
+				// Seal of Vengeance (damage calc on apply aura)
+				case 31801:
+				{
+					if (effIndex != EFFECT_INDEX_0)         // effect 1,2 used by seal unleashing code
+						return SPELL_AURA_PROC_FAILED;
+
+					triggered_spell_id = 31803;
+
+					// Since Patch 2.2.0 Seal of Vengeance does additional damage against fully stacked targets
+					// Add 5-stack effect from Holy Vengeance
+					const SpellAuraHolder* existing = target->GetSpellAuraHolder(31803, GetObjectGuid());
+					if (existing && existing->GetStackAmount() >= 5)
+						CastSpell(target, 42463, true, nullptr, triggeredByAura);
+					break;
+				}
 				// Light's Grace
 				case 84438:
 				case 84439:
@@ -940,6 +955,75 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     triggered_spell_id = 28850;
                     break;
                 }
+				// Earth Shield
+				case 974:                                  // Earth Shield				
+				case 32593:
+				case 32594:
+				{
+					if (GetTypeId() != TYPEID_PLAYER)
+						return SPELL_AURA_PROC_FAILED;
+
+					// heal
+					basepoints[0] = triggerAmount;
+					target = this;
+					triggered_spell_id = 371;
+					break;
+				}
+				// Lightning Overload
+				case 30675:                                 				
+				case 30678:
+				case 30679:
+				case 30680:
+				case 30681:
+				{
+					if (!procSpell || GetTypeId() != TYPEID_PLAYER || !pVictim)
+						return SPELL_AURA_PROC_FAILED;
+
+					// custom cooldown processing case
+					if (cooldown && GetTypeId() == TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(dummySpell->Id))
+						return SPELL_AURA_PROC_FAILED;
+
+					uint32 spellId;
+					// Every Lightning Bolt and Chain Lightning spell have duplicate vs half damage and zero cost
+					switch (procSpell->Id)
+					{
+						// Lightning Bolt
+					case   403: spellId = 45284; break;     // Rank  1
+					case   529: spellId = 45286; break;     // Rank  2
+					case   548: spellId = 45287; break;     // Rank  3
+					case   915: spellId = 45288; break;     // Rank  4
+					case   943: spellId = 45289; break;     // Rank  5
+					case  6041: spellId = 45290; break;     // Rank  6
+					case 10391: spellId = 45291; break;     // Rank  7
+					case 10392: spellId = 45292; break;     // Rank  8
+					case 15207: spellId = 45293; break;     // Rank  9
+					case 15208: spellId = 45294; break;     // Rank 10
+					case 25448: spellId = 45295; break;     // Rank 11
+					case 25449: spellId = 45296; break;     // Rank 12
+															// Chain Lightning
+					case   421: spellId = 45297; break;     // Rank  1
+					case   930: spellId = 45298; break;     // Rank  2
+					case  2860: spellId = 45299; break;     // Rank  3
+					case 10605: spellId = 45300; break;     // Rank  4
+					case 25439: spellId = 45301; break;     // Rank  5
+					case 25442: spellId = 45302; break;     // Rank  6
+					default:
+						sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (LO)", procSpell->Id);
+						return SPELL_AURA_PROC_FAILED;
+					}
+
+					// Remove cooldown (Chain Lightning - have Category Recovery time)
+					if (procSpell->SpellFamilyFlags & uint64(0x0000000000000002))
+						((Player*)this)->RemoveSpellCooldown(spellId);
+
+					CastSpell(pVictim, spellId, true, castItem, triggeredByAura);
+
+					if (cooldown && GetTypeId() == TYPEID_PLAYER)
+						((Player*)this)->AddSpellCooldown(dummySpell->Id, 0, time(nullptr) + cooldown);
+
+					return SPELL_AURA_PROC_OK;
+				}
+				
             }
             break;
         }
