@@ -1159,7 +1159,9 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
                     break;
                 case SPELLFAMILY_DRUID:
                     if (entry->SpellFamilyFlags & uint64(0x80) && multirank)
-                        return true; // Tranquility (should it stack? TODO: Find confirmation)
+                        return true; // Tranquility (should it stack? TODO: Find confirmation)				
+					if (entry->SpellFamilyFlags & uint64(0x44000000000) && entry2->SpellFamilyFlags & uint64(0x44000000000))
+						return false; // Mangle (Cat) & Mangle (Bear)
                     break;
             }
             break;

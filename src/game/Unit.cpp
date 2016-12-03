@@ -1571,7 +1571,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
 	//custom
 	// Chance 50% to break Who dares win
 
-	if (HasAura(84554))
+	if (HasAura(54554))
 		if (!roll_chance_i(50))
 		{
 			damageInfo->hitOutCome = MELEE_HIT_DODGE;			
@@ -6650,6 +6650,11 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackTy
     // differentiate for weapon damage based spells
     bool isWeaponDamageBasedSpell = !(spellProto && (damagetype == DOT || IsSpellHaveEffect(spellProto, SPELL_EFFECT_SCHOOL_DAMAGE)));
     uint32 schoolMask       = spellProto ? GetSpellSchoolMask(spellProto) : uint32(GetMeleeDamageSchoolMask());
+	uint32 mechanicMask = spellProto ? GetAllSpellMechanicMask(spellProto) : 0;
+
+	// Shred also have bonus as MECHANIC_BLEED damages
+	if (spellProto && spellProto->SpellFamilyName == SPELLFAMILY_DRUID && spellProto->SpellFamilyFlags & uint64(0x00008000))
+		mechanicMask |= (1 << (MECHANIC_BLEED - 1));
 
     // FLAT damage bonus auras
     // =======================
@@ -6694,13 +6699,21 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackTy
 		switch ((*i)->GetMiscValue())
 		{
 			// Kindle (Mage)
-		case 8004:
-		{
-			if (GetHealth() < GetMaxHealth() * 0.35f)
-				TakenPercent *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+			case 8004:
+			{
+				if (GetHealth() < GetMaxHealth() * 0.35f)
+					TakenPercent *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 
-			break;
+				break;
+			}
 		}
+
+		switch ((*i)->GetSpellProto()->SpellIconID)
+		{
+			case 2312:                                      // Mangle
+				if (mechanicMask & (1 << (MECHANIC_BLEED - 1)))
+					TakenPercent *= (100.0f + (*i)->GetModifier()->m_amount) / 100.0f;
+				break;
 		}
 	}
     // final calculation

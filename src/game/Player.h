@@ -685,8 +685,8 @@ enum ReputationSource
 #define MAX_PLAYER_SUMMON_DELAY (2*MINUTE)
 #define MAX_MONEY_AMOUNT        (0x7FFFFFFF-1)
 
-#define ADVENTURE_AURA           85000
-#define GROUP_ADVENTURE_AURA     85001
+#define ADVENTURE_AURA           55000
+#define GROUP_ADVENTURE_AURA     55001
 
 struct InstancePlayerBind
 {
