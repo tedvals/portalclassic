@@ -7531,6 +7531,29 @@ void Unit::SetDeathState(DeathState s)
 ########                          ########
 ########################################*/
 
+// Check if this unit is controlled by provided controller or by one of its friendly faction
+bool Unit::IsTargetUnderControl(Unit const& target) const
+{
+    ObjectGuid charmerGuid = GetCharmerGuid();
+
+    if (!charmerGuid)
+        return false;
+    
+    if (target.GetCharmerGuid() == charmerGuid)
+        return true;
+
+    // also check if this unit is controlled by another creature from friendly faction
+    if (Unit const* charmer = GetMap()->GetUnit(charmerGuid))
+    {
+        FactionTemplateEntry const* charmerFactionEntry = charmer->getFactionTemplateEntry();
+        FactionTemplateEntry const* controllerFactionEntry = target.getFactionTemplateEntry();
+        if (controllerFactionEntry && charmerFactionEntry && !controllerFactionEntry->IsHostileTo(*controllerFactionEntry))
+            return true;
+    }
+
+    return false;
+}
+
 bool Unit::CanHaveThreatList(bool ignoreAliveState/*=false*/) const
 {
     // only creatures can have threat list
@@ -7687,12 +7710,16 @@ void Unit::FixateTarget(Unit* pVictim)
 
 bool Unit::IsSecondChoiceTarget(Unit* pTarget, bool checkThreatArea)
 {
-    MANGOS_ASSERT(pTarget && GetTypeId() == TYPEID_UNIT);
+    MANGOS_ASSERT(pTarget);
+
+    // little hack before handling threatarea in unit instead of creature as charmed players will act like creature
+    Creature* thisCreature = GetTypeId() == TYPEID_UNIT ? static_cast<Creature*>(this) : nullptr;
 
     return
+        pTarget->IsTargetUnderControl(*this) ||
         pTarget->IsImmuneToDamage(GetMeleeDamageSchoolMask()) ||
         pTarget->hasNegativeAuraWithInterruptFlag(AURA_INTERRUPT_FLAG_DAMAGE) ||
-        (checkThreatArea && ((Creature*)this)->IsOutOfThreatArea(pTarget));
+        (thisCreature && checkThreatArea && thisCreature->IsOutOfThreatArea(pTarget));
 }
 
 //======================================================================
@@ -10135,7 +10162,6 @@ bool Unit::TakeCharmOf(Unit* charmed)
     charmed->ClearInCombat();
 
     charmed->SetCharmerGuid(GetObjectGuid());
-    charmed->CastStop();
     SetCharm(charmed);
 
     CharmInfo* charmInfo = charmed->InitCharmInfo(charmed);
@@ -10158,7 +10184,7 @@ bool Unit::TakeCharmOf(Unit* charmed)
         charmInfo->SetIsRetreating(true);
 
         charmedPlayer->SetClientControl(charmedPlayer, 0);
-        charmedPlayer->SendForcedObjectUpdate();
+        charmedPlayer->ForceHealAndPowerUpdateInZone();
     }
     else if (charmed->GetTypeId() == TYPEID_UNIT)
     {
@@ -10224,6 +10250,7 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
             player->GetCamera().ResetView();
             player->SetClientControl(player, player->IsClientControl(player));
             player->SetMover(nullptr);
+            player->ForceHealAndPowerUpdateInZone();
         }
         return;
     }
@@ -10309,6 +10336,8 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
     }
     else if (possessed->GetTypeId() == TYPEID_PLAYER)
     {
+        possessed->AttackStop(true, true);
+
         Player* possessedPlayer = static_cast<Player *>(possessed);
 
         if (player && player->IsInDuelWith(possessedPlayer))
@@ -10319,6 +10348,8 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
         possessedPlayer->SetClientControl(possessedPlayer, possessedPlayer->IsClientControl(possessedPlayer));
         charmInfo->ResetCharmState();
         possessedPlayer->DeleteCharmInfo();
+
+        possessedPlayer->ForceHealAndPowerUpdateInZone();
 
         while (possessedPlayer->GetMotionMaster()->GetCurrentMovementGeneratorType() == FOLLOW_MOTION_TYPE)
             possessedPlayer->GetMotionMaster()->MovementExpired(true);
@@ -10338,6 +10369,8 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
             player->RemovePetActionBar();
         else
             player->PetSpellInitialize();   // reset spell on pet bar
+
+        player->ForceHealAndPowerUpdateInZone();
     }
 
     // be sure all those change will be made for clients

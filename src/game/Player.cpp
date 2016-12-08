@@ -4161,7 +4161,15 @@ void Player::SetRoot(bool enable)
     WorldPacket data(enable ? SMSG_FORCE_MOVE_ROOT : SMSG_FORCE_MOVE_UNROOT, GetPackGUID().size() + 4);
     data << GetPackGUID();
     data << uint32(0);
-    SendMessageToSet(data, true);
+
+    if (GetMover() && GetMover()->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player* pMover = (Player*)GetMover();
+        if (pMover != this)
+            pMover->GetSession()->SendPacket(data);
+    }
+
+    GetSession()->SendPacket(data);
 }
 
 void Player::SetWaterWalk(bool enable)
@@ -15830,6 +15838,9 @@ void Player::SetFFAPvP(bool state)
     else
         RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_FFA_PVP);
 
+    ForceHealAndPowerUpdateInZone();
+    ForceHealthAndPowerUpdate();
+
     if (GetGroup())
         SetGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
 }
@@ -19260,6 +19271,19 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
     }
     SendForcedObjectUpdate();
 }
+
+void Player::ForceHealAndPowerUpdateInZone()
+{
+	for (auto guid : m_clientGUIDs)
+	{
+		if (guid.IsUnit())
+		{
+			if (auto unit = GetMap()->GetUnit(guid))
+				unit->ForceHealthAndPowerUpdate();
+		}
+	}
+}
+
 
 //Custom
 uint32 Player::GetAdventureLevelGroup()
