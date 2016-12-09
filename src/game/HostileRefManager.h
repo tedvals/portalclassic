@@ -21,6 +21,7 @@
 
 #include "Common.h"
 #include "Utilities/LinkedReference/RefManager.h"
+#include "ObjectGuid.h"
 
 class Unit;
 class ThreatManager;
