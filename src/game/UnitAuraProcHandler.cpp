@@ -855,24 +855,20 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     break;
                 }
 				// Spiritual Attunement
-				case 54422:
-				case 54423:
+				case 31785:
+				case 33776:
 				{
-					// if healed by another unit (victim)
+					// if healed by another unit (pVictim)
 					if (this == pVictim)
 						return SPELL_AURA_PROC_FAILED;
 
-					// dont allow non-positive dots to proc
-					if (!procSpell )
-					//	|| !procSpell->IsPositive())
+					// dont count overhealing
+					uint32 diff = GetMaxHealth() - GetHealth();
+					if (!diff)
 						return SPELL_AURA_PROC_FAILED;
-
-					// heal amount )
-					int32 basepoints0 = int32(std::min(damage, GetMaxHealth() - GetHealth())* static_cast<float>(triggerAmount) / 100.0f);
+					basepoints[0] = triggerAmount * (damage > diff ? diff : damage) / 100;
 					target = this;
-
-					if (basepoints0)
-						CastCustomSpell(pVictim, 54421, &basepoints0, nullptr, nullptr, true, nullptr, triggeredByAura);
+					triggered_spell_id = 31786;
 					break;
 				}
 				// Seal of Vengeance (damage calc on apply aura)
@@ -888,6 +884,20 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 					const SpellAuraHolder* existing = target->GetSpellAuraHolder(31803, GetObjectGuid());
 					if (existing && existing->GetStackAmount() >= 5)
 						CastSpell(target, 42463, true, nullptr, triggeredByAura);
+					break;
+				}
+				case 54647:
+				{
+					if (effIndex != EFFECT_INDEX_0)         // effect 1,2 used by seal unleashing code
+						return SPELL_AURA_PROC_FAILED;
+
+					triggered_spell_id = 54648;
+
+					// Since Patch 2.2.0 Seal of Vengeance does additional damage against fully stacked targets
+					// Add 5-stack effect from Holy Vengeance
+					const SpellAuraHolder* existing = target->GetSpellAuraHolder(54648, GetObjectGuid());
+					if (existing && existing->GetStackAmount() >= 5)
+						CastSpell(target, 54650, true, nullptr, triggeredByAura);
 					break;
 				}
 				// Light's Grace

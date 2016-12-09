@@ -472,9 +472,37 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
 						damage = damage* 1.1f;
 					return;
 				}
+				else if (m_spellInfo->SpellFamilyFlags & uint64(0x100000000)) // Steady Shot
+					{
+						int32 base = irand((int32)m_caster->GetWeaponDamageRange(RANGED_ATTACK, MINDAMAGE), (int32)m_caster->GetWeaponDamageRange(RANGED_ATTACK, MAXDAMAGE));
+						damage += int32(float(base) / m_caster->GetAttackTime(RANGED_ATTACK) * 2800 + m_caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.2f);
+					}
+				break;
                 break;
-            case SPELLFAMILY_PALADIN:
-                break;
+			case SPELLFAMILY_PALADIN:
+			{
+				// Judgement of Vengeance
+				if ((m_spellInfo->SpellFamilyFlags & uint64(0x800000000)) && m_spellInfo->SpellIconID == 2292)
+				{
+					// Get stack of Holy Vengeance on the target added by caster
+					uint32 stacks = 0;
+					Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+					for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+					{
+						if (((*itr)->GetId() == 31803) && (*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
+						{
+							stacks = (*itr)->GetStackAmount();
+							break;
+						}
+					}
+					if (!stacks)
+						// No damage if the target isn't affected by this
+						damage = -1;
+					else
+						damage *= stacks;
+				}
+				break;
+			}
         }
 
         if (damage >= 0)
