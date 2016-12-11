@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "GenericHunterStrategy.h"
 #include "HunterAiObjectContext.h"
@@ -163,9 +163,13 @@ void GenericHunterStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         "takes periodic damage",
         NextAction::array(0, new NextAction("reposition", ACTION_EMERGENCY), NULL)));
 
-     triggers.push_back(new TriggerNode(
-        "enemy too close for spell",
-        NextAction::array(0, new NextAction("wing clip", ACTION_MOVE + 7), new NextAction("disengage", ACTION_MOVE + 8),  NULL)));
+		triggers.push_back(new TriggerNode(
+			"enemy too close for shoot",
+			NextAction::array(0, new NextAction("flee", 49.0f), NULL)));
+
+		triggers.push_back(new TriggerNode(
+			"enemy is close",
+			NextAction::array(0, new NextAction("freezing trap", 50.0f), new NextAction("wing clip", 50.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "have aggro",

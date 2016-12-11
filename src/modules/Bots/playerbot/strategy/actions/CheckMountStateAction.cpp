@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "../../../Spells/Auras/SpellAuraEffects.h"
 #include "CheckMountStateAction.h"
@@ -53,7 +53,7 @@ bool CheckMountStateAction::Mount()
 	Player* master = GetMaster();
 	ai->RemoveShapeshift();
 	int32 masterSpeed = 150;
-	const SpellInfo *masterSpell = NULL;
+	const SpellProto *masterSpell = NULL;
 	if (master != NULL && master->GetAuraEffectsByType(SPELL_AURA_MOUNTED).size() > 0)
 	{
 		Unit::AuraEffectList const& auras = master->GetAuraEffectsByType(SPELL_AURA_MOUNTED);
@@ -62,7 +62,7 @@ bool CheckMountStateAction::Mount()
 		AuraEffect* front = auras.front();
 		if (!front) return false;
 		
-		const SpellInfo* masterSpell = front->GetSpellInfo();
+		const SpellProto* masterSpell = front->GetSpellProto();
 		masterSpeed = max(masterSpell->Effects[1].BasePoints, masterSpell->Effects[2].BasePoints);
 	}
 	else {
@@ -70,12 +70,12 @@ bool CheckMountStateAction::Mount()
 		for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
 		{
 			uint32 spellId = itr->first;
-			const SpellInfo* spellInfo = sSpellMgr->GetSpellInfo(spellId);
-			if (!spellInfo || spellInfo->Effects[0].ApplyAuraName != SPELL_AURA_MOUNTED)
+			const SpellProto* SpellProto = sSpellMgr->GetSpellProto(spellId);
+			if (!SpellProto || SpellProto->Effects[0].ApplyAuraName != SPELL_AURA_MOUNTED)
 				continue;
-			if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || spellInfo->IsPassive())
+			if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || SpellProto->IsPassive())
 				continue;
-			int32 effect = max(spellInfo->Effects[1].BasePoints, spellInfo->Effects[2].BasePoints);
+			int32 effect = max(SpellProto->Effects[1].BasePoints, SpellProto->Effects[2].BasePoints);
 			if (effect > masterSpeed)
 				masterSpeed = effect;
 		}
@@ -84,20 +84,20 @@ bool CheckMountStateAction::Mount()
 	for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
 	{
 		uint32 spellId = itr->first;
-		const SpellInfo* spellInfo = sSpellMgr->GetSpellInfo(spellId);
+		const SpellProto* SpellProto = sSpellMgr->GetSpellProto(spellId);
 
-		if (!spellInfo || spellInfo->Effects[0].ApplyAuraName != SPELL_AURA_MOUNTED)
+		if (!SpellProto || SpellProto->Effects[0].ApplyAuraName != SPELL_AURA_MOUNTED)
 			continue;
 
-		if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || spellInfo->IsPassive())
+		if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || SpellProto->IsPassive())
 			continue;
 
-		int32 effect = max(spellInfo->Effects[1].BasePoints, spellInfo->Effects[2].BasePoints);
+		int32 effect = max(SpellProto->Effects[1].BasePoints, SpellProto->Effects[2].BasePoints);
 		if (effect < masterSpeed)
 			continue;
 
-		uint32 index = (spellInfo->Effects[1].ApplyAuraName == SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED ||
-			spellInfo->Effects[2].ApplyAuraName == SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) ? 1 : 0;
+		uint32 index = (SpellProto->Effects[1].ApplyAuraName == SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED ||
+			SpellProto->Effects[2].ApplyAuraName == SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) ? 1 : 0;
 		allSpells[index][effect].push_back(spellId);
 	}
 

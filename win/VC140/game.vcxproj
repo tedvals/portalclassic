@@ -552,6 +552,7 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\RememberTaxiAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\RepairAllAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\ResetAiAction.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\RevealGatheringItemAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\ReviveFromCorpseAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\RewardAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\SaveManaAction.cpp" />
@@ -968,6 +969,7 @@
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RememberTaxiAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RepairAllAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\ResetAiAction.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RevealGatheringItemAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\ReviveFromCorpseAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RewardAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RtiAction.h" />

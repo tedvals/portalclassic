@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "DruidActions.h"
 #include "DruidAiObjectContext.h"
@@ -24,12 +24,21 @@ namespace ai
             StrategyFactoryInternal()
             {
                 creators["nc"] = &druid::StrategyFactoryInternal::nc;
-                creators["stealth"] = &druid::StrategyFactoryInternal::nc_stealth;
-                creators["cat aoe"] = &druid::StrategyFactoryInternal::cat_aoe;
+                creators["stealth"] = &druid::StrategyFactoryInternal::nc_stealth;                
                 creators["caster aoe"] = &druid::StrategyFactoryInternal::caster_aoe;
                 creators["caster debuff"] = &druid::StrategyFactoryInternal::caster_debuff;
                 creators["dps debuff"] = &druid::StrategyFactoryInternal::caster_debuff;
+				creators["cure"] = &druid::StrategyFactoryInternal::cure;
             }
+			~StrategyFactoryInternal()
+			{
+				creators.erase("nc");
+				creators.erase("stealth");
+				creators.erase("caster aoe");
+				creators.erase("caster debuff");
+				creators.erase("dps debuff");
+				creators.erase("cure");
+			}
 
         private:
             static Strategy* nc(PlayerbotAI* ai) { return new GenericDruidNonCombatStrategy(ai); }
@@ -37,6 +46,7 @@ namespace ai
             static Strategy* cat_aoe(PlayerbotAI* ai) { return new CatAoeDruidStrategy(ai); }
             static Strategy* caster_aoe(PlayerbotAI* ai) { return new CasterDruidAoeStrategy(ai); }
             static Strategy* caster_debuff(PlayerbotAI* ai) { return new CasterDruidDebuffStrategy(ai); }
+			static Strategy* cure(PlayerbotAI* ai) { return new DruidCureStrategy(ai); }
         };
 
         class DruidStrategyFactoryInternal : public NamedObjectContext<Strategy>

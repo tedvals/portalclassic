@@ -8,7 +8,7 @@
 PlayerbotSecurity::PlayerbotSecurity(Player* const bot) : bot(bot)
 {
     if (bot)
-        account = sObjectMgr->GetPlayerAccountIdByGUID(bot->GetGUID());
+        account = sObjectMgr.GetPlayerAccountIdByGUID(bot->GetGUID());
 }
 
 PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* reason, bool ignoreGroup)
@@ -41,7 +41,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
         {
             for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
             {
-                Player* player = gref->GetSource();
+                Player* player = gref->getSource();
                 if (player == bot && !ignoreGroup)
                     return PLAYERBOT_SECURITY_ALLOW_ALL;
             }
@@ -85,7 +85,7 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
 
         for (GroupReference *gref = group->GetFirstMember(); gref; gref = gref->next())
         {
-            Player* player = gref->GetSource();
+            Player* player = gref->getSource();
             if (player == from)
                 return PLAYERBOT_SECURITY_ALLOW_ALL;
         }
@@ -155,19 +155,19 @@ bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent,
             out << "Invite me to your group first";
             break;
         case PLAYERBOT_DENY_FAR:
-            {
-                out << "I am too far away";
+		{
+			out << "I am too far away";
 
-                uint32 area = bot->GetAreaId();
-                if (area)
-                {
-					const AreaTableEntry* entry = sAreaTableStore.LookupEntry(area);
-                    if (entry)
-                    {
-                        out << " |cffffffff(|cffff0000" << entry->area_name[0] << "|cffffffff)";
-                    }
-                }
-            }
+			uint32 area = bot->GetAreaId();
+			if (area)
+			{
+				const AreaTableEntry* entry = sAreaStore.LookupEntry(area);
+				if (entry)
+				{
+					out << " |cffffffff(|cffff0000" << entry->area_name[0] << "|cffffffff)";
+				}
+			}
+		}
             break;
         case PLAYERBOT_DENY_FULL_GROUP:
             out << "I am in a full group. Will do it later";
@@ -182,6 +182,13 @@ bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent,
         break;
     }
 
-	bot->Whisper(out.str(), LANG_UNIVERSAL, from);
+	string text = out.str();
+	uint64 guid = from->GetGUID();
+	time_t lastSaid = whispers[guid][text];
+	if (!lastSaid || (time(0) - lastSaid) >= sPlayerbotAIConfig.maxWaitForMove / 1000)
+	{
+		whispers[guid][text] = time(0);
+		bot->Whisper(text, LANG_UNIVERSAL, guid);
+		}
     return false;
 }

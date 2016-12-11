@@ -1,9 +1,9 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "AttackAction.h"
-#include "../../../Movement/MovementGenerator.h"
-#include "../../../game/AI/CreatureAI.h"
-#include "../../../Entities/Pet/Pet.h"
+#include "../../game/MovementGenerator.h"
+#include "../../game/AI/CreatureAI.h"
+#include "../../game/Pet.h"
 #include "../../LootObjectStack.h"
 
 using namespace ai;
@@ -57,7 +57,7 @@ bool AttackAction::Attack(Unit* target)
 	}
 
     Player* master = GetMaster();
-    if (AI_VALUE(uint8, "balance") < 75 && (master && master->isDead() && !bot->IsInCombat()))
+    if (AI_VALUE(uint8, "balance") < 75 && (master && master->isDead() && !bot->isInCombat()))
     {
         if (verbose) ai->TellMaster("target too strong!");
         return false;
@@ -110,7 +110,7 @@ bool AttackAction::Attack(Unit* target)
 		}
 		else if (!bot->GetGroup())
 		{
-			if (ai->CanHeal(bot) && bot->GetHealthPct() < 60)
+			if (ai->CanHeal(bot) && bot->GetHealthPercent() < 60)
 			{
 				ai->DoSpecificAction("urgent heal");
 				return false;
@@ -120,7 +120,7 @@ bool AttackAction::Attack(Unit* target)
 				ai->DoSpecificAction("flee");
 				return false;
 			}
-			else if (bot->GetHealthPct() < 50)
+			else if (bot->GetHealthPercent() < 50)
 			{
 				ai->DoSpecificAction("bandage");
 				return false;

@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "UnequipAction.h"
 
@@ -35,11 +35,11 @@ void UnequipAction::UnequipItem(Item& item)
     uint8 dstBag = NULL_BAG;
 
 
-    WorldPacket* const packet = new WorldPacket(CMSG_AUTOSTORE_BAG_ITEM, 3);
+	std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_AUTOSTORE_BAG_ITEM, 3));
     *packet << bagIndex << slot << dstBag;
-    bot->GetSession()->QueuePacket(packet);
+    bot->GetSession()->QueuePacket(std::move(packet));
 
-    ostringstream out; out << chat->formatItem(item.GetTemplate()) << " unequipped";
+    ostringstream out; out << chat->formatItem(item.GetProto()) << " unequipped";
     ai->TellMaster(out);
 }
 

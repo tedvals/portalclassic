@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "BankAction.h"
 
@@ -80,7 +80,7 @@ bool BankAction::Withdraw(const uint32 itemid)
     bot->StoreItem(dest, pItem, true);
 
     std::ostringstream out;
-    out << "got " << chat->formatItem(pItem->GetTemplate(), pItem->GetCount()) << " from bank";
+    out << "got " << chat->formatItem(pItem->GetProto(), pItem->GetCount()) << " from bank";
     ai->TellMaster(out.str());
     return true;
 }
@@ -100,7 +100,7 @@ bool BankAction::Deposit(Item* pItem)
     bot->RemoveItem(pItem->GetBagSlot(), pItem->GetSlot(), true);
     bot->BankItem(dest, pItem, true);
 
-    out << "put " << chat->formatItem(pItem->GetTemplate(), pItem->GetCount()) << " to bank";
+    out << "put " << chat->formatItem(pItem->GetProto(), pItem->GetCount()) << " to bank";
     ai->TellMaster(out.str());
 	return true;
 }
@@ -115,14 +115,14 @@ void BankAction::ListItems()
         const Bag* const pBag = static_cast<Bag *>(bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag));
         if (pBag)
         {
-            const ItemTemplate* const pBagProto = pBag->GetTemplate();
+            const ItemPrototype* const pBagProto = pBag->GetProto();
             std::string bagName = pBagProto->Name1;
 
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
                 Item* const item = bot->GetItemByPos(bag, slot);
                 if (item)
-                    items[item->GetTemplate()->ItemId] = item->GetCount();
+                    items[item->GetProto()->ItemId] = item->GetCount();
             }
         }
     }
@@ -137,7 +137,7 @@ Item* BankAction::FindItemInBank(uint32 ItemId)
         Item* const pItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
         if (pItem)
         {
-            const ItemTemplate* const pItemProto = pItem->GetTemplate();
+            const ItemPrototype* const pItemProto = pItem->GetProto();
             if (!pItemProto)
                 continue;
 
@@ -155,7 +155,7 @@ Item* BankAction::FindItemInBank(uint32 ItemId)
                 Item* const pItem = bot->GetItemByPos(bag, slot);
                 if (pItem)
                 {
-                    const ItemTemplate* const pItemProto = pItem->GetTemplate();
+                    const ItemPrototype* const pItemProto = pItem->GetProto();
                     if (!pItemProto)
                         continue;
 

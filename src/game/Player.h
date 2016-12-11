@@ -1688,6 +1688,58 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateSkillsToMaxSkillsForLevel();             // for .levelup
         void ModifySkillBonus(uint32 skillid, int32 val, bool talent);
 
+		// Playerbot mod:
+		float m_minTargetDistance = .0f;
+		float m_minMasterDistance = .0f;
+
+		void SetMinTargetDistance(float minTargetDistance) { m_minTargetDistance = minTargetDistance; }
+		void SetMinMasterDistance(float minMasterDistance) { m_minMasterDistance = minMasterDistance; }
+
+		float GetMinTargetDistance() { return m_minTargetDistance; }
+		float GetMinMasterDistance() { return m_minMasterDistance; }
+
+	private:
+		float m_order_mov_x;
+		float m_order_mov_y;
+		float m_order_mov_z;
+		bool m_order_mov_point;
+		uint32 m_order_mov_mapId;
+		bool mSemaphore_Process = false;
+	public:
+		typedef std::list<uint32> QuestList;
+		QuestList m_questIds;
+
+		void ResetToDoQuests();
+		bool AddToDoQuest(uint32 questId);
+		uint32 GetToDoQuestsSize() { return m_questIds.size(); }
+
+		WorldObject* MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& zoneId, float& x, float& y, float& z, uint32 questId);
+		WorldObject* MoveToQuestEnder(uint32& mapId, uint32& areaId, uint32& zoneId, float& x, float& y, float& z, uint32 questId);
+		WorldObject* MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& zoneId, float& x, float& y, float& z, uint32 questId);
+
+		bool HasMoveOrder() { return m_order_mov_point; }
+		void SetMovePoint(uint32 mapId, float x, float y, float z) { m_order_mov_point = true; m_order_mov_mapId = mapId; m_order_mov_x = x; m_order_mov_y = y; m_order_mov_z = z; }
+		void ResetMovePoint() { m_order_mov_point = false; }
+
+		void StartProcessing() { mSemaphore_Process = true; }
+		void StopProcessing() { mSemaphore_Process = false; }
+		bool CanProcess() { return !mSemaphore_Process; }
+
+		bool GetMovePoint(uint32 mapId, float& x, float& y, float& z)
+		{
+			if (mapId != m_order_mov_mapId)
+				return false;
+
+			if (m_order_mov_point)
+			{
+				x = m_order_mov_x;
+				y = m_order_mov_y;
+				z = m_order_mov_z;
+				return true;
+			}
+			else return false;
+		}
+
         /*********************************************************/
         /***                  HONOR SYSTEM                     ***/
         /*********************************************************/

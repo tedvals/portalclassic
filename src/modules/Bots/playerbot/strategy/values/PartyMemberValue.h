@@ -12,7 +12,7 @@ namespace ai
     class SpellEntryPredicate
     {
     public:
-        virtual bool Check(SpellInfo const*) = 0;
+        virtual bool Check(SpellProto const*) = 0;
     };
 
     class PartyMemberValue : public UnitCalculatedValue

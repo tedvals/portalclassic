@@ -1,8 +1,6 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "TellReputationAction.h"
-#include "../../../Reputation/ReputationMgr.h"
-
 
 using namespace ai;
 
@@ -12,11 +10,15 @@ bool TellReputationAction::Execute(Event event)
     if (!master)
         return false;
 
-    Unit* unit = master->GetSelectedUnit();
-    if (!unit)
-        return false;
+	ObjectGuid selection = master->GetSelectionGuid();
+	if (selection.IsEmpty())
+		return false;
 
-    const FactionTemplateEntry *factionTemplate = unit->GetFactionTemplateEntry();
+	Unit* unit = master->GetMap()->GetUnit(selection);
+	if (!unit)
+		return false;
+
+	const FactionTemplateEntry *factionTemplate = unit->getFactionTemplateEntry();
     uint32 faction = factionTemplate->faction;
     const FactionEntry* entry = sFactionStore.LookupEntry(faction);
     int32 reputation = bot->GetReputationMgr().GetReputation(faction);

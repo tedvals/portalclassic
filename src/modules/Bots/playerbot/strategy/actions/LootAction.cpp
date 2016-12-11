@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "LootAction.h"
 
@@ -77,16 +77,16 @@ bool OpenLootAction::DoLoot(LootObject& lootObject)
     if (creature && creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE))
     {
         bot->GetMotionMaster()->Clear();
-        WorldPacket* const packet = new WorldPacket(CMSG_LOOT, 8);
+		std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_LOOT, 8));
         *packet << lootObject.guid;
-        bot->GetSession()->QueuePacket(packet);
+        bot->GetSession()->QueuePacket(std::move(packet));
         return true;
 
     }
 
     if (creature)
     {
-        SkillType skill = creature->GetCreatureTemplate()->GetRequiredLootSkill();
+        SkillType skill = creature->GetCreatureInfo()->GetRequiredLootSkill();
         if (!CanOpenLock(skill, lootObject.reqSkillValue))
             return false;
 
@@ -133,84 +133,83 @@ uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject)
 
 uint32 OpenLootAction::GetOpeningSpell(LootObject& lootObject, GameObject* go)
 {
-    for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
-    {
-        uint32 spellId = itr->first;
+	for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr)
+	{
+		uint32 spellId = itr->first;
 
-        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
-            continue;
+		if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled || IsPassiveSpell(spellId))
+			continue;
 
-        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellInfo->IsPassive())
-            continue;
+		if (spellId == MINING || spellId == HERB_GATHERING)
+			continue;
 
-        if (spellId == MINING || spellId == HERB_GATHERING)
-            continue;
+		const SpellEntry* pSpellInfo = sSpellStore.LookupEntry(spellId);
+		if (!pSpellInfo)
+			continue;
 
-        if (CanOpenLock(lootObject, pSpellInfo, go))
-            return spellId;
-    }
+		if (CanOpenLock(lootObject, pSpellInfo, go))
+			return spellId;
+	}
 
-    for (uint32 spellId = 0; spellId < sSpellStore.GetNumRows(); spellId++)
-    {
-        if (spellId == MINING || spellId == HERB_GATHERING)
-            continue;
+	for (uint32 spellId = 0; spellId < sSpellStore.GetNumRows(); spellId++)
+	{
+		if (spellId == MINING || spellId == HERB_GATHERING)
+			continue;
 
-        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
-            continue;
+		const SpellEntry* pSpellInfo = sSpellStore.LookupEntry(spellId);
+		if (!pSpellInfo)
+			continue;
 
-        if (CanOpenLock(lootObject, pSpellInfo, go))
-            return spellId;
-    }
+		if (CanOpenLock(lootObject, pSpellInfo, go))
+			return spellId;
+	}
 
-    return 0; //Spell 3365 = Opening?
+	return 0; //Spell 3365 = Opening?
 }
 
-bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellInfo* pSpellInfo, GameObject* go)
+bool OpenLootAction::CanOpenLock(LootObject& lootObject, const SpellEntry* pSpellInfo, GameObject* go)
 {
-    for (int effIndex = 0; effIndex <= EFFECT_2; effIndex++)
-    {
-        if (pSpellInfo->Effects[effIndex].Effect != SPELL_EFFECT_OPEN_LOCK && pSpellInfo->Effects[effIndex].Effect != SPELL_EFFECT_SKINNING)
-            return false;
+	for (int effIndex = 0; effIndex <= EFFECT_INDEX_2; effIndex++)
+	{
+		if (pSpellInfo->Effect[effIndex] != SPELL_EFFECT_OPEN_LOCK && pSpellInfo->Effect[effIndex] != SPELL_EFFECT_SKINNING)
+			return false;
 
-        uint32 lockId = go->GetGOInfo()->GetLockId();
-        if (!lockId)
-            return false;
+		uint32 lockId = go->GetGOInfo()->GetLockId();
+		if (!lockId)
+			return false;
 
-        LockEntry const *lockInfo = sLockStore.LookupEntry(lockId);
-        if (!lockInfo)
-            return false;
+		LockEntry const *lockInfo = sLockStore.LookupEntry(lockId);
+		if (!lockInfo)
+			return false;
 
-        bool reqKey = false;                                    // some locks not have reqs
+		bool reqKey = false;                                    // some locks not have reqs
 
-        for(int j = 0; j < 8; ++j)
-        {
-            switch(lockInfo->Type[j])
-            {
-            /*
-            case LOCK_KEY_ITEM:
-                return true;
-            */
-            case LOCK_KEY_SKILL:
-                {
-                    if(uint32(pSpellInfo->Effects[effIndex].MiscValue) != lockInfo->Index[j])
-                        continue;
+		for (int j = 0; j < 8; ++j)
+		{
+			switch (lockInfo->Type[j])
+			{
+				/*
+				case LOCK_KEY_ITEM:
+				return true;
+				*/
+			case LOCK_KEY_SKILL:
+			{
+				if (uint32(pSpellInfo->EffectMiscValue[effIndex]) != lockInfo->Index[j])
+					continue;
 
-                    uint32 skillId = SkillByLockType(LockType(lockInfo->Index[j]));
-                    if (skillId == SKILL_NONE)
-                        return true;
+				uint32 skillId = SkillByLockType(LockType(lockInfo->Index[j]));
+				if (skillId == SKILL_NONE)
+					return true;
 
-                    if (CanOpenLock(skillId, lockInfo->Skill[j]))
-                        return true;
-                }
-            }
-        }
-    }
+				if (CanOpenLock(skillId, lockInfo->Skill[j]))
+					return true;
+			}
+			}
+		}
+	}
 
-    return false;
+	return false;
 }
-
 bool OpenLootAction::CanOpenLock(uint32 skillId, uint32 reqSkillValue)
 {
     uint32 skillValue = bot->GetSkillValue(skillId);
@@ -237,8 +236,8 @@ bool StoreLootAction::Execute(Event event)
 
     if (gold > 0)
     {
-        WorldPacket* const packet = new WorldPacket(CMSG_LOOT_MONEY, 0);
-        bot->GetSession()->QueuePacket(packet);
+		std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_LOOT_MONEY, 0));
+        bot->GetSession()->QueuePacket(std::move(packet));
     }
 
     for (uint8 i = 0; i < items; ++i)
@@ -257,15 +256,15 @@ bool StoreLootAction::Execute(Event event)
         p.read_skip<uint32>();  // randomPropertyId
         p >> lootslot_type;     // 0 = can get, 1 = look only, 2 = master get
 
-        if (lootslot_type != LOOT_SLOT_TYPE_ALLOW_LOOT && lootslot_type != LOOT_SLOT_TYPE_OWNER)
-            continue;
+		if (lootslot_type != LOOT_SLOT_NORMAL)
+			continue;
 
         if (loot_type != LOOT_SKINNING && !IsLootAllowed(itemid))
             continue;
 
         if (sRandomPlayerbotMgr.IsRandomBot(bot))
         {
-            ItemTemplate const *proto = sObjectMgr->GetItemTemplate(itemid);
+            ItemPrototype const *proto = sObjectMgr.GetItemPrototype(itemid);
             if (proto)
             {
                 uint32 price = itemcount * auctionbot.GetSellPrice(proto) * sRandomPlayerbotMgr.GetSellMultiplier(bot) + gold;
@@ -284,24 +283,24 @@ bool StoreLootAction::Execute(Event event)
                 {
                     for (GroupReference *ref = group->GetFirstMember(); ref; ref = ref->next())
                     {
-                        if( ref->GetSource() != bot)
-                            sGuildTaskMgr.CheckItemTask(itemid, itemcount, ref->GetSource(), bot);
+                        if( ref->getSource() != bot)
+                            sGuildTaskMgr.CheckItemTask(itemid, itemcount, ref->getSource(), bot);
                     }
                 }
             }
         }
 
-        WorldPacket* const packet = new WorldPacket(CMSG_AUTOSTORE_LOOT_ITEM, 1);
+		std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_AUTOSTORE_LOOT_ITEM, 1));
         *packet << itemindex;
-        bot->GetSession()->QueuePacket(packet);
+        bot->GetSession()->QueuePacket(std::move(packet));
     }
 
     AI_VALUE(LootObjectStack*, "available loot")->Remove(guid);
 
     // release loot
-    WorldPacket* const packet = new WorldPacket(CMSG_LOOT_RELEASE, 8);
+	std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_LOOT_RELEASE, 8));
     *packet << guid;
-    bot->GetSession()->QueuePacket(packet);
+    bot->GetSession()->QueuePacket(std::move(packet));
     return true;
 }
 
@@ -316,7 +315,7 @@ bool StoreLootAction::IsLootAllowed(uint32 itemid)
     if (lootItems.find(itemid) != lootItems.end())
         return true;
 
-    ItemTemplate const *proto = sObjectMgr->GetItemTemplate(itemid);
+    ItemPrototype const *proto = sObjectMgr.GetItemPrototype(itemid);
     if (!proto)
         return false;
 

@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ItemForSpellValue.h"
 
@@ -18,8 +18,8 @@ Item* ItemForSpellValue::Calculate()
     if (!spellid)
         return NULL;
 
-    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid);
-    if (!spellInfo)
+    SpellProto const *SpellProto = sSpellMgr->GetSpellProto(spellid);
+    if (!SpellProto)
         return NULL;
 
     Item* itemForSpell = NULL;
@@ -27,43 +27,43 @@ Item* ItemForSpellValue::Calculate()
     if (trader)
     {
         itemForSpell = trader->GetTradeData()->GetItem(TRADE_SLOT_NONTRADED);
-        if (itemForSpell && itemForSpell->IsFitToSpellRequirements(spellInfo))
+        if (itemForSpell && itemForSpell->IsFitToSpellRequirements(SpellProto))
             return itemForSpell;
     }
 
     // Workaround as some spells have no item mask (e.g. shaman weapon enhancements)
-    if (!strcmpi(spellInfo->SpellName[0], "rockbiter weapon") ||
-            !strcmpi(spellInfo->SpellName[0], "flametongue weapon") ||
-            !strcmpi(spellInfo->SpellName[0], "earthliving weapon") ||
-            !strcmpi(spellInfo->SpellName[0], "frostbrand weapon") ||
-            !strcmpi(spellInfo->SpellName[0], "windfury weapon"))
+    if (!strcmpi(SpellProto->SpellName[0], "rockbiter weapon") ||
+            !strcmpi(SpellProto->SpellName[0], "flametongue weapon") ||
+            !strcmpi(SpellProto->SpellName[0], "earthliving weapon") ||
+            !strcmpi(SpellProto->SpellName[0], "frostbrand weapon") ||
+            !strcmpi(SpellProto->SpellName[0], "windfury weapon"))
     {
-        itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_MAINHAND, spellInfo);
-        if (itemForSpell && itemForSpell->GetTemplate()->Class == ITEM_CLASS_WEAPON)
+        itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_MAINHAND, SpellProto);
+        if (itemForSpell && itemForSpell->GetProto()->Class == ITEM_CLASS_WEAPON)
             return itemForSpell;
 
-        itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_OFFHAND, spellInfo);
-        if (itemForSpell && itemForSpell->GetTemplate()->Class == ITEM_CLASS_WEAPON)
+        itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_OFFHAND, SpellProto);
+        if (itemForSpell && itemForSpell->GetProto()->Class == ITEM_CLASS_WEAPON)
             return itemForSpell;
 
         return NULL;
     }
 
     for( uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; slot++ ) {
-        itemForSpell = GetItemFitsToSpellRequirements(slot, spellInfo);
+        itemForSpell = GetItemFitsToSpellRequirements(slot, SpellProto);
         if (itemForSpell)
             return itemForSpell;
     }
     return NULL;
 }
 
-Item* ItemForSpellValue::GetItemFitsToSpellRequirements(uint8 slot, SpellInfo const *spellInfo)
+Item* ItemForSpellValue::GetItemFitsToSpellRequirements(uint8 slot, SpellProto const *SpellProto)
 {
     Item* const itemForSpell = bot->GetItemByPos( INVENTORY_SLOT_BAG_0, slot );
     if (!itemForSpell || itemForSpell->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
         return NULL;
 
-    if (itemForSpell->IsFitToSpellRequirements(spellInfo))
+    if (itemForSpell->IsFitToSpellRequirements(SpellProto))
         return itemForSpell;
 
     return NULL;

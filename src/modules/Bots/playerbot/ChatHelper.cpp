@@ -250,14 +250,14 @@ string ChatHelper::formatGameobject(GameObject* go)
     return out.str();
 }
 
-string ChatHelper::formatSpell(SpellInfo const *sInfo)
+string ChatHelper::formatSpell(SpellProto const *sInfo)
 {
     ostringstream out;
     out << "|cffffffff|Hspell:" << sInfo->Id << "|h[" << sInfo->SpellName[LOCALE_enUS] << "]|h|r";
     return out.str();
 }
 
-string ChatHelper::formatItem(ItemTemplate const * proto, int count)
+string ChatHelper::formatItem(ItemPrototype const * proto, int count)
 {
     char color[32];
     sprintf(color, "%x", ItemQualityColors[proto->Quality]);

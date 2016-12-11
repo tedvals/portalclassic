@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ReadyCheckAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -68,10 +68,10 @@ bool ReadyCheckAction::ReadyCheck()
         }
     }
 
-    WorldPacket* const packet = new WorldPacket(MSG_RAID_READY_CHECK);
+	std::unique_ptr<WorldPacket> packet(new WorldPacket(MSG_RAID_READY_CHECK));
     *packet << bot->GetGUID();
     *packet << uint8(1);
-    bot->GetSession()->QueuePacket(packet);
+    bot->GetSession()->QueuePacket(std::move(packet));
 
     ai->ChangeStrategy("-ready check", BOT_STATE_NON_COMBAT);
 

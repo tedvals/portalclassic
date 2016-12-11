@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "LootStrategyAction.h"
 
@@ -23,7 +23,7 @@ bool LootStrategyAction::Execute(Event event)
 
         for (set<uint32>::iterator i = alwaysLootItems.begin(); i != alwaysLootItems.end(); i++)
         {
-            ItemTemplate const *proto = sObjectMgr->GetItemTemplate(*i);
+            ItemPrototype const *proto = sObjectMgr.GetItemPrototype(*i);
             if (!proto)
                 continue;
 

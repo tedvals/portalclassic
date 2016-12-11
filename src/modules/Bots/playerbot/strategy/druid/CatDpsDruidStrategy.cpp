@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "DruidMultipliers.h"
 #include "CatDpsDruidStrategy.h"
@@ -508,12 +508,5 @@ void CatDpsDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         "runaway",
         NextAction::array(0, new NextAction("nature's grasp", ACTION_EMERGENCY + 7), new NextAction("cat form", ACTION_EMERGENCY + 7), new NextAction("dash", ACTION_EMERGENCY + 8), NULL)));
 
-}
-
-void CatAoeDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
-{
-    triggers.push_back(new TriggerNode(
-        "medium aoe",
-        NextAction::array(0, new NextAction("swipe (cat)", ACTION_HIGH + 2), NULL)));
 }
 

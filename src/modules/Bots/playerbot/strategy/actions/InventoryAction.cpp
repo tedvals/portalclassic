@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "InventoryAction.h"
 
@@ -12,26 +12,24 @@ class FindPotionVisitor : public FindUsableItemVisitor
 public:
     FindPotionVisitor(Player* bot, uint32 effectId) : FindUsableItemVisitor(bot), effectId(effectId) {}
 
-    virtual bool Accept(const ItemTemplate* proto)
+    virtual bool Accept(const ItemPrototype* proto)
     {
-        if (proto->Class == ITEM_CLASS_CONSUMABLE &&
-            proto->SubClass == ITEM_SUBCLASS_POTION &&
-            proto->Spells[0].SpellCategory == 4)
-        {
-            for (int j = 0; j < MAX_ITEM_PROTO_SPELLS; j++)
-            {
-                const SpellInfo* const spellInfo = sSpellMgr->GetSpellInfo(proto->Spells[j].SpellId);
-                if (!spellInfo)
-                    return false;
+		if (proto->Class == ITEM_CLASS_CONSUMABLE && (proto->SubClass == ITEM_SUBCLASS_POTION || proto->SubClass == ITEM_SUBCLASS_FLASK))
+		{
+			for (int j = 0; j < MAX_ITEM_PROTO_SPELLS; j++)
+			{
+				const SpellEntry* const spellInfo = sSpellStore.LookupEntry(proto->Spells[j].SpellId);
+				if (!spellInfo)
+					return false;
 
-                for (int i = 0 ; i < 3; i++)
-                {
-                    if (spellInfo->Effects[i].Effect == effectId)
-                        return true;
-                }
-            }
-        }
-        return false;
+				for (int i = 0; i < 3; i++)
+				{
+					if (spellInfo->Effect[i] == effectId)
+						return true;
+				}
+			}
+		}
+		return false;
     }
 
 private:
@@ -47,7 +45,7 @@ public:
         this->spellCategory = spellCategory;
     }
 
-    virtual bool Accept(const ItemTemplate* proto)
+    virtual bool Accept(const ItemPrototype* proto)
     {
         return proto->Class == ITEM_CLASS_CONSUMABLE &&
             (proto->SubClass == ITEM_SUBCLASS_CONSUMABLE || proto->SubClass == ITEM_SUBCLASS_FOOD) &&
@@ -64,7 +62,7 @@ class FindBandageVisitor : public FindUsableItemVisitor
 public:
     FindBandageVisitor(Player* bot) : FindUsableItemVisitor(bot){}
 
-    virtual bool Accept(const ItemTemplate* proto)
+    virtual bool Accept(const ItemPrototype* proto)
     {
         return proto->Class == ITEM_CLASS_CONSUMABLE &&
             proto->SubClass == ITEM_SUBCLASS_BANDAGE;
@@ -76,7 +74,7 @@ class FindBombVisitor : public FindUsableItemVisitor
 public:
     FindBombVisitor(Player* bot) : FindUsableItemVisitor(bot){}
 
-    virtual bool Accept(const ItemTemplate* proto)
+    virtual bool Accept(const ItemPrototype* proto)
     {
         return proto->Class == ITEM_CLASS_CONSUMABLE &&
             proto->SubClass == ITEM_SUBCLASS_EXPLOSIVES;
@@ -102,11 +100,6 @@ void InventoryAction::IterateItemsInBags(IterateItemsVisitor* visitor)
             if (!visitor->Visit(pItem))
                 return;
 
-    for(int i = KEYRING_SLOT_START; i < CURRENCYTOKEN_SLOT_END; ++i)
-        if (Item *pItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
-            if (!visitor->Visit(pItem))
-                return;
-
     for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
         if (Bag *pBag = (Bag*)bot->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
             for(uint32 j = 0; j < pBag->GetBagSize(); ++j)
@@ -128,7 +121,7 @@ void InventoryAction::IterateItemsInEquip(IterateItemsVisitor* visitor)
     }
 }
 
-bool compare_items(const ItemTemplate *proto1, const ItemTemplate *proto2)
+bool compare_items(const ItemPrototype *proto1, const ItemPrototype *proto2)
 {
     if (proto1->Class != proto2->Class)
         return proto1->Class > proto2->Class;
@@ -147,23 +140,23 @@ bool compare_items(const ItemTemplate *proto1, const ItemTemplate *proto2)
 
 bool compare_items_by_level(const Item* item1, const Item* item2)
 {
-    return compare_items(item1->GetTemplate(), item2->GetTemplate());
+    return compare_items(item1->GetProto(), item2->GetProto());
 }
 
 void InventoryAction::TellItems(map<uint32, int> itemMap)
 {
-    list<ItemTemplate const*> items;
+    list<ItemPrototype const*> items;
     for (map<uint32, int>::iterator i = itemMap.begin(); i != itemMap.end(); i++)
     {
-        items.push_back(sObjectMgr->GetItemTemplate(i->first));
+        items.push_back(sObjectMgr.GetItemPrototype(i->first));
     }
 
     items.sort(compare_items);
 
     uint32 oldClass = -1;
-    for (list<ItemTemplate const*>::iterator i = items.begin(); i != items.end(); i++)
+    for (list<ItemPrototype const*>::iterator i = items.begin(); i != items.end(); i++)
     {
-        ItemTemplate const *proto = *i;
+        ItemPrototype const *proto = *i;
 
         if (proto->Class != oldClass)
         {
@@ -218,9 +211,6 @@ void InventoryAction::TellItems(map<uint32, int> itemMap)
             case ITEM_CLASS_MISC:
                 ai->TellMaster("--- other ---");
                 break;
-            case ITEM_CLASS_GLYPH:
-                ai->TellMaster("--- glyph ---");
-                break;
             }
         }
 
@@ -228,7 +218,7 @@ void InventoryAction::TellItems(map<uint32, int> itemMap)
     }
 }
 
-void InventoryAction::TellItem(ItemTemplate const * proto, int count)
+void InventoryAction::TellItem(ItemPrototype const * proto, int count)
 {
     ai->TellMaster(chat->formatItem(proto, count));
 }
@@ -333,7 +323,7 @@ bool InventoryAction::UseItem(Item* item,  Item* itemTarget)
     if (bot->CanUseItem(item) != EQUIP_ERR_OK)
         return false;
 
-    if (bot->IsNonMeleeSpellCast(true))
+    if (bot->IsNonMeleeSpellCasted(true))
         return false;
 
     uint8 bagIndex = item->GetBagSlot();
@@ -343,13 +333,13 @@ bool InventoryAction::UseItem(Item* item,  Item* itemTarget)
     uint32 glyphIndex = 0;
     uint8 unk_flags = 0;
 
-    WorldPacket* const packet = new WorldPacket(CMSG_USE_ITEM, 1 + 1 + 1 + 4 + 8 + 4 + 1 + 8 + 1);
+	std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_USE_ITEM, 1 + 1 + 1 + 4 + 8 + 4 + 1 + 8 + 1));
     *packet << bagIndex << slot << cast_count << uint32(0) << item_guid
         << glyphIndex << unk_flags;
 
     bool targetSelected = false;
-    ostringstream out; out << "Using " << chat->formatItem(item->GetTemplate());
-    if (item->GetTemplate()->Stackable)
+    ostringstream out; out << "Using " << chat->formatItem(item->GetProto());
+    if (item->GetProto()->Stackable)
     {
         uint32 count = item->GetCount();
         if (count > 1)
@@ -364,29 +354,29 @@ bool InventoryAction::UseItem(Item* item,  Item* itemTarget)
             uint32 targetFlag = TARGET_FLAG_ITEM;
             *packet << targetFlag;
             packet->appendPackGUID(itemTarget->GetGUID());
-            out << " on " << chat->formatItem(itemTarget->GetTemplate());
+            out << " on " << chat->formatItem(itemTarget->GetProto());
             targetSelected = true;
     }
 
     MotionMaster &mm = *bot->GetMotionMaster();
     mm.Clear();
-    bot->ClearUnitState( UNIT_STATE_CHASE );
-    bot->ClearUnitState( UNIT_STATE_FOLLOW );
+    bot->clearUnitState( UNIT_STAT_CHASE );
+    bot->clearUnitState( UNIT_STAT_FOLLOW );
 
     if (bot->isMoving())
         return false;
 
     for (int i=0; i<MAX_ITEM_PROTO_SPELLS; i++)
     {
-        uint32 spellId = item->GetTemplate()->Spells[i].SpellId;
+        uint32 spellId = item->GetProto()->Spells[i].SpellId;
         if (!spellId)
             continue;
 
         if (!ai->CanCastSpell(spellId, bot, false))
             continue;
 
-        const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (pSpellInfo->Targets & TARGET_FLAG_ITEM)
+		const SpellEntry* const pSpellInfo = sSpellStore.LookupEntry(spellId);
+		if (pSpellInfo->Targets & TARGET_FLAG_ITEM)
         {
             Item* itemForSpell = AI_VALUE2(Item*, "item for spell", spellId);
             if (!itemForSpell)
@@ -398,16 +388,16 @@ bool InventoryAction::UseItem(Item* item,  Item* itemTarget)
             *packet << TARGET_FLAG_ITEM;
              packet->appendPackGUID(itemForSpell->GetGUID());
              targetSelected = true;
-             out << " on "<< chat->formatItem(itemForSpell->GetTemplate());
+             out << " on "<< chat->formatItem(itemForSpell->GetProto());
 
 
-            Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE, ObjectGuid::Empty, true);
+			 Spell *spell = new Spell(bot, pSpellInfo, false);
             ai->WaitForSpellCast(spell);
             delete spell;
         }
         else
         {
-            *packet << TARGET_FLAG_NONE;
+            *packet << TARGET_FLAG_SELF;
             targetSelected = true;
             out << " on self";
         }
@@ -417,9 +407,9 @@ bool InventoryAction::UseItem(Item* item,  Item* itemTarget)
     if (!targetSelected)
         return false;
 
-    if (item->GetTemplate()->Class == ITEM_CLASS_CONSUMABLE && item->GetTemplate()->SubClass == ITEM_SUBCLASS_FOOD)
+    if (item->GetProto()->Class == ITEM_CLASS_CONSUMABLE && item->GetProto()->SubClass == ITEM_SUBCLASS_FOOD)
     {
-        if (bot->IsInCombat())
+        if (bot->isInCombat())
             return false;
 
         ai->InterruptSpell();
@@ -432,6 +422,6 @@ bool InventoryAction::UseItem(Item* item,  Item* itemTarget)
     }
 
     ai->TellMasterNoFacing(out.str());
-    bot->GetSession()->QueuePacket(packet);
+    bot->GetSession()->QueuePacket(std::move(packet));
     return true;
 }

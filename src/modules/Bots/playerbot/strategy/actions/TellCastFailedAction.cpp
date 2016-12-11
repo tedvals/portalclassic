@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "TellCastFailedAction.h"
 
@@ -17,8 +17,8 @@ bool TellCastFailedAction::Execute(Event event)
     if (result == SPELL_CAST_OK)
         return false;
 
-    const SpellInfo *const pSpellInfo =  sSpellMgr->GetSpellInfo(spellId);
-    ostringstream out; out << chat->formatSpell(pSpellInfo) << ": ";
+    const SpellProto *const pSpellProto =  sSpellMgr->GetSpellProto(spellId);
+    ostringstream out; out << chat->formatSpell(pSpellProto) << ": ";
     switch (result)
     {
     case SPELL_FAILED_NOT_READY:
@@ -47,7 +47,7 @@ bool TellCastFailedAction::Execute(Event event)
     default:
         out << "cannot cast";
     }
-    Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE);
+    Spell *spell = new Spell(bot, pSpellProto, TRIGGERED_NONE);
     int32 castTime = spell->GetCastTime();
     delete spell;
 
@@ -65,11 +65,11 @@ bool TellSpellAction::Execute(Event event)
     if (!spellId)
         return false;
 
-    SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellId );
-    if (!spellInfo)
+    SpellProto const *SpellProto = sSpellMgr->GetSpellProto(spellId );
+    if (!SpellProto)
         return false;
 
-    ostringstream out; out << chat->formatSpell(spellInfo);
+    ostringstream out; out << chat->formatSpell(SpellProto);
     ai->TellMaster(out);
     return true;
 }

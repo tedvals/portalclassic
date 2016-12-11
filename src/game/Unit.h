@@ -1427,9 +1427,13 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool isFeared()  const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
         bool isInRoots() const { return HasAuraType(SPELL_AURA_MOD_ROOT); }
         bool IsPolymorphed() const;
+		bool isPossessed() const { return hasUnitState(UNIT_STAT_CONTROLLED); }
+		bool isConfused() { return hasUnitState(UNIT_STAT_CONFUSED); }
 
         bool isFrozen() const;
 
+		bool UnderCc() { return isConfused() || IsIncapacitated() || IsPolymorphed() || isPossessed() || isFeared() || isInRoots(); }
+		
         bool isTargetableForAttack(bool inversAlive = false) const;
         bool isPassiveToHostile() { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE); }
 

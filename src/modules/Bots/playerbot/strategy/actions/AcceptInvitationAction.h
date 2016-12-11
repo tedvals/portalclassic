@@ -17,7 +17,7 @@ namespace ai
             if (!grp)
                 return false;
 
-            Player* inviter = sObjectMgr->GetPlayerByLowGUID(grp->GetLeaderGUID());
+            Player* inviter = sObjectMgr.GetPlayerByLowGUID(grp->GetLeaderGUID());
             if (!inviter)
                 return false;
 

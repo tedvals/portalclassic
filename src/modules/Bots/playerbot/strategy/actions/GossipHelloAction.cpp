@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "GossipHelloAction.h"
 
@@ -28,11 +28,11 @@ bool GossipHelloAction::Execute(Event event)
     Creature *pCreature = bot->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
     if (!pCreature)
     {
-        sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "[PlayerbotMgr]: HandleMasterIncomingPacket - Received  CMSG_GOSSIP_HELLO %d not found or you can't interact with him.", guid.GetRawValue());
+        sLog.outDebug( "[PlayerbotMgr]: HandleMasterIncomingPacket - Received  CMSG_GOSSIP_HELLO %d not found or you can't interact with him.", guid.GetRawValue());
         return false;
     }
 
-    GossipMenuItemsMapBounds pMenuItemBounds = sObjectMgr->GetGossipMenuItemsMapBounds(pCreature->GetCreatureTemplate()->GossipMenuId);
+    GossipMenuItemsMapBounds pMenuItemBounds = sObjectMgr.GetGossipMenuItemsMapBounds(pCreature->GetCreatureTemplate()->GossipMenuId);
     if (pMenuItemBounds.first == pMenuItemBounds.second)
         return false;
 

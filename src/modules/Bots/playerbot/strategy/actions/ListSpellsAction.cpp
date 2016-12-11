@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ListSpellsAction.h"
 #include "../ItemVisitors.h"
@@ -24,34 +24,34 @@ bool ListSpellsAction::Execute(Event event)
     for (PlayerSpellMap::iterator itr = bot->GetSpellMap().begin(); itr != bot->GetSpellMap().end(); ++itr) {
         const uint32 spellId = itr->first;
 
-        const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
+        const SpellProto* const pSpellProto = sSpellMgr->GetSpellProto(spellId);
+        if (!pSpellProto)
             continue;
 
-        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellInfo->IsPassive())
+        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellProto->IsPassive())
             continue;
 
         //|| name.find("Teleport") != -1
 
         std::string comp = ",";
-        comp.append(pSpellInfo->SpellName[loc]);
+        comp.append(pSpellProto->SpellName[loc]);
         comp.append(",");
 
         if (!(ignoreList.find(comp) == std::string::npos && alreadySeenList.find(comp) == std::string::npos))
             continue;
 
-        if (!filter.empty() && !strstri(pSpellInfo->SpellName[loc], filter.c_str()))
+        if (!filter.empty() && !strstri(pSpellProto->SpellName[loc], filter.c_str()))
             continue;
 
-        alreadySeenList += pSpellInfo->SpellName[loc];
+        alreadySeenList += pSpellProto->SpellName[loc];
         alreadySeenList += ",";
 
-        if (pSpellInfo->IsPositive())
+        if (pSpellProto->IsPositive())
             posOut << " |cffffffff|Hspell:" << spellId << "|h["
-            << pSpellInfo->SpellName[loc] << "]|h|r";
+            << pSpellProto->SpellName[loc] << "]|h|r";
         else
             negOut << " |cffffffff|Hspell:" << spellId << "|h["
-            << pSpellInfo->SpellName[loc] << "]|h|r";
+            << pSpellProto->SpellName[loc] << "]|h|r";
     }
 
     ai->TellMaster("here's my non-attack spells:");

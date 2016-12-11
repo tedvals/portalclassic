@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "LootRollAction.h"
 #include "../../../Groups/Group.h"
@@ -29,7 +29,7 @@ bool LootRollAction::Execute(Event event)
         if ((*i)->isValid() && (*i)->itemGUID == guid && (*i)->itemSlot == slot)
         {
             uint32 itemId = (*i)->itemid;
-            ItemTemplate const *proto = sObjectMgr->GetItemTemplate(itemId);
+            ItemPrototype const *proto = sObjectMgr.GetItemPrototype(itemId);
             if (!proto)
                 continue;
 

@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "StatsAction.h"
 
@@ -49,7 +49,7 @@ void StatsAction::ListBagSlots(ostringstream &out)
         const Bag* const pBag = (Bag*) bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
         {
-            ItemTemplate const* pBagProto = pBag->GetTemplate();
+            ItemPrototype const* pBagProto = pBag->GetProto();
             if (pBagProto->Class == ITEM_CLASS_CONTAINER && pBagProto->SubClass == ITEM_SUBCLASS_CONTAINER)
             {
                 total += pBag->GetBagSize();
@@ -116,12 +116,12 @@ uint32 StatsAction::EstRepair(uint16 pos)
     uint32 LostDurability = maxDurability - curDurability;
     if(LostDurability>0)
     {
-        ItemTemplate const *ditemProto = item->GetTemplate();
+        ItemPrototype const *ditemProto = item->GetProto();
 
         DurabilityCostsEntry const *dcost = sDurabilityCostsStore.LookupEntry(ditemProto->ItemLevel);
         if(!dcost)
         {
-            sLog->outMessage("playerbot", LOG_LEVEL_ERROR, "RepairDurability: Wrong item lvl %u", ditemProto->ItemLevel);
+             sLog.outError("RepairDurability: Wrong item lvl %u", ditemProto->ItemLevel);
             return TotalCost;
         }
 
@@ -129,7 +129,7 @@ uint32 StatsAction::EstRepair(uint16 pos)
         DurabilityQualityEntry const *dQualitymodEntry = sDurabilityQualityStore.LookupEntry(dQualitymodEntryId);
         if(!dQualitymodEntry)
         {
-            sLog->outMessage("playerbot", LOG_LEVEL_ERROR, "RepairDurability: Wrong dQualityModEntry %u", dQualitymodEntryId);
+             sLog.outError("RepairDurability: Wrong dQualityModEntry %u", dQualitymodEntryId);
             return TotalCost;
         }
 

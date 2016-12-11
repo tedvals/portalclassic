@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "PartyMemberToResurrect.h"
 
@@ -7,7 +7,7 @@ using namespace ai;
 class IsTargetOfResurrectSpell : public SpellEntryPredicate
 {
 public:
-    virtual bool Check(SpellInfo const* spell)
+    virtual bool Check(SpellProto const* spell)
     {
         for (int i=0; i<3; i++)
         {

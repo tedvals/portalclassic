@@ -377,11 +377,10 @@ void WorldSession::LogoutPlayer(bool save)
         if (Loot* loot = sLootMgr.GetLoot(_player))
             loot->Release(_player);
         
-#ifdef ENABLE_PLAYERBOTS
 		if (_player->GetPlayerbotMgr())
 			_player->GetPlayerbotMgr()->LogoutAllBots();
 		sRandomPlayerbotMgr.OnPlayerLogout(_player);
-#endif
+
 		///- If the player just died before logging out, make him appear as a ghost
         // FIXME: logout must be delayed in case lost connection with client in time of combat
         if (_player->GetDeathTimer())
@@ -495,7 +494,6 @@ void WorldSession::LogoutPlayer(bool save)
         ///- Leave all channels before player delete...
         _player->CleanupChannels();
 
-#ifndef ENABLE_PLAYERBOTS
         ///- If the player is in a group (or invited), remove him. If the group if then only 1 person, disband the group.
         _player->UninviteFromGroup();
 
@@ -503,7 +501,6 @@ void WorldSession::LogoutPlayer(bool save)
         // a) in group; b) not in raid group; c) logging out normally (not being kicked or disconnected)
 		if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && m_Socket && !m_Socket->IsClosed())
             _player->RemoveFromGroup();
-#endif
 
         ///- Send update to group
         if (Group* group = _player->GetGroup())

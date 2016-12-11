@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ConserveManaStrategy.h"
 #include "../../PlayerbotAIConfig.h"
@@ -58,13 +58,13 @@ float SaveManaMultiplier::GetValue(Action* action)
 
     string spell = spellAction->getName();
     uint32 spellId = AI_VALUE2(uint32, "spell id", spell);
-    const SpellInfo* const spellInfo = sSpellMgr->GetSpellInfo(spellId);
-    if (!spellInfo || spellInfo->PowerType != POWER_MANA)
+    const SpellProto* const SpellProto = sSpellMgr->GetSpellProto(spellId);
+    if (!SpellProto || SpellProto->PowerType != POWER_MANA)
         return 1.0f;
 
-    int32 cost = spellInfo->ManaCost;
-    if (spellInfo->ManaCostPercentage)
-        cost += spellInfo->ManaCostPercentage * bot->GetCreateMana() / 100;
+    int32 cost = SpellProto->ManaCost;
+    if (SpellProto->ManaCostPercentage)
+        cost += SpellProto->ManaCostPercentage * bot->GetCreateMana() / 100;
 
     uint32 mana = bot->GetMaxPower(POWER_MANA);
     double percent = (double)cost / (double)mana * 100.0f;

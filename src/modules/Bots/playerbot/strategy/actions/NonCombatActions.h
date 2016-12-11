@@ -13,7 +13,7 @@ namespace ai
 
         virtual bool Execute(Event event)
         {
-            if (bot->IsInCombat())
+            if (bot->isInCombat())
                 return false;
 
             return UseItemAction::Execute(event);
@@ -32,7 +32,7 @@ namespace ai
 
         virtual bool Execute(Event event)
         {
-            if (bot->IsInCombat())
+            if (bot->isInCombat())
                 return false;
 
             return UseItemAction::Execute(event);

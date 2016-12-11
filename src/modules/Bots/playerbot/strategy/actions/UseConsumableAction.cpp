@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "UseConsumableAction.h"
 #include "UseItemAction.h"
@@ -15,10 +15,10 @@ public:
 
     virtual bool Visit(Item* item)
     {
-        if (bot->CanUseItem(item->GetTemplate()) != EQUIP_ERR_OK)
+        if (bot->CanUseItem(item->GetProto()) != EQUIP_ERR_OK)
             return true;
 
-        const ItemTemplate* proto = item->GetTemplate();
+        const ItemPrototype* proto = item->GetProto();
 
         if (proto->Class != ITEM_CLASS_CONSUMABLE)
             return true;
@@ -112,35 +112,35 @@ bool UseConsumableAction::Execute(Event event)
                     if (UseItem(item,NULL))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                 case ITEM_SUBCLASS_FLASK:
                     if (UseItem(item,NULL))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                 case ITEM_SUBCLASS_SCROLL:
                     if (UseItem(item,NULL))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                 case ITEM_SUBCLASS_FOOD:
                     if (UseItem(item,NULL))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                 case ITEM_SUBCLASS_GENERIC:
                     if (UseItem(item,NULL))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                 }
@@ -158,10 +158,10 @@ public:
 
     virtual bool Visit(Item* item)
     {
-        if (bot->CanUseItem(item->GetTemplate()) != EQUIP_ERR_OK)
+        if (bot->CanUseItem(item->GetProto()) != EQUIP_ERR_OK)
             return true;
 
-        const ItemTemplate* proto = item->GetTemplate();
+        const ItemPrototype* proto = item->GetProto();
 
         if (proto->Class != ITEM_CLASS_CONSUMABLE)
             return true;
@@ -239,13 +239,13 @@ bool UseEnhancementAction::Execute(Event event)
                     if (UseItem(item,bot->GetItemByPos(EQUIPMENT_SLOT_MAINHAND)))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                     if (UseItem(item,bot->GetItemByPos(EQUIPMENT_SLOT_OFFHAND)))
                     {
                         ostringstream out;
-                        out << chat->formatItem(item->GetTemplate(), item->GetCount());
+                        out << chat->formatItem(item->GetProto(), item->GetCount());
                         ai->TellMaster(out);
                         }
                 }

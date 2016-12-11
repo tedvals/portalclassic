@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ShamanActions.h"
 #include "ShamanAiObjectContext.h"
@@ -29,13 +29,23 @@ namespace ai
                 creators["totems"] = &shaman::StrategyFactoryInternal::totems;
                 creators["melee aoe"] = &shaman::StrategyFactoryInternal::melee_aoe;
                 creators["caster aoe"] = &shaman::StrategyFactoryInternal::caster_aoe;
+				creators["cure"] = &shaman::StrategyFactoryInternal::cure;
             }
+			~StrategyFactoryInternal()
+			{
+				creators.erase("nc");
+				creators.erase("totems");
+				creators.erase("melee aoe");
+				creators.erase("caster aoe");
+				creators.erase("cure");
+			}
 
         private:
             static Strategy* nc(PlayerbotAI* ai) { return new ShamanNonCombatStrategy(ai); }
             static Strategy* totems(PlayerbotAI* ai) { return new TotemsShamanStrategy(ai); }
             static Strategy* melee_aoe(PlayerbotAI* ai) { return new MeleeAoeShamanStrategy(ai); }
             static Strategy* caster_aoe(PlayerbotAI* ai) { return new CasterAoeShamanStrategy(ai); }
+			static Strategy* cure(PlayerbotAI* ai) { return new ShamanCureStrategy(ai); }
         };
 
         class BuffStrategyFactoryInternal : public NamedObjectContext<Strategy>
@@ -46,6 +56,11 @@ namespace ai
                 creators["bmana"] = &shaman::BuffStrategyFactoryInternal::bmana;
                 creators["bdps"] = &shaman::BuffStrategyFactoryInternal::bdps;
             }
+			~BuffStrategyFactoryInternal()
+			{
+				creators.erase("bmana");
+				creators.erase("bdps");				
+			}
 
         private:
             static Strategy* bmana(PlayerbotAI* ai) { return new ShamanBuffManaStrategy(ai); }
@@ -62,6 +77,14 @@ namespace ai
                 creators["dps"] = &shaman::CombatStrategyFactoryInternal::dps;
                 creators["caster"] = &shaman::CombatStrategyFactoryInternal::caster;
             }
+			~CombatStrategyFactoryInternal()
+			{
+				creators.erase("heal");
+				creators.erase("melee");
+				creators.erase("dps");
+				creators.erase("caster");
+
+			}
 
         private:
             static Strategy* heal(PlayerbotAI* ai) { return new HealShamanStrategy(ai); }
@@ -97,12 +120,10 @@ namespace ai
                 creators["water walking"] = &TriggerFactoryInternal::water_walking;
                 creators["water breathing on party"] = &TriggerFactoryInternal::water_breathing_on_party;
                 creators["water walking on party"] = &TriggerFactoryInternal::water_walking_on_party;
-                creators["cleanse spirit poison"] = &TriggerFactoryInternal::cleanse_poison;
-                creators["cleanse spirit curse"] = &TriggerFactoryInternal::cleanse_curse;
-                creators["cleanse spirit disease"] = &TriggerFactoryInternal::cleanse_disease;
-                creators["party member cleanse spirit poison"] = &TriggerFactoryInternal::party_member_cleanse_poison;
-                creators["party member cleanse spirit curse"] = &TriggerFactoryInternal::party_member_cleanse_curse;
-                creators["party member cleanse spirit disease"] = &TriggerFactoryInternal::party_member_cleanse_disease;
+				creators["cure poison"] = &TriggerFactoryInternal::cure_poison;
+				creators["party member cure poison"] = &TriggerFactoryInternal::party_member_cure_poison;
+				creators["cure disease"] = &TriggerFactoryInternal::cure_disease;
+				creators["party member cure disease"] = &TriggerFactoryInternal::party_member_cure_disease;
                 creators["shock"] = &TriggerFactoryInternal::shock;
                 creators["frost shock snare"] = &TriggerFactoryInternal::frost_shock_snare;
                 //creators["heroism"] = &TriggerFactoryInternal::heroism;
@@ -117,12 +138,10 @@ namespace ai
             static Trigger* maelstrom_weapon(PlayerbotAI* ai) { return new MaelstromWeaponTrigger(ai); }
             //static Trigger* heroism(PlayerbotAI* ai) { return new HeroismTrigger(ai); }
             //static Trigger* bloodlust(PlayerbotAI* ai) { return new BloodlustTrigger(ai); }
-            static Trigger* party_member_cleanse_disease(PlayerbotAI* ai) { return new PartyMemberCleanseSpiritDiseaseTrigger(ai); }
-            static Trigger* party_member_cleanse_curse(PlayerbotAI* ai) { return new PartyMemberCleanseSpiritCurseTrigger(ai); }
-            static Trigger* party_member_cleanse_poison(PlayerbotAI* ai) { return new PartyMemberCleanseSpiritPoisonTrigger(ai); }
-            static Trigger* cleanse_disease(PlayerbotAI* ai) { return new CleanseSpiritDiseaseTrigger(ai); }
-            static Trigger* cleanse_curse(PlayerbotAI* ai) { return new CleanseSpiritCurseTrigger(ai); }
-            static Trigger* cleanse_poison(PlayerbotAI* ai) { return new CleanseSpiritPoisonTrigger(ai); }
+			static Trigger* cure_poison(PlayerbotAI* ai) { return new CurePoisonTrigger(ai); }
+			static Trigger* party_member_cure_poison(PlayerbotAI* ai) { return new PartyMemberCurePoisonTrigger(ai); }
+			static Trigger* cure_disease(PlayerbotAI* ai) { return new CureDiseaseTrigger(ai); }
+			static Trigger* party_member_cure_disease(PlayerbotAI* ai) { return new PartyMemberCureDiseaseTrigger(ai); }
             static Trigger* water_breathing(PlayerbotAI* ai) { return new WaterBreathingTrigger(ai); }
             static Trigger* water_walking(PlayerbotAI* ai) { return new WaterWalkingTrigger(ai); }
             static Trigger* water_breathing_on_party(PlayerbotAI* ai) { return new WaterBreathingOnPartyTrigger(ai); }
@@ -204,13 +223,10 @@ namespace ai
                 creators["water breathing"] = &AiObjectContextInternal::water_breathing;
                 creators["water walking on party"] = &AiObjectContextInternal::water_walking_on_party;
                 creators["water breathing on party"] = &AiObjectContextInternal::water_breathing_on_party;
-                creators["cleanse spirit"] = &AiObjectContextInternal::cleanse_spirit;
-                creators["cleanse spirit poison on party"] = &AiObjectContextInternal::cleanse_spirit_poison_on_party;
-                creators["cleanse spirit disease on party"] = &AiObjectContextInternal::cleanse_spirit_disease_on_party;
-                creators["cleanse spirit curse on party"] = &AiObjectContextInternal::cleanse_spirit_curse_on_party;
-                creators["cure toxins"] = &AiObjectContextInternal::cure_toxins;
-                creators["cure toxins poison on party"] = &AiObjectContextInternal::cure_toxins_poison_on_party;
-                creators["cure toxins disease on party"] = &AiObjectContextInternal::cure_toxins_disease_on_party;
+				creators["cure disease"] = &AiObjectContextInternal::cure_disease;
+				creators["cure disease on party"] = &AiObjectContextInternal::cure_disease_on_party;
+				creators["cure poison"] = &AiObjectContextInternal::cure_poison;
+				creators["cure poison on party"] = &AiObjectContextInternal::cure_poison_on_party;
                 creators["totemic recall"] = &AiObjectContextInternal::totemic_recall;
                 creators["flame shock"] = &AiObjectContextInternal::flame_shock;
                 creators["instant action"] = &AiObjectContextInternal::flame_shock;
@@ -256,13 +272,10 @@ namespace ai
             static Action* frost_shock(PlayerbotAI* ai) { return new CastFrostShockAction(ai); }
             static Action* earth_shock(PlayerbotAI* ai) { return new CastEarthShockAction(ai); }
             static Action* flame_shock(PlayerbotAI* ai) { return new CastFlameShockAction(ai); }
-            static Action* cleanse_spirit_poison_on_party(PlayerbotAI* ai) { return new CastCleanseSpiritPoisonOnPartyAction(ai); }
-            static Action* cleanse_spirit_disease_on_party(PlayerbotAI* ai) { return new CastCleanseSpiritDiseaseOnPartyAction(ai); }
-            static Action* cleanse_spirit_curse_on_party(PlayerbotAI* ai) { return new CastCleanseSpiritCurseOnPartyAction(ai); }
-            static Action* cleanse_spirit(PlayerbotAI* ai) { return new CastCleanseSpiritAction(ai); }
-            static Action* cure_toxins_poison_on_party(PlayerbotAI* ai) { return new CastCureToxinsPoisonOnPartyAction(ai); }
-            static Action* cure_toxins_disease_on_party(PlayerbotAI* ai) { return new CastCureToxinsDiseaseOnPartyAction(ai); }
-            static Action* cure_toxins(PlayerbotAI* ai) { return new CastCureToxinsAction(ai); }
+			static Action* cure_poison(PlayerbotAI* ai) { return new CastCurePoisonAction(ai); }
+			static Action* cure_poison_on_party(PlayerbotAI* ai) { return new CastCurePoisonOnPartyAction(ai); }
+			static Action* cure_disease(PlayerbotAI* ai) { return new CastCureDiseaseAction(ai); }
+			static Action* cure_disease_on_party(PlayerbotAI* ai) { return new CastCureDiseaseOnPartyAction(ai); }
             static Action* totemic_recall(PlayerbotAI* ai) { return new CastTotemicRecallAction(ai); }
             static Action* water_walking(PlayerbotAI* ai) { return new CastWaterWalkingAction(ai); }
             static Action* water_breathing(PlayerbotAI* ai) { return new CastWaterBreathingAction(ai); }

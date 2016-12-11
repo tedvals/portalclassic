@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "TrainerAction.h"
 
@@ -41,15 +41,15 @@ void TrainerAction::List(Creature* creature, TrainerSpellAction action, SpellIds
             continue;
 
         uint32 spellId = tSpell->spell;
-        const SpellInfo *const pSpellInfo =  sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
+        const SpellProto *const pSpellProto =  sSpellMgr->GetSpellProto(spellId);
+        if (!pSpellProto)
             continue;
 
         uint32 cost = uint32(floor(tSpell->spellCost *  fDiscountMod));
         totalCost += cost;
 
         ostringstream out;
-        out << chat->formatSpell(pSpellInfo) << chat->formatMoney(cost);
+        out << chat->formatSpell(pSpellProto) << chat->formatMoney(cost);
 
         if (action && (spells.empty() || spells.find(tSpell->spell) != spells.end() || spells.find(tSpell->learnedSpell[0]) != spells.end()))
             (this->*action)(cost, tSpell, out);

@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "CcTargetValue.h"
 #include "../../PlayerbotAIConfig.h"
@@ -22,7 +22,7 @@ public:
         if (*ai->GetAiObjectContext()->GetValue<Unit*>("current target") == creature)
             return;
 
-        uint8 health = creature->GetHealthPct();
+        uint8 health = creature->GetHealthPercent();
         if (health < 90)
             return;
 
@@ -60,7 +60,7 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !member || !member->IsAlive() || member == bot)
                 continue;
 
@@ -106,7 +106,7 @@ public:
         if (*ai->GetAiObjectContext()->GetValue<Unit*>("current target") == creature)
             return;
 
-        uint8 health = creature->GetHealthPct();
+        uint8 health = creature->GetHealthPercent();
          if (health < 90)
             return;
 
@@ -144,7 +144,7 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !member || !member->IsAlive() || member == bot)
                 continue;
 
@@ -190,7 +190,7 @@ public:
         if (*ai->GetAiObjectContext()->GetValue<Unit*>("current target") == creature)
             return;
 
-        uint8 health = creature->GetHealthPct();
+        uint8 health = creature->GetHealthPercent();
 
         if (health < 90)
             return;
@@ -229,7 +229,7 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !member || !member->IsAlive() || member == bot)
                 continue;
 
@@ -275,7 +275,7 @@ public:
         if (*ai->GetAiObjectContext()->GetValue<Unit*>("current target") == creature)
             return;
 
-        uint8 health = creature->GetHealthPct();
+        uint8 health = creature->GetHealthPercent();
         if (health < 90)
             return;
 
@@ -313,7 +313,7 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !member || !member->IsAlive() || member == bot)
                 continue;
 
@@ -359,7 +359,7 @@ public:
         if (*ai->GetAiObjectContext()->GetValue<Unit*>("current target") == creature)
             return;
 
-        uint8 health = creature->GetHealthPct();
+        uint8 health = creature->GetHealthPercent();
          if (health < 90)
             return;
 
@@ -397,7 +397,7 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !member || !member->IsAlive() || member == bot)
                 continue;
 
@@ -443,7 +443,7 @@ public:
         if (*ai->GetAiObjectContext()->GetValue<Unit*>("current target") == creature)
             return;
 
-        uint8 health = creature->GetHealthPct();
+        uint8 health = creature->GetHealthPercent();
          if (health < 90)
             return;
 
@@ -481,7 +481,7 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !member || !member->IsAlive() || member == bot)
                 continue;
 

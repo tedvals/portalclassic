@@ -347,75 +347,34 @@ namespace ai
         CastWaterWalkingOnPartyAction(PlayerbotAI* ai) : BuffOnPartyAction(ai, "water walking") {}
     };
 
-    class CastCleanseSpiritAction : public CastCureSpellAction {
-    public:
-        CastCleanseSpiritAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cleanse spirit") {}
-        virtual bool IsInstant() {return true;}
+	class CastCurePoisonAction : public CastCureSpellAction
+	{
+	public:
+		CastCurePoisonAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cure poison") {}
+		virtual bool IsInstant() { return true; }
+	};
 
-        virtual NextAction** getAlternatives()
-        {
-            return NextAction::merge( NextAction::array(0, new NextAction("cure toxins"), NULL), CastCureSpellAction::getAlternatives());
-        }
-    };
+	class CastCurePoisonOnPartyAction : public CurePartyMemberAction
+	{
+	public:
+		CastCurePoisonOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cure poison", DISPEL_POISON) {}
+		virtual string getName() { return "cure poison on party"; }
+		virtual bool IsInstant() { return true; }
+	};
 
-    class CastCureToxinsAction : public CastCureSpellAction {
-    public:
-        CastCureToxinsAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cure toxins") {}
-        virtual bool IsInstant() {return true;}
-    };
+	class CastCureDiseaseAction : public CastCureSpellAction {
+	public:
+		CastCureDiseaseAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "cure disease") {}
+		virtual bool IsInstant() { return true; }
+	};
 
-    class CastCureToxinsPoisonOnPartyAction : public CurePartyMemberAction
-    {
-    public:
-        CastCureToxinsPoisonOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cure toxins", DISPEL_POISON) {}
-
-        virtual string getName() { return "cure toxins poison on party"; }
-        virtual bool IsInstant() {return true;}
-    };
-
-    class CastCureToxinsDiseaseOnPartyAction : public CurePartyMemberAction
-    {
-    public:
-        CastCureToxinsDiseaseOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cure toxins", DISPEL_DISEASE) {}
-
-        virtual string getName() { return "cure toxins disease on party"; }
-        virtual bool IsInstant() {return true;}
-    };
-
-    class CastCleanseSpiritPoisonOnPartyAction : public CurePartyMemberAction
-    {
-    public:
-        CastCleanseSpiritPoisonOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cleanse spirit", DISPEL_POISON) {}
-
-        virtual string getName() { return "cleanse spirit poison on party"; }
-        virtual bool IsInstant() {return true;}
-
-        virtual NextAction** getAlternatives()
-        {
-            return NextAction::merge( NextAction::array(0, new NextAction("cure toxins poison on party"), NULL), CurePartyMemberAction::getAlternatives());
-        }
-    };
-    class CastCleanseSpiritCurseOnPartyAction : public CurePartyMemberAction
-    {
-    public:
-        CastCleanseSpiritCurseOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cleanse spirit", DISPEL_CURSE) {}
-
-        virtual string getName() { return "cleanse spirit curse on party"; }
-        virtual bool IsInstant() {return true;}
-    };
-    class CastCleanseSpiritDiseaseOnPartyAction : public CurePartyMemberAction
-    {
-    public:
-        CastCleanseSpiritDiseaseOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cleanse spirit", DISPEL_DISEASE) {}
-
-        virtual string getName() { return "cleanse spirit disease on party"; }
-        virtual bool IsInstant() {return true;}
-
-        virtual NextAction** getAlternatives()
-        {
-            return NextAction::merge( NextAction::array(0, new NextAction("cure toxins disease on party"), NULL), CurePartyMemberAction::getAlternatives());
-        }
-    };
+	class CastCureDiseaseOnPartyAction : public CurePartyMemberAction
+	{
+	public:
+		CastCureDiseaseOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "cure disease", DISPEL_DISEASE) {}
+		virtual string getName() { return "cure disease on party"; }
+		virtual bool IsInstant() { return true; }
+	};
 
     class CastFlameShockAction : public CastDebuffSpellAction
     {

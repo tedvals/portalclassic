@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "SendMailAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -59,12 +59,12 @@ bool SendMailAction::Execute(Event event)
 			if (item->IsSoulBound() || item->IsConjuredConsumable())
 			{
 				ostringstream out;
-				out << "Cannot send " << ChatHelper::formatItem(item->GetTemplate());
+				out << "Cannot send " << ChatHelper::formatItem(item->GetProto());
 				ai->TellMaster(out);
 				continue;
 			}
 
-			ItemTemplate const *proto = item->GetTemplate();
+			ItemPrototype const *proto = item->GetProto();
 			item->SetNotRefundable(bot);
 			bot->MoveItemFromInventory(item->GetBagSlot(), item->GetSlot(), true);
 			item->DeleteFromInventoryDB(trans);

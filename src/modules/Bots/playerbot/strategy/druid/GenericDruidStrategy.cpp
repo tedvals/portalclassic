@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "GenericDruidStrategy.h"
 #include "DruidAiObjectContext.h"
@@ -132,14 +132,6 @@ void GenericDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         "master critical health",
         NextAction::array(0,  new NextAction("regrowth on master", ACTION_CRITICAL_HEAL + 4), new NextAction("rejuvenation on master", ACTION_CRITICAL_HEAL + 3), NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "cure poison",
-        NextAction::array(0, new NextAction("abolish poison", ACTION_DISPEL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member cure poison",
-        NextAction::array(0, new NextAction("abolish poison on party", ACTION_DISPEL + 1), NULL)));
-
 	triggers.push_back(new TriggerNode(
 		"party member dead",
 		NextAction::array(0, new NextAction("rebirth", ACTION_HIGH + 1), NULL)));
@@ -160,4 +152,15 @@ void GenericDruidStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         "runaway",
         NextAction::array(0, new NextAction("nature's grasp", ACTION_EMERGENCY + 7), new NextAction("cat form", ACTION_EMERGENCY + 7), new NextAction("dash", ACTION_EMERGENCY + 8), NULL)));
 */
+}
+
+void DruidCureStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
+{
+	triggers.push_back(new TriggerNode(
+		"cure poison",
+		NextAction::array(0, new NextAction("abolish poison", ACTION_DISPEL + 2), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"party member cure poison",
+		NextAction::array(0, new NextAction("abolish poison on party", ACTION_DISPEL + 1), NULL)));
 }

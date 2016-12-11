@@ -18,7 +18,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            if (!Accept(item->GetTemplate()))
+            if (!Accept(item->GetProto()))
                 return true;
 
             result.push_back(item);
@@ -28,7 +28,7 @@ namespace ai
         list<Item*>& GetResult() { return result; }
 
     protected:
-        virtual bool Accept(const ItemTemplate* proto) = 0;
+        virtual bool Accept(const ItemPrototype* proto) = 0;
 
     private:
         list<Item*> result;
@@ -50,7 +50,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            if (bot->CanUseItem(item->GetTemplate()) == EQUIP_ERR_OK)
+            if (bot->CanUseItem(item->GetProto()) == EQUIP_ERR_OK)
                 return FindItemVisitor::Visit(item);
 
             return true;
@@ -72,7 +72,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            if (item->GetTemplate()->Quality != quality)
+            if (item->GetProto()->Quality != quality)
                 return true;
 
             if (result.size() >= (size_t)count)
@@ -118,7 +118,7 @@ namespace ai
             if (item->IsSoulBound())
                 return true;
 
-            if (item->GetTemplate()->Class != itemClass || item->GetTemplate()->SubClass != itemSubClass)
+            if (item->GetProto()->Class != itemClass || item->GetProto()->SubClass != itemSubClass)
                 return true;
 
             if (result.size() >= (size_t)count)
@@ -151,7 +151,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            if (item->GetTemplate()->ItemId == itemId)
+            if (item->GetProto()->ItemId == itemId)
                 count += item->GetCount();
 
             return true;
@@ -175,7 +175,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            const ItemTemplate* proto = item->GetTemplate();
+            const ItemPrototype* proto = item->GetProto();
             if (proto && !proto->Name1.empty() && strstri(proto->Name1.c_str(), name.c_str()))
                 count += item->GetCount();
 
@@ -193,7 +193,7 @@ namespace ai
             this->name = name;
         }
 
-        virtual bool Accept(const ItemTemplate* proto)
+        virtual bool Accept(const ItemPrototype* proto)
         {
             return proto && !proto->Name1.empty() && strstri(proto->Name1.c_str(), name.c_str());
         }
@@ -209,7 +209,7 @@ namespace ai
             this->id = id;
         }
 
-        virtual bool Accept(const ItemTemplate* proto)
+        virtual bool Accept(const ItemPrototype* proto)
         {
             return proto->ItemId == id;
         }
@@ -227,7 +227,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            uint32 id = item->GetTemplate()->ItemId;
+            uint32 id = item->GetProto()->ItemId;
 
             if (items.find(id) == items.end())
                 items[id] = 0;
@@ -248,7 +248,7 @@ namespace ai
 
         virtual bool Visit(Item* item)
         {
-            count[item->GetTemplate()->Quality]++;
+            count[item->GetProto()->Quality]++;
             return true;
         }
 

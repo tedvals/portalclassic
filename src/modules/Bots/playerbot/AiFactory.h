@@ -18,5 +18,6 @@ public:
     static void AddDefaultMobileStrategies(Player* player, PlayerbotAI* const facade, Engine* engine);
 
 public:
-    static int GetPlayerSpecTab(Player* player);
+	static int GetPlayerSpecTab(Player* player);
+	static map<uint32, int32> GetPlayerSpecTabs(Player* player);
 };

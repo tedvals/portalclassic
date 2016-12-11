@@ -40,10 +40,8 @@
 #include "Chat.h"
 #include "SpellMgr.h"
 
-#ifdef ENABLE_PLAYERBOTS
 #include "..\modules\Bots\playerbot\playerbot.h"
 #include "..\modules\Bots\playerbot\PlayerbotAIConfig.h"
-#endif
 
 // config option SkipCinematics supported values
 enum CinematicsSkipMode
@@ -53,7 +51,6 @@ enum CinematicsSkipMode
     CINEMATICS_SKIP_ALL       = 2,
 };
 
-#ifdef ENABLE_PLAYERBOTS
 
 class PlayerbotLoginQueryHolder : public LoginQueryHolder
 {
@@ -121,15 +118,20 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(QueryResult * dummy, SqlQuery
 		allowed = true;
 
 	if (allowed)
+	{
 		OnBotLogin(bot);
+		return;
+	}
 	else if (masterSession)
 	{
 		ChatHandler ch(masterSession);
-		ch.PSendSysMessage("You are not allowed to control bot %s...", bot->GetName());
-		LogoutPlayerBot(bot->GetGUID());
-	}
+		ch.PSendSysMessage("You are not allowed to control bot %s", bot->GetName());
+	 }
+
+	LogoutPlayerBot(bot->GetGUID());
+	sLog.outError("Attempt to add not allowed bot %s, please try to reset all random bots", bot->GetName());
 }
-#endif
+
 class LoginQueryHolder : public SqlQueryHolder
 {
     private:
@@ -210,7 +212,7 @@ class CharacterHandler
                 return;
             }
             session->HandlePlayerLogin((LoginQueryHolder*)holder);
-#ifdef ENABLE_PLAYERBOTS
+
 			ObjectGuid guid = ((LoginQueryHolder*)holder)->GetGuid();
 			Player* player = sObjectMgr.GetPlayer(guid, true);
 			if (player && !player->GetPlayerbotAI())
@@ -218,7 +220,6 @@ class CharacterHandler
 				player->SetPlayerbotMgr(new PlayerbotMgr(player));
 				sRandomPlayerbotMgr.OnPlayerLogin(player);
 			}
-#endif
         }
 } chrHandler;
 

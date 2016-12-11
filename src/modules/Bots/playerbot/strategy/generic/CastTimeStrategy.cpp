@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "CastTimeStrategy.h"
 #include "../actions/GenericSpellActions.h"
@@ -23,11 +23,11 @@ float CastTimeMultiplier::GetValue(Action* action)
     if (normal && targetHealth < sPlayerbotAIConfig.lowHealth && dynamic_cast<CastSpellAction*>(action))
     {
         uint32 spellId = AI_VALUE2(uint32, "spell id", name);
-        const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
+        const SpellProto* const pSpellProto = sSpellMgr->GetSpellProto(spellId);
+        if (!pSpellProto)
             return 1.0f;
 
-        Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE);
+        Spell *spell = new Spell(bot, pSpellProto, TRIGGERED_NONE);
         int32 castTime = spell->GetCastTime();
         delete spell;
 
@@ -39,11 +39,11 @@ float CastTimeMultiplier::GetValue(Action* action)
     else if ((elite || player)&& targetHealth < sPlayerbotAIConfig.almostDead && dynamic_cast<CastSpellAction*>(action))
     {
         uint32 spellId = AI_VALUE2(uint32, "spell id", name);
-        const SpellInfo* const pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
+        const SpellProto* const pSpellProto = sSpellMgr->GetSpellProto(spellId);
+        if (!pSpellProto)
             return 1.0f;
 
-        Spell *spell = new Spell(bot, pSpellInfo, TRIGGERED_NONE);
+        Spell *spell = new Spell(bot, pSpellProto, TRIGGERED_NONE);
         int32 castTime = spell->GetCastTime();
         delete spell;
 

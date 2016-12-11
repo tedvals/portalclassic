@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "SayAction.h"
 
@@ -25,7 +25,7 @@ bool SayAction::Execute(Event event)
 {
 	if (stringTable.empty())
 	{
-		QueryResult results = CharacterDatabase.PQuery("SELECT name, text, type FROM ai_playerbot_speech");
+		QueryResult* results = CharacterDatabase.PQuery("SELECT name, text, type FROM ai_playerbot_speech");
 		if (results)
 		{
             do
@@ -42,7 +42,7 @@ bool SayAction::Execute(Event event)
 	}
 	if (probabilityTable.empty())
 	{
-        QueryResult results = CharacterDatabase.PQuery("SELECT name, probability FROM ai_playerbot_speech_probability");
+        QueryResult* results = CharacterDatabase.PQuery("SELECT name, probability FROM ai_playerbot_speech_probability");
         if (results)
         {
             do

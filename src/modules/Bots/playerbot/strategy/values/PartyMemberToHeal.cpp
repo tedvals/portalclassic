@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "PartyMemberToHeal.h"
 #include "../../PlayerbotAIConfig.h"
@@ -9,7 +9,7 @@ using namespace ai;
 class IsTargetOfHealingSpell : public SpellEntryPredicate
 {
 public:
-    virtual bool Check(SpellInfo const* spell) {
+    virtual bool Check(SpellProto const* spell) {
         for (int i=0; i<3; i++) {
             if (spell->Effects[i].Effect == SPELL_EFFECT_HEAL ||
                 spell->Effects[i].Effect == SPELL_EFFECT_HEAL_MAX_HEALTH ||
@@ -39,7 +39,7 @@ Unit* PartyMemberToHeal::Calculate()
         if (!Check(player) || !player->IsAlive())
             continue;
 
-        uint8 health = player->GetHealthPct();
+        uint8 health = player->GetHealthPercent();
 
         if (player->GetPlayerbotAI()->IsTank(player))
             calc.probe(health, player);
@@ -49,7 +49,7 @@ Unit* PartyMemberToHeal::Calculate()
         Pet* pet = player->GetPet();
         if (pet && CanHealPet(pet))
         {
-            health = ((Unit*)pet)->GetHealthPct();
+            health = ((Unit*)pet)->GetHealthPercent();
             if (isRaid || health < sPlayerbotAIConfig.mediumHealth || !IsTargetOfSpellCast(player, predicate))
                 calc.probe(health, player);
         }

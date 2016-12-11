@@ -23,7 +23,6 @@ namespace ai
         bool UseItem(Item* item, ObjectGuid go, Item* itemTarget);
         bool UseItemOnUnit(Item* item, Unit* unitTarget);
         bool UseGameObject(ObjectGuid guid);
-        bool SocketItem(Item* item, Item* gem, bool replace = false);
     private:
         bool selfOnly;
         uint8 targetSlot;

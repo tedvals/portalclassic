@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "../Strategy.h"
 #include "MageActions.h"
@@ -29,6 +29,7 @@ namespace ai
                 creators["pull"] = &mage::StrategyFactoryInternal::pull;
                 creators["fire aoe"] = &mage::StrategyFactoryInternal::fire_aoe;
                 creators["frost aoe"] = &mage::StrategyFactoryInternal::frost_aoe;
+				creators["cure"] = &mage::StrategyFactoryInternal::cure;
             }
             ~StrategyFactoryInternal()
             {
@@ -36,6 +37,7 @@ namespace ai
                 creators.erase("pull");
                 creators.erase("fire aoe");
                 creators.erase("frost aoe");
+				creators.erase("cure");
             }
 
         private:

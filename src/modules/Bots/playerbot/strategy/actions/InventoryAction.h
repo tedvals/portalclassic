@@ -15,7 +15,7 @@ namespace ai
     protected:
         void IterateItems(IterateItemsVisitor* visitor, IterateItemsMask mask = ITERATE_ITEMS_IN_BAGS);
         void TellItems(map<uint32, int> items);
-        void TellItem(ItemTemplate const * proto, int count);
+        void TellItem(ItemPrototype const * proto, int count);
         list<Item*> parseItems(string text);
 
     private:

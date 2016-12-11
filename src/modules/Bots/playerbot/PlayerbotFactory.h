@@ -26,7 +26,7 @@ private:
     void Prepare();
     void InitSecondEquipmentSet();
     void InitEquipment(bool incremental);
-    bool CanEquipItem(ItemTemplate const* proto, uint32 desiredQuality);
+    bool CanEquipItem(ItemPrototype const* proto, uint32 desiredQuality);
     bool CanEquipUnseenItem(uint8 slot, uint16 &dest, uint32 item);
     void InitSkills();
     void InitTradeSkills();
@@ -45,8 +45,8 @@ private:
     void InitMounts();
     void InitPotions();
     void InitFood();
-    bool CanEquipArmor(ItemTemplate const* proto);
-    bool CanEquipWeapon(ItemTemplate const* proto);
+    bool CanEquipArmor(ItemPrototype const* proto);
+    bool CanEquipWeapon(ItemPrototype const* proto);
     void EnchantItem(Item* item);
     void AddItemStats(uint32 mod, uint8 &sp, uint8 &ap, uint8 &tank);
     bool CheckItemStats(uint8 sp, uint8 ap, uint8 tank);
@@ -58,10 +58,8 @@ private:
     void InitInventoryEquip();
     void InitInventorySkill();
     Item* StoreItem(uint32 itemId, uint32 count);
-    void InitGlyphs();
     void InitGuild();
     void AddEquipment(uint8 Slot, uint32 ItemId);
-    void InitHunterPet();
     void ClearAllInventory();
 
 private:

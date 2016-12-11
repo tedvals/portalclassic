@@ -2,7 +2,7 @@
 #include "PlayerbotAIConfig.h"
 #include "playerbot.h"
 #include "RandomPlayerbotFactory.h"
-#include "../../game/Accounts/AccountMgr.h"
+#include "../../game/AccountMgr.h"
 
 using namespace std;
 
@@ -26,20 +26,20 @@ void LoadList(string value, T &list)
 
 bool PlayerbotAIConfig::Initialize()
 {
-    sLog->outMessage("playerbot", LOG_LEVEL_INFO, "Initializing AI Playerbot by ike3, based on the original Playerbot by blueboy");
+    sLog.outString("Initializing AI Playerbot by ike3, based on the original Playerbot by blueboy");
 
     string error;
 	vector<string> args;
-    if (!config.LoadInitial("Settings/bots.conf", args, error))
+    if (!config.SetSource("Settings/bots.conf"))
     {
-        sLog->outMessage("playerbot", LOG_LEVEL_INFO, "AI Playerbot is Disabled. Unable to open configuration file aiplayerbot.conf");
+        sLog.outString("AI Playerbot is Disabled. Unable to open configuration file aiplayerbot.conf");
         return false;
     }
 
     enabled = config.GetBoolDefault("AiPlayerbot.Enabled", true);
     if (!enabled)
     {
-        sLog->outMessage("playerbot", LOG_LEVEL_INFO, "AI Playerbot is Disabled in aiplayerbot.conf");
+        sLog.outString("AI Playerbot is Disabled in aiplayerbot.conf");
         return false;
     }
 
@@ -49,6 +49,7 @@ bool PlayerbotAIConfig::Initialize()
 
     sightDistance = config.GetFloatDefault("AiPlayerbot.SightDistance", 60.0f);
     spellDistance = config.GetFloatDefault("AiPlayerbot.SpellDistance", 25.0f);
+	shootDistance = config.GetFloatDefault("AiPlayerbot.ShootDistance", 20.0f);
     reactDistance = config.GetFloatDefault("AiPlayerbot.ReactDistance", 150.0f);
     grindDistance = config.GetFloatDefault("AiPlayerbot.GrindDistance", 100.0f);
     lootDistance = config.GetFloatDefault("AiPlayerbot.LootDistance", 20.0f);
@@ -158,7 +159,7 @@ bool PlayerbotAIConfig::Initialize()
     minGuildTaskRewardTime = config.GetIntDefault("AiPlayerbot.MinGuildTaskRewardTime", 60);
     maxGuildTaskRewardTime = config.GetIntDefault("AiPlayerbot.MaxGuildTaskRewardTime", 600);
 
-    sLog->outMessage("playerbot", LOG_LEVEL_INFO, "AI Playerbot configuration loaded");
+    sLog.outString("AI Playerbot configuration loaded");
 
     return true;
 }

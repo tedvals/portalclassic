@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "StatsValues.h"
 
@@ -260,13 +260,13 @@ bool IsMountedValue::Calculate()
 }
 
 
-bool IsInCombatValue::Calculate()
+bool isInCombatValue::Calculate()
 {
     Unit* target = GetTarget();
     if (!target)
         return false;
 
-    return target->IsInCombat();
+    return target->isInCombat();
 }
 
 uint8 BagSpaceValue::Calculate()
@@ -284,7 +284,7 @@ uint8 BagSpaceValue::Calculate()
         const Bag* const pBag = (Bag*) bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
         {
-            ItemTemplate const* pBagProto = pBag->GetTemplate();
+            ItemPrototype const* pBagProto = pBag->GetProto();
             if (pBagProto->Class == ITEM_CLASS_CONTAINER && pBagProto->SubClass == ITEM_SUBCLASS_CONTAINER)
             {
                 total += pBag->GetBagSize();

@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "PriestActions.h"
 #include "PriestAiObjectContext.h"
@@ -25,26 +25,24 @@ namespace ai
             {
                 creators["nc"] = &priest::StrategyFactoryInternal::nc;
                 creators["pull"] = &priest::StrategyFactoryInternal::pull;
-                creators["aoe"] = &priest::StrategyFactoryInternal::shadow_aoe;
-                creators["shadow aoe"] = &priest::StrategyFactoryInternal::shadow_aoe;
                 creators["dps debuff"] = &priest::StrategyFactoryInternal::shadow_debuff;
                 creators["shadow debuff"] = &priest::StrategyFactoryInternal::shadow_debuff;
+				creators["cure"] = &priest::StrategyFactoryInternal::cure;
             }
             ~StrategyFactoryInternal()
             {
                 creators.erase("nc");
                 creators.erase("pull");
-                creators.erase("aoe");
-                creators.erase("shadow aoe");
                 creators.erase("dps debuff");
                 creators.erase("shadow debuff");
+				creators.erase("cure");
             }
 
         private:
             static Strategy* nc(PlayerbotAI* ai) { return new PriestNonCombatStrategy(ai); }
-            static Strategy* shadow_aoe(PlayerbotAI* ai) { return new ShadowPriestAoeStrategy(ai); }
             static Strategy* pull(PlayerbotAI* ai) { return new PullStrategy(ai, "shoot"); }
             static Strategy* shadow_debuff(PlayerbotAI* ai) { return new ShadowPriestDebuffStrategy(ai); }
+			static Strategy* cure(PlayerbotAI* ai) { return new PriestCureStrategy(ai); }
         };
 
         class CombatStrategyFactoryInternal : public NamedObjectContext<Strategy>

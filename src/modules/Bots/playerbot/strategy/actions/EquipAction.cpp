@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "EquipAction.h"
 
@@ -87,19 +87,19 @@ void EquipAction::EquipItem(Item& item)
 {
     uint8 bagIndex = item.GetBagSlot();
     uint8 slot = item.GetSlot();
-    uint32 itemId = item.GetTemplate()->ItemId;
+    uint32 itemId = item.GetProto()->ItemId;
 
-    if (item.GetTemplate()->InventoryType == INVTYPE_AMMO)
+    if (item.GetProto()->InventoryType == INVTYPE_AMMO)
     {
         bot->SetAmmo(itemId);
     }
     else
     {
-        WorldPacket* const packet = new WorldPacket(CMSG_AUTOEQUIP_ITEM, 2);
+		std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_AUTOEQUIP_ITEM, 2));
             *packet << bagIndex << slot;
-        bot->GetSession()->QueuePacket(packet);
+        bot->GetSession()->QueuePacket(std::move(packet));
     }
 
-    ostringstream out; out << "equipping " << chat->formatItem(item.GetTemplate());
+    ostringstream out; out << "equipping " << chat->formatItem(item.GetProto());
     ai->TellMaster(out);
 }

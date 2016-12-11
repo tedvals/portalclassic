@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../common/Configuration/Config.h"
+#include "../../shared/Config/Config.h"
 
 class Player;
 class PlayerbotMgr;
@@ -24,7 +24,7 @@ public:
     bool enabled;
     bool allowGuildBots;
     uint32 globalCoolDown, reactDelay, maxWaitForMove;
-    float sightDistance, spellDistance, reactDistance, aggroDistance, grindDistance, lootDistance, disperseDistance,
+    float sightDistance, spellDistance, shootDistance, reactDistance, aggroDistance, grindDistance, lootDistance, disperseDistance,
         fleeDistance, tooCloseDistance, meleeDistance, followDistance, whisperDistance, contactDistance;
     float closeDistance, mediumDistance, farDistance, extremeDistance;
     uint32 criticalHealth, lowHealth, mediumHealth, highHealth, almostFullHealth, almostDead;
@@ -84,7 +84,7 @@ public:
     void SetValue(std::string name, std::string value);
 
 private:
-    ConfigMgr config;
+    Config config;
 };
 
 #define sPlayerbotAIConfig PlayerbotAIConfig::instance()

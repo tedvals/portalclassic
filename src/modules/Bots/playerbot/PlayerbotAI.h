@@ -168,7 +168,7 @@ public:
     bool HasAura(uint32 spellId, const Unit* player, BotAuraType auratype = BOT_AURA_NORMAL);
     bool HasOwnAura(uint32 spellId, const Unit* player, BotAuraType auratype = BOT_AURA_NORMAL);
     bool CastSpell(uint32 spellId, Unit* target);
-    bool canDispel(const SpellInfo* entry, uint32 dispelType);
+    bool canDispel(const SpellEntry* entry, uint32 dispelType);
 
     uint32 GetEquipGearScore(Player* player, bool withBags, bool withBank);
 
@@ -184,6 +184,8 @@ public:
     bool IsOpposing(Player* player);
     static bool IsOpposing(uint8 race1, uint8 race2);
     PlayerbotSecurity* GetSecurity() { return &security; }
+	map<string, time_t> whispers;
+
     void SetMovePoint (uint32 mapId, float x, float y, float z) {go_point= true; go_mapId = mapId; go_x = x; go_y = y;go_z = z;}
 	void ResetMovePoint() {go_point = false;}
 	bool IsMoving() { return go_point; }

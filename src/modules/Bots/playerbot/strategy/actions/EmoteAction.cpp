@@ -1,6 +1,7 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "EmoteAction.h"
+#include "../../PlayerbotAIConfig.h"
 
 using namespace ai;
 
@@ -38,16 +39,16 @@ bool EmoteAction::Execute(Event event)
     Player* master = GetMaster();
 	if (master)
 	{
-        Unit* masterSelection = master->GetSelectedUnit();
-        if (masterSelection)
-        {
-            Unit* oldSelection = bot->GetSelectedUnit();
-            bot->SetSelection(masterSelection->GetGUID());
-            bot->HandleEmoteCommand(emote);
-            if (oldSelection)
-                bot->SetSelection(oldSelection->GetGUID());
-            return true;
-        }
+		ObjectGuid masterSelection = master->GetSelectionGuid();
+		if (masterSelection)
+		{
+			ObjectGuid oldSelection = bot->GetSelectionGuid();
+			bot->SetSelectionGuid(masterSelection);
+			bot->HandleEmoteCommand(emote);
+			if (oldSelection)
+				bot->SetSelectionGuid(oldSelection);
+			return true;
+		}
 	}
 
     bot->HandleEmoteCommand(emote);
@@ -238,6 +239,6 @@ void EmoteAction::InitEmotes()
 
 bool EmoteAction::isUseful()
 {
-    time_t lastEmote = AI_VALUE2(time_t, "last emote", qualifier);
-    return (time(0) - lastEmote) > 30;
+	time_t lastEmote = AI_VALUE2(time_t, "last emote", qualifier);
+	return (time(0) - lastEmote) >= sPlayerbotAIConfig.maxWaitForMove / 1000;
 }

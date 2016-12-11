@@ -66,7 +66,37 @@ namespace ai
 			creators["bg"] = &StrategyContext::bg;
 			creators["warsong"] = &StrategyContext::warsong;
             creators["custom"] = &StrategyContext::custom;
+			creators["reveal"] = &StrategyContext::reveal;
         }
+		~StrategyContext()
+		{
+			creators.erase("racials");
+			creators.erase("loot");
+			creators.erase("gather");
+			creators.erase("emote");
+			creators.erase("passive");
+			creators.erase("conserve mana");
+			creators.erase("food");
+			creators.erase("chat");
+			creators.erase("default");
+			creators.erase("ready check");
+			creators.erase("dead");
+			creators.erase("flee");
+			creators.erase("duel");
+			creators.erase("kite");
+			creators.erase("disperse");
+			creators.erase("potions");
+			creators.erase("cast time");
+			creators.erase("threat");
+			creators.erase("tell target");
+			creators.erase("pvp");
+			creators.erase("move random");
+			creators.erase("lfg");
+			creators.erase("bg");
+			creators.erase("warsong");
+			creators.erase("custom");
+			creators.erase("reveal");
+		}
 
     private:
         static Strategy* tell_target(PlayerbotAI* ai) { return new TellTargetStrategy(ai); }
@@ -94,6 +124,7 @@ namespace ai
 		static Strategy* bg(PlayerbotAI* ai) { return new BGStrategy(ai); }
 		static Strategy* warsong(PlayerbotAI* ai) { return new WarsongStrategy(ai); }
         static Strategy* custom(PlayerbotAI* ai) { return new CustomStrategy(ai); }
+		static Strategy* reveal(PlayerbotAI* ai) { return new RevealStrategy(ai); }
     };
 
     class MovementStrategyContext : public NamedObjectContext<Strategy>

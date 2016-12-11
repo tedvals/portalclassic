@@ -20,8 +20,8 @@ namespace ai
         static ItemIds parseItems(string& text);
         uint32 parseSpell(string& text);
         static string formatQuest(Quest const* quest);
-        static string formatItem(ItemTemplate const * proto, int count = 0);
-        static string formatSpell(SpellInfo const *sInfo);
+        static string formatItem(ItemPrototype const * proto, int count = 0);
+        static string formatSpell(SpellProto const *sInfo);
         static string formatGameobject(GameObject* go);
         static string formatQuestObjective(string name, int available, int required);
         static list<ObjectGuid> parseGameobjects(string& text);

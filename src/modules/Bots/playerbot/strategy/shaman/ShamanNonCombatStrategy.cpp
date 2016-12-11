@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ShamanMultipliers.h"
 #include "ShamanNonCombatStrategy.h"
@@ -48,6 +48,24 @@ void ShamanNonCombatStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 	triggers.push_back(new TriggerNode(
 		"in battleground without flag",
 		NextAction::array(0, new NextAction("mount", 1.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"cure poison",
+		NextAction::array(0, new NextAction("cure poison", 21.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"party member cure poison",
+		NextAction::array(0, new NextAction("cure poison on party", 21.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"cure disease",
+		NextAction::array(0, new NextAction("cure disease", 31.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"party member cure disease",
+		NextAction::array(0, new NextAction("cure disease on party", 30.0f), NULL)));
+}
+
 
   //  triggers.push_back(new TriggerNode(
   //      "recall all totems",

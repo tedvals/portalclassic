@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "AcceptQuestAction.h"
 
@@ -45,7 +45,7 @@ bool AcceptQuestAction::Execute(Event event)
     else
         return false;
 
-    Quest const* qInfo = sObjectMgr->GetQuestTemplate(quest);
+    Quest const* qInfo = sObjectMgr.GetQuestTemplate(quest);
     if (!qInfo)
         return false;
 
@@ -61,7 +61,7 @@ bool AcceptQuestShareAction::Execute(Event event)
     p.rpos(0);
     uint32 quest;
     p >> quest;
-    Quest const* qInfo = sObjectMgr->GetQuestTemplate(quest);
+    Quest const* qInfo = sObjectMgr.GetQuestTemplate(quest);
 
     if (!qInfo || !bot->GetDivider())
         return false;

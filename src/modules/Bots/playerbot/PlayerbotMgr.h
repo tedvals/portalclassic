@@ -3,7 +3,7 @@
 
 #include "Common.h"
 #include "PlayerbotAIBase.h"
-#include "../pchdef.h"
+#include "../botpch.h"
 
 class WorldPacket;
 class Player;
@@ -19,8 +19,12 @@ public:
     PlayerbotHolder();
     virtual ~PlayerbotHolder();
 
-    void AddPlayerBot(uint64 guid, uint32 masterAccountId);
-    void LogoutPlayerBot(uint64 guid);
+	void AddPlayerBot(uint64 guid, uint32 masterAccountId);
+	void HandlePlayerBotLoginCallback(QueryResult * dummy, SqlQueryHolder * holder);
+
+	void LogoutPlayerBot(uint64 guid);
+	Player* GetPlayerBot(uint64 guid) const;
+
     Player* GetPlayerBot (uint64 guid) const;
     PlayerBotMap::const_iterator GetPlayerBotsBegin() const { return playerBots.begin(); }
     PlayerBotMap::const_iterator GetPlayerBotsEnd()   const { return playerBots.end();   }

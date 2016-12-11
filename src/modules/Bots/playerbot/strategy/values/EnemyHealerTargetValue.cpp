@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "EnemyHealerTargetValue.h"
 #include "../../PlayerbotAIConfig.h"
@@ -24,11 +24,11 @@ Unit* EnemyHealerTargetValue::Calculate()
             continue;
 
         Spell* spell = unit->GetCurrentSpell(CURRENT_GENERIC_SPELL);
-        if (spell && spell->m_spellInfo->IsPositive())
+        if (spell && spell->m_SpellProto->IsPositive())
             return unit;
 
         spell = unit->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
-        if (spell && spell->m_spellInfo->IsPositive())
+        if (spell && spell->m_SpellProto->IsPositive())
             return unit;
     }
 

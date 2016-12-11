@@ -1,10 +1,9 @@
 #pragma once
 #include "../Trigger.h"
 
-#include "../../../Battlegrounds/Battleground.h"
-#include "../../../Battlegrounds/BattlegroundMgr.h"
-#include "../../../Battlegrounds/BattlegroundQueue.h"
-#include "../../../Battlegrounds/Zones/BattlegroundWS.h"
+#include "../../game/BattleGround/Battleground.h"
+#include "../../game/BattleGround/BattlegroundMgr.h"
+#include "../../game/BattleGround/BattlegroundWS.h"
 #include "../../PlayerbotAIConfig.h"
 
 #define BUFF_TRIGGER(clazz, spell, action) \
@@ -407,9 +406,10 @@ namespace ai
     class RandomTrigger : public Trigger
     {
     public:
-        RandomTrigger(PlayerbotAI* ai, int probability = 200) : Trigger(ai)
+		RandomTrigger(PlayerbotAI* ai, string name, int probability = 7) : Trigger(ai, name)
         {
             this->probability = probability;
+			lastCheck = time(0);
         }
     public:
         virtual bool IsActive();
@@ -417,27 +417,7 @@ namespace ai
 
     protected:
         int probability;
-    };
-
-    class SeldomTrigger : public RandomTrigger
-    {
-    public:
-        SeldomTrigger(PlayerbotAI* ai) : RandomTrigger(ai, 5000) {}
-        virtual string getName() { return "seldom"; }
-    };
-
-    class OftenTrigger : public RandomTrigger
-    {
-    public:
-        OftenTrigger(PlayerbotAI* ai) : RandomTrigger(ai, 100) {}
-        virtual string getName() { return "often"; }
-    };
-
-	class VeryOftenTrigger : public RandomTrigger
-	{
-	public:
-		VeryOftenTrigger(PlayerbotAI* ai) : RandomTrigger(ai, 10) {}
-		virtual string getName() { return "very often"; }
+		time_t lastCheck;
 	};
 
     class AndTrigger : public Trigger

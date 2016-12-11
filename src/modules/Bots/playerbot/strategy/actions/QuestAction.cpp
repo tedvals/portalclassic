@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "QuestAction.h"
 #include "../../PlayerbotAIConfig.h"
@@ -59,7 +59,7 @@ bool QuestAction::ProcessQuests(WorldObject* questGiver)
     {
         QuestMenuItem const& menuItem = questMenu.GetItem(i);
         uint32 questID = menuItem.QuestId;
-        Quest const* quest = sObjectMgr->GetQuestTemplate(questID);
+        Quest const* quest = sObjectMgr.GetQuestTemplate(questID);
         if (!quest)
             continue;
 
@@ -122,13 +122,13 @@ bool QuestObjectiveCompletedAction::Execute(Event event)
     if (entry & 0x80000000)
     {
         entry &= 0x7FFFFFFF;
-        GameObjectTemplate const* info = sObjectMgr->GetGameObjectTemplate(entry);
+        GameObjectTemplate const* info = sObjectMgr.GetGameObjectTemplate(entry);
         if (info)
             ai->TellMaster(chat->formatQuestObjective(info->name, available, required));
     }
     else
     {
-        CreatureTemplate const* info = sObjectMgr->GetCreatureTemplate(entry);
+        CreatureTemplate const* info = sObjectMgr.GetCreatureTemplate(entry);
         if (info)
             ai->TellMaster(chat->formatQuestObjective(info->Name, available, required));
     }

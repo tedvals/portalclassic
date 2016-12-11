@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "PaladinActions.h"
 #include "PaladinTriggers.h"
@@ -24,10 +24,17 @@ namespace ai
             StrategyFactoryInternal()
             {
                 creators["nc"] = &paladin::StrategyFactoryInternal::nc;
+				creators["cure"] = &paladin::StrategyFactoryInternal::cure;
             }
+			~StrategyFactoryInternal()
+			{
+				creators.erase("nc");
+				creators.erase("cure");
+			}
 
         private:
             static Strategy* nc(PlayerbotAI* ai) { return new GenericPaladinNonCombatStrategy(ai); }
+			static Strategy* cure(PlayerbotAI* ai) { return new PaladinCureStrategy(ai); }
         };
 
         class ResistanceStrategyFactoryInternal : public NamedObjectContext<Strategy>
@@ -39,6 +46,12 @@ namespace ai
                 creators["rfrost"] = &paladin::ResistanceStrategyFactoryInternal::rfrost;
                 creators["rfire"] = &paladin::ResistanceStrategyFactoryInternal::rfire;
             }
+			~ResistanceStrategyFactoryInternal()
+			{
+				creators.erase("rshadow");
+				creators.erase("rfrost");
+				creators.erase("rfire");
+			}
 
         private:
             static Strategy* rshadow(PlayerbotAI* ai) { return new PaladinShadowResistanceStrategy(ai); }
@@ -58,6 +71,15 @@ namespace ai
                 creators["bspeed"] = &paladin::BuffStrategyFactoryInternal::bspeed;
 				creators["bthreat"] = &paladin::BuffStrategyFactoryInternal::bthreat;
             }
+			~BuffStrategyFactoryInternal()
+			{
+				creators.erase("bhealth");
+				creators.erase("bmana");
+				creators.erase("bdps");
+				creators.erase("barmor");
+				creators.erase("bspeed");
+				creators.erase("bthreat");
+			}
 
         private:
             static Strategy* bhealth(PlayerbotAI* ai) { return new PaladinBuffHealthStrategy(ai); }

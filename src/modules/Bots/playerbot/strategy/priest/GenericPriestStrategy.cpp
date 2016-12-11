@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "PriestMultipliers.h"
 #include "HealPriestStrategy.h"
@@ -60,24 +60,8 @@ void GenericPriestStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
         NextAction::array(0, new NextAction("power word: shield on party", ACTION_CRITICAL_HEAL + 2), NULL)));
 
     triggers.push_back(new TriggerNode(
-        "dispel magic",
-        NextAction::array(0, new NextAction("dispel magic", 41.0f), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "dispel magic on party",
-        NextAction::array(0, new NextAction("dispel magic on party", 40.0f), NULL)));
-
-    triggers.push_back(new TriggerNode(
         "low mana",
         NextAction::array(0, new NextAction("shadowfiend", ACTION_EMERGENCY + 5), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "cure disease",
-        NextAction::array(0, new NextAction("abolish disease", 31.0f), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member cure disease",
-        NextAction::array(0, new NextAction("abolish disease on party", 30.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "almost dead",
@@ -90,4 +74,24 @@ void GenericPriestStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "runaway",
         NextAction::array(0, new NextAction("psychic scream", ACTION_EMERGENCY + 7), new NextAction("renew", ACTION_EMERGENCY + 7), NULL)));
+}
+
+void PriestCureStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
+{
+	triggers.push_back(new TriggerNode(
+		"dispel magic",
+		NextAction::array(0, new NextAction("dispel magic", 41.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"dispel magic on party",
+		NextAction::array(0, new NextAction("dispel magic on party", 40.0f), NULL)));
+
+
+	triggers.push_back(new TriggerNode(
+		"cure disease",
+		NextAction::array(0, new NextAction("abolish disease", 31.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"party member cure disease",
+		NextAction::array(0, new NextAction("abolish disease on party", 30.0f), NULL)));
 }

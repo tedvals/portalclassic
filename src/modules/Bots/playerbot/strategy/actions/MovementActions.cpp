@@ -1,9 +1,9 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "../values/LastMovementValue.h"
 #include "MovementActions.h"
-#include "../../../Movement/MotionMaster.h"
-#include "../../../Movement/MovementGenerator.h"
+#include "../../game/MotionMaster.h"
+#include "../../game/MovementGenerator.h"
 #include "../../FleeManager.h"
 #include "../../DisperseManager.h"
 #include "../../LootObjectStack.h"
@@ -44,7 +44,7 @@ bool MovementAction::ChaseTo(WorldObject* obj)
 	if (bot->IsSitState())
 		bot->SetStandState(UNIT_STAND_STATE_STAND);
 	
-	if (bot->IsNonMeleeSpellCast(true))
+	if (bot->IsNonMeleeSpellCasted(true))
 	{
 		bot->CastStop();
 		ai->InterruptSpell();
@@ -75,7 +75,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z)
         if (bot->IsSitState())
             bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-		if (bot->IsNonPositiveSpellCast(true))
+		if (bot->IsNonPositiveSpellCasted(true))
         {
             bot->CastStop();
             ai->InterruptSpell();
@@ -97,7 +97,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z)
        //     float speed = bot->GetSpeed(MOVE_RUN);
        //     mm.MoveJump(x, y, botZ + 0.5f, speed, speed, 1);
        // 
-		if (!bot->InBattleground() && z - botZ > 0.5f && bot->GetDistance2d(x, y) <= 5.0f)
+		if (!bot->InBattleGround() && z - botZ > 0.5f && bot->GetDistance2d(x, y) <= 5.0f)
 		{
 			float speed = bot->GetSpeed(MOVE_RUN);
 			mm.MoveJump(x, y, botZ + 0.5f, speed, speed, 1);
@@ -149,8 +149,7 @@ bool MovementAction::FleeTo(Unit* target, uint32 mapId, float x, float y, float 
 			ai->TellMaster("Interrupt spell to flee");
 		}
 
-        bool generatePath = bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) &&
-                !bot->IsFlying() && !bot->IsUnderWater();
+        bool generatePath = !bot->IsUnderWater();
         MotionMaster &mm = *bot->GetMotionMaster();
         mm.Clear();
 
@@ -557,7 +556,7 @@ bool FleeAction::Execute(Event event)
 bool FleeAction::isUseful()
 {
     return AI_VALUE(uint8, "attacker count") > 0 &&
-            AI_VALUE2(float, "distance", "current target") <= sPlayerbotAIConfig.tooCloseDistance && AI_VALUE2(uint8, "speed", "current target") < 100;
+		   AI_VALUE2(float, "distance", "current target") <= sPlayerbotAIConfig.shootDistance;
 }
 
 bool DisperseAction::Execute(Event event)
@@ -698,7 +697,7 @@ bool MoveQuestGiverAction::Execute(Event event)
 	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
 
 	if (area)
-		sLog->outMessage("playerbot", LOG_LEVEL_INFO, "Teleporting bot %s to queststarter for quest to %s %f,%f,%f", bot->GetName().c_str(), area->area_name[0], go_x, go_y, go_z);
+		sLog.outString("Teleporting bot %s to queststarter for quest to %s %f,%f,%f", bot->GetName(), area->area_name[0], go_x, go_y, go_z);
 
 	MoveNear(QuestStarter);
 
@@ -728,7 +727,7 @@ bool MoveQuestEnderAction::Execute(Event event)
 	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
 
 	if (area)
-		sLog->outMessage("playerbot", LOG_LEVEL_INFO, "Teleporting bot %s to questender for quest to %s %f,%f,%f", bot->GetName().c_str(), area->area_name[0], go_x, go_y, go_z);
+		sLog.outString("Teleporting bot %s to questender for quest to %s %f,%f,%f", bot->GetName(), area->area_name[0], go_x, go_y, go_z);
 
 	MoveNear(QuestEnder);
 
@@ -758,7 +757,7 @@ bool MoveQuestPositionAction::Execute(Event event)
 	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
 
 	if (area)
-		sLog->outMessage("playerbot", LOG_LEVEL_INFO, "Teleporting bot %s to queststarter for quest to %s %f,%f,%f", bot->GetName().c_str(), area->area_name[0], go_x, go_y, go_z);
+		sLog.outString("Teleporting bot %s to queststarter for quest to %s %f,%f,%f", bot->GetName(), area->area_name[0], go_x, go_y, go_z);
 
 	if ((bot->GetMapId() != mapId) || (bot->GetDistance2d(QuestTarget) < 200.f))
 	{

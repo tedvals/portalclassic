@@ -4,31 +4,33 @@
 
 namespace ai
 {
-    class SuggestWhatToDoAction : public InventoryAction
-    {
-    public:
-        SuggestWhatToDoAction(PlayerbotAI* ai);
-        virtual bool Execute(Event event);
+	class SuggestWhatToDoAction : public InventoryAction
+	{
+	public:
+		SuggestWhatToDoAction(PlayerbotAI* ai, string name = "suggest what to do");
+		virtual bool Execute(Event event);
 
-    private:
-        typedef void (SuggestWhatToDoAction::*Suggestion) ();
-        vector<Suggestion> suggestions;
+	protected:
+		typedef void (SuggestWhatToDoAction::*Suggestion) ();
+		vector<Suggestion> suggestions;
+		void instance();
+		void specificQuest();
+		void newQuest();
+		void grindMaterials();
+		void grindReputation();
+		void nothing();
+		void relax();
+		void trade();
+		void spam(string msg, uint32 channelId = 1);
 
-    private:
-        void instance();
-        void specificQuest();
-        void newQuest();
-        void grindMaterials();
-        void grindReputation();
-        void nothing();
-        void relax();
-        void achievement();
-        void trade();
-        void spam(string msg);
+		vector<uint32> GetIncompletedQuests();
+	};
 
-        vector<uint32> GetIncompletedQuests();
+	class SuggestTradeAction : public SuggestWhatToDoAction
+	{
+	public:
+		SuggestTradeAction(PlayerbotAI* ai);
+		virtual bool Execute(Event event);
 
-    private:
-        bool suggested;
-    };
+	};
 }

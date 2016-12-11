@@ -84,7 +84,7 @@ void LootObject::Refresh(Player* bot, ObjectGuid guid)
         if (!lockInfo)
             return;
 		/*
-        GameObjectQuestItemList const* items = sObjectMgr->GetGameObjectQuestItemList(guid);
+        GameObjectQuestItemList const* items = sObjectMgr.GetGameObjectQuestItemList(guid);
         if (items)
         {
             this->guid =  guid;

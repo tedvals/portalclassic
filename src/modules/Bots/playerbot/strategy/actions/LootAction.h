@@ -25,7 +25,7 @@ namespace ai
         bool DoLoot(LootObject& lootObject);
         uint32 GetOpeningSpell(LootObject& lootObject);
         uint32 GetOpeningSpell(LootObject& lootObject, GameObject* go);
-        bool CanOpenLock(LootObject& lootObject, const SpellInfo* pSpellInfo, GameObject* go);
+        bool CanOpenLock(LootObject& lootObject, const SpellEntry* pSpellProto, GameObject* go);
         bool CanOpenLock(uint32 skillId, uint32 reqSkillValue);
     };
 

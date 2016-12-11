@@ -24,7 +24,7 @@ namespace ai
                 if (!creature || !creature->IsTotem())
                     continue;
 
-                if (strstri(creature->GetName().c_str(), qualifier.c_str()) && bot->GetDistance(creature) <= sPlayerbotAIConfig.spellDistance)
+                if (strstri(creature->GetName(), qualifier.c_str()) && bot->GetDistance(creature) <= sPlayerbotAIConfig.spellDistance)
                     return true;
             }
 
@@ -54,7 +54,7 @@ namespace ai
                 if (creature->GetOwner() != ai->GetBot())
                     return false;
 
-                if (strstri(creature->GetName().c_str(), qualifier.c_str()) && bot->GetDistance(creature) <= sPlayerbotAIConfig.spellDistance)
+                if (strstri(creature->GetName(), qualifier.c_str()) && bot->GetDistance(creature) <= sPlayerbotAIConfig.spellDistance)
                     return true;
             }
 

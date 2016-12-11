@@ -148,7 +148,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
 
             if (!action)
             {
-                LogAction("A:%s - UNKNOWN", actionNode->getName().c_str());
+                LogAction("A:%s - UNKNOWN", actionNode->getName());
             }
             else if (action->isUseful())
             {
@@ -161,7 +161,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
                         relevance *= multiplier->GetValue(action);
                         if ( !relevance)
                         {
-                            LogAction("Multiplier %s made action %s useless", multiplier->getName().c_str(), action->getName().c_str());
+                            LogAction("Multiplier %s made action %s useless", multiplier->getName(), action->getName());
                             break;
                         }
                     }
@@ -191,7 +191,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
 
                     if (actionExecuted)
                     {
-                        LogAction("A:%s - OK", action->getName().c_str());
+                        LogAction("A:%s - OK", action->getName());
                         MultiplyAndPush(actionNode->getContinuers(), 0, false, event, instantonly,(actionNode->getName()+= "-cont"));
                         lastRelevance = relevance;
                         delete actionNode;
@@ -199,20 +199,20 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
                     }
                     else
                     {
-                        LogAction("A:%s - FAILED", action->getName().c_str());
+                        LogAction("A:%s - FAILED", action->getName());
                         MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, instantonly,(actionNode->getName()+= "-alt"));
                     }
                 }
                 else
                 {
-                    LogAction("A:%s - IMPOSSIBLE", action->getName().c_str());
+                    LogAction("A:%s - IMPOSSIBLE", action->getName());
                     MultiplyAndPush(actionNode->getAlternatives(), relevance + 0.03, false, event, instantonly,(actionNode->getName()+= "-alt2"));
                 }
             }
             else
             {
                 lastRelevance = relevance;
-                LogAction("A:%s - USELESS", action->getName().c_str());
+                LogAction("A:%s - USELESS", action->getName());
             }
             delete actionNode;
         }
@@ -278,9 +278,9 @@ bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool sk
                 if (k > 0)
                 {
                     if (instantonly)
-                        LogAction("INSTANT PUSH:%s %f %s", action->getName().c_str(), k, referrer.c_str());
+                        LogAction("INSTANT PUSH:%s %f %s", action->getName(), k, referrer.c_str());
                     else
-                        LogAction("PUSH:%s - %f %s", action->getName().c_str(), k, referrer.c_str());
+                        LogAction("PUSH:%s - %f %s", action->getName(), k, referrer.c_str());
 
                     queue.Push(new ActionBasket(action, k, skipPrerequisites, event));
                     pushed = true;
@@ -340,7 +340,7 @@ void Engine::addStrategy(string name)
         for (set<string>::iterator i = siblings.begin(); i != siblings.end(); i++)
             removeStrategy(*i);
 
-        LogAction("S:+%s", strategy->getName().c_str());
+        LogAction("S:+%s", strategy->getName());
         strategies[strategy->getName()] = strategy;
     }
     Init();
@@ -396,6 +396,7 @@ bool Engine::HasStrategy(string name)
 
 void Engine::ProcessTriggers()
 {
+	map<Trigger*, Event> fires;
     for (list<TriggerNode*>::iterator i = triggers.begin(); i != triggers.end(); i++)
     {
         TriggerNode* node = *i;
@@ -418,10 +419,22 @@ void Engine::ProcessTriggers()
             if (!event)
                 continue;
 
-            LogAction("T:%s", trigger->getName().c_str());
-            MultiplyAndPush(node->getHandlers(), 0.0f, false, event, false,"-trigger");
+			fires[trigger] = event;
+            LogAction("T:%s", trigger->getName());
         }
     }
+
+	for (list<TriggerNode*>::iterator i = triggers.begin(); i != triggers.end(); i++)
+	{
+		TriggerNode* node = *i;
+		Trigger* trigger = node->getTrigger();
+		Event event = fires[trigger];
+		if (!event)
+			 continue;
+		
+			MultiplyAndPush(node->getHandlers(), 0.0f, false, event, "trigger");
+		}
+	
     for (list<TriggerNode*>::iterator i = triggers.begin(); i != triggers.end(); i++)
     {
         Trigger* trigger = (*i)->getTrigger();
@@ -532,7 +545,7 @@ void Engine::LogAction(const char* format, ...)
         if (sPlayerbotAIConfig.logInGroupOnly && !bot->GetGroup())
             return;
 
-        sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "%s %s", bot->GetName().c_str(), buf);
+		sLog.outDetail("%s %s", bot->GetName(), buf);
     }
 }
 
@@ -570,5 +583,5 @@ void Engine::LogValues()
         return;
 
     string text = ai->GetAiObjectContext()->FormatValues();
-    sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Values for %s: %s", bot->GetName().c_str(), text.c_str());
+    sLog.outDebug( "Values for %s: %s", bot->GetName(), text.c_str());
 }

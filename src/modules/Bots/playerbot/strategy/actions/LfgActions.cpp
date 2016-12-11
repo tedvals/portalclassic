@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "LfgActions.h"
 
@@ -148,20 +148,20 @@ bool LfgJoinAction::JoinProposal()
         list.insert(idx[urand(0, idx.size() - 1)]);
         sLFGMgr->JoinLfg(bot, roles, list, "bot");
 
-        sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s joined to LFG_TYPE_RANDOM as %d", bot->GetName().c_str(), (uint32)roles);
+        sLog.outDebug( "Bot %s joined to LFG_TYPE_RANDOM as %d", bot->GetName(), (uint32)roles);
 		return true;
 	}
     else if (heroic)
 	{
-		sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s joined to LFG_TYPE_HEROIC_DUNGEON as %d", bot->GetName().c_str(), (uint32)roles);
+		sLog.outDebug( "Bot %s joined to LFG_TYPE_HEROIC_DUNGEON as %d", bot->GetName(), (uint32)roles);
 	}
     else if (raid)
 	{
-		sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s joined to LFG_TYPE_RAID as %d", bot->GetName().c_str(), (uint32)roles);
+		sLog.outDebug( "Bot %s joined to LFG_TYPE_RAID as %d", bot->GetName(), (uint32)roles);
 	}
     else
 	{
-		sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s joined to LFG_TYPE_DUNGEON as %d", bot->GetName().c_str(), (uint32)roles);
+		sLog.outDebug( "Bot %s joined to LFG_TYPE_DUNGEON as %d", bot->GetName(), (uint32)roles);
 	}
 
     sLFGMgr->JoinLfg(bot, roles, list, "bot");
@@ -192,7 +192,7 @@ bool LfgAcceptAction::Execute(Event event)
         //if (urand(0, 1 + 10 / sPlayerbotAIConfig.randomChangeMultiplier))
         //    return false;
 
-        if (bot->IsInCombat() || bot->isDead())
+        if (bot->isInCombat() || bot->isDead())
         {
             sLFGMgr->UpdateProposal(id, bot->GetGUID(), false);
             return true;
@@ -203,7 +203,7 @@ bool LfgAcceptAction::Execute(Event event)
      //   if (sRandomPlayerbotMgr.IsRandomBot(bot) && !bot->GetGroup())
      //       ai->ChangeStrategy("-grind", BOT_STATE_NON_COMBAT);
 
-        sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s updated proposal %d", bot->GetName().c_str(), id);
+        sLog.outDebug( "Bot %s updated proposal %d", bot->GetName(), id);
         ai->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(0);
         bot->ClearUnitState(UNIT_STATE_ALL_STATE_SUPPORTED);
         sLFGMgr->UpdateProposal(id, bot->GetGUID(), true);
@@ -337,7 +337,7 @@ bool BGJoinAction::JoinProposal()
 		uint32 queueSlot = bot->AddBattlegroundQueueId(bgQueueTypeId);
 
 		sLog->outMessage("bg.battleground", LogLevel::LOG_LEVEL_DEBUG, "Battleground: player joined queue for bg queue type %u bg type %u: GUID %u, NAME %s",
-			bgQueueTypeId, bgTypeId, bot->GetGUID().GetCounter(), bot->GetName().c_str());
+			bgQueueTypeId, bgTypeId, bot->GetGUID().GetCounter(), bot->GetName());
 		return true;
 	}
 	return false;
@@ -367,27 +367,27 @@ bool BGStatusAction::Execute(Event event)
 
 	if (statusid == STATUS_WAIT_LEAVE) //battleground is over, bot needs to leave
 	{
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is going to leave battleground (%u).", bot->GetName().c_str(), bot->GetGUID().GetCounter(), battleId);
+		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is going to leave battleground (%u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId);
 		bot->LeaveBattleground(true);
 		ai->ResetStrategies();
 	}
 	if (statusid == STATUS_WAIT_QUEUE) //bot is in queue
 	{
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is still in queue (%u).", bot->GetName().c_str(), bot->GetGUID().GetCounter(), battleId);
+		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is still in queue (%u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId);
 	}
 	if (statusid == STATUS_WAIT_JOIN) //bot may join
 	{
 		if (bot->InBattleground())
 		{
-			TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is in battleground already. (%u, %u).", bot->GetName().c_str(), bot->GetGUID().GetCounter(), battleId, instanceId);
+			TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is in battleground already. (%u, %u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId, instanceId);
 			return false;
 		}
 
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) received a invite to a battleground (%u, %u).", bot->GetName().c_str(), bot->GetGUID().GetCounter(), battleId, instanceId);
+		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) received a invite to a battleground (%u, %u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId, instanceId);
 
 		bot->CombatStop(true);
 
-		sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s is going to join BG %d", bot->GetName().c_str(), battleId);
+		sLog.outDebug( "Bot %s is going to join BG %d", bot->GetName(), battleId);
 
 		bot->ClearUnitState(UNIT_STATE_ALL_STATE_SUPPORTED);
 
@@ -399,13 +399,13 @@ bool BGStatusAction::Execute(Event event)
 		GroupQueueInfo ginfo;
 		if (!bgQueue.GetPlayerGroupInfoData(bot->GetGUID(), &ginfo))
 		{
-			sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s was not in queue to join BG %d", bot->GetName().c_str(), battleId);
+			sLog.outDebug( "Bot %s was not in queue to join BG %d", bot->GetName(), battleId);
 			return false;
 		}
 		// if action == 1, then instanceId is required
 		if (!ginfo.IsInvitedToBGInstanceGUID)
 		{
-			sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s had no instanceID to join BG %d", bot->GetName().c_str(), battleId);
+			sLog.outDebug( "Bot %s had no instanceID to join BG %d", bot->GetName(), battleId);
 			return false;
 		}
 
@@ -415,7 +415,7 @@ bool BGStatusAction::Execute(Event event)
 			bg = sBattlegroundMgr->GetBattlegroundTemplate(bgTypeId);
 			if (!bg)
 			{
-				sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s could find no template for Battleground %d", bot->GetName().c_str(), battleId);
+				sLog.outDebug( "Bot %s could find no template for Battleground %d", bot->GetName(), battleId);
 				return false;
 			}
 		}
@@ -424,7 +424,7 @@ bool BGStatusAction::Execute(Event event)
 		PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(bg->GetMapId(), bot->getLevel());
 		if (!bracketEntry)
 		{
-			sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s has no bracket (%d) available to join BG %d", bot->GetName().c_str(), bot->getLevel(), battleId);
+			sLog.outDebug( "Bot %s has no bracket (%d) available to join BG %d", bot->GetName(), bot->getLevel(), battleId);
 			return false;
 		}
 
@@ -434,13 +434,13 @@ bool BGStatusAction::Execute(Event event)
 			//if player is trying to enter battleground (not arena!) and he has deserter debuff, we must just remove him from queue
 			if (!bot->CanJoinToBattleground(bg))
 			{
-				sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s cant join BG %d because it has the deserter debuf", bot->GetName().c_str(), battleId);
+				sLog.outDebug( "Bot %s cant join BG %d because it has the deserter debuf", bot->GetName(), battleId);
 				return false;
 			}
 			//if player don't match battleground max level, then do not allow him to enter! (this might happen when player leveled up during his waiting in queue
 			if (bot->getLevel() > bg->GetMaxLevel())
 			{
-				sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s cant join BG %d because its level does not fit", bot->GetName().c_str(), battleId);
+				sLog.outDebug( "Bot %s cant join BG %d because its level does not fit", bot->GetName(), battleId);
 				return false;
 			}
 		}
@@ -448,13 +448,13 @@ bool BGStatusAction::Execute(Event event)
 		// check Freeze debuff
 		if (bot->HasAura(9454))
 		{
-			sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s cant join BG %d because it is freezed", bot->GetName().c_str(), battleId);
+			sLog.outDebug( "Bot %s cant join BG %d because it is freezed", bot->GetName(), battleId);
 			return false;
 		}
 
 		if (!bot->IsInvitedForBattlegroundQueueType(bgQueueTypeId))
 		{
-			sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s cant join BG %d because it was not invited to join", bot->GetName().c_str(), battleId);
+			sLog.outDebug( "Bot %s cant join BG %d because it was not invited to join", bot->GetName(), battleId);
 			return false;                                 // cheating? No, bots dont cheat. They just try very hard.
 		}
 
@@ -491,8 +491,8 @@ bool BGStatusAction::Execute(Event event)
 		ai->ResetStrategies();
 		// add only in HandleMoveWorldPortAck()
 		// bg->AddPlayer(_player, team);
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) joined battle for bg %u, bgtype %u, queue type %u.", bot->GetName().c_str(), bot->GetGUID().GetCounter(), bg->GetInstanceID(), bg->GetTypeID(), bgQueueTypeId);
-		sLog->outMessage("playerbot", LOG_LEVEL_DEBUG, "Bot %s joined BG %d", bot->GetName().c_str(), battleId);
+		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) joined battle for bg %u, bgtype %u, queue type %u.", bot->GetName(), bot->GetGUID().GetCounter(), bg->GetInstanceID(), bg->GetTypeID(), bgQueueTypeId);
+		sLog.outDebug( "Bot %s joined BG %d", bot->GetName(), battleId);
 	}
 	return true;
 }
@@ -911,12 +911,12 @@ bool BGTacticsWS::Execute(Event event)
 		ai->SetMaster(NULL);
 		if (bot->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
 			bot->RemoveAurasByType(SPELL_AURA_SPIRIT_OF_REDEMPTION);
-		if (bot->IsInCombat())
+		if (bot->isInCombat())
 		{
 			if (!wasInCombat)
 				bot->GetMotionMaster()->MovementExpired();
 		}
-		wasInCombat = bot->IsInCombat();
+		wasInCombat = bot->();
 		//In Warsong, the bots run to the other flag and take it, try to get back and protect each other.
 		//If our flag was taken, pures will try to get it back
 		BattlegroundWS* bg = (BattlegroundWS *)bot->GetBattleground();
@@ -964,7 +964,7 @@ bool BGTacticsWS::Execute(Event event)
 						return false;
 					}
 				}
-				if (!bot->IsInCombat())
+				if (!bot->isInCombat())
 				{
 					Position const* pos = bg->GetTeamStartPosition(Battleground::GetTeamIndexByTeamId(bot->GetTeam()));
 					for (std::map<ObjectGuid, BattlegroundPlayer>::const_iterator itr = bg->GetPlayers().begin(); itr != bg->GetPlayers().end(); ++itr)
@@ -980,7 +980,7 @@ bool BGTacticsWS::Execute(Event event)
 				return false;
 			bool moving = false;
 			//Only go for directive, if not in combat
-			if (!bot->IsInCombat())
+			if (!bot->())
 			{
 				moving = consumeHealthy(bg);
 				if (!moving)

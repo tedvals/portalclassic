@@ -16,6 +16,7 @@
 #include "CheckMailAction.h"
 #include "SayAction.h"
 #include "CheckMountStateAction.h"
+#include "RevealGatheringItemAction.h"
 
 namespace ai
 {
@@ -70,6 +71,7 @@ namespace ai
             creators["attack enemy player"] = &ActionContext::enemy_player_target;
             creators["emote"] = &ActionContext::emote;
             creators["suggest what to do"] = &ActionContext::suggest_what_to_do;
+			creators["suggest trade"] = &ActionContext::suggest_trade;
             creators["move random"] = &ActionContext::move_random;
             creators["move to loot"] = &ActionContext::move_to_loot;
             creators["open loot"] = &ActionContext::open_loot;
@@ -85,7 +87,74 @@ namespace ai
 			creators["move to guestender"] = &ActionContext::move_questender;
 			creators["move to quest"] = &ActionContext::move_quest;
 			creators["mount"] = &ActionContext::mount;
+			creators["reveal gathering item"] = &ActionContext::reveal_gathering_item;
         }
+		~ActionContext()
+		{			
+			creators.erase("attack");
+			creators.erase("melee");
+			creators.erase("reach spell");
+			creators.erase("reach melee");
+			creators.erase("flee");
+			creators.erase("disperse");
+			creators.erase("gift of the naaru");
+			creators.erase("gift of the naaru on party");
+			creators.erase("shoot");
+			creators.erase("lifeblood");
+			creators.erase("arcane torrent");
+			creators.erase("will of the forsaken");
+			creators.erase("blood fury");
+			creators.erase("berserking");
+			creators.erase("racial boost");
+			creators.erase("cannibalize");
+			creators.erase("war stomp");
+			creators.erase("every man for himself");
+			creators.erase("shadowmelt");
+			creators.erase("escape artist");
+			creators.erase("stoneform");
+			creators.erase("end pull");
+			creators.erase("healthstone");
+			creators.erase("bandage");
+			creators.erase("healing potion");
+			creators.erase("mana potion");
+			creators.erase("food");
+			creators.erase("drink");
+			creators.erase("bomb");
+			creators.erase("tank assist");
+			creators.erase("dps assist");
+			creators.erase("attack rti target");
+			creators.erase("loot");
+			creators.erase("add loot");
+			creators.erase("add gathering loot");
+			creators.erase("add all loot");
+			creators.erase("shoot");
+			creators.erase("follow");
+			creators.erase("throw");
+			creators.erase("runaway");
+			creators.erase("stay");
+			creators.erase("attack anything");
+			creators.erase("attack least hp target");
+			creators.erase("attack enemy player");
+			creators.erase("emote");
+			creators.erase("suggest what to do");
+			creators.erase("suggest trade");
+			creators.erase("move random");
+			creators.erase("move to loot");
+			creators.erase("open loot");
+			creators.erase("guard");
+			creators.erase("move out of enemy contact");
+			creators.erase("set facing");
+			creators.erase("attack duel opponent");
+			creators.erase("drop target");
+			creators.erase("check mail");
+			creators.erase("say");
+			creators.erase("reposition");
+			creators.erase("move to guestgiver");
+			creators.erase("move to guestender");
+			creators.erase("move to quest");
+			creators.erase("mount");
+			creators.erase("reveal gathering item");
+		}
 
     private:
         static Action* check_mail(PlayerbotAI* ai) { return new CheckMailAction(ai); }
@@ -120,6 +189,7 @@ namespace ai
 
         static Action* emote(PlayerbotAI* ai) { return new EmoteAction(ai); }
         static Action* suggest_what_to_do(PlayerbotAI* ai) { return new SuggestWhatToDoAction(ai); }
+		static Action* suggest_trade(PlayerbotAI* ai) { return new SuggestTradeAction(ai); }
         static Action* attack_anything(PlayerbotAI* ai) { return new AttackAnythingAction(ai); }
         static Action* attack_least_hp_target(PlayerbotAI* ai) { return new AttackLeastHpTargetAction(ai); }
         static Action* enemy_player_target(PlayerbotAI* ai) { return new AttackEnemyPlayerAction(ai); }
@@ -148,6 +218,7 @@ namespace ai
 		static Action* move_questender(PlayerbotAI* ai) { return new MoveQuestEnderAction(ai); }
 		static Action* move_quest(PlayerbotAI* ai) { return new MoveQuestPositionAction(ai); }
 		static Action* mount(PlayerbotAI *ai) { return new CastSpellAction(ai, "mount"); }
+		static Action* reveal_gathering_item(PlayerbotAI* ai) { return new RevealGatheringItemAction(ai); }
     };
 
 };

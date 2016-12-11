@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "MageMultipliers.h"
 #include "GenericMageStrategy.h"
@@ -109,7 +109,11 @@ void GenericMageStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
 
     triggers.push_back(new TriggerNode(
         "enemy too close for spell",
-        NextAction::array(0, new NextAction("frost nova", ACTION_MOVE + 6), new NextAction("flee",ACTION_MOVE + 7), NULL)));
+        NextAction::array(0, new NextAction("flee", 49.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"enemy is close",
+		NextAction::array(0, new NextAction("frost nova", 50.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "enemy out of spell",
@@ -178,4 +182,16 @@ void GenericMageStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "almost dead",
         NextAction::array(0, new NextAction("bandage", ACTION_CRITICAL_HEAL), NULL)));
+}
+
+void MageCureStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
+{
+	triggers.push_back(new TriggerNode(
+		"remove curse",
+		NextAction::array(0, new NextAction("remove curse", 41.0f), NULL)));
+
+	triggers.push_back(new TriggerNode(
+		"remove curse on party",
+		NextAction::array(0, new NextAction("remove curse on party", 40.0f), NULL)));
+
 }

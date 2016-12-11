@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "SpellIdValue.h"
 #include "../../PlayerbotAIConfig.h"
@@ -32,21 +32,21 @@ uint32 SpellIdValue::Calculate()
     {
         uint32 spellId = itr->first;
 
-        const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!pSpellInfo)
+        const SpellProto* pSpellProto = sSpellMgr->GetSpellProto(spellId);
+        if (!pSpellProto)
             continue;
 
-        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellInfo->IsPassive())
+        if (itr->second->state == PLAYERSPELL_REMOVED || itr->second->disabled || pSpellProto->IsPassive())
             continue;
 
-        if (pSpellInfo->Effects[0].Effect == SPELL_EFFECT_LEARN_SPELL)
+        if (pSpellProto->Effects[0].Effect == SPELL_EFFECT_LEARN_SPELL)
             continue;
 
-        char* spellName = pSpellInfo->SpellName[loc];
+        char* spellName = pSpellProto->SpellName[loc];
         if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart))
             continue;
 
-        bool usesNoReagents = (pSpellInfo->Reagent[0] <= 0);
+        bool usesNoReagents = (pSpellProto->Reagent[0] <= 0);
 
         // if we already found a spell
         bool useThisSpell = true;
@@ -71,14 +71,14 @@ uint32 SpellIdValue::Calculate()
                 continue;
 
             uint32 spellId = itr->first;
-            const SpellInfo* pSpellInfo = sSpellMgr->GetSpellInfo(spellId);
-            if (!pSpellInfo)
+            const SpellProto* pSpellProto = sSpellMgr->GetSpellProto(spellId);
+            if (!pSpellProto)
                 continue;
 
-            if (pSpellInfo->Effects[0].Effect == SPELL_EFFECT_LEARN_SPELL)
+            if (pSpellProto->Effects[0].Effect == SPELL_EFFECT_LEARN_SPELL)
                 continue;
 
-            char* spellName = pSpellInfo->SpellName[loc];
+            char* spellName = pSpellProto->SpellName[loc];
             if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart))
                 continue;
 

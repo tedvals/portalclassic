@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "GenericActions.h"
 
@@ -8,24 +8,24 @@ bool CastSpellAction::Execute(Event event)
 {
 	if (spell == "mount")
 	{
-		if (bot->InBattleground() && !bot->IsInCombat())
+		if (bot->InBattleGround() && !bot->isInCombat())
 		{
 			if (!bot->IsMounted())
 			{
 				//Mounts
-				if (bot->getLevel() > 39 && bot->GetTeamId() == TeamId::TEAM_ALLIANCE)
+				if (bot->getLevel() > 39 && bot->GetTeam() != ALLIANCE)
 				{
 					return ai->CastSpell(23240, bot);
 				}
-				if (bot->getLevel() > 39 && bot->GetTeamId() == TeamId::TEAM_HORDE)
+				if (bot->getLevel() > 39 && bot->GetTeam() != HORDE)
 				{
 					return ai->CastSpell(23242, bot);
 				}
-				if (bot->getLevel() > 19 && bot->GetTeamId() == TeamId::TEAM_ALLIANCE)
+				if (bot->getLevel() > 19 && bot->GetTeam() != ALLIANCE)
 				{
 					return ai->CastSpell(6899, bot);
 				}
-				if (bot->getLevel() > 19 && bot->GetTeamId() == TeamId::TEAM_HORDE)
+				if (bot->getLevel() > 19 && bot->GetTeam() != HORDE)
 				{
 					return ai->CastSpell(8395, bot);
 				}
@@ -43,12 +43,12 @@ bool CastSpellAction::isPossible()
 
 	//if (ai->IsMoving() && !isInstant())
 	//	return false;
-	if (spell == "mount" && !bot->IsMounted() && !bot->IsInCombat())
+	if (spell == "mount" && !bot->IsMounted() && !bot->isInCombat())
 		return true;
 
-	if (spell == "mount" && bot->IsInCombat())
+	if (spell == "mount" && bot->isInCombat())
 	{
-		bot->Dismount();
+		bot->Unmount();
 		return false;
 	}
 
@@ -63,7 +63,7 @@ bool CastSpellAction::isPossible()
 	if (!bot->IsWithinLOSInMap(target))
 		return false;
 
-	if (!bot->IsFriendlyTo(target) && target->UnderCc() && !target->isStunned())
+	if (!bot->IsFriendlyTo(target) && target->UnderCc() && !target->IsStunned())
 	{
 		if (target->isFrozen() && bot->getClass() == CLASS_MAGE)
 			return  ai->CanCastSpell(spell, GetTarget());
@@ -75,12 +75,12 @@ bool CastSpellAction::isPossible()
 
 bool CastSpellAction::isUseful()
 {
-	if (spell == "mount" && !bot->IsMounted() && !bot->IsInCombat())
+	if (spell == "mount" && !bot->IsMounted() && !bot->isInCombat())
 		return true;
 
-	if (spell == "mount" && bot->IsInCombat())
+	if (spell == "mount" && bot->isInCombat())
 	{
-		bot->Dismount();
+		bot->Unmount();
 		return false;
 	}
 
@@ -120,9 +120,9 @@ bool CastHotSpellAction::isUseful()
 	return CastSpellAction::isUseful() && !ai->HasAura(spell, GetTarget(), BOT_AURA_HEAL);
 }
 
-bool CastEnchantItemAction::isUseful()
+bool CastEnchantItemAction::isPossible()
 {
-    if (!CastSpellAction::isUseful())
+    if (!CastSpellAction::isPossible())
         return false;
 
     uint32 spellId = AI_VALUE2(uint32, "spell id", spell);

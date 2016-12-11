@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "PriestMultipliers.h"
 #include "ShadowPriestStrategy.h"
@@ -59,13 +59,6 @@ void ShadowPriestStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
 		"target almost dead",
 		NextAction::array(0, new NextAction("power word: death", ACTION_HIGH + 8), NULL)));
-}
-
-void ShadowPriestAoeStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
-{
-    triggers.push_back(new TriggerNode(
-        "shadow word: pain on attacker",
-        NextAction::array(0, new NextAction("shadow word: pain on attacker", 11.0f), NULL)));
 }
 
 void ShadowPriestDebuffStrategy::InitTriggers(std::list<TriggerNode*> &triggers)

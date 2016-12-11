@@ -9,14 +9,15 @@ using namespace std;
 enum RandomItemType
 {
 	RANDOM_ITEM_GUILD_TASK,
-	RANDOM_ITEM_GUILD_TASK_REWARD_EQUIP,
+	RANDOM_ITEM_GUILD_TASK_REWARD_EQUIP_BLUE,
+	RANDOM_ITEM_GUILD_TASK_REWARD_EQUIP_GREEN,
 	RANDOM_ITEM_GUILD_TASK_REWARD_TRADE
 };
 
 class RandomItemPredicate
 {
 public:
-	virtual bool Apply(ItemTemplate const* proto) = 0;
+	virtual bool Apply(ItemPrototype const* proto) = 0;
 };
 
 typedef vector<uint32> RandomItemList;

@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ThreatValues.h"
 
@@ -46,7 +46,7 @@ uint8 ThreatValue::Calculate(Unit* target)
     Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
     for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
     {
-        Player *player = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+        Player *player = sObjectMgr.GetPlayerByLowGUID(itr->guid);
         if( !player || !player->IsAlive() || player == bot)
             continue;
 

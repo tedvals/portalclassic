@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "ItemUsageValue.h"
 
@@ -11,7 +11,7 @@ ItemUsage ItemUsageValue::Calculate()
     if (!itemId)
         return ITEM_USAGE_NONE;
 
-    const ItemTemplate* proto = sObjectMgr->GetItemTemplate(itemId);
+    const ItemPrototype* proto = sObjectMgr.GetItemPrototype(itemId);
     if (!proto)
         return ITEM_USAGE_NONE;
 
@@ -31,7 +31,7 @@ ItemUsage ItemUsageValue::Calculate()
     return QueryItemUsageForEquip(proto);
 }
 
-ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const * item)
+ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemPrototype const * item)
 {
     if (bot->CanUseItem(item) != EQUIP_ERR_OK)
         return ITEM_USAGE_NONE;
@@ -55,7 +55,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const * item)
     if (!existingItem)
         return ITEM_USAGE_EQUIP;
 
-    const ItemTemplate* oldItem = existingItem->GetTemplate();
+    const ItemPrototype* oldItem = existingItem->GetProto();
     if (oldItem->ItemLevel < item->ItemLevel && oldItem->ItemId != item->ItemId)
     {
         switch (item->Class)
@@ -73,7 +73,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const * item)
     return ITEM_USAGE_NONE;
 }
 
-bool ItemUsageValue::IsItemUsefulForSkill(ItemTemplate const * proto)
+bool ItemUsageValue::IsItemUsefulForSkill(ItemPrototype const * proto)
 {
     switch (proto->Class)
     {

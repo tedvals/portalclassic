@@ -241,6 +241,12 @@ class MANGOS_DLL_SPEC Group
 
         void RewardGroupAtKill(Unit* pVictim, Player* player_tap);
 
+		//Bot
+		ObjectGuid const *GetTargetIcons() const { return m_targetIcons; }
+
+		// ai playerbot mod
+		ObjectGuid GetTargetIcon(int index) { return m_targetIcons[index]; }		
+
         // Loot
         void SetLootMethod(LootMethod method) { m_lootMethod = method; }
         void SetMasterLooterGuid(ObjectGuid guid) { m_masterLooterGuid = guid; }

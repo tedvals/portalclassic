@@ -86,8 +86,10 @@ namespace ai
             creators["enemy out of melee"] = &TriggerContext::EnemyOutOfMelee;
             creators["enemy out of spell"] = &TriggerContext::EnemyOutOfSpell;
             creators["enemy too close for spell"] = &TriggerContext::enemy_too_close_for_spell;
+			creators["enemy too close for shoot"] = &TriggerContext::enemy_too_close_for_shoot;
             creators["enemy too close for melee"] = &TriggerContext::enemy_too_close_for_melee;
             creators["enemy in melee range"] = &TriggerContext::EnemyInMeleeRange;
+			creators["enemy is close"] = &TriggerContext::enemy_is_close;
 
             creators["combo points available"] = &TriggerContext::ComboPointsAvailable;
             creators["combo point available"] = &TriggerContext::ComboPointAvailable;
@@ -238,8 +240,10 @@ namespace ai
             creators.erase("enemy out of melee");
             creators.erase("enemy out of spell");
             creators.erase("enemy too close for spell");
+			creators.erase("enemy too close for shoot");
             creators.erase("enemy too close for melee");
             creators.erase("enemy in melee range");
+			creators.erase("enemy is close");
 
             creators.erase("combo points available");
             creators.erase("combo point available");
@@ -377,15 +381,17 @@ namespace ai
         static Trigger* has_nearest_adds(PlayerbotAI* ai) { return new HasNearestAddsTrigger(ai); }
         static Trigger* has_group_members_near(PlayerbotAI* ai) { return new HasGroupMemberNearTrigger(ai); }
         static Trigger* enemy_player_is_attacking(PlayerbotAI* ai) { return new EnemyPlayerIsAttacking(ai); }
-        static Trigger* Random(PlayerbotAI* ai) { return new RandomTrigger(ai); }
-        static Trigger* seldom(PlayerbotAI* ai) { return new SeldomTrigger(ai); }
-        static Trigger* often(PlayerbotAI* ai) { return new OftenTrigger(ai); }
-		static Trigger* very_often(PlayerbotAI* ai) { return new VeryOftenTrigger(ai); }
+		static Trigger* Random(PlayerbotAI* ai) { return new RandomTrigger(ai, "random", 15); }
+		static Trigger* seldom(PlayerbotAI* ai) { return new RandomTrigger(ai, "seldom", 100); }
+		static Trigger* often(PlayerbotAI* ai) { return new RandomTrigger(ai, "often", 5); }
+		static Trigger* very_often(PlayerbotAI* ai) {return new RandomTrigger(ai, "very often", 2);};
         // static Trigger* TargetOutOfLOS(PlayerbotAI* ai) { return new TargetOutOfLOSSpellTrigger(ai); }
         static Trigger* EnemyOutOfMelee(PlayerbotAI* ai) { return new EnemyOutOfMeleeTrigger(ai); }
         static Trigger* EnemyInMeleeRange(PlayerbotAI* ai) { return new EnemyInMeleeRangeTrigger(ai); }
         static Trigger* EnemyOutOfSpell(PlayerbotAI* ai) { return new EnemyOutOfSpellRangeTrigger(ai); }
+		static Trigger* enemy_is_close(PlayerbotAI* ai) { return new EnemyIsCloseTrigger(ai); }
         static Trigger* enemy_too_close_for_spell(PlayerbotAI* ai) { return new EnemyTooCloseForSpellTrigger(ai); }
+		static Trigger* enemy_too_close_for_shoot(PlayerbotAI* ai) { return new EnemyTooCloseForShootTrigger(ai); }
         static Trigger* enemy_too_close_for_melee(PlayerbotAI* ai) { return new EnemyTooCloseForMeleeTrigger(ai); }
         static Trigger* ComboPointsAvailable(PlayerbotAI* ai) { return new ComboPointsAvailableTrigger(ai); }
         static Trigger* ComboPointAvailable(PlayerbotAI* ai) { return new ComboPointAvailableTrigger(ai); }

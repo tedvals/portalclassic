@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "QueryItemUsageAction.h"
 #include "../values/ItemUsageValue.h"
@@ -37,7 +37,7 @@ bool QueryItemUsageAction::Execute(Event event)
         data >> count;
         data >> invCount;
 
-        ItemTemplate const *item = sObjectMgr->GetItemTemplate(itemId);
+        ItemPrototype const *item = sObjectMgr.GetItemPrototype(itemId);
         if (!item)
             return false;
 
@@ -60,7 +60,7 @@ bool QueryItemUsageAction::Execute(Event event)
     return true;
 }
 
-bool QueryItemUsageAction::QueryItemUsage(ItemTemplate const *item)
+bool QueryItemUsageAction::QueryItemUsage(ItemPrototype const *item)
 {
     ostringstream out; out << item->ItemId;
     ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", out.str());
@@ -86,7 +86,7 @@ bool QueryItemUsageAction::QueryItemUsage(ItemTemplate const *item)
     return false;
 }
 
-void QueryItemUsageAction::QueryItemPrice(ItemTemplate const *item)
+void QueryItemUsageAction::QueryItemPrice(ItemPrototype const *item)
 {
     if (!sRandomPlayerbotMgr.IsRandomBot(bot))
         return;
@@ -100,9 +100,9 @@ void QueryItemUsageAction::QueryItemPrice(ItemTemplate const *item)
         for (list<Item*>::iterator i = items.begin(); i != items.end(); ++i)
         {
             Item* sell = *i;
-            int32 sellPrice = sell->GetCount() * auctionbot.GetSellPrice(sell->GetTemplate()) * sRandomPlayerbotMgr.GetSellMultiplier(bot);
+            int32 sellPrice = sell->GetCount() * auctionbot.GetSellPrice(sell->GetProto()) * sRandomPlayerbotMgr.GetSellMultiplier(bot);
             ostringstream out;
-            out << "Selling " << chat->formatItem(sell->GetTemplate(), sell->GetCount()) << " for " << chat->formatMoney(sellPrice);
+            out << "Selling " << chat->formatItem(sell->GetProto(), sell->GetCount()) << " for " << chat->formatMoney(sellPrice);
             ai->TellMaster(out.str());
         }
     }
@@ -125,7 +125,7 @@ void QueryItemUsageAction::QueryItemsUsage(ItemIds items)
 {
     for (ItemIds::iterator i = items.begin(); i != items.end(); i++)
     {
-        ItemTemplate const *item = sObjectMgr->GetItemTemplate(*i);
+        ItemPrototype const *item = sObjectMgr.GetItemPrototype(*i);
         QueryItemUsage(item);
         QueryQuestItem(*i);
         QueryItemPrice(item);
@@ -138,7 +138,7 @@ void QueryItemUsageAction::QueryQuestItem(uint32 itemId)
     QuestStatusMap const& questMap = bot->getQuestStatusMap();
     for (QuestStatusMap::const_iterator i = questMap.begin(); i != questMap.end(); i++)
     {
-        const Quest *questTemplate = sObjectMgr->GetQuestTemplate( i->first );
+        const Quest *questTemplate = sObjectMgr.GetQuestTemplate( i->first );
         if( !questTemplate )
             continue;
 

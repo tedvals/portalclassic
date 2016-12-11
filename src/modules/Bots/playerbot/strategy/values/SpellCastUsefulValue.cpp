@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "SpellCastUsefulValue.h"
 #include "LastSpellCastValue.h"
@@ -11,15 +11,15 @@ bool SpellCastUsefulValue::Calculate()
 	if (!spellid)
 		return true; // there can be known alternatives
 
-	SpellInfo const *spellInfo = sSpellMgr->GetSpellInfo(spellid);
-	if (!spellInfo)
+	SpellProto const *SpellProto = sSpellMgr->GetSpellProto(spellid);
+	if (!SpellProto)
 		return true; // there can be known alternatives
 
-	if (spellInfo->Attributes & SPELL_ATTR0_ON_NEXT_SWING ||
-		spellInfo->Attributes & SPELL_ATTR0_ON_NEXT_SWING_2)
+	if (SpellProto->Attributes & SPELL_ATTR0_ON_NEXT_SWING ||
+		SpellProto->Attributes & SPELL_ATTR0_ON_NEXT_SWING_2)
 	{
 		Spell* spell = bot->GetCurrentSpell(CURRENT_MELEE_SPELL);
-		if (spell && spell->m_spellInfo->Id == spellid && spell->IsNextMeleeSwingSpell() && bot->HasUnitState(UNIT_STATE_MELEE_ATTACKING))
+		if (spell && spell->m_SpellProto->Id == spellid && spell->IsNextMeleeSwingSpell() && bot->HasUnitState(UNIT_STATE_MELEE_ATTACKING))
 			return false;
 	}
 	else
@@ -33,8 +33,8 @@ bool SpellCastUsefulValue::Calculate()
         }
 	}
 
-	if (spellInfo->IsAutoRepeatRangedSpell() && bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
-            bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL)->m_spellInfo->Id == spellid)
+	if (SpellProto->IsAutoRepeatRangedSpell() && bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL) &&
+            bot->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL)->m_SpellProto->Id == spellid)
     {
         return false;
     }

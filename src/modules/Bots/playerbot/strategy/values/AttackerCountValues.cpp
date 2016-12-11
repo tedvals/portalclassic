@@ -1,4 +1,4 @@
-#include "../../../pchdef.h"
+#include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "AttackerCountValues.h"
 #include "../../PlayerbotAIConfig.h"
@@ -112,7 +112,7 @@ uint8 BalancePercentValue::Calculate()
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *player = sObjectMgr->GetPlayerByLowGUID(itr->guid);
+            Player *player = sObjectMgr.GetPlayerByLowGUID(itr->guid);
             if( !player || !player->IsAlive())
                 continue;
 

@@ -302,9 +302,10 @@ struct FactionEntry
     }
 };
 
-* \struct EmotesTextSoundEntry
- * \brief Entry repsenting the text sound for given emote.
- */
+
+
+//brief Entry repsenting the text sound for given emote.
+
  struct EmotesTextSoundEntry
  {
      uint32 Id;                                              // 0
@@ -314,7 +315,7 @@ struct FactionEntry
      uint32 SoundId;                                         // 4
  };
  
- /**
+ 
 
 struct FactionTemplateEntry
 {

@@ -1285,6 +1285,9 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\priest\ShadowPriestStrategy.cpp">
       <Filter>Bots\Strategy\priest</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\RevealGatheringItemAction.cpp">
+      <Filter>Bots\Strategy\actions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -2671,6 +2674,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\priest\ShadowPriestStrategyActionNodeFactory.h">
       <Filter>Bots\Strategy\priest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RevealGatheringItemAction.h">
+      <Filter>Bots\Strategy\actions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
