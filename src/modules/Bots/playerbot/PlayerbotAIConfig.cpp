@@ -45,6 +45,7 @@ bool PlayerbotAIConfig::Initialize()
 
     globalCoolDown = (uint32) config.GetIntDefault("AiPlayerbot.GlobalCooldown", 500);
     maxWaitForMove = config.GetIntDefault("AiPlayerbot.MaxWaitForMove", 3000);
+	expireActionTime = config.GetIntDefault("AiPlayerbot.ExpireActionTime", 0);
     reactDelay = (uint32) config.GetIntDefault("AiPlayerbot.ReactDelay", 100);
 
     sightDistance = config.GetFloatDefault("AiPlayerbot.SightDistance", 60.0f);
@@ -61,6 +62,7 @@ bool PlayerbotAIConfig::Initialize()
     followDistance = config.GetFloatDefault("AiPlayerbot.FollowDistance", 1.5f);
     whisperDistance = config.GetFloatDefault("AiPlayerbot.WhisperDistance", 6000.0f);
     contactDistance = config.GetFloatDefault("AiPlayerbot.ContactDistance", 0.5f);
+	aoeRadius = config.GetFloatDefault("AiPlayerbot.AoeRadius", 10.0f);
 
     closeDistance = config.GetFloatDefault("AiPlayerbot.CloseDistance", 8.0f);
     mediumDistance = config.GetFloatDefault("AiPlayerbot.MediumDistance", 15.0f);
@@ -81,7 +83,7 @@ bool PlayerbotAIConfig::Initialize()
     randomGearLoweringChance = config.GetFloatDefault("AiPlayerbot.RandomGearLoweringChance", 0.15);
     randomBotMaxLevelChance = config.GetFloatDefault("AiPlayerbot.RandomBotMaxLevelChance", 0.4);
 
-    iterationsPerTick = config.GetIntDefault("AiPlayerbot.IterationsPerTick", 10);
+	iterationsPerTick = config.GetIntDefault("AiPlayerbot.IterationsPerTick", 100);
 
     allowGuildBots = config.GetBoolDefault("AiPlayerbot.AllowGuildBots", true);
 

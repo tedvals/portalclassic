@@ -2,7 +2,6 @@
 
 #include "../Action.h"
 #include "AttackAction.h"
-#include "../../../DungeonFinding/LFGMgr.h"
 
 namespace ai
 {
@@ -69,11 +68,11 @@ namespace ai
 
         virtual bool Execute(Event event)
         {
-            context->GetValue<Unit*>("current target")->Set(NULL);
-
-            bot->SetSelection(ObjectGuid());
-            ai->ResetMovePoint();
-            ai->ChangeEngine(BOT_STATE_NON_COMBAT);
+			context->GetValue<Unit*>("current target")->Set(NULL);
+			bot->SetSelectionGuid(ObjectGuid());
+			ai->ChangeEngine(BOT_STATE_NON_COMBAT);
+			ai->InterruptSpell();
+			return true;
 
             Spell* spell = bot->GetCurrentSpell(CURRENT_GENERIC_SPELL);
 

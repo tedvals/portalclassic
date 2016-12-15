@@ -45,6 +45,7 @@
 #include "HasTotemValue.h"
 #include "LeastHpTargetValue.h"
 #include "AoeHealValues.h"
+#include "AoeValues.h"
 #include "RtiValue.h"
 #include "PositionValue.h"
 #include "ThreatValues.h"
@@ -121,6 +122,7 @@ namespace ai
             creators["mana"] = &ValueContext::mana;
             creators["combo"] = &ValueContext::combo;
             creators["dead"] = &ValueContext::dead;
+			creators["pet dead"] = &ValueContext::pet_dead;
             creators["target in los"] = &ValueContext::target_in_los;
             creators["target normal"] = &ValueContext::target_normal;
             creators["target elite"] = &ValueContext::target_elite;
@@ -197,6 +199,9 @@ namespace ai
             creators["speed"] = &ValueContext::speed;
             creators["last said"] = &ValueContext::last_said;
             creators["last emote"] = &ValueContext::last_emote;
+
+			creators["aoe count"] = &ValueContext::aoe_count;
+			creators["aoe position"] = &ValueContext::aoe_position;
         }
 
     private:
@@ -248,6 +253,7 @@ namespace ai
         static UntypedValue* mana(PlayerbotAI* ai) { return new ManaValue(ai); }
         static UntypedValue* combo(PlayerbotAI* ai) { return new ComboPointsValue(ai); }
         static UntypedValue* dead(PlayerbotAI* ai) { return new IsDeadValue(ai); }
+		static UntypedValue* pet_dead(PlayerbotAI* ai) { return new PetIsDeadValue(ai); }
         static UntypedValue* target_in_los(PlayerbotAI* ai) { return new IsTargetInLosValue(ai); }
         static UntypedValue* target_normal(PlayerbotAI* ai) { return new IsTargetNormalValue(ai); }
         static UntypedValue* target_elite(PlayerbotAI* ai) { return new IsTargetEliteValue(ai); }
@@ -326,5 +332,7 @@ namespace ai
         static UntypedValue* speed(PlayerbotAI* ai) { return new SpeedValue(ai); }
         static UntypedValue* last_said(PlayerbotAI* ai) { return new LastSaidValue(ai); }
         static UntypedValue* last_emote(PlayerbotAI* ai) { return new LastEmoteValue(ai); }
+		static UntypedValue* aoe_count(PlayerbotAI* ai) { return new AoeCountValue(ai); }
+		static UntypedValue* aoe_position(PlayerbotAI* ai) { return new AoePositionValue(ai); }
     };
 };

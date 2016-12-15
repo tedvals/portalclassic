@@ -3380,6 +3380,31 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
     return false;
 }
 
+bool Unit::IsPositiveSpellCasted(bool withDelayed, bool skipChanneled, bool skipAutorepeat) const
+{
+	// We don't do loop here to explicitly show that melee spell is excluded.
+	// Maybe later some special spells will be excluded too.
+
+	// generic spells are casted when they are not finished and not delayed
+	if (m_currentSpells[CURRENT_GENERIC_SPELL] &&
+		(m_currentSpells[CURRENT_GENERIC_SPELL]->getState() != SPELL_STATE_FINISHED) &&
+		(IsPositiveSpell(m_currentSpells[CURRENT_GENERIC_SPELL]->m_spellInfo)) &&
+		(withDelayed || m_currentSpells[CURRENT_GENERIC_SPELL]->getState() != SPELL_STATE_DELAYED))
+		return true;
+
+	// channeled spells may be delayed, but they are still considered casted
+	else if (!skipChanneled && m_currentSpells[CURRENT_CHANNELED_SPELL] &&
+		(IsPositiveSpell(m_currentSpells[CURRENT_CHANNELED_SPELL]->m_spellInfo)) &&
+		(m_currentSpells[CURRENT_CHANNELED_SPELL]->getState() != SPELL_STATE_FINISHED))
+		return true;
+
+	// autorepeat spells may be finished or delayed, but they are still considered casted
+	else if (!skipAutorepeat && m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
+		return true;
+
+	return false;
+}
+
 void Unit::InterruptNonMeleeSpells(bool withDelayed, uint32 spell_id)
 {
     // generic spells are interrupted if they are not finished or delayed
@@ -9923,4 +9948,24 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
     // remove pet bar only if no pet
     if (player && !player->GetPet())
         player->RemovePetActionBar();
+}
+
+bool Unit::HasAuraWithMechanic(uint32 mechanic) const
+{
+	for (SpellAuraHolderMap::const_iterator itr = GetSpellAuraHolderMap().begin(); itr != GetSpellAuraHolderMap().end(); ++itr)
+	{
+		SpellAuraHolder* holder = itr->second;
+		SpellEntry const* spellEntry = holder->GetSpellProto();
+
+		if (spellEntry->Mechanic == mechanic)
+			return true;
+
+		for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+		{
+			if (spellEntry->EffectMechanic[i] == mechanic)
+				return true;
+		}
+	}
+
+	return false;
 }

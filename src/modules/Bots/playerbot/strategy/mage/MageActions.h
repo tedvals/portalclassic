@@ -139,6 +139,12 @@ namespace ai
 		virtual bool hasMultipliers() { return false; }
 	};
 
+	class CastRemoveLesserCurseAction : public CastCureSpellAction
+	{
+		public:
+			CastRemoveLesserCurseAction(PlayerbotAI* ai) : CastCureSpellAction(ai, "remove lesser curse") {}
+			};
+
     class CastArcanePowerAction : public CastBuffSpellAction
 	{
 	public:
@@ -203,6 +209,12 @@ namespace ai
         CastRemoveCurseOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "remove curse", DISPEL_CURSE) {}
         virtual bool hasMultipliers() { return false; }
     };
+
+	class CastRemoveLesserCurseOnPartyAction : public CurePartyMemberAction
+	{
+		public:
+			CastRemoveLesserCurseOnPartyAction(PlayerbotAI* ai) : CurePartyMemberAction(ai, "remove lesser curse", DISPEL_CURSE) {}
+	};
 
 	class CastConjureFoodAction : public CastBuffSpellAction
     {

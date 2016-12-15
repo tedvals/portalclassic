@@ -14,7 +14,7 @@ namespace ai
 
         virtual bool isUseful()
         {
-            return !bot->IsNonPositiveSpellCast(true);
+            return !bot->IsPositiveSpellCasted(true);
         }
 
 		virtual bool isInstant()
@@ -23,7 +23,7 @@ namespace ai
 		}
 
     protected:
-		bool ChaseTo(WorldObject *obj);
+		bool ChaseTo(Unit *obj);
         bool MoveNear(uint32 mapId, float x, float y, float z, float distance = sPlayerbotAIConfig.followDistance);
         bool MoveTo(uint32 mapId, float x, float y, float z);
         bool FleeTo(Unit* target, uint32 mapId, float x, float y, float z);
@@ -31,12 +31,12 @@ namespace ai
         bool MoveToUnit(Unit* target);
         bool MoveNear(WorldObject* target, float distance = sPlayerbotAIConfig.followDistance);
         float GetFollowAngle();
-		bool Follow(WorldObject* target, float distance = sPlayerbotAIConfig.followDistance * (float)urand(8, 12) / 10.0f);
-		bool GetBehind(WorldObject* target, float distance = sPlayerbotAIConfig.meleeDistance);
-		bool Follow(WorldObject* target, float distance, float angle);
-		bool GetBehind(WorldObject* target, float distance, float angle);
+		bool Follow(Unit* target, float distance = sPlayerbotAIConfig.followDistance * (float)urand(8, 12) / 10.0f);
+		bool GetBehind(Unit* target, float distance = sPlayerbotAIConfig.meleeDistance);
+		bool Follow(Unit* target, float distance, float angle);
+		bool GetBehind(Unit* target, float distance, float angle);
         void WaitForReach(float distance);
-		bool IsMovingAllowed(WorldObject* target);
+		bool IsMovingAllowed(Unit* target);
         bool IsMovingAllowed(uint32 mapId, float x, float y, float z);
         bool IsMovingAllowed();
         bool Flee(Unit *target);

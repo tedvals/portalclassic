@@ -6,48 +6,48 @@
 
 using namespace ai;
 
+
 bool FollowAction::Execute(Event event)
 {
-    Formation* formation = AI_VALUE(Formation*, "formation");
-    string target = formation->GetTargetName();
-    if (!target.empty())
-    {
-        return Follow(AI_VALUE(Unit*, target));
-    }
-    else
-    {
-        WorldLocation loc = formation->GetLocation();
+	Formation* formation = AI_VALUE(Formation*, "formation");
+	string target = formation->GetTargetName();
+	bool moved = false;
+	if (!target.empty())
+	{
+		moved = Follow(AI_VALUE(Unit*, target));
+	}
+	else
+	{
+		WorldLocation loc = formation->GetLocation();
+		if (Formation::IsNullLocation(loc) || loc.mapid == -1)
+			return false;
 
-       // if (bot->GetMapId() == loc.GetMapId())
-       //    bot->UpdateAllowedPositionZ(loc.m_positionX, loc.m_positionY, loc.m_positionZ);
+		moved = MoveTo(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+	}
 
-        if (loc == Formation::NullLocation || loc.GetMapId() == -1)
-            return false;
-
-        return MoveTo(loc.GetMapId(), loc.m_positionX, loc.m_positionY, loc.m_positionZ);
-    }
+	if (moved) ai->SetNextCheckDelay(sPlayerbotAIConfig.reactDelay);
+	return moved;
 }
 
 bool FollowAction::isUseful()
 {
-    Formation* formation = AI_VALUE(Formation*, "formation");
-    float distance = 0;
-    string target = formation->GetTargetName();
+	Formation* formation = AI_VALUE(Formation*, "formation");
+	float distance = 0;
+	string target = formation->GetTargetName();
 
-    if (!target.empty())
-    {
-        distance = AI_VALUE2(float, "distance", target);
-    }
-    else
-    {
-        WorldLocation loc = formation->GetLocation();
-        if (loc == Formation::NullLocation || bot->GetMapId() != loc.GetMapId())
-            return false;
+	if (!target.empty())
+	{
+		distance = AI_VALUE2(float, "distance", target);
+	}
+	else
+	{
+		WorldLocation loc = formation->GetLocation();
+		if (Formation::IsNullLocation(loc) || bot->GetMapId() != loc.mapid)
+			return false;
 
-        distance = bot->GetDistance(loc);
-    }
+		distance = bot->GetDistance(loc.coord_x, loc.coord_y, loc.coord_z);
+	}
 
-    return distance > formation->GetMaxDistance() &&
-            !AI_VALUE(bool, "can loot");
+	return distance > formation->GetMaxDistance() &&
+		!AI_VALUE(bool, "can loot");
 }
-

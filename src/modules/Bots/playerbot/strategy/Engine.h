@@ -70,6 +70,7 @@ namespace ai
         void removeAllStrategies();
         void toggleStrategy(string name);
         std::string ListStrategies();
+		list<string> GetStrategies();
 		bool ContainsStrategy(StrategyType type);
 		void ChangeStrategy(string names);
 		string GetLastAction() { return lastAction; }
@@ -98,7 +99,7 @@ namespace ai
         void PushDefaultActions();
         void PushAgain(ActionNode* actionNode, float relevance, Event event);
         ActionNode* CreateActionNode(string name);
-        ActionNode* CreateActionNode(string name,string referrer);
+        //ActionNode* CreateActionNode(string name,string referrer);
         Action* InitializeAction(ActionNode* actionNode);
         bool ListenAndExecute(Action* action, Event event);
 

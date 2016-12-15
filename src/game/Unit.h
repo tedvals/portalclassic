@@ -1413,6 +1413,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         }
 
         bool HasAuraType(AuraType auraType) const;
+		bool HasAuraWithMechanic(uint32 mechanic) const;
         bool HasAffectedAura(AuraType auraType, SpellEntry const* spellProto) const;
         bool HasAura(uint32 spellId, SpellEffectIndex effIndex) const;
         bool HasAura(uint32 spellId) const
@@ -1429,8 +1430,15 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool IsPolymorphed() const;
 		bool isPossessed() const { return hasUnitState(UNIT_STAT_CONTROLLED); }
 		bool isConfused() { return hasUnitState(UNIT_STAT_CONFUSED); }
+		bool isBleeding() { return HasAuraWithMechanic(MECHANIC_BLEED); }
 
-        bool isFrozen() const;
+        bool isFrozen() const;	
+		bool IsCharmed() const { return !(GetCharmer() == nullptr); }
+		bool isSnared() const { return HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED); }
+
+		bool isAsleep() const { return HasAuraWithMechanic(MECHANIC_SLEEP); }
+		bool isSilenced()  const { return HasAuraWithMechanic(MECHANIC_SILENCE); }
+		bool TakesPeriodicDamage() const { return HasAuraType(SPELL_AURA_PERIODIC_DAMAGE); }
 
 		bool UnderCc() { return isConfused() || IsIncapacitated() || IsPolymorphed() || isPossessed() || isFeared() || isInRoots(); }
 		
@@ -1617,6 +1625,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // delayed+channeled spells are always accounted as casted
         // we can skip channeled or delayed checks using flags
         bool IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled = false, bool skipAutorepeat = false) const;
+		bool IsPositiveSpellCasted(bool withDelayed, bool skipChanneled = false, bool skipAutorepeat = false) const;
 
         // set withDelayed to true to interrupt delayed spells too
         // delayed+channeled spells are always interrupted

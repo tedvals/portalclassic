@@ -28,11 +28,11 @@ public:
             return "";
 
         bool dps = message.find("@dps") == 0;
-        if (dps && ai->IsTank(bot))
+		if (dps && (ai->IsTank(bot) || ai->IsHeal(bot)))
             return "";
 
         bool heal = message.find("@heal") == 0;
-        if (heal && !ai->IsHeal(bot))
+		if (tank || dps || heal)
             return "";
 
         if (tank || dps)

@@ -176,7 +176,7 @@ namespace ai
         virtual bool Visit(Item* item)
         {
             const ItemPrototype* proto = item->GetProto();
-            if (proto && !proto->Name1.empty() && strstri(proto->Name1.c_str(), name.c_str()))
+            if (proto && !proto->Name1 && strstri(proto->Name1, name.c_str()))
                 count += item->GetCount();
 
             return true;
@@ -186,16 +186,16 @@ namespace ai
         string name;
     };
 
-    class FindUsableNamedItemVisitor : public FindUsableItemVisitor {
+    class FindNamedItemVisitor : public FindItemVisitor {
     public:
-        FindUsableNamedItemVisitor(Player* bot, string name) : FindUsableItemVisitor(bot)
+		FindNamedItemVisitor(Player* bot, string name) : FindItemVisitor()
         {
             this->name = name;
         }
 
         virtual bool Accept(const ItemPrototype* proto)
         {
-            return proto && !proto->Name1.empty() && strstri(proto->Name1.c_str(), name.c_str());
+			return proto && proto->Name1 && strstri(proto->Name1, name.c_str());
         }
 
     private:

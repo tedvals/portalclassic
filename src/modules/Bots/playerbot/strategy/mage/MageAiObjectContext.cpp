@@ -45,6 +45,7 @@ namespace ai
             static Strategy* pull(PlayerbotAI* ai) { return new PullStrategy(ai, "shoot"); }
             static Strategy* fire_aoe(PlayerbotAI* ai) { return new FireMageAoeStrategy(ai); }
             static Strategy* frost_aoe(PlayerbotAI* ai) { return new FrostMageAoeStrategy(ai); }
+			static Strategy* cure(PlayerbotAI* ai) { return new MageCureStrategy(ai); }
         };
 
         class MageStrategyFactoryInternal : public NamedObjectContext<Strategy>
@@ -235,6 +236,8 @@ namespace ai
                 creators["frost ward"] = &AiObjectContextInternal::frost_ward;
                 creators["boost"] = &AiObjectContextInternal::mage_boost;
                 creators["instant action"] = &AiObjectContextInternal::ice_lance;
+				creators["remove lesser curse"] = &AiObjectContextInternal::remove_lesser_curse;
+				creators["remove lesser curse on party"] = &AiObjectContextInternal::remove_lesser_curse_on_party;
             }
             ~AiObjectContextInternal()
             {
@@ -287,6 +290,8 @@ namespace ai
                 creators.erase("fire ward");
                 creators.erase("frost ward");
                 creators.erase("boost");
+				creators.erase("remove lesser curse");
+				creators.erase("remove lesser curse on party");
             }
 
         private:
@@ -312,6 +317,8 @@ namespace ai
             static Action* counterspell(PlayerbotAI* ai) { return new CastCounterspellAction(ai); }
             static Action* remove_curse(PlayerbotAI* ai) { return new CastRemoveCurseAction(ai); }
             static Action* remove_curse_on_party(PlayerbotAI* ai) { return new CastRemoveCurseOnPartyAction(ai); }
+			static Action* remove_lesser_curse(PlayerbotAI* ai) { return new CastRemoveLesserCurseAction(ai); }
+			static Action* remove_lesser_curse_on_party(PlayerbotAI* ai) { return new CastRemoveLesserCurseOnPartyAction(ai); }
             static Action* icy_veins(PlayerbotAI* ai) { return new CastIcyVeinsAction(ai); }
             static Action* combustion(PlayerbotAI* ai) { return new CastCombustionAction(ai); }
             static Action* ice_block(PlayerbotAI* ai) { return new CastIceBlockAction(ai); }

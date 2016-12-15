@@ -20,6 +20,8 @@ public:
         creators["ice block"] = &ice_block;
         creators["ice lance"] = &ice_lance;
         creators["cone of cold"] = &cone_of_cold;
+		creators["remove curse"] = &remove_curse;
+		creators["remove curse on party"] = &remove_curse_on_party;
     }
 private:
     static ActionNode* frostbolt(PlayerbotAI* ai)
@@ -92,6 +94,20 @@ private:
             /*A*/ NextAction::array(0, new NextAction("fire blast"), NULL),
             /*C*/ NULL);
     }
+	static ActionNode* remove_curse(PlayerbotAI* ai)
+	{
+		return new ActionNode("remove curse",
+			/*P*/ NULL,
+			/*A*/ NextAction::array(0, new NextAction("remove lesser curse"), NULL),
+			/*C*/ NULL);
+	}
+	static ActionNode* remove_curse_on_party(PlayerbotAI* ai)
+	{
+		return new ActionNode("remove curse on party",
+			/*P*/ NULL,
+			/*A*/ NextAction::array(0, new NextAction("remove lesser curse on party"), NULL),
+			/*C*/ NULL);
+	}
 };
 
 GenericMageStrategy::GenericMageStrategy(PlayerbotAI* ai) : CombatStrategy(ai)

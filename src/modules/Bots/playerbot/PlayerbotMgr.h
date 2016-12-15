@@ -25,7 +25,6 @@ public:
 	void LogoutPlayerBot(uint64 guid);
 	Player* GetPlayerBot(uint64 guid) const;
 
-    Player* GetPlayerBot (uint64 guid) const;
     PlayerBotMap::const_iterator GetPlayerBotsBegin() const { return playerBots.begin(); }
     PlayerBotMap::const_iterator GetPlayerBotsEnd()   const { return playerBots.end();   }
 

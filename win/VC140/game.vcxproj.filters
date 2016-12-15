@@ -1288,6 +1288,15 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\RevealGatheringItemAction.cpp">
       <Filter>Bots\Strategy\actions</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\LootStrategyValue.cpp">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotDbStore.cpp">
+      <Filter>Bots</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeValues.cpp">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -2677,6 +2686,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RevealGatheringItemAction.h">
       <Filter>Bots\Strategy\actions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotDbStore.h">
+      <Filter>Bots</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeValues.h">
+      <Filter>Bots\Strategy\values</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

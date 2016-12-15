@@ -3060,6 +3060,14 @@ void ObjectMgr::LoadQuests()
 
     mQuestTemplates.clear();
 
+	for (int level = 1; level <= DEFAULT_MAX_LEVEL + 1; ++level)
+	{
+		for (QuestMap::const_iterator itr = mQuestLevelTemplates[level].begin(); itr != mQuestLevelTemplates[level].end(); ++itr)
+			delete itr->second;
+
+		mQuestLevelTemplates[level].clear();
+	}
+
     m_ExclusiveQuestGroups.clear();
 
     //                                                0      1       2           3         4           5     6                7              8              9
@@ -3119,6 +3127,15 @@ void ObjectMgr::LoadQuests()
 
         Quest* newQuest = new Quest(fields);
         mQuestTemplates[newQuest->GetQuestId()] = newQuest;
+		//Playerbot
+		
+		int dbLevel = newQuest->GetQuestLevel();
+
+		if (dbLevel < DEFAULT_MAX_LEVEL && dbLevel > 0)
+		{
+			mQuestLevelTemplates[dbLevel-1][newQuest->GetQuestId()] = newQuest;
+		}
+		
     }
     while (result->NextRow());
 

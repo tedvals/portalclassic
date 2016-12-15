@@ -43,11 +43,18 @@ public:
         if (!group)
             return;
 
-        if (group->GetTargetIcon(3) == creature->GetGUID())
+        if (group->GetTargetIcon(3).GetRawValue() == creature->GetGUID())
         {
             result = creature;
             return;
         }
+
+		if (*ai->GetAiObjectContext()->GetValue<uint8>("aoe count") > 2)
+		{
+			WorldLocation aoe = *ai->GetAiObjectContext()->GetValue<WorldLocation>("aoe position");
+			if (creature->GetDistance2d(aoe.coord_x, aoe.coord_y) <= sPlayerbotAIConfig.aoeRadius)
+			  return;
+			}
 
         int tankCount, dpsCount;
         GetPlayerCount(creature, &tankCount, &dpsCount);
@@ -60,8 +67,8 @@ public:
         Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
-            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-            if( !member || !member->IsAlive() || member == bot)
+            Player *member = sObjectMgr.GetPlayer(itr->guid);
+            if( !member || !member->isAlive() || member == bot)
                 continue;
 
             if (!ai->IsTank(member))
@@ -127,34 +134,41 @@ public:
         if (!group)
             return;
 
-        if (group->GetTargetIcon(1) == creature->GetGUID())
+        if (group->GetTargetIcon(1).GetRawValue() == creature->GetGUID())
         {
             result = creature;
             return;
         }
 
-        int tankCount, dpsCount;
-        GetPlayerCount(creature, &tankCount, &dpsCount);
-        if (!tankCount || !dpsCount)
-        {
-            result = creature;
-            return;
-        }
+		if (*ai->GetAiObjectContext()->GetValue<uint8>("aoe count") > 2)
+		{
+			WorldLocation aoe = *ai->GetAiObjectContext()->GetValue<WorldLocation>("aoe position");
+			if (creature->GetDistance2d(aoe.coord_x, aoe.coord_y) <= sPlayerbotAIConfig.aoeRadius)
+				return;
+		}
 
-        Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
-        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-        {
-            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-            if( !member || !member->IsAlive() || member == bot)
-                continue;
+		int tankCount, dpsCount;
+		GetPlayerCount(creature, &tankCount, &dpsCount);
+		if (!tankCount || !dpsCount)
+		{
+			result = creature;
+			return;
+		}
 
-            if (!ai->IsTank(member))
-                continue;
+		Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *member = sObjectMgr.GetPlayer(itr->guid);
+			if (!member || !member->isAlive() || member == bot)
+				continue;
 
-            float distance = member->GetDistance(creature);
-            if (distance < minDistance)
-                minDistance = distance;
-        }
+			if (!ai->IsTank(member))
+				continue;
+
+			float distance = member->GetDistance(creature);
+			if (distance < minDistance)
+				minDistance = distance;
+		}
 
         if (!result || minDistance > maxDistance)
         {
@@ -212,34 +226,41 @@ public:
         if (!group)
             return;
 
-        if (group->GetTargetIcon(2) == creature->GetGUID())
+        if (group->GetTargetIcon(2).GetRawValue() == creature->GetGUID())
         {
             result = creature;
             return;
         }
 
-        int tankCount, dpsCount;
-        GetPlayerCount(creature, &tankCount, &dpsCount);
-        if (!tankCount || !dpsCount)
-        {
-            result = creature;
-            return;
-        }
+		if (*ai->GetAiObjectContext()->GetValue<uint8>("aoe count") > 2)
+		{
+			WorldLocation aoe = *ai->GetAiObjectContext()->GetValue<WorldLocation>("aoe position");
+			if (creature->GetDistance2d(aoe.coord_x, aoe.coord_y) <= sPlayerbotAIConfig.aoeRadius)
+				return;
+		}
 
-        Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
-        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-        {
-            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-            if( !member || !member->IsAlive() || member == bot)
-                continue;
+		int tankCount, dpsCount;
+		GetPlayerCount(creature, &tankCount, &dpsCount);
+		if (!tankCount || !dpsCount)
+		{
+			result = creature;
+			return;
+		}
 
-            if (!ai->IsTank(member))
-                continue;
+		Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *member = sObjectMgr.GetPlayer(itr->guid);
+			if (!member || !member->isAlive() || member == bot)
+				continue;
 
-            float distance = member->GetDistance(creature);
-            if (distance < minDistance)
-                minDistance = distance;
-        }
+			if (!ai->IsTank(member))
+				continue;
+
+			float distance = member->GetDistance(creature);
+			if (distance < minDistance)
+				minDistance = distance;
+		}
 
         if (!result || minDistance > maxDistance)
         {
@@ -296,34 +317,41 @@ public:
         if (!group)
             return;
 
-        if (group->GetTargetIcon(0) == creature->GetGUID())
+        if (group->GetTargetIcon(0).GetRawValue() == creature->GetGUID())
         {
             result = creature;
             return;
         }
 
-        int tankCount, dpsCount;
-        GetPlayerCount(creature, &tankCount, &dpsCount);
-        if (!tankCount || !dpsCount)
-        {
-            result = creature;
-            return;
-        }
+		if (*ai->GetAiObjectContext()->GetValue<uint8>("aoe count") > 2)
+		{
+			WorldLocation aoe = *ai->GetAiObjectContext()->GetValue<WorldLocation>("aoe position");
+			if (creature->GetDistance2d(aoe.coord_x, aoe.coord_y) <= sPlayerbotAIConfig.aoeRadius)
+				return;
+		}
 
-        Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
-        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-        {
-            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-            if( !member || !member->IsAlive() || member == bot)
-                continue;
+		int tankCount, dpsCount;
+		GetPlayerCount(creature, &tankCount, &dpsCount);
+		if (!tankCount || !dpsCount)
+		{
+			result = creature;
+			return;
+		}
 
-            if (!ai->IsTank(member))
-                continue;
+		Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *member = sObjectMgr.GetPlayer(itr->guid);
+			if (!member || !member->isAlive() || member == bot)
+				continue;
 
-            float distance = member->GetDistance(creature);
-            if (distance < minDistance)
-                minDistance = distance;
-        }
+			if (!ai->IsTank(member))
+				continue;
+
+			float distance = member->GetDistance(creature);
+			if (distance < minDistance)
+				minDistance = distance;
+		}
 
         if (!result || minDistance > maxDistance)
         {
@@ -380,34 +408,41 @@ public:
         if (!group)
             return;
 
-        if (group->GetTargetIcon(4) == creature->GetGUID())
+        if (group->GetTargetIcon(4).GetRawValue() == creature->GetGUID())
         {
             result = creature;
             return;
         }
 
-        int tankCount, dpsCount;
-        GetPlayerCount(creature, &tankCount, &dpsCount);
-        if (!tankCount || !dpsCount)
-        {
-            result = creature;
-            return;
-        }
+		if (*ai->GetAiObjectContext()->GetValue<uint8>("aoe count") > 2)
+		{
+			WorldLocation aoe = *ai->GetAiObjectContext()->GetValue<WorldLocation>("aoe position");
+			if (creature->GetDistance2d(aoe.coord_x, aoe.coord_y) <= sPlayerbotAIConfig.aoeRadius)
+				return;
+		}
 
-        Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
-        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-        {
-            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-            if( !member || !member->IsAlive() || member == bot)
-                continue;
+		int tankCount, dpsCount;
+		GetPlayerCount(creature, &tankCount, &dpsCount);
+		if (!tankCount || !dpsCount)
+		{
+			result = creature;
+			return;
+		}
 
-            if (!ai->IsTank(member))
-                continue;
+		Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *member = sObjectMgr.GetPlayer(itr->guid);
+			if (!member || !member->isAlive() || member == bot)
+				continue;
 
-            float distance = member->GetDistance(creature);
-            if (distance < minDistance)
-                minDistance = distance;
-        }
+			if (!ai->IsTank(member))
+				continue;
+
+			float distance = member->GetDistance(creature);
+			if (distance < minDistance)
+				minDistance = distance;
+		}
 
         if (!result || minDistance > maxDistance)
         {
@@ -464,34 +499,41 @@ public:
         if (!group)
             return;
 
-        if (group->GetTargetIcon(5) == creature->GetGUID())
+        if (group->GetTargetIcon(5).GetRawValue() == creature->GetGUID())
         {
             result = creature;
             return;
         }
 
-        int tankCount, dpsCount;
-        GetPlayerCount(creature, &tankCount, &dpsCount);
-        if (!tankCount || !dpsCount)
-        {
-            result = creature;
-            return;
-        }
+		if (*ai->GetAiObjectContext()->GetValue<uint8>("aoe count") > 2)
+		{
+			WorldLocation aoe = *ai->GetAiObjectContext()->GetValue<WorldLocation>("aoe position");
+			if (creature->GetDistance2d(aoe.coord_x, aoe.coord_y) <= sPlayerbotAIConfig.aoeRadius)
+				return;
+		}
 
-        Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
-        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
-        {
-            Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-            if( !member || !member->IsAlive() || member == bot)
-                continue;
+		int tankCount, dpsCount;
+		GetPlayerCount(creature, &tankCount, &dpsCount);
+		if (!tankCount || !dpsCount)
+		{
+			result = creature;
+			return;
+		}
 
-            if (!ai->IsTank(member))
-                continue;
+		Group::MemberSlotList const& groupSlot = group->GetMemberSlots();
+		for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+		{
+			Player *member = sObjectMgr.GetPlayer(itr->guid);
+			if (!member || !member->isAlive() || member == bot)
+				continue;
 
-            float distance = member->GetDistance(creature);
-            if (distance < minDistance)
-                minDistance = distance;
-        }
+			if (!ai->IsTank(member))
+				continue;
+
+			float distance = member->GetDistance(creature);
+			if (distance < minDistance)
+				minDistance = distance;
+		}
 
         if (!result || minDistance > maxDistance)
         {

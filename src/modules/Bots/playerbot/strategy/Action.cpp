@@ -11,7 +11,7 @@ int NextAction::size(NextAction** actions)
         return 0;
 
     int size;
-    for (size=0; size<10 && actions[size]; )
+	for (size = 0; actions[size]; )
         size++;
     return size;
 }
@@ -78,7 +78,7 @@ void NextAction::destroy(NextAction** actions)
     if (!actions)
         return;
 
-    for (int i=0; i<10 && actions[i]; i++)
+	for (int i = 0; actions[i]; i++)
         delete actions[i];
 
     delete[] actions;

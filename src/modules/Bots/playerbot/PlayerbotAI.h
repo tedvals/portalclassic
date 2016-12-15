@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../pchdef.h"
+#include "../botpch.h"
 #include "PlayerbotMgr.h"
 #include "PlayerbotAIBase.h"
 #include "strategy/AiObjectContext.h"
@@ -28,7 +28,7 @@ public:
     uint32 extractSpellId(string str)
     {
         char* source = (char*)str.c_str();
-        return extractSpellIdFromLink(source);
+        return ExtractSpellIdFromLink(&source);
     }
 };
 
@@ -128,6 +128,8 @@ public:
     void DoSpecificAction(string name);
     bool DoMovingAction(Player* player, Unit* target);
     void ChangeStrategy(string name, BotState type);
+	void ClearStrategies(BotState type);
+	list<string> GetStrategies(BotState type);
     bool ContainsStrategy(StrategyType type);
     bool HasStrategy(string name, BotState type);
     void ResetStrategies();
@@ -229,7 +231,7 @@ protected:
     Engine* engines[BOT_STATE_MAX];
     BotState currentState;
     ChatHelper chatHelper;
-    stack<ChatCommandHolder> chatCommands;
+	queue<ChatCommandHolder> chatCommands;
     PacketHandlingHelper botOutgoingPacketHandlers;
     PacketHandlingHelper masterIncomingPacketHandlers;
     PacketHandlingHelper masterOutgoingPacketHandlers;

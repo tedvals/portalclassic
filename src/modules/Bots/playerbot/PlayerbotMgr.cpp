@@ -1,6 +1,7 @@
 #include "../pchdef.h"
 #include "playerbot.h"
 #include "PlayerbotAIConfig.h"
+#include "PlayerbotDbStore.h"
 #include "PlayerbotFactory.h"
 #include "RandomPlayerbotMgr.h"
 
@@ -59,6 +60,7 @@ void PlayerbotHolder::LogoutPlayerBot(uint64 guid)
     if (bot)
     {
         bot->GetPlayerbotAI()->TellMaster("Goodbye!");
+		sPlayerbotDbStore.Save(bot->GetPlayerbotAI());
         //bot->SaveToDB();
 
         WorldSession * botWorldSessionPtr = bot->GetSession();
@@ -118,6 +120,13 @@ void PlayerbotHolder::OnBotLogin(Player * const bot)
 
     ai->ResetStrategies();
     ai->TellMaster("Hello!");
+
+	uint32 account = sObjectMgr.GetPlayerAccountIdByGUID(bot->GetGUID());
+	if (sPlayerbotAIConfig.IsInRandomAccountList(account))
+	{
+		sLog.outString("%d/%d Bot %s logged in", playerBots.size(), sRandomPlayerbotMgr.GetMaxAllowedBotCount(), bot->GetName());
+		}
+	else sLog.outString("Bot %s logged in", bot->GetName());
 }
 
 
@@ -133,7 +142,7 @@ string PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admi
 
     if (isRandomAccount && !isRandomBot && !admin)
     {
-        Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+        Player* bot = sObjectMgr.GetPlayer(guid);
         if (bot->GetGuildId() != masterGuildId)
             return "not in your guild";
     }
@@ -143,7 +152,7 @@ string PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admi
 
     if (cmd == "add" || cmd == "login")
     {
-        if (sObjectMgr.GetPlayerByLowGUID(guid))
+        if (sObjectMgr.GetPlayer(guid))
             return "player already logged in";
 
         AddPlayerBot(guid.GetRawValue(), masterAccountId);
@@ -151,7 +160,7 @@ string PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admi
     }
     else if (cmd == "remove" || cmd == "logout" || cmd == "rm")
     {
-        if (!sObjectMgr.GetPlayerByLowGUID(guid))
+        if (!sObjectMgr.GetPlayer(guid))
             return "player is offline";
 
         if (!GetPlayerBot(guid.GetRawValue()))
@@ -216,134 +225,134 @@ string PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admi
         }
         else if (cmd == "distance=none")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(.0f);
             bot->SetMinMasterDistance(.0f);
             return "ok";
         }
         else if (cmd == "distance=melee")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.meleeDistance);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.meleeDistance);
             return "ok";
         }
         else if (cmd == "distance=spell")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.spellDistance);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.spellDistance);
             return "ok";
         }
         else if (cmd == "distance=close")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.closeDistance);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.closeDistance);
             return "ok";
         }
         else if (cmd == "distance=medium")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.mediumDistance);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.mediumDistance);
             return "ok";
         }
         else if (cmd == "distance=far")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.farDistance);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.farDistance);
             return "ok";
         }
         else if (cmd == "distance=extreme")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.extremeDistance);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.extremeDistance);
             return "ok";
         }
         else if (cmd == "targetdistance=none")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(.0f);
             return "ok";
         }
         else if (cmd == "targetdistance=melee")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.meleeDistance);
             return "ok";
         }
         else if (cmd == "targetdistance=spell")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.spellDistance);
             return "ok";
         }
         else if (cmd == "targetdistance=close")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.closeDistance);
             return "ok";
         }
         else if (cmd == "targetdistance=medium")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.mediumDistance);
             return "ok";
         }
         else if (cmd == "targetdistance=far")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.farDistance);
             return "ok";
         }
         else if (cmd == "targetdistance=extreme")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinTargetDistance(sPlayerbotAIConfig.extremeDistance);
             return "ok";
         }
         else if (cmd == "masterdistance=none")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(.0f);
             return "ok";
         }
         else if (cmd == "masterdistance=melee")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.meleeDistance);
             return "ok";
         }
         else if (cmd == "masterdistance=spell")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.spellDistance);
             return "ok";
         }
         else if (cmd == "masterdistance=close")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.closeDistance);
             return "ok";
         }
         else if (cmd == "masterdistance=medium")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.mediumDistance);
             return "ok";
         }
         else if (cmd == "masterdistance=far")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.farDistance);
             return "ok";
         }
         else if (cmd == "masterdistance=extreme")
         {
-            Player* bot = sObjectMgr.GetPlayerByLowGUID(guid);
+            Player* bot = sObjectMgr.GetPlayer(guid);
             bot->SetMinMasterDistance(sPlayerbotAIConfig.extremeDistance);
             return "ok";
         }
@@ -357,7 +366,6 @@ bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* a
 	if (!sPlayerbotAIConfig.enabled)
 	{
 		handler->PSendSysMessage("|cffff0000Playerbot system is currently disabled!");
-		handler->SetSentErrorMessage(true);
         return false;
 	}
 
@@ -366,7 +374,6 @@ bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* a
     if (!m_session)
     {
         handler->PSendSysMessage("You may only add bots from an active session");
-        handler->SetSentErrorMessage(true);
         return false;
     }
 
@@ -375,7 +382,6 @@ bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* a
     if (!mgr)
     {
         handler->PSendSysMessage("you cannot control bots yet");
-        handler->SetSentErrorMessage(true);
         return false;
     }
 
@@ -388,7 +394,6 @@ bool PlayerbotMgr::HandlePlayerbotMgrCommand(ChatHandler* handler, char const* a
         handler->PSendSysMessage(i->c_str());
     }
 
-    handler->SetSentErrorMessage(true);
     return false;
 }
 
@@ -509,7 +514,7 @@ list<string> PlayerbotHolder::HandlePlayerbotCommand(char const* args, Player* m
 			return messages;
 		}
 
-		QueryResult lresults = CharacterDatabase.PQuery("SELECT * FROM characters WHERE class = '%u'", claz);
+		QueryResult* lresults = CharacterDatabase.PQuery("SELECT * FROM characters WHERE class = '%u'", claz);
 		if (lresults)
 		{
 			do
@@ -573,7 +578,7 @@ list<string> PlayerbotHolder::HandlePlayerbotCommand(char const* args, Player* m
         {
 			ObjectGuid member = i->guid;
 
-			if (member == master->GetGUID())
+			if (member.GetRawValue() == master->GetGUID())
 				continue;
 
 			string bot;
@@ -624,12 +629,12 @@ list<string> PlayerbotHolder::HandlePlayerbotCommand(char const* args, Player* m
         ostringstream out;
         out << cmdStr << ": " << bot << " - ";
 
-        ObjectGuid member = sObjectMgr.GetPlayerGUIDByName(bot);
+        ObjectGuid member = sObjectMgr.GetPlayerGuidByName(bot);
         if (!member)
         {
             out << "character not found";
         }
-        else if (master && member != master->GetGUID())
+        else if (master && member.GetRawValue() != master->GetGUID())
         {
             out << ProcessBotCommand(cmdStr, member,
                     master->GetSession()->GetSecurity() >= SEC_GAMEMASTER,

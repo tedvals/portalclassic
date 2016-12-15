@@ -22,29 +22,29 @@ bool MovementAction::MoveNear(WorldObject* target, float distance)
     if (!target)
         return false;
 
-    distance += target->GetObjectSize() / 2.0f;
+    distance += target->GetObjectBoundingRadius();
 	float followAngle = GetFollowAngle();
 
 	for (float angle = followAngle; angle <= followAngle + 2 * M_PI; angle += M_PI / 4)
 	{
-		if (isnan(followAngle))
-			break;
-		bool moved = MoveTo(target->GetMapId(),
-			target->GetPositionX() + cos(angle) * distance,
-			target->GetPositionY() + sin(angle) * distance,
-			target->GetPositionZ());
+		float x = target->GetPositionX() + cos(angle) * distance,
+			  y = target->GetPositionY() + sin(angle) * distance,
+			  z = target->GetPositionZ();
+		if (!bot->IsWithinLOS(x, y, z))
+			 continue;
+	    bool moved = MoveTo(target->GetMapId(), x, y, z);
 		if (moved)
 			return true;
 		}    
     return false;
 }
 
-bool MovementAction::ChaseTo(WorldObject* obj)
+bool MovementAction::ChaseTo(Unit* obj)
 {
 	if (bot->IsSitState())
 		bot->SetStandState(UNIT_STAND_STATE_STAND);
 	
-	if (bot->IsNonMeleeSpellCasted(true))
+	if (!bot->IsPositiveSpellCasted(true))
 	{
 		bot->CastStop();
 		ai->InterruptSpell();
@@ -60,8 +60,8 @@ bool MovementAction::ChaseTo(WorldObject* obj)
 bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z)
 {
 
-    bot->UpdateAllowedPositionZ(x, y, z);
-    z = z + 0.05f;
+	if (!bot->IsUnderWater())
+		bot->UpdateGroundPositionZ(x, y, z);
 
     if (!IsMovingAllowed(mapId, x, y, z))
         return false;
@@ -75,7 +75,7 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z)
         if (bot->IsSitState())
             bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-		if (bot->IsNonPositiveSpellCasted(true))
+		if (!bot->IsPositiveSpellCasted(true))
         {
             bot->CastStop();
             ai->InterruptSpell();
@@ -142,7 +142,7 @@ bool MovementAction::FleeTo(Unit* target, uint32 mapId, float x, float y, float 
         if (bot->IsSitState())
             bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-		if (bot->IsNonPositiveSpellCast(true))
+		if (!bot->IsPositiveSpellCasted(true))
 		{
 			bot->CastStop();
 			ai->InterruptSpell();
@@ -230,10 +230,10 @@ float MovementAction::GetFollowAngle()
     int index = 1;
     for (GroupReference *ref = group->GetFirstMember(); ref; ref = ref->next())
     {
-        if( ref->GetSource() == master)
+        if( ref->getSource() == master)
             continue;
 
-        if( ref->GetSource() == bot)
+        if( ref->getSource() == bot)
             return 2 * M_PI / (group->GetMembersCount() -1) * index;
 
         index++;
@@ -241,7 +241,7 @@ float MovementAction::GetFollowAngle()
     return 0;
 }
 
-bool MovementAction::IsMovingAllowed(WorldObject* target)
+bool MovementAction::IsMovingAllowed(Unit* target)
 {
     if (!target)
         return false;
@@ -250,7 +250,7 @@ bool MovementAction::IsMovingAllowed(WorldObject* target)
         return false;
 
     float distance = bot->GetDistance(target);
-	if (!bot->InBattleground() &&  distance > sPlayerbotAIConfig.reactDistance)
+	if (!bot->InBattleGround() &&  distance > sPlayerbotAIConfig.reactDistance)
         return false;
 
     return IsMovingAllowed();
@@ -259,7 +259,7 @@ bool MovementAction::IsMovingAllowed(WorldObject* target)
 bool MovementAction::IsMovingAllowed(uint32 mapId, float x, float y, float z)
 {
     float distance = bot->GetDistance(x, y, z);
-	if (!bot->InBattleground() && distance > sPlayerbotAIConfig.reactDistance)
+	if (!bot->InBattleGround() && distance > sPlayerbotAIConfig.reactDistance)
         return false;
 
     return IsMovingAllowed();
@@ -279,24 +279,24 @@ bool MovementAction::IsMovingAllowed()
     return mm.GetCurrentMovementGeneratorType() != FLIGHT_MOTION_TYPE;
 }
 
-bool MovementAction::Follow(WorldObject* target, float distance)
+bool MovementAction::Follow(Unit* target, float distance)
 {
     return Follow(target, distance, GetFollowAngle());
 }
 
-bool MovementAction::GetBehind(WorldObject* target, float distance)
+bool MovementAction::GetBehind(Unit* target, float distance)
 {
     return GetBehind(target, distance, GetFollowAngle());
 }
 
-bool MovementAction::Follow(WorldObject* target, float distance, float angle)
+bool MovementAction::Follow(Unit* target, float distance, float angle)
 {
     MotionMaster &mm = *bot->GetMotionMaster();
 
     if (!target)
         return false;
 
-	if (!bot->InBattleground() && bot->GetDistance2d(target) <= sPlayerbotAIConfig.sightDistance &&
+	if (!bot->InBattleGround() && bot->GetDistance2d(target) <= sPlayerbotAIConfig.sightDistance &&
             abs(bot->GetPositionZ() - target->GetPositionZ()) >= sPlayerbotAIConfig.tooCloseDistance)
     {
         mm.Clear();
@@ -329,13 +329,13 @@ bool MovementAction::Follow(WorldObject* target, float distance, float angle)
    // if (target->IsFriendlyTo(bot) && bot->IsMounted() && AI_VALUE(list<ObjectGuid>, "possible targets").empty())
    //     distance += angle;
 
-	if (!bot->InBattleground() && bot->GetDistance2d(target) <= sPlayerbotAIConfig.followDistance)
+	if (!bot->InBattleGround() && bot->GetDistance2d(target) <= sPlayerbotAIConfig.followDistance)
         return false;
 
     if (bot->IsSitState())
         bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-    if (bot->IsNonMeleeSpellCast(true))
+	if (!bot->IsPositiveSpellCasted(true))
     {
         bot->CastStop();
         ai->InterruptSpell();
@@ -348,14 +348,14 @@ bool MovementAction::Follow(WorldObject* target, float distance, float angle)
     return true;
 }
 
-bool MovementAction::GetBehind(WorldObject* target, float distance, float angle)
+bool MovementAction::GetBehind(Unit* target, float distance, float angle)
 {
     MotionMaster &mm = *bot->GetMotionMaster();
 
     if (!target)
         return false;
 
-	if (!bot->InBattleground() && bot->GetDistance2d(target) <= sPlayerbotAIConfig.sightDistance &&
+	if (!bot->InBattleGround() && bot->GetDistance2d(target) <= sPlayerbotAIConfig.sightDistance &&
             abs(bot->GetPositionZ() - target->GetPositionZ()) >= sPlayerbotAIConfig.tooCloseDistance)
     {
         mm.Clear();
@@ -381,7 +381,7 @@ bool MovementAction::GetBehind(WorldObject* target, float distance, float angle)
     if (bot->IsSitState())
         bot->SetStandState(UNIT_STAND_STATE_STAND);
 
-	if (bot->IsNonPositiveSpellCast(true))
+	if (!bot->IsPositiveSpellCasted(true))
     {
         bot->CastStop();
         ai->InterruptSpell();
@@ -609,12 +609,15 @@ bool MoveRandomAction::Execute(Event event)
     float distance = sPlayerbotAIConfig.tooCloseDistance + sPlayerbotAIConfig.grindDistance * urand(5, 10) / 10.0f;
 
     Map* map = bot->GetMap();
+	if (!map->GetTerrain())
+		return false;
+
     if (target)
     {
         float x = target->GetPositionX();
         float y = target->GetPositionY();
         float z = target->GetPositionZ();
-        if (!map->IsInWater(x, y, z))
+        if (!map->GetTerrain()->IsInWater(x, y, z))
         {
             return MoveNear(target);
         }
@@ -629,7 +632,7 @@ bool MoveRandomAction::Execute(Event event)
         y += urand(0, distance) - distance / 2;
         bot->UpdateAllowedPositionZ(x, y, z);
 
-        if (map->IsInWater(x, y, z))
+        if (map->GetTerrain()->IsInWater(x, y, z))
             continue;
 
         bool moved = MoveNear(bot->GetMapId(), x, y, z);
@@ -694,7 +697,7 @@ bool MoveQuestGiverAction::Execute(Event event)
 	if (!QuestStarter)
 		return false;
 
-	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
+	AreaTableEntry const* area = GetAreaEntryByAreaID(areaId);
 
 	if (area)
 		sLog.outString("Teleporting bot %s to queststarter for quest to %s %f,%f,%f", bot->GetName(), area->area_name[0], go_x, go_y, go_z);
@@ -724,7 +727,7 @@ bool MoveQuestEnderAction::Execute(Event event)
 	if (!QuestEnder)
 		return false;
 
-	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
+	AreaTableEntry const* area = GetAreaEntryByAreaID(areaId);
 
 	if (area)
 		sLog.outString("Teleporting bot %s to questender for quest to %s %f,%f,%f", bot->GetName(), area->area_name[0], go_x, go_y, go_z);
@@ -754,7 +757,7 @@ bool MoveQuestPositionAction::Execute(Event event)
 	if (!QuestTarget)
 		return false;
 
-	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
+	AreaTableEntry const* area = GetAreaEntryByAreaID(areaId);
 
 	if (area)
 		sLog.outString("Teleporting bot %s to queststarter for quest to %s %f,%f,%f", bot->GetName(), area->area_name[0], go_x, go_y, go_z);

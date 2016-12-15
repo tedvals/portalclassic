@@ -11,7 +11,7 @@ bool CheckMountStateAction::Execute(Event event)
 {
     Player* master = GetMaster();
 
-	if (bot->InBattleground())
+	if (bot->InBattleGround())
 	{
 		if (!ai->HasStrategy("warsong", BotState::BOT_STATE_NON_COMBAT))
 			ai->ChangeStrategy("+warsong", BOT_STATE_NON_COMBAT);
@@ -34,7 +34,7 @@ bool CheckMountStateAction::Execute(Event event)
     if (bot->IsFlying())
         return false;
 
-	if (bot->InBattleground() || master->IsMounted() && !bot->IsMounted())
+	if (bot->InBattleGround() || master->IsMounted() && !bot->IsMounted())
     {
         return Mount();
     }

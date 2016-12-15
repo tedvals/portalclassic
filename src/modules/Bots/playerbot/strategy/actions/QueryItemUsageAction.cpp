@@ -157,11 +157,11 @@ void QueryItemUsageAction::QueryQuestItem(uint32 itemId, const Quest *questTempl
 {
     for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
     {
-        if (questTemplate->RequiredItemId[i] != itemId)
+        if (questTemplate->ReqItemId[i] != itemId)
             continue;
 
-        int required = questTemplate->RequiredItemCount[i];
-        int available = questStatus->ItemCount[i];
+        int required = questTemplate->ReqItemCount[i];
+        int available = questStatus->m_itemcount[i];
 
         if (!required)
             continue;

@@ -500,6 +500,7 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotAIBase.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotAIConfig.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotCommandServer.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotDbStore.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotFactory.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotMgr.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\PlayerbotSecurity.cpp" />
@@ -690,6 +691,7 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\triggers\LootTriggers.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\Value.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeHealValues.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeValues.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\Arrow.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\AttackerCountValues.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\AttackersValue.cpp" />
@@ -709,6 +711,7 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\ItemUsageValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\LeastHpTargetValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\LineTargetValue.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\LootStrategyValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestAdsValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestCorpsesValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestGameObjects.cpp" />
@@ -905,6 +908,7 @@
     <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotAIBase.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotAIConfig.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotCommandServer.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotDbStore.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\playerbotDefs.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotFactory.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\PlayerbotMgr.h" />
@@ -1134,6 +1138,7 @@
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\Value.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AlwaysLootListValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeHealValues.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeValues.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\Arrow.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AttackerCountValues.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AttackersValue.h" />

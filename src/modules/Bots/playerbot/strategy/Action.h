@@ -120,7 +120,10 @@ namespace ai
 	{
 	public:
         ActionBasket(ActionNode* action, float relevance, bool skipPrerequisites, Event event) :
-          action(action), relevance(relevance), skipPrerequisites(skipPrerequisites), event(event) {}
+			action(action), relevance(relevance), skipPrerequisites(skipPrerequisites), event(event) {
+			created = time(0);
+			
+		}
         virtual ~ActionBasket(void) {}
 	public:
 		float getRelevance() {return relevance;}
@@ -129,11 +132,13 @@ namespace ai
         bool isSkipPrerequisites() { return skipPrerequisites; }
         void AmendRelevance(float k) {relevance *= k; }
         void setRelevance(float relevance) { this->relevance = relevance; }
+		bool isExpired(time_t secs) { return time(0) - created >= secs; }
 	private:
 		ActionNode* action;
 		float relevance;
         bool skipPrerequisites;
         Event event;
+		time_t created;
 	};
 
     //---------------------------------------------------------------------------------------------------------------------

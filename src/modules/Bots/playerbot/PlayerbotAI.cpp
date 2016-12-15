@@ -19,6 +19,8 @@
 //#include "../Spells/SpellHistory.h"
 #include "../../game/Pet.h"
 #include "../../game/SpellAuraDefines.h"
+#include "GuildTaskMgr.h"
+#include "PlayerbotDbStore.h"
 
 using namespace ai;
 using namespace std;
@@ -148,7 +150,6 @@ void PlayerbotAI::UpdateAI(uint32 elapsed)
         {
             InterruptSpell();
             TellMaster("Interrupted spell for update");
-            SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
         }
 
         Spell* channel_spell = bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
@@ -156,7 +157,6 @@ void PlayerbotAI::UpdateAI(uint32 elapsed)
         {
             InterruptSpell();
             TellMaster("Interrupted channel spell for update");
-            SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
         }
     }
 
@@ -166,10 +166,6 @@ void PlayerbotAI::UpdateAI(uint32 elapsed)
          pet->SetPower(POWER_HAPPINESS, HAPPINESS_LEVEL_SIZE * 2);
     }
 
-    if (nextAICheckDelay > sPlayerbotAIConfig.maxWaitForMove && bot->isInCombat() && !bot->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
-    {
-        nextAICheckDelay = sPlayerbotAIConfig.maxWaitForMove;
-    }
 
     PlayerbotAIBase::UpdateAI(elapsed);
 }
@@ -179,7 +175,7 @@ void PlayerbotAI::UpdateAIInternal(uint32 elapsed)
     ExternalEventHelper helper(aiObjectContext);
     while (!chatCommands.empty())
     {
-        ChatCommandHolder holder = chatCommands.top();
+        ChatCommandHolder holder = chatCommands.front();
         string command = holder.GetCommand();
         Player* owner = holder.GetOwner();
         if (!helper.ParseChatCommand(command, owner) && holder.GetType() == CHAT_MSG_WHISPER)
@@ -213,7 +209,7 @@ void PlayerbotAI::HandleTeleportAck()
 	{
 	    WorldPacket p;
 		bot->GetSession()->HandleMoveWorldportAckOpcode(p);
-		SetNextCheckDelay(1000);
+		SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
 	}
 }
 
@@ -313,20 +309,6 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 {
     switch (packet.GetOpcode())
     {
-    case SMSG_CAST_FAILED:
-        {
-            WorldPacket p(packet);
-            p.rpos(0);
-            uint8 castCount, result;
-            uint32 spellId;
-            p >> castCount >> spellId >> result;
-            if (result != SPELL_CAST_OK)
-            {
-                SpellInterrupted(spellId);
-                botOutgoingPacketHandlers.AddPacket(packet);
-            }
-            return;
-        }
     case SMSG_SPELL_FAILURE:
         {
             WorldPacket p(packet);
@@ -367,7 +349,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 void PlayerbotAI::SpellInterrupted(uint32 spellid)
 {
     LastSpellCast& lastSpell = aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get();
-    if (lastSpell.id != spellid)
+	if (!spellid || lastSpell.id != spellid)
         return;
 
     lastSpell.Reset();
@@ -382,7 +364,7 @@ void PlayerbotAI::SpellInterrupted(uint32 spellid)
     if (castTimeSpent < globalCooldown)
         SetNextCheckDelay(globalCooldown - castTimeSpent);
     else
-        SetNextCheckDelay(0);
+		SetNextCheckDelay(sPlayerbotAIConfig.reactDelay);
 
     lastSpell.id = 0;
 }
@@ -477,6 +459,24 @@ void PlayerbotAI::ChangeStrategy(string names, BotState type)
         return;
 
     e->ChangeStrategy(names);
+}
+
+void PlayerbotAI::ClearStrategies(BotState type)
+{
+	Engine* e = engines[type];
+	if (!e)
+		return;
+
+	e->removeAllStrategies();
+}
+
+list<string> PlayerbotAI::GetStrategies(BotState type)
+{
+	Engine* e = engines[type];
+	if (!e)
+		return list<string>();
+
+	return e->GetStrategies();
 }
 
 void PlayerbotAI::DoSpecificAction(string name)
@@ -876,6 +876,8 @@ void PlayerbotAI::ResetStrategies()
     AiFactory::AddDefaultCombatStrategies(bot, this, engines[BOT_STATE_COMBAT]);
     AiFactory::AddDefaultNonCombatStrategies(bot, this, engines[BOT_STATE_NON_COMBAT]);
     AiFactory::AddDefaultDeadStrategies(bot, this, engines[BOT_STATE_DEAD]);
+
+	sPlayerbotDbStore.Load(this);
 }
 
 bool PlayerbotAI::IsRanged(Player* player)
@@ -1547,28 +1549,32 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
 	Spell *spell = new Spell(bot, pSpellInfo, false);
 	if (bot->isMoving() && spell->GetCastTime())
 	{
-		delete spell;
+		spell->cancel();
+		delete spell;		
 		return false;
 	}
 
 	SpellCastTargets targets;
 	WorldObject* faceTo = target;
 
-	if (pSpellInfo->Targets & TARGET_FLAG_SOURCE_LOCATION ||
-		pSpellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
-	{
-		targets.setSource(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ());
-	}
-	else if (pSpellInfo->Targets & TARGET_FLAG_ITEM)
+	if (pSpellInfo->Targets & TARGET_FLAG_ITEM)
 	{
 		spell->m_CastItem = aiObjectContext->GetValue<Item*>("item for spell", spellId)->Get();
 		targets.setItemTarget(spell->m_CastItem);
-		}
+	}
+	else if (pSpellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
+	{
+		WorldLocation aoe = aiObjectContext->GetValue<WorldLocation>("aoe position")->Get();
+		targets.setDestination(aoe.coord_x, aoe.coord_y, aoe.coord_z);
+	}
+	else if (pSpellInfo->Targets & TARGET_FLAG_SOURCE_LOCATION)
+	{
+		targets.setDestination(bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ());
+	}
 	else
 	{
 		targets.setUnitTarget(target);
 	}
-
 
 	if (pSpellInfo->Effect[0] == SPELL_EFFECT_OPEN_LOCK ||
 		pSpellInfo->Effect[0] == SPELL_EFFECT_SKINNING)
@@ -1576,16 +1582,17 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
 		LootObject loot = *aiObjectContext->GetValue<LootObject>("loot target");
 		if (!loot.IsLootPossible(bot))
 		{
-			delete spell;
+			spell->cancel();
+			delete spell;			
 			return false;
 		}
 
 		GameObject* go = GetGameObject(loot.guid);
 		if (go && go->isSpawned())
 		{
-			WorldPacket* const packetgouse = new WorldPacket(CMSG_GAMEOBJ_USE, 8);
+			std::unique_ptr<WorldPacket> packetgouse (new WorldPacket(CMSG_GAMEOBJ_USE, 8));
 			*packetgouse << loot.guid;
-			bot->GetSession()->QueuePacket(packetgouse);
+			bot->GetSession()->QueuePacket(std::move(packetgouse));
 			targets.setGOTarget(go);
 			faceTo = go;
 		}
@@ -1604,19 +1611,20 @@ bool PlayerbotAI::CastSpell(uint32 spellId, Unit* target)
 	if (!bot->isInFront(faceTo, sPlayerbotAIConfig.sightDistance, M_PI / 2))
 	{
 		bot->SetFacingTo(bot->GetAngle(faceTo));
+		spell->cancel();
 		delete spell;
 		SetNextCheckDelay(sPlayerbotAIConfig.globalCoolDown);
 		return false;
 	}
 
-	spell->prepare(&targets);
+	spell->SpellStart(&targets);
 	WaitForSpellCast(spell);
+	aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get().Set(spellId, target->GetGUID(), time(0));
 
 	if (oldSel)
 		bot->SetSelectionGuid(oldSel);
 	
-	LastSpellCast& lastSpell = aiObjectContext->GetValue<LastSpellCast&>("last spell cast")->Get();
-	return lastSpell.id == spellId;
+	return true;
 }
 
 void PlayerbotAI::WaitForSpellCast(Spell *spell)

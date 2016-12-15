@@ -74,8 +74,9 @@ void Engine::Reset()
     do
     {
         action = queue.Pop();
+		if (!action) break;
         delete action;
-    } while (action);
+    } while (true);
 
     for (list<TriggerNode*>::iterator i = triggers.begin(); i != triggers.end(); i++)
     {
@@ -136,9 +137,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
     do {
         basket = queue.Peek();
         if (basket) {
-            if (++iterations > iterationsPerTick)
-                break;
-
+        
             float relevance = basket->getRelevance(); // just for reference
             bool skipPrerequisites = basket->isSkipPrerequisites();
             Event event = basket->getEvent();
@@ -217,7 +216,7 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
             delete actionNode;
         }
     }
-    while (basket);
+	while (basket && ++iterations <= iterationsPerTick);
 
     if (!basket)
     {
@@ -233,6 +232,8 @@ bool Engine::DoNextAction(Unit* unit, int depth, bool instantonly, bool noflee)
 
     if (!actionExecuted)
         LogAction("no actions executed");
+
+	queue.RemoveExpired();
 
     return actionExecuted;
 }
@@ -257,7 +258,7 @@ bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool sk
     bool pushed = false;
     if (actions)
     {
-        for (int j=0; j<20; j++) // TODO: remove 10
+		for (int j = 0; actions[j]; j++)
         {
             NextAction* nextAction = actions[j];
             if (nextAction)
@@ -285,6 +286,10 @@ bool Engine::MultiplyAndPush(NextAction** actions, float forceRelevance, bool sk
                     queue.Push(new ActionBasket(action, k, skipPrerequisites, event));
                     pushed = true;
                 }
+				else
+					 {
+					  delete action;
+					}
 
                 delete nextAction;
             }
@@ -306,7 +311,11 @@ ActionResult Engine::ExecuteAction(string name)
 
     Action* action = InitializeAction(actionNode);
     if (!action)
-        return ACTION_RESULT_UNKNOWN;
+	{
+		delete actionNode;
+		return ACTION_RESULT_UNKNOWN;
+		
+	}
 
     if (!action->isPossible())
     {
@@ -467,6 +476,15 @@ string Engine::ListStrategies()
     return s.substr(0, s.length() - 2);
 }
 
+list<string> Engine::GetStrategies()
+{
+	list<string> result;
+	for (map<string, Strategy*>::iterator i = strategies.begin(); i != strategies.end(); i++)
+	{
+		result.push_back(i->first);
+		}
+	return result;
+}
 void Engine::PushAgain(ActionNode* actionNode, float relevance, Event event)
 {
     NextAction** nextAction = new NextAction*[2];

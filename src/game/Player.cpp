@@ -12622,6 +12622,7 @@ void Player::AdjustQuestReqItemCount(Quest const* pQuest, QuestStatusData& quest
     }
 }
 
+
 uint16 Player::FindQuestSlot(uint32 quest_id) const
 {
     for (uint16 i = 0; i < MAX_QUEST_LOG_SIZE; ++i)
@@ -19418,7 +19419,7 @@ bool Player::AddToDoQuest(uint32 questId)
 	if (it != m_questIds.end())
 		return false;
 
-	Quest const *quest = sObjectMgr->GetQuestTemplate(questId);
+	Quest const *quest = sObjectMgr.GetQuestTemplate(questId);
 
 	if (!CanTakeQuest(quest, false))
 		return false;
@@ -19428,7 +19429,7 @@ bool Player::AddToDoQuest(uint32 questId)
 }
 
 
-WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& zoneId, float& x, float& y, float& z, uint32 questId = 0)
+WorldObject* Player::MoveToQuestStarter(uint32& mapId, float& x, float& y, float& z, uint32 questId = 0)
 {
 	uint32 questGiver = 0;
 	ObjectGuid guid;
@@ -19470,7 +19471,7 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 				}
 			}
 
-			sLog->outMessage("playerbot", LOG_LEVEL_INFO, "Initialed %u quests for level %u", GetToDoQuestsSize(), level);
+			sLog.outString("Initialed %u quests for level %u", GetToDoQuestsSize(), level);
 			return NULL;
 		}
 
@@ -19487,8 +19488,8 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 
 			result = WorldDatabase.PQuery("SELECT "
 				//           0      1      2     3         4          5         6           7
-				"q.id,c.GUID,map,c.zoneid,c.areaid,c.position_x,c.position_y,c.position_z"
-				" FROM creature_queststarter q LEFT OUTER JOIN creature c ON c.id = q.id where quest = '%u' ORDER BY RAND() LIMIT 1", questId);
+				"q.id,c.GUID,map,c.position_x,c.position_y,c.position_z"
+				" FROM creature_questrelation q LEFT OUTER JOIN creature c ON c.id = q.id where quest = '%u' ORDER BY RAND() LIMIT 1", questId);
 
 			if (!result)
 				continue;
@@ -19499,11 +19500,9 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 				questGiver = fields[0].GetUInt32();
 				guid = ObjectGuid(fields[1].GetUInt64());
 				mapId = fields[2].GetUInt32();
-				zoneId = fields[3].GetUInt32();
-				areaId = fields[4].GetUInt32();
-				position_x = fields[5].GetFloat();
-				position_y = fields[6].GetFloat();
-				position_z = fields[7].GetFloat();
+				position_x = fields[3].GetFloat();
+				position_y = fields[4].GetFloat();
+				position_z = fields[5].GetFloat();
 			} while (result->NextRow());
 		} while (!m_questIds.empty());
 	}
@@ -19519,8 +19518,8 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 		QueryResult* result;
 		result = WorldDatabase.PQuery("SELECT "
 			//           0      1      2     3         4          5         6           7
-			"q.id,c.GUID,map,c.zoneid,c.areaid,c.position_x,c.position_y,c.position_z"
-			" FROM creature_queststarter q LEFT OUTER JOIN creature c ON c.id = q.id where quest = '%u' ORDER BY RAND() LIMIT 1", questId);
+			"q.id,c.GUID,c.map,c.position_x,c.position_y,c.position_z"
+			" FROM creature_questrelation q LEFT OUTER JOIN creature c ON c.id = q.id where quest = '%u' ORDER BY RAND() LIMIT 1", questId);
 
 		if (!result)
 			return NULL;
@@ -19531,11 +19530,9 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 			questGiver = fields[0].GetUInt32();
 			guid = ObjectGuid(fields[1].GetUInt64());
 			mapId = fields[2].GetUInt32();
-			zoneId = fields[3].GetUInt32();
-			areaId = fields[4].GetUInt32();
-			position_x = fields[5].GetFloat();
-			position_y = fields[6].GetFloat();
-			position_z = fields[7].GetFloat();
+			position_x = fields[3].GetFloat();
+			position_y = fields[4].GetFloat();
+			position_z = fields[5].GetFloat();
 		} while (result->NextRow());
 	}
 
@@ -19543,21 +19540,21 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 		return NULL;
 
 	Map* map = sMapMgr.FindMap(mapId, 0);
-	if (!map)
+	if (!map || !map->GetTerrain())
 		return NULL;
 
-	if (!map->IsInWater(position_x, position_y, position_z))
+	if (!map->GetTerrain()->IsInWater(position_x, position_y, position_z))
 		return NULL;
 
-	if (map->IsBattlegroundOrArena() || map->IsDungeon() || map->IsRaidOrHeroicDungeon())
+	if (map->IsBattleGround() || map->IsDungeon() || map->IsRaid())
 		return NULL;
 
-	areaId = map->GetAreaId(x, y, z);
+	uint32 areaId = map->GetTerrain()->GetAreaId(x, y, z);
 
 	if (!areaId)
 		return NULL;
 
-	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
+	AreaTableEntry const* area = GetAreaEntryByAreaID(areaId);
 	if (!area)
 		return NULL;
 
@@ -19588,36 +19585,26 @@ WorldObject* Player::MoveToQuestStarter(uint32& mapId, uint32& areaId, uint32& z
 
 
 
-WorldObject* Player::MoveToQuestEnder(uint32& mapId, uint32& areaId, uint32& zoneId, float& x, float& y, float& z, uint32 questId = 0)
+WorldObject* Player::MoveToQuestEnder(uint32& mapId, float& x, float& y, float& z, uint32 questId = 0)
 {
 
 	if (questId != 0)
 	{
-		QuestStatusMap::iterator itr = m_QuestStatus.find(questId);
-		if (itr == m_QuestStatus.end())
-			questId = 0;
-
-		QuestStatusData &q_status = itr->second;
-
-		if (q_status.Status == QUEST_STATUS_INCOMPLETE)
+		if (GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE)
 			questId = 0;
 	}
 
 	if (questId == 0)
 	{
-		//    uint32 randomQuest = (uint32)(rand() % m_questIds.size());
-
-		for (QuestStatusMap::iterator itr = m_QuestStatus.begin(); itr != m_QuestStatus.end(); ++itr)
+		for (uint16 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
 		{
-			QuestStatusData &q_status = itr->second;
-
-			if (q_status.Status == QUEST_STATUS_INCOMPLETE)
+			uint32  findQuestId = GetQuestSlotQuestId(slot);
+			if (!findQuestId)
 				continue;
-			else
-			{
-				questId = itr->first;
-				break;
-			}
+
+			Quest const* pQuest = sObjectMgr.GetQuestTemplate(findQuestId);
+			if (GetQuestStatus(questId) == QUEST_STATUS_COMPLETE)
+				questId = findQuestId;
 		}
 	}
 
@@ -19627,11 +19614,11 @@ WorldObject* Player::MoveToQuestEnder(uint32& mapId, uint32& areaId, uint32& zon
 	QueryResult* result = WorldDatabase.PQuery("SELECT "
 		//           0      1      2     3         4          5         6           7
 		"q.id,c.GUID,map,c.zoneid,c.areaid,c.position_x,c.position_y,c.position_z"
-		" FROM creature_questender q LEFT OUTER JOIN creature c ON c.id = q.id where quest = '%u' ORDER BY RAND() LIMIT 1", questId);
+		" FROM creature_questrelation q LEFT OUTER JOIN creature c ON c.id = q.id where quest = '%u' ORDER BY RAND() LIMIT 1", questId);
 
 	if (!result)
 	{
-		Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+		Quest const* quest = sObjectMgr.GetQuestTemplate(questId);
 		SetQuestStatus(questId, QUEST_STATUS_COMPLETE);
 		RewardQuest(quest, 0, this, false);
 		return NULL;
@@ -19650,32 +19637,30 @@ WorldObject* Player::MoveToQuestEnder(uint32& mapId, uint32& areaId, uint32& zon
 		questEnder = fields[0].GetUInt32();
 		guid = ObjectGuid(fields[1].GetUInt64());
 		mapId = fields[2].GetUInt32();
-		zoneId = fields[3].GetUInt32();
-		areaId = fields[4].GetUInt32();
-		position_x = fields[5].GetFloat();
-		position_y = fields[6].GetFloat();
-		position_z = fields[7].GetFloat();
+		position_x = fields[3].GetFloat();
+		position_y = fields[4].GetFloat();
+		position_z = fields[5].GetFloat();
 	} while (result->NextRow());
 
 	if (!questEnder)
 		return NULL;
 
 	Map* map = sMapMgr.FindMap(mapId, 0);
-	if (!map)
+	if (!map || !map->GetTerrain())
 		return NULL;
 
-	if (!map->IsInWater(position_x, position_y, position_z))
+	if (!map->GetTerrain()->IsInWater(position_x, position_y, position_z))
 		return NULL;
 
-	if (map->IsBattleground() || map->IsDungeon() || map->IsRaid())
+	if (map->IsBattleGround() || map->IsDungeon() || map->IsRaid())
 		return NULL;
 
-	areaId = map->GetAreaId(x, y, z);
+	uint32 areaId = map->GetTerrain()->GetAreaId(x, y, z);
 
 	if (!areaId)
 		return NULL;
 
-	AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
+	AreaTableEntry const* area = GetAreaEntryByAreaID(areaId);
 	if (!area)
 		return NULL;
 
@@ -19704,39 +19689,26 @@ WorldObject* Player::MoveToQuestEnder(uint32& mapId, uint32& areaId, uint32& zon
 }
 
 
-WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& zoneId, float& x, float& y, float& z, uint32 questId = 0)
+WorldObject* Player::MoveToQuestPosition(uint32& mapId, float& x, float& y, float& z, uint32 questId = 0)
 {
 	if (questId != 0)
 	{
-		QuestStatusMap::iterator itr = m_QuestStatus.find(questId);
-		if (itr == m_QuestStatus.end())
-			questId = 0;
-
-		QuestStatusData &q_status = itr->second;
-
-		if (q_status.Status == QUEST_STATUS_COMPLETE)
+		if (GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE)
 			questId = 0;
 	}
 
 
-	if ((questId == 0) && (m_QuestStatus.size() > 0))
+	if (questId == 0)
 	{
-		uint32 randomQuest = (uint32)(rand() % m_QuestStatus.size() - 1);
-
-		QuestStatusMap::iterator itr = m_QuestStatus.begin();
-		std::advance(itr, randomQuest);
-
-		for (; itr != m_QuestStatus.end(); ++itr)
+		for (uint16 slot = 0; slot < MAX_QUEST_LOG_SIZE; ++slot)
 		{
-			QuestStatusData &q_status = itr->second;
-
-			if (q_status.Status == QUEST_STATUS_COMPLETE)
+			uint32  findQuestId = GetQuestSlotQuestId(slot);
+			if (!findQuestId)
 				continue;
-			else
-			{
-				questId = itr->first;
-				break;
-			}
+
+			Quest const* pQuest = sObjectMgr.GetQuestTemplate(findQuestId);
+			if (GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE)
+				questId = findQuestId;
 		}
 	}
 
@@ -19744,7 +19716,6 @@ WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& 
 		return NULL;
 
 	Quest const* quest = sObjectMgr.GetQuestTemplate(questId);
-	QuestStatusData& questStatusData = m_QuestStatus[questId];
 
 	if (!quest)
 		return false;
@@ -19753,16 +19724,16 @@ WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& 
 
 	for (int count = 0; count < quest->GetReqCreatureOrGOcount(); count++)
 	{
-		if (questStatusData.CreatureOrGOCount[count] < quest->RequiredNpcOrGoCount[count])
-			npcId = quest->RequiredNpcOrGo[count];
+		if (GetReqKillOrCastCurrentCount(questId, quest->ReqCreatureOrGOId[count]) < quest->ReqCreatureOrGOCount[count])
+			npcId = quest->ReqCreatureOrGOId[count];
 	}
 
 	if (npcId)
 	{
 		QueryResult* result;
 		result = WorldDatabase.PQuery("SELECT "
-			// 0      1      2     3         4          5         6           7
-			"id,GUID,map,zoneid,areaid,position_x,position_y,position_z"
+			
+			"id,GUID,map,position_x,position_y,position_z"
 			" FROM creature where id = '%u' ORDER BY RAND() LIMIT 1", npcId);
 
 		ObjectGuid guid;
@@ -19777,27 +19748,25 @@ WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& 
 			npcId = fields[0].GetUInt32();
 			guid = ObjectGuid(fields[1].GetUInt64());
 			mapId = fields[2].GetUInt32();
-			zoneId = fields[3].GetUInt32();
-			areaId = fields[4].GetUInt32();
-			position_x = fields[5].GetFloat();
-			position_y = fields[6].GetFloat();
-			position_z = fields[7].GetFloat();
+			position_x = fields[3].GetFloat();
+			position_y = fields[4].GetFloat();
+			position_z = fields[5].GetFloat();
 		} while (result->NextRow());
 
 		if (npcId)
 		{
 
 			Map* map = sMapMgr.FindMap(mapId, 0);
-			if (!map)
+			if (!map || !map->GetTerrain())
 				return NULL;
 
-			if (!map->IsInWater(position_x, position_y, position_z))
+			if (!map->GetTerrain()->IsInWater(position_x, position_y, position_z))
 				return NULL;
 
-			if (map->IsBattlegroundOrArena() || map->IsDungeon() || map->IsRaid())
+			if (map->IsBattleGround() || map->IsDungeon() || map->IsRaid())
 				return NULL;
 
-			areaId = map->GetAreaId(x, y, z);
+			uint32 areaId = map->GetTerrain()->GetAreaId(x, y, z);
 
 			if (!areaId)
 				return NULL;
@@ -19826,8 +19795,8 @@ WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& 
 
 	for (int count = 0; count < quest->GetReqCreatureOrGOcount(); count++)
 	{
-		if (questStatusData.ItemCount[count] < quest->RequiredItemCount[count])
-			itemId = quest->RequiredItemId[count];
+		if (GetReqKillOrCastCurrentCount(questId, quest->ReqCreatureOrGOId[count]) < quest->ReqItemCount[count])
+			itemId = quest->ReqItemId[count];
 	}
 
 
@@ -19850,9 +19819,8 @@ WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& 
 	if (npcId)
 	{
 		QueryResult* result;
-		result = WorldDatabase.PQuery("SELECT "
-			// 0      1      2     3         4          5         6           7			
-			"id,GUID,map,zoneid,areaid,position_x,position_y,position_z"
+		result = WorldDatabase.PQuery("SELECT "		
+			"id,GUID,map,position_x,position_y,position_z"
 			" FROM creature q where id = '%u' ORDER BY NEWID() LIMIT 1", npcId);
 
 		ObjectGuid guid;
@@ -19867,32 +19835,29 @@ WorldObject* Player::MoveToQuestPosition(uint32& mapId, uint32& areaId, uint32& 
 			npcId = fields[0].GetUInt32();
 			guid = ObjectGuid(fields[1].GetUInt64());
 			mapId = fields[2].GetUInt32();
-			zoneId = fields[3].GetUInt32();
-			areaId = fields[4].GetUInt32();
-			position_x = fields[5].GetFloat();
-			position_y = fields[6].GetFloat();
-			position_z = fields[7].GetFloat();
+			position_x = fields[3].GetFloat();
+			position_y = fields[4].GetFloat();
+			position_z = fields[5].GetFloat();
 		} while (result->NextRow());
 
 		if (npcId)
 		{
-
 			Map* map = sMapMgr.FindMap(mapId, 0);
-			if (!map)
+			if (!map || !map->GetTerrain())
 				return NULL;
 
-			if (!map->IsInWater(position_x, position_y, position_z))
+			if (!map->GetTerrain()->IsInWater(position_x, position_y, position_z))
 				return NULL;
 
-			if (map->IsBattlegroundOrArena() || map->IsDungeon() || map->IsRaidOrHeroicDungeon())
+			if (map->IsBattleGround() || map->IsDungeon() || map->IsRaid())
 				return NULL;
 
-			areaId = map->GetAreaId(x, y, z);
+			uint32 areaId = map->GetTerrain()->GetAreaId(x, y, z);
 
 			if (!areaId)
 				return NULL;
 
-			AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId);
+			AreaTableEntry const* area = GetAreaEntryByAreaID(areaId);
 			if (!area)
 				return NULL;
 

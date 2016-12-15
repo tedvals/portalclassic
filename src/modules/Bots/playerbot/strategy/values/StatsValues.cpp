@@ -1,6 +1,7 @@
 #include "../../../botpch.h"
 #include "../../playerbot.h"
 #include "StatsValues.h"
+#include "../../game/Pet.h"
 
 using namespace ai;
 
@@ -27,7 +28,7 @@ bool IsTargetPlayerValue::Calculate()
     if (!target)
         return false;
     else
-        return target->IsPlayer();
+        return target->GetOwnerGuid().IsPlayer();
 }
 
 bool IsTargetNormalValue::Calculate()
@@ -36,7 +37,7 @@ bool IsTargetNormalValue::Calculate()
     if (!target)
         return false;
     else
-        return (target->GetCreatureRank() == CREATURE_ELITE_NORMAL);
+        return (((Creature*)this)->GetCreatureInfo()->Rank == CREATURE_ELITE_NORMAL);
 }
 
 bool IsTargetBossValue::Calculate()
@@ -45,7 +46,7 @@ bool IsTargetBossValue::Calculate()
     if (!target)
         return false;
     else
-        return (target->GetCreatureRank() == CREATURE_ELITE_WORLDBOSS);
+        return (((Creature*)this)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS);
 }
 
 bool IsTargetEliteValue::Calculate()
@@ -54,7 +55,7 @@ bool IsTargetEliteValue::Calculate()
     if (!target)
         return false;
     else
-        return (target->GetCreatureRank() == CREATURE_ELITE_WORLDBOSS) || (target->GetCreatureRank() == CREATURE_ELITE_ELITE) || ((target->GetCreatureRank() == CREATURE_ELITE_RAREELITE));
+        return ((((Creature*)this)->GetCreatureInfo()->Rank == CREATURE_ELITE_WORLDBOSS) || (((Creature*)this)->GetCreatureInfo()->Rank == CREATURE_ELITE_ELITE) || (((Creature*)this)->GetCreatureInfo()->Rank == CREATURE_ELITE_RAREELITE));
 }
 
 
@@ -71,15 +72,16 @@ bool IsDeadValue::Calculate()
     Unit* target = GetTarget();
     if (!target)
         return false;
-
-    if (target == bot->GetPet())
-    {
-         PetDatabaseStatus status = Pet::GetStatusFromDB(bot);
-         if (status == PET_DB_DEAD)
-             return true;
-    }
-    return target->GetDeathState() != ALIVE;
 }
+
+bool PetIsDeadValue::Calculate()
+{
+	PetDatabaseStatus status = Pet::GetStatusFromDB(bot);
+	if (status == PET_DB_DEAD)
+		 return true;
+	
+		return bot->GetPet() && bot->GetPet()->GetDeathState() != ALIVE;
+	}
 
 bool IsCcValue::Calculate()
 {
@@ -166,7 +168,7 @@ bool IsDisorientedValue::Calculate()
     Unit* target = GetTarget();
     if (!target)
         return false;
-    return target->isDisoriented();
+    return target->isConfused();
 }
 
 bool IsStunnedValue::Calculate()
@@ -174,7 +176,7 @@ bool IsStunnedValue::Calculate()
     Unit* target = GetTarget();
     if (!target)
         return false;
-    return target->isStunned();
+    return target->IsStunned();
 }
 
 bool IsSnaredValue::Calculate()
@@ -209,20 +211,6 @@ uint8 EnergyValue::Calculate()
     return (static_cast<float> (target->GetPower(POWER_ENERGY)));
 }
 
-uint8 RuneValue::Calculate()
-{
-    Unit* target = GetTarget();
-    if (!target)
-        return 0;
-    return (static_cast<float> (target->GetPower(POWER_RUNE)));
-}
-uint8 RunicPowerValue::Calculate()
-{
-    Unit* target = GetTarget();
-    if (!target)
-        return 0;
-    return (static_cast<float> (target->GetPower(POWER_RUNIC_POWER)));
-}
 
 uint8 ManaValue::Calculate()
 {
@@ -244,7 +232,7 @@ bool HasManaValue::Calculate()
 uint8 ComboPointsValue::Calculate()
 {
     Unit *target = GetTarget();
-    if (!target || target->GetGUID() != bot->GetComboTarget())
+    if (!target || target->GetGUID() != bot->etComboTarget())
         return 0;
 
     return bot->GetComboPoints();
@@ -260,7 +248,7 @@ bool IsMountedValue::Calculate()
 }
 
 
-bool isInCombatValue::Calculate()
+bool IsInCombatValue::Calculate()
 {
     Unit* target = GetTarget();
     if (!target)

@@ -96,6 +96,13 @@ namespace ai
         virtual bool Calculate();
     };
 
+	class PetIsDeadValue : public BoolCalculatedValue
+	{
+		public:
+			PetIsDeadValue(PlayerbotAI* ai) : BoolCalculatedValue(ai) {}
+		virtual bool Calculate();
+	};
+
     class IsFrozenValue : public BoolCalculatedValue, public Qualified
     {
     public:
@@ -314,32 +321,6 @@ namespace ai
     {
     public:
         ManaValue(PlayerbotAI* ai) : Uint8CalculatedValue(ai) {}
-
-        Unit* GetTarget()
-        {
-            AiObjectContext* ctx = AiObject::context;
-            return ctx->GetValue<Unit*>(qualifier)->Get();
-        }
-        virtual uint8 Calculate();
-    };
-
-    class RuneValue : public Uint8CalculatedValue, public Qualified
-    {
-    public:
-        RuneValue(PlayerbotAI* ai) : Uint8CalculatedValue(ai) {}
-
-        Unit* GetTarget()
-        {
-            AiObjectContext* ctx = AiObject::context;
-            return ctx->GetValue<Unit*>(qualifier)->Get();
-        }
-        virtual uint8 Calculate();
-    };
-
-    class RunicPowerValue : public Uint8CalculatedValue, public Qualified
-    {
-    public:
-        RunicPowerValue(PlayerbotAI* ai) : Uint8CalculatedValue(ai) {}
 
         Unit* GetTarget()
         {
