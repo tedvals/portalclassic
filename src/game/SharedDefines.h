@@ -101,6 +101,8 @@ static const uint8 classToIndex[MAX_CLASSES] = { 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0
 
 #define CLASSMASK_WAND_USERS ((1<<(CLASS_PRIEST-1))|(1<<(CLASS_MAGE-1))|(1<<(CLASS_WARLOCK-1)))
 
+#define CLASSMASK_RELIC_USERS ((1<<(CLASS_PALADIN-1))|(1<<(CLASS_SHAMAN-1))|(1<<(CLASS_DRUID-1)))
+
 #define PLAYER_MAX_BATTLEGROUND_QUEUES 3
 
 #define HONOR_STANDING_MIN_KILL 15
@@ -361,7 +363,7 @@ enum SpellAttributesEx3
     SPELL_ATTR_EX3_UNK0                        = 0x00000001,// 0
     SPELL_ATTR_EX3_UNK1                        = 0x00000002,// 1
     SPELL_ATTR_EX3_UNK2                        = 0x00000004,// 2
-    SPELL_ATTR_EX3_UNK3                        = 0x00000008,// 3
+    SPELL_ATTR_EX3_BLOCKABLE_SPELL             = 0x00000008,// 3 TODO: Investigate more
     SPELL_ATTR_EX3_IGNORE_RESURRECTION_TIMER   = 0x00000010,// 4 Druid Rebirth only this spell have this flag
     SPELL_ATTR_EX3_UNK5                        = 0x00000020,// 5
     SPELL_ATTR_EX3_UNK6                        = 0x00000040,// 6
@@ -469,24 +471,28 @@ enum CharacterSlot
 // from Languages.dbc (checked for 1.12.1)
 enum Language
 {
-    LANG_UNIVERSAL      = 0,
-    LANG_ORCISH         = 1,
-    LANG_DARNASSIAN     = 2,
-    LANG_TAURAHE        = 3,
-    LANG_DWARVISH       = 6,
-    LANG_COMMON         = 7,
-    LANG_DEMONIC        = 8,
-    LANG_TITAN          = 9,
-    LANG_THALASSIAN     = 10,
-    LANG_DRACONIC       = 11,
-    LANG_KALIMAG        = 12,
-    LANG_GNOMISH        = 13,
-    LANG_TROLL          = 14,
-    LANG_GUTTERSPEAK    = 33,
+	LANG_UNIVERSAL = 0,
+	LANG_ORCISH = 1,
+	LANG_DARNASSIAN = 2,
+	LANG_TAURAHE = 3,
+	LANG_DWARVISH = 6,
+	LANG_COMMON = 7,
+	LANG_DEMONIC = 8,
+	LANG_TITAN = 9,
+	LANG_THALASSIAN = 10,
+	LANG_DRACONIC = 11,
+	LANG_KALIMAG = 12,
+	LANG_GNOMISH = 13,
+	LANG_TROLL = 14,
+	LANG_GUTTERSPEAK = 33,
+	LANG_DRAENEI = 35,
+	LANG_ZOMBIE = 36,
+	LANG_GNOMISH_BINARY = 37,
+	LANG_GOBLIN_BINARY = 38,
     LANG_ADDON          = 0xFFFFFFFF                        // used by addons, in 2.4.0 not exit, replaced by messagetype?
 };
 
-#define LANGUAGES_COUNT   15
+#define LANGUAGES_COUNT   19
 
 // In fact !=0 values is alliance/horde root faction ids
 enum Team
@@ -635,11 +641,35 @@ enum SpellEffects
     SPELL_EFFECT_SEND_TAXI                 = 123,
     SPELL_EFFECT_PLAYER_PULL               = 124,
     SPELL_EFFECT_MODIFY_THREAT_PERCENT     = 125,
-    SPELL_EFFECT_126                       = 126,
-    SPELL_EFFECT_127                       = 127,
+	SPELL_EFFECT_STEAL_BENEFICIAL_BUFF     = 126,
+	SPELL_EFFECT_PROSPECTING               = 127,
     SPELL_EFFECT_APPLY_AREA_AURA_FRIEND    = 128,
-    SPELL_EFFECT_APPLY_AREA_AURA_ENEMY     = 129,
-    TOTAL_SPELL_EFFECTS                    = 130
+    SPELL_EFFECT_APPLY_AREA_AURA_ENEMY     = 129,  
+	SPELL_EFFECT_REDIRECT_THREAT = 130,  //added patch13
+	SPELL_EFFECT_PLAY_SOUND = 131,
+	SPELL_EFFECT_PLAY_MUSIC = 132,
+	SPELL_EFFECT_UNLEARN_SPECIALIZATION = 133,
+	SPELL_EFFECT_KILL_CREDIT_GROUP = 134,
+	SPELL_EFFECT_CALL_PET = 135,
+	SPELL_EFFECT_HEAL_PCT = 136,
+	SPELL_EFFECT_ENERGIZE_PCT = 137,
+	SPELL_EFFECT_LEAP_BACK = 138,
+	SPELL_EFFECT_CLEAR_QUEST = 139,
+	SPELL_EFFECT_FORCE_CAST = 140,
+	SPELL_EFFECT_FORCE_CAST_WITH_VALUE = 141,
+	SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE = 142,
+	SPELL_EFFECT_APPLY_AREA_AURA_OWNER = 143,
+	SPELL_EFFECT_KNOCKBACK_FROM_POSITION = 144,
+	SPELL_EFFECT_145 = 145,
+	SPELL_EFFECT_146 = 146,
+	SPELL_EFFECT_QUEST_FAIL = 147,
+	SPELL_EFFECT_148 = 148,
+	SPELL_EFFECT_CHARGE2 = 149,
+	SPELL_EFFECT_150 = 150,
+	SPELL_EFFECT_TRIGGER_SPELL_2 = 151,
+	SPELL_EFFECT_152 = 152,
+	SPELL_EFFECT_153 = 153,
+	TOTAL_SPELL_EFFECTS = 154
 };
 
 enum SpellCastResult
@@ -1692,6 +1722,14 @@ enum CreatureFamily
     CREATURE_FAMILY_OWL            = 26,
     CREATURE_FAMILY_WIND_SERPENT   = 27,
     CREATURE_FAMILY_REMOTE_CONTROL = 28,
+    CREATURE_FAMILY_FELGUARD       = 29,
+    CREATURE_FAMILY_DRAGONHAWK     = 30,
+    CREATURE_FAMILY_RAVAGER        = 31,
+    CREATURE_FAMILY_WARP_STALKER   = 32,
+    CREATURE_FAMILY_SPOREBAT       = 33,
+    CREATURE_FAMILY_NETHER_RAY     = 34,
+    CREATURE_FAMILY_SERPENT        = 35,
+    CREATURE_FAMILY_SEA_LION       = 36
 };
 
 enum CreatureTypeFlags
@@ -1930,11 +1968,23 @@ enum SkillType
     SKILL_RACIAL_TROLL             = 733,
     SKILL_RACIAL_GNOME             = 753,
     SKILL_RACIAL_HUMAN             = 754,
+    SKILL_JEWELCRAFTING            = 755,
+    SKILL_RACIAL_BLOODELF          = 756,
     SKILL_PET_EVENT_RC             = 758,
+    SKILL_LANG_DRAENEI             = 759,
+    SKILL_RACIAL_DRAENEI           = 760,
+    SKILL_PET_FELGUARD             = 761,
     SKILL_RIDING                   = 762,
+    SKILL_PET_DRAGONHAWK           = 763,
+    SKILL_PET_NETHER_RAY           = 764,
+    SKILL_PET_SPOREBAT             = 765,
+    SKILL_PET_WARP_STALKER         = 766,
+    SKILL_PET_RAVAGER              = 767,
+    SKILL_PET_SERPENT              = 768,
+    SKILL_INTERNAL                 = 769
 };
 
-#define MAX_SKILL_TYPE               763
+#define MAX_SKILL_TYPE               770
 
 inline SkillType SkillByLockType(LockType locktype)
 {

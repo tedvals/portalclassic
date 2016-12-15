@@ -1060,7 +1060,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                                 }
                         }
                     }
-                    if (spellMount > 0) m_bot->CastSpell(m_bot, spellMount, false);
+                    if (spellMount > 0) m_bot->CastSpell(m_bot, spellMount, TRIGGERED_NONE);
                 }
             }
             else if (!GetMaster()->IsMounted() && m_bot->IsMounted())
@@ -2911,7 +2911,7 @@ void PlayerbotAI::AcceptQuest(Quest const *qInfo, Player *pGiver)
         // there and there is no default case also.
 
         if (qInfo->GetSrcSpell() > 0)
-            m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), true);
+            m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), TRIGGERED_OLD_TRIGGERED);
     }
 }
 
@@ -3496,7 +3496,7 @@ void PlayerbotAI::PlaySound(uint32 soundid)
 {
     WorldPacket data(SMSG_PLAY_SOUND, 4);
     data << soundid;
-    GetMaster()->GetSession()->SendPacket(&data);
+    GetMaster()->GetSession()->SendPacket(data);
 }
 
 // PlaySound data from SoundEntries.dbc
@@ -3820,7 +3820,7 @@ void PlayerbotAI::SendWhisper(const std::string& text, Player& player) const
     ChatHandler::BuildChatPacket(data, CHAT_MSG_WHISPER, text.c_str(),
         LANG_UNIVERSAL, m_bot->GetChatTag(), m_bot->GetObjectGuid(),
         m_bot->GetName(), player.GetObjectGuid());
-    player.GetSession()->SendPacket(&data);
+    player.GetSession()->SendPacket(data);
 }
 
 bool PlayerbotAI::canObeyCommandFrom(const Player& player) const
@@ -4028,9 +4028,9 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
             return false;
 
         if (IsAutoRepeatRangedSpell(pSpellInfo))
-            m_bot->CastSpell(pTarget, pSpellInfo, true);       // cast triggered spell
+            m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_OLD_TRIGGERED);       // cast triggered spell
         else
-            m_bot->CastSpell(pTarget, pSpellInfo, false);      // uni-cast spell
+            m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);      // uni-cast spell
     }
 
     SetIgnoreUpdateTime(CastTime + 1);
@@ -4081,7 +4081,7 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
             pet->SetFacingTo(pet->GetAngle(pTarget));
     }
 
-    pet->CastSpell(pTarget, pSpellInfo, false);
+    pet->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);
 
     Spell* const pSpell = pet->FindCurrentSpellBySpellId(spellId);
     if (!pSpell)
@@ -5429,7 +5429,7 @@ void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream &report, std:
         uint32 cost = item->GetCount() * item->GetProto()->SellPrice;
         m_bot->ModifyMoney(cost);
         m_bot->MoveItemFromInventory(item->GetBagSlot(), item->GetSlot(), true);
-        m_bot->AddItemToBuyBackSlot(item);
+        m_bot->AddItemToBuyBackSlot(item,cost);
 
         ++TotalSold;
         TotalCost += cost;
@@ -5825,7 +5825,7 @@ void PlayerbotAI::Sell(const uint32 itemid)
         uint32 cost = pItem->GetCount() * pItem->GetProto()->SellPrice;
         m_bot->ModifyMoney(cost);
         m_bot->MoveItemFromInventory(pItem->GetBagSlot(), pItem->GetSlot(), true);
-        m_bot->AddItemToBuyBackSlot(pItem);
+        m_bot->AddItemToBuyBackSlot(pItem,cost);
 
         report << "Sold ";
         MakeItemLink(pItem, report, true);
@@ -7315,7 +7315,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
                 m_bot->ModifyMoney(-int32(cost));
                 // learn explicitly or cast explicitly
                 if (trainer_spell->IsCastable())
-                    m_bot->CastSpell(m_bot, trainer_spell->spell, true);
+                    m_bot->CastSpell(m_bot, trainer_spell->spell, TRIGGERED_OLD_TRIGGERED);
                 else
                     m_bot->learnSpell(spellId, false);
                 ++totalSpellLearnt;
@@ -7330,7 +7330,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
                     WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 12);           // visual effect on trainer
                     data << ObjectGuid(fromPlayer.GetSelectionGuid());
                     data << uint32(0xB3);                                   // index from SpellVisualKit.dbc
-                    GetMaster()->GetSession()->SendPacket(&data);
+                    GetMaster()->GetSession()->SendPacket(data);
 /*
                     data.Initialize(SMSG_PLAY_SPELL_IMPACT, 12);            // visual effect on player
                     data << m_bot->GetObjectGuid();

@@ -109,6 +109,75 @@
     <Filter Include="system">
       <UniqueIdentifier>{90f3df6a-a1d0-4a6e-b8d7-d1d993fc795b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="scripts\Outland">
+      <UniqueIdentifier>{273a201d-36b4-418c-9bc7-53bf59c2a091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\auchindoun">
+      <UniqueIdentifier>{5cc6be0a-e622-4ca7-bcaf-9f4ed08cdd37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\coilfang_reservoir">
+      <UniqueIdentifier>{37ee5957-5f58-4cd1-b2e6-50207ec8ed56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\gruuls_lair">
+      <UniqueIdentifier>{80897dc5-f7b8-4f9f-8837-40d4f7d4cc9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\hellfire_citadel">
+      <UniqueIdentifier>{938e741e-91d2-4522-8caf-0c97041e90fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\tempest_keep">
+      <UniqueIdentifier>{abb49606-9a0d-4921-8e28-56ba0ef5830d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\eastern_kingdoms\karazhan">
+      <UniqueIdentifier>{5d4b6146-d24f-462c-8864-e2ef8e10ab01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\auchindoun\auchenai_crypts">
+      <UniqueIdentifier>{078b3758-e3f1-4343-9211-0f2a23b419eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\auchindoun\mana_tombs">
+      <UniqueIdentifier>{9073ee7a-4b34-463c-b2d3-b41b7f8da1dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\auchindoun\sethekk_halls">
+      <UniqueIdentifier>{87f4ff45-6c2b-4c63-8317-24232592f71b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\auchindoun\shadow_labyrinth">
+      <UniqueIdentifier>{252056be-82da-4129-b6a9-19a6bee596e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\coilfang_reservoir\serpent_shrine">
+      <UniqueIdentifier>{478fbf05-1056-4ef5-ba5c-bc7a7deb2186}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\coilfang_reservoir\slave_pens">
+      <UniqueIdentifier>{aad5ddc9-aee1-411b-a697-713906d67f0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\coilfang_reservoir\steam_vault">
+      <UniqueIdentifier>{12f36f0b-3961-435b-9528-d19925b0cbc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\coilfang_reservoir\underbog">
+      <UniqueIdentifier>{288ac1c5-2d13-4461-92bf-96141cc27bf6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\hellfire_citadel\blood_furnace">
+      <UniqueIdentifier>{d0bf2713-9145-4594-8d72-7aa9f63f2018}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\hellfire_citadel\hellfire_ramparts">
+      <UniqueIdentifier>{1904d84f-baf8-462b-944c-003729fb7ba5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\hellfire_citadel\shattered_halls">
+      <UniqueIdentifier>{068bf97f-83ac-4ce2-866c-9599960ea6eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\hellfire_citadel\magtheridons_lair">
+      <UniqueIdentifier>{ae62e6ae-0844-4fc8-a916-19df4b547cfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\tempest_keep\arcatraz">
+      <UniqueIdentifier>{e086eb49-2b40-4d60-a13d-7fd65cf075ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\tempest_keep\botanica">
+      <UniqueIdentifier>{eef42459-e7ae-4ece-958c-5dbba9d2b65d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\tempest_keep\the_eye">
+      <UniqueIdentifier>{00941f6a-0798-4905-9770-32b642cc2981}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="scripts\Outland\tempest_keep\the_mechanar">
+      <UniqueIdentifier>{4197b557-6927-4177-9a33-7e5d9bbc35ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\scriptdev2\base\escort_ai.cpp">
@@ -679,6 +748,267 @@
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\blackrock_spire\boss_mors_grayhoof.cpp">
       <Filter>scripts\eastern_kingdoms\blackrock_spire</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\eversong_woods.cpp">
+      <Filter>scripts\eastern_kingdoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\ghostlands.cpp">
+      <Filter>scripts\eastern_kingdoms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_curator.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_maiden_of_virtue.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_midnight.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_moroes.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_netherspite.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_nightbane.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_prince_malchezaar.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_shade_of_aran.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\boss_terestian_illhoof.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\bosses_opera.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\chess_event.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\instance_karazhan.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\karazhan.cpp">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\kalimdor\azuremyst_isle.cpp">
+      <Filter>scripts\kalimdor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\kalimdor\bloodmyst_isle.cpp">
+      <Filter>scripts\kalimdor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\blades_edge_mountains.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\boss_doomlord_kazzak.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\boss_doomwalker.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_peninsula.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\nagrand.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\netherstorm.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\shadowmoon_valley.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\shattrath_city.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\terokkar_forest.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\zangarmarsh.cpp">
+      <Filter>scripts\Outland</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\auchenai_crypts\boss_exarch_maladaar.cpp">
+      <Filter>scripts\Outland\auchindoun\auchenai_crypts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\auchenai_crypts\boss_shirrak.cpp">
+      <Filter>scripts\Outland\auchindoun\auchenai_crypts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\mana_tombs\boss_nexusprince_shaffar.cpp">
+      <Filter>scripts\Outland\auchindoun\mana_tombs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\mana_tombs\boss_pandemonius.cpp">
+      <Filter>scripts\Outland\auchindoun\mana_tombs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\mana_tombs\mana_tombs.cpp">
+      <Filter>scripts\Outland\auchindoun\mana_tombs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\shadow_labyrinth\boss_ambassador_hellmaw.cpp">
+      <Filter>scripts\Outland\auchindoun\shadow_labyrinth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\shadow_labyrinth\boss_blackheart_the_inciter.cpp">
+      <Filter>scripts\Outland\auchindoun\shadow_labyrinth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\shadow_labyrinth\boss_grandmaster_vorpil.cpp">
+      <Filter>scripts\Outland\auchindoun\shadow_labyrinth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\shadow_labyrinth\boss_murmur.cpp">
+      <Filter>scripts\Outland\auchindoun\shadow_labyrinth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\shadow_labyrinth\instance_shadow_labyrinth.cpp">
+      <Filter>scripts\Outland\auchindoun\shadow_labyrinth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\sethekk_halls\boss_anzu.cpp">
+      <Filter>scripts\Outland\auchindoun\sethekk_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\sethekk_halls\boss_darkweaver_syth.cpp">
+      <Filter>scripts\Outland\auchindoun\sethekk_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\sethekk_halls\boss_talon_king_ikiss.cpp">
+      <Filter>scripts\Outland\auchindoun\sethekk_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\auchindoun\sethekk_halls\instance_sethekk_halls.cpp">
+      <Filter>scripts\Outland\auchindoun\sethekk_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\underbog\boss_hungarfen.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\underbog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\steam_vault\boss_hydromancer_thespia.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\steam_vault</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\steam_vault\boss_mekgineer_steamrigger.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\steam_vault</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\steam_vault\boss_warlord_kalithresh.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\steam_vault</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\steam_vault\instance_steam_vault.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\steam_vault</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\boss_fathomlord_karathress.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\boss_hydross_the_unstable.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\boss_lady_vashj.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\boss_leotheras_the_blind.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\boss_morogrim_tidewalker.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\boss_the_lurker_below.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\instance_serpent_shrine.cpp">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\gruuls_lair\boss_gruul.cpp">
+      <Filter>scripts\Outland\gruuls_lair</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\gruuls_lair\boss_high_king_maulgar.cpp">
+      <Filter>scripts\Outland\gruuls_lair</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\gruuls_lair\instance_gruuls_lair.cpp">
+      <Filter>scripts\Outland\gruuls_lair</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\blood_furnace\boss_broggok.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\blood_furnace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\blood_furnace\boss_kelidan_the_breaker.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\blood_furnace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\blood_furnace\boss_the_maker.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\blood_furnace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\blood_furnace\instance_blood_furnace.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\blood_furnace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\hellfire_ramparts\boss_nazan_and_vazruden.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\hellfire_ramparts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\hellfire_ramparts\boss_omor_the_unscarred.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\hellfire_ramparts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\hellfire_ramparts\boss_watchkeeper_gargolmar.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\hellfire_ramparts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\hellfire_ramparts\instance_hellfire_ramparts.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\hellfire_ramparts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\magtheridons_lair\boss_magtheridon.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\magtheridons_lair</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\magtheridons_lair\instance_magtheridons_lair.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\magtheridons_lair</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\shattered_halls\boss_nethekurse.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\shattered_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\shattered_halls\boss_warbringer_omrogg.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\shattered_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\shattered_halls\boss_warchief_kargath_bladefist.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\shattered_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\shattered_halls\instance_shattered_halls.cpp">
+      <Filter>scripts\Outland\hellfire_citadel\shattered_halls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\arcatraz\arcatraz.cpp">
+      <Filter>scripts\Outland\tempest_keep\arcatraz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\arcatraz\boss_dalliah.cpp">
+      <Filter>scripts\Outland\tempest_keep\arcatraz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\arcatraz\boss_harbinger_skyriss.cpp">
+      <Filter>scripts\Outland\tempest_keep\arcatraz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\arcatraz\boss_soccothrates.cpp">
+      <Filter>scripts\Outland\tempest_keep\arcatraz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\arcatraz\instance_arcatraz.cpp">
+      <Filter>scripts\Outland\tempest_keep\arcatraz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\botanica\boss_high_botanist_freywinn.cpp">
+      <Filter>scripts\Outland\tempest_keep\botanica</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\botanica\boss_laj.cpp">
+      <Filter>scripts\Outland\tempest_keep\botanica</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\botanica\boss_warp_splinter.cpp">
+      <Filter>scripts\Outland\tempest_keep\botanica</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_mechanar\boss_nethermancer_sepethrea.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_mechanar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_mechanar\boss_pathaleon_the_calculator.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_mechanar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_mechanar\instance_mechanar.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_mechanar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_eye\boss_alar.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_eye</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_eye\boss_astromancer.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_eye</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_eye\boss_kaelthas.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_eye</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_eye\boss_void_reaver.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_eye</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_eye\instance_the_eye.cpp">
+      <Filter>scripts\Outland\tempest_keep\the_eye</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\silvermoon_city.cpp">
+      <Filter>scripts\eastern_kingdoms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\scriptdev2\base\escort_ai.h">
@@ -790,5 +1120,44 @@
     <ClInclude Include="..\..\src\scriptdev2\sd2_revision_nr.h" />
     <ClInclude Include="..\..\src\scriptdev2\sd2_revision_sql.h" />
     <ClInclude Include="..\..\src\scriptdev2\ScriptMgr.h" />
+    <ClInclude Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\karazhan\karazhan.h">
+      <Filter>scripts\eastern_kingdoms\karazhan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\auchindoun\shadow_labyrinth\shadow_labyrinth.h">
+      <Filter>scripts\Outland\auchindoun\shadow_labyrinth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\auchindoun\sethekk_halls\sethekk_halls.h">
+      <Filter>scripts\Outland\auchindoun\sethekk_halls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\steam_vault\steam_vault.h">
+      <Filter>scripts\Outland\coilfang_reservoir\steam_vault</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\coilfang_reservoir\serpent_shrine\serpent_shrine.h">
+      <Filter>scripts\Outland\coilfang_reservoir\serpent_shrine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\gruuls_lair\gruuls_lair.h">
+      <Filter>scripts\Outland\gruuls_lair</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\blood_furnace\blood_furnace.h">
+      <Filter>scripts\Outland\hellfire_citadel\blood_furnace</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\hellfire_ramparts\hellfire_ramparts.h">
+      <Filter>scripts\Outland\hellfire_citadel\hellfire_ramparts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\magtheridons_lair\magtheridons_lair.h">
+      <Filter>scripts\Outland\hellfire_citadel\magtheridons_lair</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\hellfire_citadel\shattered_halls\shattered_halls.h">
+      <Filter>scripts\Outland\hellfire_citadel\shattered_halls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\arcatraz\arcatraz.h">
+      <Filter>scripts\Outland\tempest_keep\arcatraz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_mechanar\mechanar.h">
+      <Filter>scripts\Outland\tempest_keep\the_mechanar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\scriptdev2\scripts\outland\tempest_keep\the_eye\the_eye.h">
+      <Filter>scripts\Outland\tempest_keep\the_eye</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

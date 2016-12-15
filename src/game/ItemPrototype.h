@@ -273,7 +273,7 @@ enum ItemSubclassTradeGoods
     ITEM_SUBCLASS_PARTS                         = 1,
     ITEM_SUBCLASS_EXPLOSIVES                    = 2,
     ITEM_SUBCLASS_DEVICES                       = 3,
-    // ITEM_SUBCLASS_JEWELCRAFTING                 = 4,
+    ITEM_SUBCLASS_JEWELCRAFTING                 = 4,
     ITEM_SUBCLASS_CLOTH                         = 5,
     ITEM_SUBCLASS_LEATHER                       = 6,
     ITEM_SUBCLASS_METAL_STONE                   = 7,
@@ -392,10 +392,8 @@ inline uint8 ItemSubClassToDurabilityMultiplierId(uint32 ItemClass, uint32 ItemS
 
 enum ItemExtraFlags
 {
-    ITEM_EXTRA_NON_CONSUMABLE     = 0x01,                   // use as additional flag to spellcharges_N negative values, item not expire at no chanrges
-    ITEM_EXTRA_REAL_TIME_DURATION = 0x02,                   // if set and have Duration time, then offline time included in counting, if not set then counted only in game time
-
-    ITEM_EXTRA_ALL                = 0x03                    // all used flags, used for check DB data (mask all above flags)
+    ITEM_EXTRA_REAL_TIME_DURATION = 0x01,                   // if set and have Duration time, then offline time included in counting, if not set then counted only in game time
+    ITEM_EXTRA_ALL                = 0x01                    // all used flags, used for check DB data (mask all above flags)
 };
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform

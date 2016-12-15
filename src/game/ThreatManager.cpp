@@ -201,9 +201,9 @@ void HostileReference::removeReference()
 
 //============================================================
 
-Unit* HostileReference::getSourceUnit()
+Unit* HostileReference::getSourceUnit() const
 {
-    return (getSource()->getOwner());
+    return getSource()->getOwner();
 }
 
 //============================================================
@@ -426,6 +426,18 @@ void ThreatManager::addThreat(Unit* pVictim, float pThreat, bool crit, SpellScho
     MANGOS_ASSERT(getOwner()->GetTypeId() == TYPEID_UNIT);
 
     float threat = ThreatCalcHelper::CalcThreat(pVictim, iOwner, pThreat, crit, schoolMask, pThreatSpell);
+
+	if (threat > 0.0f)
+	{
+		if (Unit* redirectedTarget = pVictim->getHostileRefManager().GetThreatRedirectionTarget())
+		{
+			if (redirectedTarget != getOwner() && redirectedTarget->isAlive())
+			{
+				addThreatDirectly(redirectedTarget, threat);
+				threat = 0;                                 // but still need add to threat list
+			}
+		}
+	}
 
     addThreatDirectly(pVictim, threat);
 }

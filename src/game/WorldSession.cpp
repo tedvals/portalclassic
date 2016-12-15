@@ -64,9 +64,9 @@ static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& o
 }
 
 
-bool MapSessionFilter::Process(WorldPacket* packet)
+bool MapSessionFilter::Process(WorldPacket const& packet) const
 {
-    OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+    OpcodeHandler const& opHandle = opcodeTable[packet.GetOpcode()];
     if (opHandle.packetProcessing == PROCESS_INPLACE)
         return true;
 
@@ -76,9 +76,9 @@ bool MapSessionFilter::Process(WorldPacket* packet)
 
 // we should process ALL packets when player is not in world/logged in
 // OR packet handler is not thread-safe!
-bool WorldSessionFilter::Process(WorldPacket* packet)
+bool WorldSessionFilter::Process(WorldPacket const& packet) const
 {
-    OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+    OpcodeHandler const& opHandle = opcodeTable[packet.GetOpcode()];
     // check if packet handler is supposed to be safe
     if (opHandle.packetProcessing == PROCESS_INPLACE)
         return true;
@@ -90,7 +90,7 @@ bool WorldSessionFilter::Process(WorldPacket* packet)
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, time_t mute_time, LocaleConstant locale) :
     m_muteTime(mute_time),
-    _player(nullptr), m_Socket(sock), _security(sec), _accountId(id), _logoutTime(0),
+    _player(nullptr), m_Socket(sock->shared<WorldSocket>()), _security(sec), _accountId(id), _logoutTime(0),
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
     m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED) {}
@@ -104,7 +104,7 @@ WorldSession::~WorldSession()
 
     // marks this session as finalized in the socket which references (BUT DOES NOT OWN) it.
     // this lets the socket handling code know that the socket can be safely deleted
-    m_Socket->ClearSession();
+    m_Socket->FinalizeSession();
 }
 
 void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
@@ -120,15 +120,15 @@ char const* WorldSession::GetPlayerName() const
 }
 
 /// Send a packet to the client
-void WorldSession::SendPacket(WorldPacket const* packet)
+void WorldSession::SendPacket(WorldPacket const& packet) const
 {
 
     // Playerbot mod: send packet to bot AI
     if (GetPlayer()) {
         if (GetPlayer()->GetPlayerbotAI())
-            GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(*packet);
+            GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(packet);
         else if (GetPlayer()->GetPlayerbotMgr())
-            GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(*packet);
+            GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(packet);
     }
 
 	if (!m_Socket)
@@ -154,10 +154,10 @@ void WorldSession::SendPacket(WorldPacket const* packet)
     if ((cur_time - lastTime) < 60)
     {
         sendPacketCount += 1;
-        sendPacketBytes += packet->size();
+        sendPacketBytes += packet.size();
 
         sendLastPacketCount += 1;
-        sendLastPacketBytes += packet->size();
+        sendLastPacketBytes += packet.size();
     }
     else
     {
@@ -168,12 +168,12 @@ void WorldSession::SendPacket(WorldPacket const* packet)
 
         lastTime = cur_time;
         sendLastPacketCount = 1;
-        sendLastPacketBytes = packet->wpos();               // wpos is real written size
+        sendLastPacketBytes = packet.wpos();               // wpos is real written size
     }
 
 #endif                                                  // !MANGOS_DEBUG
 
-    m_Socket->SendPacket(*packet);
+    m_Socket->SendPacket(packet);
 }
 
 /// Add an incoming packet to the queue
@@ -184,7 +184,7 @@ void WorldSession::QueuePacket(std::unique_ptr<WorldPacket> new_packet)
 }
 
 /// Logging helper for unexpected opcodes
-void WorldSession::LogUnexpectedOpcode(WorldPacket const& packet, const char* reason)
+void WorldSession::LogUnexpectedOpcode(WorldPacket const& packet, const char* reason) const
 {
     sLog.outError("SESSION: received unexpected opcode %s (0x%.4X) %s",
                   packet.GetOpcodeName(),
@@ -193,7 +193,7 @@ void WorldSession::LogUnexpectedOpcode(WorldPacket const& packet, const char* re
 }
 
 /// Logging helper for unexpected opcodes
-void WorldSession::LogUnprocessedTail(WorldPacket const& packet)
+void WorldSession::LogUnprocessedTail(WorldPacket const& packet) const
 {
     sLog.outError("SESSION: opcode %s (0x%.4X) have unprocessed tail data (read stop at " SIZEFMTD " from " SIZEFMTD ")",
                   packet.GetOpcodeName(),
@@ -532,7 +532,7 @@ void WorldSession::LogoutPlayer(bool save)
 
         ///- Send the 'logout complete' packet to the client
         WorldPacket data(SMSG_LOGOUT_COMPLETE, 0);
-        SendPacket(&data);
+        SendPacket(data);
 
         ///- Since each account can only have one online character at any given time, ensure all characters for active account are marked as offline
         // No SQL injection as AccountId is uint32
@@ -564,7 +564,7 @@ void WorldSession::KickPlayer()
 
 /// Cancel channeling handler
 
-void WorldSession::SendAreaTriggerMessage(const char* Text, ...)
+void WorldSession::SendAreaTriggerMessage(const char* Text, ...) const
 {
     va_list ap;
     char szStr [1024];
@@ -578,10 +578,10 @@ void WorldSession::SendAreaTriggerMessage(const char* Text, ...)
     WorldPacket data(SMSG_AREA_TRIGGER_MESSAGE, 4 + length);
     data << length;
     data << szStr;
-    SendPacket(&data);
+    SendPacket(data);
 }
 
-void WorldSession::SendNotification(const char* format, ...)
+void WorldSession::SendNotification(const char* format, ...) const
 {
     if (format)
     {
@@ -594,11 +594,11 @@ void WorldSession::SendNotification(const char* format, ...)
 
         WorldPacket data(SMSG_NOTIFICATION, (strlen(szStr) + 1));
         data << szStr;
-        SendPacket(&data);
+        SendPacket(data);
     }
 }
 
-void WorldSession::SendNotification(int32 string_id, ...)
+void WorldSession::SendNotification(int32 string_id, ...) const
 {
     char const* format = GetMangosString(string_id);
     if (format)
@@ -612,7 +612,7 @@ void WorldSession::SendNotification(int32 string_id, ...)
 
         WorldPacket data(SMSG_NOTIFICATION, (strlen(szStr) + 1));
         data << szStr;
-        SendPacket(&data);
+        SendPacket(data);
     }
 }
 
@@ -649,20 +649,20 @@ void WorldSession::Handle_Deprecated(WorldPacket& recvPacket)
                   recvPacket.GetOpcode());
 }
 
-void WorldSession::SendAuthWaitQue(uint32 position)
+void WorldSession::SendAuthWaitQue(uint32 position) const
 {
     if (position == 0)
     {
         WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
         packet << uint8(AUTH_OK);
-        SendPacket(&packet);
+        SendPacket(packet);
     }
     else
     {
         WorldPacket packet(SMSG_AUTH_RESPONSE, 1 + 4);
         packet << uint8(AUTH_WAIT_QUEUE);
         packet << uint32(position);
-        SendPacket(&packet);
+        SendPacket(packet);
     }
 }
 
@@ -698,7 +698,7 @@ void WorldSession::SendTutorialsData()
     WorldPacket data(SMSG_TUTORIAL_FLAGS, 4 * 8);
     for (uint32 i = 0; i < 8; ++i)
         data << m_Tutorials[i];
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::SaveTutorialsData()
@@ -738,13 +738,13 @@ void WorldSession::SaveTutorialsData()
 }
 
 // Send chat information about aborted transfer (mostly used by Player::SendTransferAbortedByLockstatus())
-void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg)
+void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg) const
 {
     WorldPacket data(SMSG_TRANSFER_ABORTED, 4 + 2);
     data << uint32(mapid);
     data << uint8(reason);                                  // transfer abort reason
     data << uint8(0);                                       // arg. not used
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket &packet)
@@ -771,10 +771,10 @@ void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket &pac
         LogUnprocessedTail(packet);
 }
 
-void WorldSession::SendPlaySpellVisual(ObjectGuid guid, uint32 spellArtKit)
+void WorldSession::SendPlaySpellVisual(ObjectGuid guid, uint32 spellArtKit) const
 {
     WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 8 + 4);        // visual effect on guid
     data << guid;
     data << spellArtKit;                                    // index from SpellVisualKit.dbc
-    SendPacket(&data);
+    SendPacket(data);
 }

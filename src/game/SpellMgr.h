@@ -104,6 +104,9 @@ inline bool IsAuraApplyEffect(SpellEntry const* spellInfo, SpellEffectIndex effe
 	case SPELL_EFFECT_PERSISTENT_AREA_AURA:
 	case SPELL_EFFECT_APPLY_AREA_AURA_PARTY:
 	case SPELL_EFFECT_APPLY_AREA_AURA_PET:
+	case SPELL_EFFECT_APPLY_AREA_AURA_FRIEND:
+	case SPELL_EFFECT_APPLY_AREA_AURA_ENEMY:
+	case SPELL_EFFECT_APPLY_AREA_AURA_OWNER:
 		return true;
 	}
 	return false;
@@ -206,6 +209,8 @@ inline bool IsSpellEffectTriggerSpellByAura(const SpellEntry* entry, SpellEffect
 	case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
 	case SPELL_AURA_PROC_TRIGGER_SPELL:
 	case SPELL_AURA_PROC_TRIGGER_DAMAGE:
+	case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
+	case SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE:
 		return true;
 	}
 	return false;
@@ -216,19 +221,19 @@ inline bool IsSpellEffectAbleToCrit(const SpellEntry* entry, SpellEffectIndex in
 	if (!entry || entry->HasAttribute(SPELL_ATTR_EX2_CANT_CRIT))
 		return false;
 
-	switch (entry->Effect[index])
-	{
-	case SPELL_EFFECT_SCHOOL_DAMAGE:
-	case SPELL_EFFECT_HEAL:
-	case SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL:
-	case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
-	case SPELL_EFFECT_WEAPON_DAMAGE:
-	case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
-		return true;
-	case SPELL_EFFECT_ENERGIZE: // Mana Potion and similar spells, Lay on hands
-		return (entry->SpellFamilyName && entry->DmgClass);
-	}
-	return false;
+    switch (entry->Effect[index])
+    {
+        case SPELL_EFFECT_SCHOOL_DAMAGE:
+        case SPELL_EFFECT_HEAL:
+        case SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL:
+        case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
+        case SPELL_EFFECT_WEAPON_DAMAGE:
+        case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
+            return true;
+        case SPELL_EFFECT_ENERGIZE: // Mana Potion and similar spells, Lay on hands
+            return (entry->EffectMiscValue[index] == POWER_MANA && entry->SpellFamilyName && entry->DmgClass);
+    }
+    return false;
 }
 
 inline bool IsSpellAbleToCrit(const SpellEntry* entry)
@@ -488,7 +493,10 @@ inline bool IsAreaOfEffectSpell(SpellEntry const* spellInfo)
 inline bool IsAreaAuraEffect(uint32 effect)
 {
 	if (effect == SPELL_EFFECT_APPLY_AREA_AURA_PARTY ||
-		effect == SPELL_EFFECT_APPLY_AREA_AURA_PET)
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_FRIEND ||
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_ENEMY ||
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_PET ||
+		effect == SPELL_EFFECT_APPLY_AREA_AURA_OWNER)
 		return true;
 	return false;
 }
@@ -1151,7 +1159,9 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
                     break;
                 case SPELLFAMILY_DRUID:
                     if (entry->SpellFamilyFlags & uint64(0x80) && multirank)
-                        return true; // Tranquility (should it stack? TODO: Find confirmation)
+                        return true; // Tranquility (should it stack? TODO: Find confirmation)				
+					if (entry->SpellFamilyFlags & uint64(0x44000000000) && entry2->SpellFamilyFlags & uint64(0x44000000000))
+						return false; // Mangle (Cat) & Mangle (Bear)
                     break;
             }
             break;
@@ -1653,319 +1663,319 @@ typedef std::map<uint32, uint32> SpellFacingFlagMap;
 
 class SpellMgr
 {
-	friend struct DoSpellBonuses;
-	friend struct DoSpellProcEvent;
-	friend struct DoSpellProcItemEnchant;
+        friend struct DoSpellBonuses;
+        friend struct DoSpellProcEvent;
+        friend struct DoSpellProcItemEnchant;
 
-	// Constructors
-public:
-	SpellMgr();
-	~SpellMgr();
+        // Constructors
+    public:
+        SpellMgr();
+        ~SpellMgr();
 
-	// Accessors (const or static functions)
-public:
-	// Spell affects
-	ClassFamilyMask GetSpellAffectMask(uint32 spellId, SpellEffectIndex effectId) const
-	{
-		SpellAffectMap::const_iterator itr = mSpellAffectMap.find((spellId << 8) + effectId);
-		if (itr != mSpellAffectMap.end())
-			return ClassFamilyMask(itr->second);
-		if (SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellId))
-			return ClassFamilyMask(spellEntry->EffectItemType[effectId]);
-		return ClassFamilyMask();
-	}
+        // Accessors (const or static functions)
+    public:
+        // Spell affects
+        ClassFamilyMask GetSpellAffectMask(uint32 spellId, SpellEffectIndex effectId) const
+        {
+            SpellAffectMap::const_iterator itr = mSpellAffectMap.find((spellId << 8) + effectId);
+            if (itr != mSpellAffectMap.end())
+                return ClassFamilyMask(itr->second);
+            if (SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellId))
+                return ClassFamilyMask(spellEntry->EffectItemType[effectId]);
+            return ClassFamilyMask();
+        }
 
-	SpellElixirMap const& GetSpellElixirMap() const { return mSpellElixirs; }
+        SpellElixirMap const& GetSpellElixirMap() const { return mSpellElixirs; }
 
-	uint32 GetSpellElixirMask(uint32 spellid) const
-	{
-		SpellElixirMap::const_iterator itr = mSpellElixirs.find(spellid);
-		if (itr == mSpellElixirs.end())
-			return 0x0;
+        uint32 GetSpellElixirMask(uint32 spellid) const
+        {
+            SpellElixirMap::const_iterator itr = mSpellElixirs.find(spellid);
+            if (itr == mSpellElixirs.end())
+                return 0x0;
 
-		return itr->second;
-	}
+            return itr->second;
+        }
 
-	SpellSpecific GetSpellElixirSpecific(uint32 spellid) const
-	{
-		uint32 mask = GetSpellElixirMask(spellid);
+        SpellSpecific GetSpellElixirSpecific(uint32 spellid) const
+        {
+            uint32 mask = GetSpellElixirMask(spellid);
 
-		// flasks must have all bits set from ELIXIR_FLASK_MASK
-		if ((mask & ELIXIR_FLASK_MASK) == ELIXIR_FLASK_MASK)
-			return SPELL_FLASK_ELIXIR;
-		else if (mask & ELIXIR_WELL_FED)
-			return SPELL_WELL_FED;
-		else
-			return SPELL_NORMAL;
-	}
+            // flasks must have all bits set from ELIXIR_FLASK_MASK
+            if ((mask & ELIXIR_FLASK_MASK) == ELIXIR_FLASK_MASK)
+                return SPELL_FLASK_ELIXIR;
+            else if (mask & ELIXIR_WELL_FED)
+                return SPELL_WELL_FED;
+            else
+                return SPELL_NORMAL;
+        }
 
-	SpellThreatEntry const* GetSpellThreatEntry(uint32 spellid) const
-	{
-		SpellThreatMap::const_iterator itr = mSpellThreatMap.find(spellid);
-		if (itr != mSpellThreatMap.end())
-			return &itr->second;
+        SpellThreatEntry const* GetSpellThreatEntry(uint32 spellid) const
+        {
+            SpellThreatMap::const_iterator itr = mSpellThreatMap.find(spellid);
+            if (itr != mSpellThreatMap.end())
+                return &itr->second;
 
-		return nullptr;
-	}
+            return nullptr;
+        }
 
-	float GetSpellThreatMultiplier(SpellEntry const* spellInfo) const
-	{
-		if (!spellInfo)
-			return 1.0f;
+        float GetSpellThreatMultiplier(SpellEntry const* spellInfo) const
+        {
+            if (!spellInfo)
+                return 1.0f;
 
-		if (SpellThreatEntry const* entry = GetSpellThreatEntry(spellInfo->Id))
-			return entry->multiplier;
+            if (SpellThreatEntry const* entry = GetSpellThreatEntry(spellInfo->Id))
+                return entry->multiplier;
 
-		return 1.0f;
-	}
+            return 1.0f;
+        }
 
-	// Spell proc events
-	SpellProcEventEntry const* GetSpellProcEvent(uint32 spellId) const
-	{
-		SpellProcEventMap::const_iterator itr = mSpellProcEventMap.find(spellId);
-		if (itr != mSpellProcEventMap.end())
-			return &itr->second;
-		return nullptr;
-	}
+        // Spell proc events
+        SpellProcEventEntry const* GetSpellProcEvent(uint32 spellId) const
+        {
+            SpellProcEventMap::const_iterator itr = mSpellProcEventMap.find(spellId);
+            if (itr != mSpellProcEventMap.end())
+                return &itr->second;
+            return nullptr;
+        }
 
-	// Spell procs from item enchants
-	float GetItemEnchantProcChance(uint32 spellid) const
-	{
-		SpellProcItemEnchantMap::const_iterator itr = mSpellProcItemEnchantMap.find(spellid);
-		if (itr == mSpellProcItemEnchantMap.end())
-			return 0.0f;
+        // Spell procs from item enchants
+        float GetItemEnchantProcChance(uint32 spellid) const
+        {
+            SpellProcItemEnchantMap::const_iterator itr = mSpellProcItemEnchantMap.find(spellid);
+            if (itr == mSpellProcItemEnchantMap.end())
+                return 0.0f;
 
-		return itr->second;
-	}
+            return itr->second;
+        }
 
-	static bool IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellProcEvent, uint32 EventProcFlag, SpellEntry const* procSpell, uint32 procFlags, uint32 procExtra);
+        static bool IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellProcEvent, uint32 EventProcFlag, SpellEntry const* procSpell, uint32 procFlags, uint32 procExtra);
 
-	// Spell bonus data
-	SpellBonusEntry const* GetSpellBonusData(uint32 spellId) const
-	{
-		// Lookup data
-		SpellBonusMap::const_iterator itr = mSpellBonusMap.find(spellId);
-		if (itr != mSpellBonusMap.end())
-			return &itr->second;
+        // Spell bonus data
+        SpellBonusEntry const* GetSpellBonusData(uint32 spellId) const
+        {
+            // Lookup data
+            SpellBonusMap::const_iterator itr = mSpellBonusMap.find(spellId);
+            if (itr != mSpellBonusMap.end())
+                return &itr->second;
 
-		return nullptr;
-	}
+            return nullptr;
+        }
 
-	uint32 GetSpellFacingFlag(uint32 spellId) const
-	{
-		SpellFacingFlagMap::const_iterator itr = mSpellFacingFlagMap.find(spellId);
-		if (itr != mSpellFacingFlagMap.end())
-			return itr->second;
-		return 0x0;
-	}
+        uint32 GetSpellFacingFlag(uint32 spellId) const
+        {
+            SpellFacingFlagMap::const_iterator itr =  mSpellFacingFlagMap.find(spellId);
+            if (itr != mSpellFacingFlagMap.end())
+                return itr->second;
+            return 0x0;
+        }
 
-	// Spell target coordinates
-	SpellTargetPosition const* GetSpellTargetPosition(uint32 spell_id) const
-	{
-		SpellTargetPositionMap::const_iterator itr = mSpellTargetPositions.find(spell_id);
-		if (itr != mSpellTargetPositions.end())
-			return &itr->second;
-		return nullptr;
-	}
+        // Spell target coordinates
+        SpellTargetPosition const* GetSpellTargetPosition(uint32 spell_id) const
+        {
+            SpellTargetPositionMap::const_iterator itr = mSpellTargetPositions.find(spell_id);
+            if (itr != mSpellTargetPositions.end())
+                return &itr->second;
+            return nullptr;
+        }
 
-	// Spell ranks chains
-	SpellChainNode const* GetSpellChainNode(uint32 spell_id) const
-	{
-		SpellChainMap::const_iterator itr = mSpellChains.find(spell_id);
-		if (itr == mSpellChains.end())
-			return nullptr;
+        // Spell ranks chains
+        SpellChainNode const* GetSpellChainNode(uint32 spell_id) const
+        {
+            SpellChainMap::const_iterator itr = mSpellChains.find(spell_id);
+            if (itr == mSpellChains.end())
+                return nullptr;
 
-		return &itr->second;
-	}
+            return &itr->second;
+        }
 
-	uint32 GetFirstSpellInChain(uint32 spell_id) const
-	{
-		if (SpellChainNode const* node = GetSpellChainNode(spell_id))
-			return node->first;
+        uint32 GetFirstSpellInChain(uint32 spell_id) const
+        {
+            if (SpellChainNode const* node = GetSpellChainNode(spell_id))
+                return node->first;
 
-		return spell_id;
-	}
+            return spell_id;
+        }
 
-	uint32 GetPrevSpellInChain(uint32 spell_id) const
-	{
-		if (SpellChainNode const* node = GetSpellChainNode(spell_id))
-			return node->prev;
+        uint32 GetPrevSpellInChain(uint32 spell_id) const
+        {
+            if (SpellChainNode const* node = GetSpellChainNode(spell_id))
+                return node->prev;
 
-		return 0;
-	}
+            return 0;
+        }
 
-	SpellChainMapNext const& GetSpellChainNext() const { return mSpellChainsNext; }
+        SpellChainMapNext const& GetSpellChainNext() const { return mSpellChainsNext; }
 
-	template<typename Worker>
-	void doForHighRanks(uint32 spellid, Worker& worker)
-	{
-		SpellChainMapNext const& nextMap = GetSpellChainNext();
-		for (SpellChainMapNext::const_iterator itr = nextMap.lower_bound(spellid); itr != nextMap.upper_bound(spellid); ++itr)
-		{
-			worker(itr->second);
-			doForHighRanks(itr->second, worker);
-		}
-	}
+        template<typename Worker>
+        void doForHighRanks(uint32 spellid, Worker& worker)
+        {
+            SpellChainMapNext const& nextMap = GetSpellChainNext();
+            for (SpellChainMapNext::const_iterator itr = nextMap.lower_bound(spellid); itr != nextMap.upper_bound(spellid); ++itr)
+            {
+                worker(itr->second);
+                doForHighRanks(itr->second, worker);
+            }
+        }
 
-	// Note: not use rank for compare to spell ranks: spell chains isn't linear order
-	// Use IsHighRankOfSpell instead
-	uint8 GetSpellRank(uint32 spell_id) const
-	{
-		if (SpellChainNode const* node = GetSpellChainNode(spell_id))
-			return node->rank;
+        // Note: not use rank for compare to spell ranks: spell chains isn't linear order
+        // Use IsHighRankOfSpell instead
+        uint8 GetSpellRank(uint32 spell_id) const
+        {
+            if (SpellChainNode const* node = GetSpellChainNode(spell_id))
+                return node->rank;
 
-		return 0;
-	}
+            return 0;
+        }
 
-	bool IsHighRankOfSpell(uint32 spell1, uint32 spell2) const
-	{
-		SpellChainMap::const_iterator itr = mSpellChains.find(spell1);
+        bool IsHighRankOfSpell(uint32 spell1, uint32 spell2) const
+        {
+            SpellChainMap::const_iterator itr = mSpellChains.find(spell1);
 
-		uint32 rank2 = GetSpellRank(spell2);
+            uint32 rank2 = GetSpellRank(spell2);
 
-		// not ordered correctly by rank value
-		if (itr == mSpellChains.end() || !rank2 || itr->second.rank <= rank2)
-			return false;
+            // not ordered correctly by rank value
+            if (itr == mSpellChains.end() || !rank2 || itr->second.rank <= rank2)
+                return false;
 
-		// check present in same rank chain
-		for (; itr != mSpellChains.end(); itr = mSpellChains.find(itr->second.prev))
-			if (itr->second.prev == spell2)
-				return true;
+            // check present in same rank chain
+            for (; itr != mSpellChains.end(); itr = mSpellChains.find(itr->second.prev))
+                if (itr->second.prev == spell2)
+                    return true;
 
-		return false;
-	}
+            return false;
+        }
 
-	bool IsRankSpellDueToSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const;
-	bool IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
-	bool canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const;
-	bool IsRankedSpellNonStackableInSpellBook(SpellEntry const* spellInfo) const
-	{
-		return !canStackSpellRanksInSpellBook(spellInfo) && GetSpellRank(spellInfo->Id) != 0;
-	}
+        bool IsRankSpellDueToSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const;
+        bool IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
+        bool canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const;
+        bool IsRankedSpellNonStackableInSpellBook(SpellEntry const* spellInfo) const
+        {
+            return !canStackSpellRanksInSpellBook(spellInfo) && GetSpellRank(spellInfo->Id) != 0;
+        }
 
-	// return true if spell1 can affect spell2
-	bool IsSpellCanAffectSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
+        // return true if spell1 can affect spell2
+        bool IsSpellCanAffectSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
 
-	SpellEntry const* SelectAuraRankForLevel(SpellEntry const* spellInfo, uint32 Level) const;
+        SpellEntry const* SelectAuraRankForLevel(SpellEntry const* spellInfo, uint32 Level) const;
 
-	// Spell learning
-	SpellLearnSkillNode const* GetSpellLearnSkill(uint32 spell_id) const
-	{
-		SpellLearnSkillMap::const_iterator itr = mSpellLearnSkills.find(spell_id);
-		if (itr != mSpellLearnSkills.end())
-			return &itr->second;
-		else
-			return nullptr;
-	}
+        // Spell learning
+        SpellLearnSkillNode const* GetSpellLearnSkill(uint32 spell_id) const
+        {
+            SpellLearnSkillMap::const_iterator itr = mSpellLearnSkills.find(spell_id);
+            if (itr != mSpellLearnSkills.end())
+                return &itr->second;
+            else
+                return nullptr;
+        }
 
-	bool IsSpellLearnSpell(uint32 spell_id) const
-	{
-		return mSpellLearnSpells.find(spell_id) != mSpellLearnSpells.end();
-	}
+        bool IsSpellLearnSpell(uint32 spell_id) const
+        {
+            return mSpellLearnSpells.find(spell_id) != mSpellLearnSpells.end();
+        }
 
-	SpellLearnSpellMapBounds GetSpellLearnSpellMapBounds(uint32 spell_id) const
-	{
-		return mSpellLearnSpells.equal_range(spell_id);
-	}
+        SpellLearnSpellMapBounds GetSpellLearnSpellMapBounds(uint32 spell_id) const
+        {
+            return mSpellLearnSpells.equal_range(spell_id);
+        }
 
-	bool IsSpellLearnToSpell(uint32 parent, uint32 child) const
-	{
-		SpellLearnSpellMapBounds bounds = GetSpellLearnSpellMapBounds(parent);
-		for (SpellLearnSpellMap::const_iterator i = bounds.first; i != bounds.second; ++i)
-			if (i->second.spell == child)
-				return true;
-		return false;
-	}
+        bool IsSpellLearnToSpell(uint32 parent, uint32 child) const
+        {
+            SpellLearnSpellMapBounds bounds = GetSpellLearnSpellMapBounds(parent);
+            for (SpellLearnSpellMap::const_iterator i = bounds.first; i != bounds.second; ++i)
+                if (i->second.spell == child)
+                    return true;
+            return false;
+        }
 
-	static bool IsProfessionOrRidingSpell(uint32 spellId);
-	static bool IsProfessionSpell(uint32 spellId);
-	static bool IsPrimaryProfessionSpell(uint32 spellId);
-	bool IsPrimaryProfessionFirstRankSpell(uint32 spellId) const;
+        static bool IsProfessionOrRidingSpell(uint32 spellId);
+        static bool IsProfessionSpell(uint32 spellId);
+        static bool IsPrimaryProfessionSpell(uint32 spellId);
+        bool IsPrimaryProfessionFirstRankSpell(uint32 spellId) const;
 
-	bool IsSkillBonusSpell(uint32 spellId) const;
+        bool IsSkillBonusSpell(uint32 spellId) const;
 
-	// Spell correctness for client using
-	static bool IsSpellValid(SpellEntry const* spellInfo, Player* pl = nullptr, bool msg = true);
+        // Spell correctness for client using
+        static bool IsSpellValid(SpellEntry const* spellInfo, Player* pl = nullptr, bool msg = true);
 
-	SkillLineAbilityMapBounds GetSkillLineAbilityMapBounds(uint32 spell_id) const
-	{
-		return mSkillLineAbilityMap.equal_range(spell_id);
-	}
+        SkillLineAbilityMapBounds GetSkillLineAbilityMapBounds(uint32 spell_id) const
+        {
+            return mSkillLineAbilityMap.equal_range(spell_id);
+        }
 
-	SkillRaceClassInfoMapBounds GetSkillRaceClassInfoMapBounds(uint32 skill_id) const
-	{
-		return mSkillRaceClassInfoMap.equal_range(skill_id);
-	}
+        SkillRaceClassInfoMapBounds GetSkillRaceClassInfoMapBounds(uint32 skill_id) const
+        {
+            return mSkillRaceClassInfoMap.equal_range(skill_id);
+        }
 
-	PetAura const* GetPetAura(uint32 spell_id)
-	{
-		SpellPetAuraMap::const_iterator itr = mSpellPetAuraMap.find(spell_id);
-		if (itr != mSpellPetAuraMap.end())
-			return &itr->second;
-		else
-			return nullptr;
-	}
+        PetAura const* GetPetAura(uint32 spell_id)
+        {
+            SpellPetAuraMap::const_iterator itr = mSpellPetAuraMap.find(spell_id);
+            if (itr != mSpellPetAuraMap.end())
+                return &itr->second;
+            else
+                return nullptr;
+        }
 
-	SpellCastResult GetSpellAllowedInLocationError(SpellEntry const* spellInfo, uint32 map_id, uint32 zone_id, uint32 area_id, Player const* player = nullptr);
+        SpellCastResult GetSpellAllowedInLocationError(SpellEntry const* spellInfo, uint32 map_id, uint32 zone_id, uint32 area_id, Player const* player = nullptr) const;
 
-	SpellAreaMapBounds GetSpellAreaMapBounds(uint32 spell_id) const
-	{
-		return mSpellAreaMap.equal_range(spell_id);
-	}
+        SpellAreaMapBounds GetSpellAreaMapBounds(uint32 spell_id) const
+        {
+            return mSpellAreaMap.equal_range(spell_id);
+        }
 
-	SpellAreaForAuraMapBounds GetSpellAreaForAuraMapBounds(uint32 spell_id) const
-	{
-		return mSpellAreaForAuraMap.equal_range(spell_id);
-	}
+        SpellAreaForAuraMapBounds GetSpellAreaForAuraMapBounds(uint32 spell_id) const
+        {
+            return mSpellAreaForAuraMap.equal_range(spell_id);
+        }
 
-	SpellAreaForAreaMapBounds GetSpellAreaForAreaMapBounds(uint32 area_id) const
-	{
-		return mSpellAreaForAreaMap.equal_range(area_id);
-	}
+        SpellAreaForAreaMapBounds GetSpellAreaForAreaMapBounds(uint32 area_id) const
+        {
+            return mSpellAreaForAreaMap.equal_range(area_id);
+        }
 
-	// Modifiers
-public:
-	static SpellMgr& Instance();
+        // Modifiers
+    public:
+        static SpellMgr& Instance();
 
-	void CheckUsedSpells(char const* table);
+        void CheckUsedSpells(char const* table) const;
 
-	// Loading data at server startup
-	void LoadSpellChains();
-	void LoadSpellLearnSkills();
-	void LoadSpellLearnSpells();
-	void LoadSpellScriptTarget();
-	void LoadSpellAffects();
-	void LoadSpellElixirs();
-	void LoadSpellProcEvents();
-	void LoadSpellProcItemEnchant();
-	void LoadSpellBonuses();
-	void LoadSpellTargetPositions();
-	void LoadSpellThreats();
-	void LoadSkillLineAbilityMap();
-	void LoadSkillRaceClassInfoMap();
-	void LoadSpellPetAuras();
-	void LoadSpellAreas();
-	void LoadFacingCasterFlags();
+        // Loading data at server startup
+        void LoadSpellChains();
+        void LoadSpellLearnSkills();
+        void LoadSpellLearnSpells();
+        void LoadSpellScriptTarget();
+        void LoadSpellAffects();
+        void LoadSpellElixirs();
+        void LoadSpellProcEvents();
+        void LoadSpellProcItemEnchant();
+        void LoadSpellBonuses();
+        void LoadSpellTargetPositions();
+        void LoadSpellThreats();
+        void LoadSkillLineAbilityMap();
+        void LoadSkillRaceClassInfoMap();
+        void LoadSpellPetAuras();
+        void LoadSpellAreas();
+        void LoadFacingCasterFlags();
 
-private:
-	SpellChainMap      mSpellChains;
-	SpellChainMapNext  mSpellChainsNext;
-	SpellLearnSkillMap mSpellLearnSkills;
-	SpellLearnSpellMap mSpellLearnSpells;
-	SpellTargetPositionMap mSpellTargetPositions;
-	SpellAffectMap     mSpellAffectMap;
-	SpellElixirMap     mSpellElixirs;
-	SpellThreatMap     mSpellThreatMap;
-	SpellProcEventMap  mSpellProcEventMap;
-	SpellProcItemEnchantMap mSpellProcItemEnchantMap;
-	SpellBonusMap      mSpellBonusMap;
-	SkillLineAbilityMap mSkillLineAbilityMap;
-	SkillRaceClassInfoMap mSkillRaceClassInfoMap;
-	SpellPetAuraMap     mSpellPetAuraMap;
-	SpellAreaMap         mSpellAreaMap;
-	SpellAreaForAuraMap  mSpellAreaForAuraMap;
-	SpellAreaForAreaMap  mSpellAreaForAreaMap;
-	SpellFacingFlagMap  mSpellFacingFlagMap;
+    private:
+        SpellChainMap      mSpellChains;
+        SpellChainMapNext  mSpellChainsNext;
+        SpellLearnSkillMap mSpellLearnSkills;
+        SpellLearnSpellMap mSpellLearnSpells;
+        SpellTargetPositionMap mSpellTargetPositions;
+        SpellAffectMap     mSpellAffectMap;
+        SpellElixirMap     mSpellElixirs;
+        SpellThreatMap     mSpellThreatMap;
+        SpellProcEventMap  mSpellProcEventMap;
+        SpellProcItemEnchantMap mSpellProcItemEnchantMap;
+        SpellBonusMap      mSpellBonusMap;
+        SkillLineAbilityMap mSkillLineAbilityMap;
+        SkillRaceClassInfoMap mSkillRaceClassInfoMap;
+        SpellPetAuraMap     mSpellPetAuraMap;
+        SpellAreaMap         mSpellAreaMap;
+        SpellAreaForAuraMap  mSpellAreaForAuraMap;
+        SpellAreaForAreaMap  mSpellAreaForAreaMap;
+        SpellFacingFlagMap  mSpellFacingFlagMap;
 };
 
 #define sSpellMgr SpellMgr::Instance()
