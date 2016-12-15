@@ -848,6 +848,7 @@ void Aura::HandleAddModifier(bool apply, bool Real)
         {
             case 17941:                                     // Shadow Trance
             case 22008:                                     // Netherwind Focus
+			case 34936:                                     // Backlash
                 GetHolder()->SetAuraCharges(1);
                 break;
         }
@@ -900,6 +901,12 @@ void Aura::TriggerSpell()
                         if (Unit* caster = GetCaster())
                             caster->CastSpell(caster, 21029, TRIGGERED_OLD_TRIGGERED);
                         return;
+					case 19695:                             // Inferno
+					{
+						int32 damageForTick[8] = { 500, 500, 1000, 1000, 2000, 2000, 3000, 5000 };
+						triggerTarget->CastCustomSpell(triggerTarget, 19698, &damageForTick[GetAuraTicks() - 1], nullptr, nullptr, true, nullptr);
+						return;
+					}
                     case 23170:                             // Brood Affliction: Bronze
                     {
                         target->CastSpell(target, 23171, TRIGGERED_OLD_TRIGGERED, nullptr, this);
@@ -1002,26 +1009,124 @@ void Aura::TriggerSpell()
                         }
                         return;
                     }
+					case 29528:                             // Inoculate Nestlewood Owlkin
+															// prevent error reports in case ignored player target
+						if (triggerTarget->GetTypeId() != TYPEID_UNIT)
+							return;
+						break;
 //                    // Icebolt
 //                    case 28522: break;
 //                    // Guardian of Icecrown Passive
 //                    case 29897: break;
 //                    // Mind Exhaustion Passive
 //                    case 30025: break;
+					case 29917:                             // Feed Captured Animal
+						trigger_spell_id = 29916;
+						break;
+					case 30576:                             // Quake
+						trigger_spell_id = 30571;
+						break;
+					case 31347:                             // Doom
+					{
+						target->CastSpell(target, 31350, TRIGGERED_OLD_TRIGGERED);
+						target->DealDamage(target, target->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+						return;
+					}
+					case 31373:                             // Spellcloth
+					{
+						// Summon Elemental after create item
+						triggerTarget->SummonCreature(17870, 0.0f, 0.0f, 0.0f, triggerTarget->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 0);
+						return;
+					}
+					case 31611:                             // Bloodmyst Tesla
+															// no custom effect required; return to avoid spamming with errors
+						return;
+					case 31944:                             // Doomfire
+					{
+						int32 damage = m_modifier.m_amount * ((GetAuraDuration() + m_modifier.periodictime) / GetAuraMaxDuration());
+						triggerTarget->CastCustomSpell(triggerTarget, 31969, &damage, nullptr, nullptr, true, nullptr, this, casterGUID);
+						return;
+					}
+					case 34229:                             // Flame Quills
+					{
+						// cast 24 spells 34269-34289, 34314-34316
+						for (uint32 spell_id = 34269; spell_id != 34290; ++spell_id)
+							triggerTarget->CastSpell(triggerTarget, spell_id, true, nullptr, this, casterGUID);
+						for (uint32 spell_id = 34314; spell_id != 34317; ++spell_id)
+							triggerTarget->CastSpell(triggerTarget, spell_id, true, nullptr, this, casterGUID);
+						return;
+					}
+					case 36573:                             // Vision Guide
+					{
+						if (GetAuraTicks() == 10 && target->GetTypeId() == TYPEID_PLAYER)
+						{
+							((Player*)target)->AreaExploredOrEventHappens(10525);
+							target->RemoveAurasDueToSpell(36573);
+						}
+
+						return;
+					}
+					case 37429:                             // Spout (left)
+					case 37430:                             // Spout (right)
+					{
+						float newAngle = target->GetOrientation();
+
+						if (auraId == 37429)
+							newAngle += 2 * M_PI_F / 100;
+						else
+							newAngle -= 2 * M_PI_F / 100;
+
+						newAngle = MapManager::NormalizeOrientation(newAngle);
+
+						target->SetFacingTo(newAngle);
+
+						target->CastSpell(target, 37433, TRIGGERED_OLD_TRIGGERED);
+						return;
+					}
+					case 38495:                             // Eye of Grillok
+					{
+						target->CastSpell(target, 38530, TRIGGERED_OLD_TRIGGERED);
+						return;
+					}
+					case 38554:                             // Absorb Eye of Grillok (Zezzak's Shard)
+					{
+						if (target->GetTypeId() != TYPEID_UNIT)
+							return;
+
+						if (Unit* caster = GetCaster())
+							caster->CastSpell(caster, 38495, true, nullptr, this);
+						else
+							return;
+
+						Creature* creatureTarget = (Creature*)target;
+
+						creatureTarget->ForcedDespawn();
+						return;
+					}
+					case 39105:                             // Activate Nether-wraith Beacon (31742 Nether-wraith Beacon item)
+					{
+						float fX, fY, fZ;
+						triggerTarget->GetClosePoint(fX, fY, fZ, triggerTarget->GetObjectBoundingRadius(), 20.0f);
+						triggerTarget->SummonCreature(22408, fX, fY, fZ, triggerTarget->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 0);
+						return;
+					}
                     default:
                         break;
                 }
                 break;
             }
-//            case SPELLFAMILY_MAGE:
-//            {
-//                switch (auraId)
-//                {
-//                    default:
-//                        break;
-//                }
-//                break;
-//            }
+            case SPELLFAMILY_MAGE:
+			{
+			switch (auraId)
+			{
+			case 66:                                // Invisibility
+													// Here need periodic trigger reducing threat spell (or do it manually)
+				return;
+			default:
+				break;
+			}
+			break;
+			}
 //            case SPELLFAMILY_WARRIOR:
 //            {
 //                switch(auraId)
@@ -1313,6 +1418,36 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 						m_periodicTimer = m_modifier.periodictime;
 					return;
 					}
+					case 31606:                             // Stormcrow Amulet
+					{
+						CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(17970);
+
+						// we must assume db or script set display id to native at ending flight (if not, target is stuck with this model)
+						if (cInfo)
+							target->SetDisplayId(Creature::ChooseDisplayId(cInfo));
+
+						return;
+					}
+					case 32045:                             // Soul Charge
+					case 32051:
+					case 32052:
+					{
+						// max duration is 2 minutes, but expected to be random duration
+						// real time randomness is unclear, using max 30 seconds here
+						// see further down for expire of this aura
+						GetHolder()->SetAuraDuration(urand(1, 30)*IN_MILLISECONDS);
+						return;
+					}
+					case 33326:                             // Stolen Soul Dispel
+					{
+						target->RemoveAurasDueToSpell(32346);
+						return;
+					}
+					case 36587:                             // Vision Guide
+					{
+						target->CastSpell(target, 36573, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+						return;
+					}
 					}
                 break;
             }
@@ -1394,6 +1529,45 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 			case 25185:  //itch
 			{
 				target->CastSpell(target, 25187, true, nullptr, this);
+				return;
+			}
+			case 32045:                                     // Soul Charge
+			{
+				if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+					target->CastSpell(target, 32054, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+				return;
+			}
+			case 32051:                                     // Soul Charge
+			{
+				if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+					target->CastSpell(target, 32057, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+				return;
+			}
+			case 32052:                                     // Soul Charge
+			{
+				if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+					target->CastSpell(target, 32053, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+				return;
+			}
+			case 32286:                                     // Focus Target Visual
+			{
+				if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+					target->CastSpell(target, 32301, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+				return;
+			}
+			case 35079:                                     // Misdirection, triggered buff
+			{
+				if (Unit* pCaster = GetCaster())
+					pCaster->RemoveAurasDueToSpell(34477);
+				return;
+			}
+			case 36730:                                     // Flame Strike
+			{
+				target->CastSpell(target, 36731, TRIGGERED_OLD_TRIGGERED, nullptr, this);
 				return;
 			}
         }
@@ -1479,11 +1653,92 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         target->m_AuraFlags &= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
                     return;
+				case 40133:                                 // Summon Fire Elemental
+				{
+					Unit* caster = GetCaster();
+					if (!caster)
+						return;
+
+					Unit* owner = caster->GetOwner();
+					if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+					{
+						if (apply)
+							owner->CastSpell(owner, 8985, TRIGGERED_OLD_TRIGGERED);
+						else
+							((Player*)owner)->RemovePet(PET_SAVE_REAGENTS);
+					}
+					return;
+				}
+				case 40132:                                 // Summon Earth Elemental
+				{
+					Unit* caster = GetCaster();
+					if (!caster)
+						return;
+
+					Unit* owner = caster->GetOwner();
+					if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+					{
+						if (apply)
+							owner->CastSpell(owner, 19704, TRIGGERED_OLD_TRIGGERED);
+						else
+							((Player*)owner)->RemovePet(PET_SAVE_REAGENTS);
+					}
+					return;
+				}
             }
             break;
         }
         case SPELLFAMILY_DRUID:
         {
+			switch (GetId())
+			{
+			case 34246:                                 // Idol of the Emerald Queen
+			{
+				if (target->GetTypeId() != TYPEID_PLAYER)
+					return;
+
+				if (apply)
+					// dummy not have proper effectclassmask
+					m_spellmod = new SpellModifier(SPELLMOD_DOT, SPELLMOD_FLAT, m_modifier.m_amount / 7, GetId(), uint64(0x001000000000));
+
+				((Player*)target)->AddSpellMod(m_spellmod, apply);
+				return;
+			}
+			}
+
+			// Lifebloom
+			if (GetSpellProto()->SpellFamilyFlags & uint64(0x1000000000))
+			{
+				if (apply)
+				{
+					if (Unit* caster = GetCaster())
+					{
+						// prevent double apply bonuses
+						if (target->GetTypeId() != TYPEID_PLAYER || !((Player*)target)->GetSession()->PlayerLoading())
+						{
+							// Lifebloom ignore stack amount
+							m_modifier.m_amount /= GetStackAmount();
+							m_modifier.m_amount = caster->SpellHealingBonusDone(target, GetSpellProto(), m_modifier.m_amount, SPELL_DIRECT_DAMAGE);
+							m_modifier.m_amount = target->SpellHealingBonusTaken(caster, GetSpellProto(), m_modifier.m_amount, SPELL_DIRECT_DAMAGE);
+						}
+					}
+				}
+				else
+				{
+					// Final heal on duration end
+					if (m_removeMode != AURA_REMOVE_BY_EXPIRE)
+						return;
+
+					// final heal
+					if (target->IsInWorld() && GetStackAmount() > 0)
+					{
+						// Lifebloom dummy store single stack amount always
+						int32 amount = m_modifier.m_amount;
+						target->CastCustomSpell(target, 33778, &amount, nullptr, nullptr, true, nullptr, this, GetCasterGuid());
+					}
+				}
+				return;
+			}
             // Predatory Strikes
             if (target->GetTypeId() == TYPEID_PLAYER && GetSpellProto()->SpellIconID == 1563)
             {

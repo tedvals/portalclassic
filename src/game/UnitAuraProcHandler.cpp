@@ -676,16 +676,96 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                 triggered_spell_id = 22858;
                 break;
             }
+			// Second Wind
+			if (dummySpell->SpellIconID == 1697)
+			{
+				// only for spells and hit/crit (trigger start always) and not start from self casted spells (5530 Mace Stun Effect for example)
+				if (!procSpell || !(procEx & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT)) || this == pVictim)
+					return SPELL_AURA_PROC_FAILED;
+				// Need stun or root mechanic
+				if (!(GetAllSpellMechanicMask(procSpell) & IMMUNE_TO_ROOT_AND_STUN_MASK))
+					return SPELL_AURA_PROC_FAILED;
+
+				switch (dummySpell->Id)
+				{
+				case 29838: triggered_spell_id = 29842; break;
+				case 29834: triggered_spell_id = 29841; break;
+				default:
+					sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (SW)", dummySpell->Id);
+					return SPELL_AURA_PROC_FAILED;
+				}
+
+				target = this;
+				break;
+			}			
             break;
         }
         case SPELLFAMILY_WARLOCK:
         {
-            break;
+			// Seed of Corruption
+			if (dummySpell->SpellFamilyFlags & uint64(0x0000001000000000))
+			{
+				Modifier* mod = triggeredByAura->GetModifier();
+				// if damage is more than need or target die from damage deal finish spell
+				if (mod->m_amount <= (int32)damage || GetHealth() <= damage)
+				{
+					// remember guid before aura delete
+					ObjectGuid casterGuid = triggeredByAura->GetCasterGuid();
+
+					// Remove aura (before cast for prevent infinite loop handlers)
+					RemoveAurasDueToSpell(triggeredByAura->GetId());
+
+					// Cast finish spell (triggeredByAura already not exist!)
+					CastSpell(this, 27285, true, castItem, nullptr, casterGuid);
+					return SPELL_AURA_PROC_OK;              // no hidden cooldown
+				}
+
+				// Damage counting
+				mod->m_amount -= damage;
+				return SPELL_AURA_PROC_OK;
+			}
+			// Seed of Corruption (Mobs cast) - no die req
+			if (!dummySpell->SpellFamilyFlags && dummySpell->SpellIconID == 1932)
+			{
+				Modifier* mod = triggeredByAura->GetModifier();
+				// if damage is more than need deal finish spell
+				if (mod->m_amount <= (int32)damage)
+				{
+					// remember guid before aura delete
+					ObjectGuid casterGuid = triggeredByAura->GetCasterGuid();
+
+					// Remove aura (before cast for prevent infinite loop handlers)
+					RemoveAurasDueToSpell(triggeredByAura->GetId());
+
+					// Cast finish spell (triggeredByAura already not exist!)
+					CastSpell(this, 32865, true, castItem, nullptr, casterGuid);
+					return SPELL_AURA_PROC_OK;              // no hidden cooldown
+				}
+				// Damage counting
+				mod->m_amount -= damage;
+				return SPELL_AURA_PROC_OK;
+			}
+			break;
         }
         case SPELLFAMILY_PRIEST:
         {
             switch (dummySpell->Id)
             {
+				// Vampiric Touch
+				if (dummySpell->SpellFamilyFlags & uint64(0x0000040000000000))
+				{
+					if (!pVictim || !pVictim->isAlive())
+						return SPELL_AURA_PROC_FAILED;
+
+					// pVictim is caster of aura
+					if (triggeredByAura->GetCasterGuid() != pVictim->GetObjectGuid())
+						return SPELL_AURA_PROC_FAILED;
+
+					// energize amount
+					basepoints[0] = triggerAmount * damage / 100;
+					pVictim->CastCustomSpell(pVictim, 34919, &basepoints[0], nullptr, nullptr, true, castItem, triggeredByAura);
+					return SPELL_AURA_PROC_OK;                  // no hidden cooldown
+				}
                 // Vampiric Embrace
                 case 15286:
                 {
@@ -708,6 +788,18 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     triggered_spell_id = 26170;
                     break;
                 }
+				// Frozen Shadoweave (Shadow's Embrace set) warning! its not only priest set
+				case 39372:
+				{
+					if (!procSpell || (GetSpellSchoolMask(procSpell) & (SPELL_SCHOOL_MASK_FROST | SPELL_SCHOOL_MASK_SHADOW)) == 0)
+						return SPELL_AURA_PROC_FAILED;
+
+					// heal amount
+					basepoints[0] = damage * triggerAmount / 100;
+					target = this;
+					triggered_spell_id = 39373;
+					break;
+				}
                 // Greater Heal (Vestments of Faith (Priest Tier 3) - 4 pieces bonus)
                 case 28809:
                 {
@@ -1133,11 +1225,26 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     trigger_spell_id = 22588;
                     break;
                 }
-                break;
+				case 33896:                                 // Desperate Defense (Stonescythe Whelp, Stonescythe Alpha, Stonescythe Ambusher)
+					trigger_spell_id = 33898;
+					break;                
             }
             break;
         case SPELLFAMILY_MAGE:
-            if (auraSpellInfo->Id == 26467)                 // Persistent Shield (Scarab Brooch trinket)
+			if (auraSpellInfo->SpellIconID == 2127)         // Blazing Speed
+			{
+				switch (auraSpellInfo->Id)
+				{
+				case 31641:  // Rank 1
+				case 31642:  // Rank 2
+					trigger_spell_id = 31643;
+					break;
+				default:
+					sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u miss possibly Blazing Speed", auraSpellInfo->Id);
+					return SPELL_AURA_PROC_FAILED;
+				}
+			}
+			else if (auraSpellInfo->Id == 26467)                 // Persistent Shield (Scarab Brooch trinket)
             {
                 // This spell originally trigger 13567 - Dummy Trigger (vs dummy effect)
                 basepoints[0] = damage * 15 / 100;
@@ -1253,6 +1360,22 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             break;
         }
         case SPELLFAMILY_DRUID:
+
+			// Druid Forms Trinket
+			if (auraSpellInfo->Id == 37336)
+			{
+				switch (GetShapeshiftForm())
+				{
+				case FORM_NONE:     trigger_spell_id = 37344; break;
+				case FORM_CAT:      trigger_spell_id = 37341; break;
+				case FORM_BEAR:
+				case FORM_DIREBEAR: trigger_spell_id = 37340; break;
+				case FORM_TREE:     trigger_spell_id = 37342; break;
+				case FORM_MOONKIN:  trigger_spell_id = 37343; break;
+				default:
+					return SPELL_AURA_PROC_FAILED;
+				}
+			}
 			// Deep Wounds (replace triggered spells to directly apply DoT), dot spell have familyflags
 			switch (auraSpellInfo->Id)
 			{
@@ -1285,6 +1408,16 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             break;
         case SPELLFAMILY_HUNTER:
             break;
+		case SPELLFAMILY_ROGUE:
+			{
+				if (auraSpellInfo->SpellIconID == 2260)         // Combat Potency
+				{
+					if (!(procFlags & PROC_FLAG_SUCCESSFUL_OFFHAND_HIT))
+						return SPELL_AURA_PROC_FAILED;
+				}
+
+				break;
+			}
         case SPELLFAMILY_PALADIN:
         {
             // Judgement of Light and Judgement of Wisdom
@@ -1338,6 +1471,31 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 trigger_spell_id = 20272;
                 target = this;
             }
+			// Lightning Capacitor
+			else if (auraSpellInfo->Id == 37657)
+			{
+				if (!pVictim || !pVictim->isAlive())
+					return SPELL_AURA_PROC_FAILED;
+				// stacking
+				CastSpell(this, 37658, true, nullptr, triggeredByAura);
+
+				Aura* dummy = GetDummyAura(37658);
+				// release at 3 aura in stack (cont contain in basepoint of trigger aura)
+				if (!dummy || dummy->GetStackAmount() < uint32(triggerAmount))
+					return SPELL_AURA_PROC_FAILED;
+
+				RemoveAurasDueToSpell(37658);
+				trigger_spell_id = 37661;
+				target = pVictim;
+			}
+			// Bonus Healing (Crystal Spire of Karabor mace)
+			else if (auraSpellInfo->Id == 40971)
+			{
+				// If your target is below $s1% health
+				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * triggerAmount / 100)
+					return SPELL_AURA_PROC_FAILED;
+			}
+			break;
             break;
         }
         case SPELLFAMILY_SHAMAN:
@@ -1384,6 +1542,21 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 trigger_spell_id = 23571;
                 target = this;
             }
+			else if (auraSpellInfo->SpellIconID == 2013)
+			{
+				// Check health condition - should drop to less 30% (trigger at any attack with result health less 30%, independent original health state)
+				int32 health30 = int32(GetMaxHealth()) * 3 / 10;
+				if (int32(GetHealth()) - int32(damage) >= health30)
+					return SPELL_AURA_PROC_FAILED;
+
+				if (pVictim && pVictim->isAlive())
+					pVictim->getThreatManager().modifyThreatPercent(this, -10);
+
+				basepoints[0] = triggerAmount * GetMaxHealth() / 100;
+				trigger_spell_id = 31616;
+				target = this;
+			}
+			break;
             break;
         }
         default:

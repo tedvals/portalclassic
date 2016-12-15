@@ -1439,6 +1439,74 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+				switch (m_spellInfo->Id)
+				{
+				case 31789:                                 // Righteous Defense (step 1)
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+					{
+						SendCastResult(SPELL_FAILED_TARGET_AFFECTING_COMBAT);
+						return;
+					}
+
+					// 31989 -> dummy effect (step 1) + dummy effect (step 2) -> 31709 (taunt like spell for each target)
+					Unit* friendTarget = !unitTarget || unitTarget->IsFriendlyTo(m_caster) ? unitTarget : unitTarget->getVictim();
+					if (friendTarget)
+					{
+						Player* player = friendTarget->GetCharmerOrOwnerPlayerOrPlayerItself();
+						if (!player || !player->IsInSameRaidWith((Player*)m_caster))
+							friendTarget = nullptr;
+					}
+
+					// non-standard cast requirement check
+					if (!friendTarget || friendTarget->getAttackers().empty())
+					{
+						((Player*)m_caster)->RemoveSpellCooldown(m_spellInfo->Id, true);
+						SendCastResult(SPELL_FAILED_TARGET_AFFECTING_COMBAT);
+						return;
+					}
+
+					// Righteous Defense (step 2) (in old version 31980 dummy effect)
+					// Clear targets for eff 1
+					for (TargetList::iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+						ihit->effectMask &= ~(1 << 1);
+
+					// not empty (checked), copy
+					Unit::AttackerSet attackers = friendTarget->getAttackers();
+
+					// selected from list 3
+					for (uint32 i = 0; i < std::min(size_t(3), attackers.size()); ++i)
+					{
+						Unit::AttackerSet::iterator aItr = attackers.begin();
+						std::advance(aItr, rand() % attackers.size());
+						AddUnitTarget((*aItr), EFFECT_INDEX_1);
+						attackers.erase(aItr);
+					}
+
+					// now let next effect cast spell at each target.
+					return;
+				}
+				case 37877:                                 // Blessing of Faith
+				{
+					if (!unitTarget)
+						return;
+
+					uint32 spell_id;
+					switch (unitTarget->getClass())
+					{
+					case CLASS_DRUID:   spell_id = 37878; break;
+					case CLASS_PALADIN: spell_id = 37879; break;
+					case CLASS_PRIEST:  spell_id = 37880; break;
+					case CLASS_SHAMAN:  spell_id = 37881; break;
+					default: return;                    // ignore for not healing classes
+					}
+
+					m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				}
+
+				break;
             }
 
             break;
@@ -1652,13 +1720,49 @@ void Spell::EffectTriggerSpell(SpellEffectIndex eff_idx)
         case 29286:
             m_caster->CastSpell(unitTarget, 26464, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID);
             return;
-	case 34455:  //recuperate
+	  case 54455:  //recuperate
 	    if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
 	    {
 		int32 basepoints = m_caster->GetMaxHealth() * combo * 0.02;
-                m_caster->CastCustomSpell(m_caster, 34456, &basepoints, nullptr, nullptr, true, nullptr);
+                m_caster->CastCustomSpell(m_caster, 54456, &basepoints, nullptr, nullptr, true, nullptr);
 		}
 	    return;
+		// Righteous Defense
+	  case 31980:
+	  {
+		  m_caster->CastSpell(unitTarget, 31790, true, m_CastItem, nullptr, m_originalCasterGUID);
+		  return;
+	  }
+	  // Cloak of Shadows
+	  case 35729:
+	  {
+		  Unit::SpellAuraHolderMap& Auras = unitTarget->GetSpellAuraHolderMap();
+		  for (Unit::SpellAuraHolderMap::iterator iter = Auras.begin(); iter != Auras.end(); ++iter)
+		  {
+			  // Remove all harmful spells on you except positive/passive/physical auras
+			  if (!iter->second->IsPositive() &&
+				  !iter->second->IsPassive() &&
+				  !iter->second->IsDeathPersistent() &&
+				  (GetSpellSchoolMask(iter->second->GetSpellProto()) & SPELL_SCHOOL_MASK_NORMAL) == 0)
+			  {
+				  m_caster->RemoveAurasDueToSpell(iter->second->GetSpellProto()->Id);
+				  iter = Auras.begin();
+			  }
+		  }
+		  return;
+	  }
+	  // Priest Shadowfiend (34433) need apply mana gain trigger aura on pet
+	  case 41967:
+	  {
+		  if (Unit* pet = unitTarget->GetPet())
+			  pet->CastSpell(pet, 28305, TRIGGERED_OLD_TRIGGERED);
+		  return;
+	  }
+	  case 44949:
+		  // triggered spell have same category
+		  if (m_caster->GetTypeId() == TYPEID_PLAYER)
+			  ((Player*)m_caster)->RemoveSpellCooldown(triggered_spell_id);
+		 return;
     }
 
     // normal case

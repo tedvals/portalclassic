@@ -1854,6 +1854,28 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_SINGLE_FRIEND:
         case TARGET_SINGLE_FRIEND_2:
+			if (Unit* targetOfUnitTarget = m_caster->GetMap()->GetUnit(unitTarget->GetTargetGuid()))
+			{
+				if (targetOfUnitTarget->IsFriendlyTo(m_caster))
+				{
+					switch (m_spellInfo->Id)
+					{
+					case 3411: // Intervene target must be in group with caster
+						if (targetOfUnitTarget->GetTypeId() == TYPEID_PLAYER && m_caster->GetTypeId() == TYPEID_PLAYER)
+							if (((Player*)targetOfUnitTarget)->IsInSameGroupWith((Player*)m_caster))
+								targetUnitMap.push_back(targetOfUnitTarget);
+						break;
+					case 31789: // Righteous defense needs player target
+						if (targetOfUnitTarget->GetTypeId() == TYPEID_PLAYER)
+							targetUnitMap.push_back(targetOfUnitTarget);
+						break;
+					default:
+						targetUnitMap.push_back(targetOfUnitTarget);
+						break;
+					}
+				}
+			}
+
             if (m_targets.getUnitTarget())
                 targetUnitMap.push_back(m_targets.getUnitTarget());
             break;
