@@ -837,7 +837,9 @@ void World::SetInitialWorldSettings()
             !MapManager::ExistMapAndVMap(1, -618.518f, -4251.67f) ||                // Orc
             !MapManager::ExistMapAndVMap(0, 1676.35f, 1677.45f) ||                  // Scourge
             !MapManager::ExistMapAndVMap(1, 10311.3f, 832.463f) ||                  // NightElf
-            !MapManager::ExistMapAndVMap(1, -2917.58f, -257.98f))                   // Tauren
+            !MapManager::ExistMapAndVMap(1, -2917.58f, -257.98f) ||                   // Tauren
+		    !MapManager::ExistMapAndVMap(530, 10349.6, -6357.29) ||                    //Blood Elf - Draenei
+			!MapManager::ExistMapAndVMap(530, -3961.64, -13931.2))
     {
         sLog.outError("Correct *.map files not found in path '%smaps' or *.vmtree/*.vmtile files in '%svmaps'. Please place *.map and vmap files in appropriate directories or correct the DataDir value in the mangosd.conf file.", m_dataPath.c_str(), m_dataPath.c_str());
         Log::WaitBeforeContinueIfNeed();
