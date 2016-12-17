@@ -405,6 +405,16 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
         data << pProto->Area;
         data << pProto->Map;                                // Added in 1.12.x & 2.0.1 client branch
         data << pProto->BagFamily;
+		data << pProto->TotemCategory;
+		for (int s = 0; s < 3; s++)
+		{
+			data << pProto->Socket[s].Color;
+			data << pProto->Socket[s].Content;
+			}
+		data << pProto->socketBonus;
+		data << pProto->GemProperties;
+		data << pProto->ExtendedCost;
+		data << pProto->RequiredDisenchantSkill;
         SendPacket(data);
     }
     else

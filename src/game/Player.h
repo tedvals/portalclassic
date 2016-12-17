@@ -489,6 +489,12 @@ struct SkillStatusData
 
 typedef std::unordered_map<uint32, SkillStatusData> SkillStatusMap;
 
+enum DungeonDifficulties
+{
+	DUNGEONDIFFICULTY_NORMAL = 0,
+	DUNGEONDIFFICULTY_HEROIC = 1
+};
+
 enum PlayerSlots
 {
     // first slot for item stored (in any way in player m_items data)
@@ -540,26 +546,26 @@ enum InventoryPackSlots                                     // 16 slots
 enum BankItemSlots                                          // 28 slots
 {
     BANK_SLOT_ITEM_START        = 39,
-    BANK_SLOT_ITEM_END          = 63
+    BANK_SLOT_ITEM_END          = 67
 };
 
 enum BankBagSlots                                           // 7 slots
 {
-    BANK_SLOT_BAG_START         = 63,
-    BANK_SLOT_BAG_END           = 69
+    BANK_SLOT_BAG_START         = 67,
+    BANK_SLOT_BAG_END           = 74
 };
 
 enum BuyBackSlots                                           // 12 slots
 {
     // stored in m_buybackitems
-    BUYBACK_SLOT_START          = 69,
-    BUYBACK_SLOT_END            = 81
+    BUYBACK_SLOT_START          = 74,
+    BUYBACK_SLOT_END            = 86
 };
 
 enum KeyRingSlots                                           // 32 slots
 {
-    KEYRING_SLOT_START          = 81,
-    KEYRING_SLOT_END            = 97
+    KEYRING_SLOT_START          = 86,
+    KEYRING_SLOT_END            = 118
 };
 
 struct ItemPosCount
@@ -1739,21 +1745,21 @@ class MANGOS_DLL_SPEC Player : public Unit
         // in 0.12 and later in Unit
         void InitStatBuffMods()
         {
-            for (int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(PLAYER_FIELD_POSSTAT0 + i, 0);
-            for (int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(PLAYER_FIELD_NEGSTAT0 + i, 0);
+            for (int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + i, 0);
+            for (int i = STAT_STRENGTH; i < MAX_STATS; ++i) SetFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + i, 0);
         }
-        void ApplyStatBuffMod(Stats stat, float val, bool apply) { ApplyModSignedFloatValue((val > 0 ? PLAYER_FIELD_POSSTAT0 + stat : PLAYER_FIELD_NEGSTAT0 + stat), val, apply); }
+        void ApplyStatBuffMod(Stats stat, float val, bool apply) { ApplyModSignedFloatValue((val > 0 ? PLAYER_FIELD_MOD_DAMAGE_DONE_POS + stat : PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + stat), val, apply); }
         void ApplyStatPercentBuffMod(Stats stat, float val, bool apply)
         {
-            ApplyPercentModFloatValue(PLAYER_FIELD_POSSTAT0 + stat, val, apply);
-            ApplyPercentModFloatValue(PLAYER_FIELD_NEGSTAT0 + stat, val, apply);
+            ApplyPercentModFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + stat, val, apply);
+            ApplyPercentModFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + stat, val, apply);
         }
-        float GetPosStat(Stats stat) const { return GetFloatValue(PLAYER_FIELD_POSSTAT0 + stat); }
-        float GetNegStat(Stats stat) const { return GetFloatValue(PLAYER_FIELD_NEGSTAT0 + stat); }
-        float GetResistanceBuffMods(SpellSchools school, bool positive) const { return GetFloatValue(positive ? PLAYER_FIELD_RESISTANCEBUFFMODSPOSITIVE + school : PLAYER_FIELD_RESISTANCEBUFFMODSNEGATIVE + school); }
-        void SetResistanceBuffMods(SpellSchools school, bool positive, float val) { SetFloatValue(positive ? PLAYER_FIELD_RESISTANCEBUFFMODSPOSITIVE + school : PLAYER_FIELD_RESISTANCEBUFFMODSNEGATIVE + school, val); }
-        void ApplyResistanceBuffModsMod(SpellSchools school, bool positive, float val, bool apply) { ApplyModSignedFloatValue(positive ? PLAYER_FIELD_RESISTANCEBUFFMODSPOSITIVE + school : PLAYER_FIELD_RESISTANCEBUFFMODSNEGATIVE + school, val, apply); }
-        void ApplyResistanceBuffModsPercentMod(SpellSchools school, bool positive, float val, bool apply) { ApplyPercentModFloatValue(positive ? PLAYER_FIELD_RESISTANCEBUFFMODSPOSITIVE + school : PLAYER_FIELD_RESISTANCEBUFFMODSNEGATIVE + school, val, apply); }
+        float GetPosStat(Stats stat) const { return GetFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + stat); }
+        float GetNegStat(Stats stat) const { return GetFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_NEG + stat); }
+        float GetResistanceBuffMods(SpellSchools school, bool positive) const { return GetFloatValue(positive ? PLAYER_FIELD_MOD_TARGET_RESISTANCE + school : PLAYER_FIELD_MOD_TARGET_RESISTANCE + school); }
+        void SetResistanceBuffMods(SpellSchools school, bool positive, float val) { SetFloatValue(positive ? PLAYER_FIELD_MOD_TARGET_RESISTANCE + school : PLAYER_FIELD_MOD_TARGET_RESISTANCE + school, val); }
+        void ApplyResistanceBuffModsMod(SpellSchools school, bool positive, float val, bool apply) { ApplyModSignedFloatValue(positive ? PLAYER_FIELD_MOD_TARGET_RESISTANCE + school : PLAYER_FIELD_MOD_TARGET_RESISTANCE + school, val, apply); }
+        void ApplyResistanceBuffModsPercentMod(SpellSchools school, bool positive, float val, bool apply) { ApplyPercentModFloatValue(positive ? PLAYER_FIELD_MOD_TARGET_RESISTANCE + school : PLAYER_FIELD_MOD_TARGET_RESISTANCE + school, val, apply); }
 
         void SetRegularAttackTime();
         void SetBaseModValue(BaseModGroup modGroup, BaseModType modType, float value) { m_auraBaseMod[modGroup][modType] = value; }

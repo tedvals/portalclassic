@@ -137,6 +137,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
 
     uint8  updatetype   = UPDATETYPE_CREATE_OBJECT;
     uint8 updateFlags  = m_updateFlag;
+	uint32 flags2 = 0;
 
     /** lower flag1 **/
     if (target == this)                                     // building packet for yourself
@@ -158,9 +159,15 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
                 break;
         }
     }
-
-    // DEBUG_LOG("BuildCreateUpdate: update-type: %u, object-type: %u got updateFlags: %X", updatetype, m_objectTypeId, updateFlags);
-
+	/*
+	// flags2 only used at LIVING objects
+	if (updateFlags & UPDATEFLAG_LIVING)
+	{
+		if (m_objectTypeId == TYPEID_PLAYER && ((Player*)this)->GetTransport() != 0)
+			flags2 |= 0x0200;
+		
+		  // DEBUG_LOG("BuildCreateUpdate: update-type: %u, object-type: %u got updateFlags: %X", updatetype, m_objectTypeId, updateFlags);
+		  */
     ByteBuffer buf(500);
     buf << uint8(updatetype);
     buf << GetPackGUID();
@@ -405,10 +412,10 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                 }
 
                 // there are some float values which may be negative or can't get negative due to other checks
-                else if ((index >= PLAYER_FIELD_NEGSTAT0    && index <= PLAYER_FIELD_NEGSTAT4) ||
-                         (index >= PLAYER_FIELD_RESISTANCEBUFFMODSPOSITIVE  && index <= (PLAYER_FIELD_RESISTANCEBUFFMODSPOSITIVE + 6)) ||
-                         (index >= PLAYER_FIELD_RESISTANCEBUFFMODSNEGATIVE  && index <= (PLAYER_FIELD_RESISTANCEBUFFMODSNEGATIVE + 6)) ||
-                         (index >= PLAYER_FIELD_POSSTAT0    && index <= PLAYER_FIELD_POSSTAT4))
+				else if ((index >= UNIT_FIELD_NEGSTAT0 && index <= UNIT_FIELD_NEGSTAT4) ||
+					(index >= UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE  && index <= (UNIT_FIELD_RESISTANCEBUFFMODSPOSITIVE + 6)) ||
+					(index >= UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE  && index <= (UNIT_FIELD_RESISTANCEBUFFMODSNEGATIVE + 6)) ||
+					(index >= UNIT_FIELD_POSSTAT0 && index <= UNIT_FIELD_POSSTAT4))
                 {
                     *data << uint32(m_floatValues[index]);
                 }

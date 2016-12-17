@@ -50,6 +50,7 @@
 #include "MoveMap.h"                                        // for mmap manager
 #include "PathFinder.h"                                     // for mmap commands
 #include "movement/MoveSplineInit.h"
+#include "UpdateFields.h"
 
 #include <fstream>
 #include <map>
@@ -3454,6 +3455,7 @@ bool ChatHandler::HandleHonorShow(char* /*args*/)
         target = m_session->GetPlayer();
 
     int8 highest_rank               = target->GetHonorHighestRankInfo().visualRank;
+/*
     uint32 dishonorable_kills       = target->GetUInt32Value(PLAYER_FIELD_LIFETIME_DISHONORABLE_KILLS);
     uint32 honorable_kills          = target->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS);
     uint32 today_honorable_kills    = target->GetUInt16Value(PLAYER_FIELD_SESSION_KILLS, 0);
@@ -3465,7 +3467,7 @@ bool ChatHandler::HandleHonorShow(char* /*args*/)
     uint32 last_week_kills          = target->GetUInt32Value(PLAYER_FIELD_LAST_WEEK_KILLS);
     uint32 last_week_honor          = target->GetUInt32Value(PLAYER_FIELD_LAST_WEEK_CONTRIBUTION);
     uint32 last_week_standing       = target->GetUInt32Value(PLAYER_FIELD_LAST_WEEK_RANK);
-
+*/
     static int16 alliance_ranks[HONOR_RANK_COUNT] =
     {
         LANG_NO_RANK,
@@ -3534,12 +3536,13 @@ bool ChatHandler::HandleHonorShow(char* /*args*/)
     }
 
     PSendSysMessage(LANG_RANK, target->GetName(), rank_name, honor_rank);
+	/*
     PSendSysMessage(LANG_HONOR_TODAY, today_honorable_kills, today_dishonorable_kills);
     PSendSysMessage(LANG_HONOR_YESTERDAY, yesterday_kills, yesterday_honor);
     PSendSysMessage(LANG_HONOR_THIS_WEEK, this_week_kills, this_week_honor);
     PSendSysMessage(LANG_HONOR_LAST_WEEK, last_week_kills, last_week_honor, last_week_standing);
     PSendSysMessage(LANG_HONOR_LIFE, target->GetRankPoints(), honorable_kills, dishonorable_kills, highest_rank, hrank_name);
-
+	*/
     return true;
 }
 
@@ -3632,6 +3635,7 @@ bool ChatHandler::HandleModifyHonorCommand(char* args)
             return false;
         target->SetByteValue(PLAYER_BYTES_3, 3, amount);
     }
+	/*
     else if (hasStringAbbr(field, "todaykills"))
         target->SetUInt16Value(PLAYER_FIELD_SESSION_KILLS, 0, (uint32)amount);
     else if (hasStringAbbr(field, "yesterdaykills"))
@@ -3652,7 +3656,7 @@ bool ChatHandler::HandleModifyHonorCommand(char* args)
         target->SetUInt32Value(PLAYER_FIELD_LIFETIME_DISHONORABLE_KILLS, (uint32)amount);
     else if (hasStringAbbr(field, "lifetimehonorablekills"))
         target->SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, (uint32)amount);
-
+	*/
     PSendSysMessage(LANG_COMMAND_MODIFY_HONOR, field, target->GetName(), hasStringAbbr(field, "rank") ? amount : (uint32)amount);
 
     return true;

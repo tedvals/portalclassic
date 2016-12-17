@@ -87,6 +87,19 @@ struct BankBagSlotPricesEntry
     uint32  price;                                          // 1        m_Cost
 };
 
+struct BattlemasterListEntry
+{
+	uint32      id;
+	uint32      mapid1;
+	uint32      mapid2; // for arenas...
+	uint32      type; // 3 - BG, 4 - arena
+	uint32      minlvl;
+	uint32      maxlvl;
+	uint32      maxplayers;
+	uint32      minplayers; // ???
+	char*       name;
+	};
+
 /*struct Cfg_CategoriesEntry
 {
     uint32 Id1;                                             // 1        Unk id, diff from post-1.x
@@ -362,6 +375,13 @@ struct GameObjectDisplayInfoEntry
 // All Gt* DBC store data for 100 levels, some by 100 per class/race
 #define GT_MAX_LEVEL    100
 
+struct GemPropertiesEntry
+{
+	uint32      ID;
+	uint32      spellitemenchantement;
+	uint32      color;
+};
+
 struct ItemBagFamilyEntry
 {
     uint32   ID;                                            // 0        m_ID
@@ -392,6 +412,19 @@ struct ItemRandomPropertiesEntry
     // 5-6 unused, 0 only values, reserved for additional enchantments
     // char*     nameSuffix[8];                             // 7-14     m_name_lang
     // 15 string flags
+};
+
+struct ItemExtendedCostEntry
+{
+	uint32      ID;                                         // extended-cost entry id
+	uint32      reqhonorpoints;                             // required honor points
+	uint32      reqarenapoints;                             // required arena points
+	uint32      reqitem1;                                   // 1st required item id
+	uint32      reqitem2;                                   // 2nd required item id
+	uint32      reqitem3;                                   // 3rd required item id
+	uint32      reqitemcount1;                              // required count of 1st item
+	uint32      reqitemcount2;                              // required count of 2st item
+	uint32      reqitemcount3;                              // required count of 3st item
 };
 
 struct ItemSetEntry
@@ -672,6 +705,8 @@ struct SpellEntry
         // uint32    MinFactionId;                          // 170 not used, and 0 in 2.4.2
         // uint32    MinReputation;                         // 171 not used, and 0 in 2.4.2
         // uint32    RequiredAuraVision;                    // 172 not used
+		uint32    TotemCategory[2];
+		uint32    AreaId;
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }

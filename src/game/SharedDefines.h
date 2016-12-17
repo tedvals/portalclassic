@@ -766,7 +766,7 @@ enum SpellCastResult
     SPELL_FAILED_OUT_OF_RANGE                   = 0x59,
     SPELL_FAILED_PACIFIED                       = 0x5A,
     SPELL_FAILED_POSSESSED                      = 0x5B,
-    // SPELL_FAILED_REAGENTS                       = 0x5C, [-ZERO] not in 1.12
+    SPELL_FAILED_REAGENTS                       = 0x5C, 
     SPELL_FAILED_REQUIRES_AREA                  = 0x5D,     // CAST_FAIL_YOU_NEED_TO_BE_IN_XXX
     SPELL_FAILED_REQUIRES_SPELL_FOCUS           = 0x5E,     // CAST_FAIL_REQUIRES_XXX
     SPELL_FAILED_ROOTED                         = 0x5F,     // CAST_FAIL_UNABLE_TO_MOVE
@@ -794,7 +794,7 @@ enum SpellCastResult
     SPELL_FAILED_THIRST_SATIATED                = 0x75,
     SPELL_FAILED_TOO_CLOSE                      = 0x76,
     SPELL_FAILED_TOO_MANY_OF_ITEM               = 0x77,
-    // SPELL_FAILED_TOTEMS                         = 0x78,  // [-ZERO] not in 1.12
+    SPELL_FAILED_TOTEMS                         = 0x78,  
     SPELL_FAILED_TRAINING_POINTS                = 0x79,
     SPELL_FAILED_TRY_AGAIN                      = 0x7A,     // CAST_FAIL_FAILED_ATTEMPT
     SPELL_FAILED_UNIT_NOT_BEHIND                = 0x7B,
@@ -806,7 +806,7 @@ enum SpellCastResult
     SPELL_FAILED_TARGET_NOT_IN_RAID             = 0x81,
     SPELL_FAILED_DISENCHANT_WHILE_LOOTING       = 0x82,
     SPELL_FAILED_PROSPECT_WHILE_LOOTING         = 0x83,
-    //  SPELL_FAILED_PROSPECT_NEED_MORE             = 0x85,
+    SPELL_FAILED_PROSPECT_NEED_MORE             = 0x85,
     SPELL_FAILED_TARGET_FREEFORALL              = 0x85,
     SPELL_FAILED_NO_EDIBLE_CORPSES              = 0x86,
     SPELL_FAILED_ONLY_BATTLEGROUNDS             = 0x87,

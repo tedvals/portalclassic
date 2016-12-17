@@ -30,6 +30,39 @@ enum ItemModType
     ITEM_MOD_INTELLECT                = 5,
     ITEM_MOD_SPIRIT                   = 6,
     ITEM_MOD_STAMINA                  = 7,
+	ITEM_STAT_UNKNOWN2 = 8,
+	ITEM_STAT_UNKNOWN3 = 9,
+	ITEM_STAT_UNKNOWN4 = 10,
+	ITEM_STAT_UNKNOWN5 = 11,
+	    // New Item Stats for Combat Rating System:
+	    // CS - critical strike
+	    // HA - hit avoidance
+	    // CA - critical avoidance
+	ITEM_STAT_DEFENCE_RATING = 12,
+	ITEM_STAT_DODGE_RATING = 13,
+	ITEM_STAT_PARRY_RATING = 14,
+	ITEM_STAT_SHIELD_BLOCK_RATING = 15,
+	ITEM_STAT_MELEE_HIT_RATING = 16,
+	ITEM_STAT_RANGED_HIT_RATING = 17,
+	ITEM_STAT_SPELL_HIT_RATING = 18,
+	ITEM_STAT_MELEE_CS_RATING = 19,
+	ITEM_STAT_RANGED_CS_RATING = 20,
+	ITEM_STAT_SPELL_CS_RATING = 21,
+	ITEM_STAT_MELEE_HA_RATING = 22,
+	ITEM_STAT_RANGED_HA_RATING = 23,
+	ITEM_STAT_SPELL_HA_RATING = 24,
+	ITEM_STAT_MELEE_CA_RATING = 25,
+	ITEM_STAT_RANGED_CA_RATING = 26,
+	ITEM_STAT_SPELL_CA_RATING = 27,
+	ITEM_STAT_MELEE_HASTE_RATING = 28,
+	ITEM_STAT_RANGED_HASTE_RATING = 29,
+	ITEM_STAT_SPELL_HASTE_RATING = 30,
+	ITEM_STAT_HIT_RATING = 31,
+	ITEM_STAT_CS_RATING = 32,
+	ITEM_STAT_HA_RATING = 33,
+	ITEM_STAT_CA_RATING = 34,
+	ITEM_STAT_RESILIENCE_RATING = 35,
+	ITEM_STAT_HASTE_RATING = 36
 };
 
 #define MAX_ITEM_MOD                    8
@@ -102,6 +135,20 @@ enum BagFamily
     BAG_FAMILY_ENCHANTING_SUPP                  = 7,
     BAG_FAMILY_ENGINEERING_SUPP                 = 8,
     BAG_FAMILY_KEYS                             = 9,
+	BAG_FAMILY_GEMS = 10,
+	BAG_FAMILY_MINING_SUPP = 12
+};
+
+/* TODO: Not entirely positive on need for this??
+enum SOCKET_CONTENT ();
+*/
+	
+enum SOCKET_COLOR
+{
+	SOCKET_COLOR_META = 1,
+	SOCKET_COLOR_RED = 2,
+	SOCKET_COLOR_YELLOW = 4,
+	SOCKET_COLOR_BLUE = 8
 };
 
 enum InventoryType
@@ -499,6 +546,12 @@ struct ItemPrototype
     uint32 MaxMoneyLoot;
     uint32 Duration;
     uint32 ExtraFlags;                                      // see ItemExtraFlags
+	uint32 TotemCategory;
+	_Socket Socket[3];
+	uint32 socketBonus;
+	uint32 GemProperties;
+	uint32 ExtendedCost;
+	uint32 RequiredDisenchantSkill;
 
     // helpers
     bool CanChangeEquipStateInCombat() const

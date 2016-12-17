@@ -66,6 +66,7 @@ extern DBCStorage <AreaTableEntry>               sAreaStore;// recommend access 
 extern DBCStorage <AreaTriggerEntry>             sAreaTriggerStore;
 extern DBCStorage <AuctionHouseEntry>            sAuctionHouseStore;
 extern DBCStorage <BankBagSlotPricesEntry>       sBankBagSlotPricesStore;
+extern DBCStorage <BattlemasterListEntry>     sBattlemasterListStore;
 // extern DBCStorage <ChatChannelsEntry>           sChatChannelsStore; -- accessed using function, no usable index
 extern DBCStorage <CharStartOutfitEntry>         sCharStartOutfitStore;
 extern DBCStorage <ChrClassesEntry>              sChrClassesStore;
@@ -83,11 +84,13 @@ extern DBCStorage <EmotesTextEntry>              sEmotesTextStore;
 extern DBCStorage <FactionEntry>                 sFactionStore;
 extern DBCStorage <FactionTemplateEntry>         sFactionTemplateStore;
 extern DBCStorage <GameObjectDisplayInfoEntry>   sGameObjectDisplayInfoStore;
+extern DBCStorage <GemPropertiesEntry>        sGemPropertiesStore;
 
 extern DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore;
 extern DBCStorage <ItemClassEntry>               sItemClassStore;
 // extern DBCStorage <ItemDisplayInfoEntry>      sItemDisplayInfoStore; -- not used currently
 extern DBCStorage <ItemRandomPropertiesEntry>    sItemRandomPropertiesStore;
+extern DBCStorage <ItemExtendedCostEntry>     sItemExtendedCostStore;
 extern DBCStorage <ItemSetEntry>                 sItemSetStore;
 extern DBCStorage <LiquidTypeEntry>              sLiquidTypeStore;
 extern DBCStorage <LockEntry>                    sLockStore;

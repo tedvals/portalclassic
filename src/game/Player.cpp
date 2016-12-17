@@ -6129,6 +6129,8 @@ void Player::UpdateHonor()
     SetByteValue(PLAYER_FIELD_BYTES2, 0, RP);
     // RANK (Patent)
     SetByteValue(PLAYER_BYTES_3, 3, GetHonorRankInfo().rank);
+
+/*
     // TODAY
     SetUInt16Value(PLAYER_FIELD_SESSION_KILLS, 0, today_honorableKills);
     SetUInt16Value(PLAYER_FIELD_SESSION_KILLS, 1, today_dishonorableKills);
@@ -6145,6 +6147,7 @@ void Player::UpdateHonor()
     // LIFE TIME
     SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, total_honorableKills);
     SetUInt32Value(PLAYER_FIELD_LIFETIME_DISHONORABLE_KILLS, total_dishonorableKills);
+	*/
     // TODO: Into what field we need to set it? Fix it!
     // SetUInt32Value(PLAYER_FIELD_PVP_MEDALS/*???*/, (GetHonorHighestRankInfo().rank << 24) | 0x0F0001);
     // ITEM FIELD RANK REQUIRED
