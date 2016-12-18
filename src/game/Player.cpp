@@ -141,7 +141,27 @@ void PlayerTaxi::InitTaxiNodes(uint32 race, uint32 level)
     memset(m_taximask, 0, sizeof(m_taximask));
     // capital and taxi hub masks
     ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(race);
-    m_taximask[0] = rEntry->startingTaxiMask;
+	// capital and taxi hub masks
+	switch (race)
+	{
+	case 1:  m_taximask[0] = 1 << (2 - 1); break;         // Human
+	case 2:  m_taximask[0] = 1 << (23 - 1); break;         // Orc
+	case 3:  m_taximask[0] = 1 << (6 - 1); break;         // Dwarf
+														  // Night Elf
+	case 4:  m_taximask[0] = (1 << (26 - 1)) | (1 << (27 - 1)); break;
+	case 5:  m_taximask[0] = 1 << (11 - 1); break;         // Undead
+	case 6:  m_taximask[0] = 1 << (22 - 1); break;         // Tauren
+	case 7:  m_taximask[0] = 1 << (6 - 1); break;         // Gnome
+	case 8:  m_taximask[0] = 1 << (23 - 1); break;         // Troll
+														   //case 10: m_taximask[0]= 1 << (1-1); break;        // Blood Elf
+	case 11: m_taximask[0 + 94 / 32] = 1 << (94 % 32 - 1); break;// Draenei
+	}
+	// new continent starting masks (It will be accessible only at new map
+	switch (rEntry->TeamID)
+	{
+	case 12: m_taximask[3] = 1 << (4 - 1); break;
+	case 14: m_taximask[3] = 1 << (3 - 1); break;
+	}
 }
 
 void PlayerTaxi::LoadTaxiMask(const char* data)

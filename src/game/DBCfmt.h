@@ -19,17 +19,17 @@
 #ifndef MANGOS_DBCSFRM_H
 #define MANGOS_DBCSFRM_H
 
-//const char AreaTableEntryfmt[] = "niiiixxxxxissssssssxixxxix";
-const char AreaTableEntryfmt[] = "iiinixxxxxixxxxxxxxxixxxxxx";
+const char AreaTableEntryfmt[] = "niiiixxxxxissssssssxixxxix";
+//const char AreaTableEntryfmt[] = "iiinixxxxxixxxxxxxxxixxxxxx";
 const char AreaTriggerEntryfmt[] = "niffffffff";
 const char AuctionHouseEntryfmt[] = "niiixxxxxxxxx";
 const char BankBagSlotPricesEntryfmt[] = "ni";
 const char BattlemasterListEntryfmt[] = "niixxxxxxiiiiixsxxxxxxxx";
-//const char ChrClassesEntryfmt[] = "nxxixssssssssxxix";
-//const char ChrRacesEntryfmt[] = "nxixiixxixxxxxixissssssssxxxx";
+const char ChrClassesEntryfmt[] = "nxxixssssssssxxix";
+
 //const char BattlemasterListEntryfmt[] = "niixxxxxxiiiiixsxxxxxxxx";
-const char ChrClassesEntryfmt[] = "nxxixsxxxxxxxxxxxx";
-const char ChrRacesEntryfmt[] = "nxixiixxixxxxisxxxxxxxxxxxx";
+//const char ChrClassesEntryfmt[] = "nxxixsxxxxxxxxxxxx";
+const char ChrRacesEntryfmt[] = "nxixiixxixxxxissssssssxxxx";
 
 const char CharStartOutfitEntryfmt[] = "diiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char ChatChannelsEntryfmt[] = "iixssssssssxxxxxxxxxx";// ChatChannelsEntryfmt, index not used (more compact store)
@@ -56,8 +56,8 @@ const char ItemSetEntryfmt[] = "dssssssssxxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii";
 const char LiquidTypefmt[] = "niii";
 const char LockEntryfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";
 const char MailTemplateEntryfmt[] = "nxxxxxxxxx";
-//const char MapEntryfmt[] = "nxixssssssssxxxxxxxixxxxxxxxxxxxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-const char MapEntryfmt[] = "nsixxxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+const char MapEntryfmt[] = "nxixssssssssxxxxxxxixxxxxxxxxxxxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+//const char MapEntryfmt[] = "nsixxxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
 const char QuestSortEntryfmt[] = "nxxxxxxxxx";
 const char SkillLinefmt[] = "nixssssssssxxxxxxxxxxi";
@@ -66,11 +66,11 @@ const char SkillRaceClassInfofmt[] = "diiiiixx";
 const char SoundEntriesfmt[] = "nxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char SpellCastTimefmt[] = "nixx";
 const char SpellDurationfmt[] = "niii";
-//const char SpellEntryfmt[] = "niixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiifffixiixssssssssxssssssssxxxxxxxxxxxxxxxxxxxiiiiiiiiiixfffxxxxx";
-const char SpellEntryfmt[] = "niixiiiiiiixixiiixixxiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiixxxiiiiiiiiiiiiiiifffiiiiiiiiiiiifffixiiissssssssissssssssixxxxxxxxxxxxxxxxxxiiiiiiixixxfffxxxiii";
+const char SpellEntryfmt[] = "niixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiifffixiixssssssssxssssssssxxxxxxxxxxxxxxxxxxxiiiiiiiiiixfffxxxxx";
+//const char SpellEntryfmt[] = "niixiiiiiiixixiiixixxiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiixxxiiiiiiiiiiiiiiifffiiiiiiiiiiiifffixiiissssssssissssssssixxxxxxxxxxxxxxxxxxiiiiiiixixxfffxxxiii";
 const char SpellFocusObjectfmt[] = "nxxxxxxxxx";
-//const char SpellItemEnchantmentfmt[] = "niiiiiixxxiiissssssssxiixx";
-const char SpellItemEnchantmentfmt[] = "niiiiiiixxiiisxxxxxxxxiixx";
+const char SpellItemEnchantmentfmt[] = "niiiiiixxxiiissssssssxiixx";
+//const char SpellItemEnchantmentfmt[] = "niiiiiiixxiiisxxxxxxxxiixx";
 const char SpellRadiusfmt[] = "nfxx";
 const char SpellRangefmt[] = "nffxxxxxxxxxxxxxxxxxxx";
 const char SpellShapeshiftfmt[] = "nxxxxxxxxxxiixx";

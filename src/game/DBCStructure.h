@@ -171,7 +171,7 @@ struct ChrRacesEntry
     // 11       unused, all 1604
     // 12       m_ResSicknessSpellID
     // 13       m_SplashSoundID
-    uint32      startingTaxiMask;                           // 14
+    //uint32      startingTaxiMask;                           // 14
     // 15       m_clientFileString
     uint32      CinematicSequence;                          // 16       m_cinematicSequenceID
     char*       name[8];                                    // 17-24    m_name_lang used for DBC language detection/selection
@@ -705,8 +705,8 @@ struct SpellEntry
         // uint32    MinFactionId;                          // 170 not used, and 0 in 2.4.2
         // uint32    MinReputation;                         // 171 not used, and 0 in 2.4.2
         // uint32    RequiredAuraVision;                    // 172 not used
-		uint32    TotemCategory[2];
-		uint32    AreaId;
+		//uint32    TotemCategory[2];
+		//uint32    AreaId;
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }
