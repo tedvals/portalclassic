@@ -716,6 +716,9 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HEROISM);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_HEROISM);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -730,6 +733,9 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SWEEP);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_SWEEP);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -827,6 +833,9 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_BLOODLUST);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_BLOODLUST);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -841,6 +850,9 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_CLEAVE);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_CLEAVE);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -903,6 +915,9 @@ struct npc_human_conjurerAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_ELEMENTAL_BLAST);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_ELEMENTAL_BLAST);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -917,6 +932,9 @@ struct npc_human_conjurerAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_RAIN_OF_FIRE);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_RAIN_OF_FIRE);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -979,6 +997,9 @@ struct npc_orc_warlockAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_FIREBALL);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_FIREBALL);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -993,6 +1014,9 @@ struct npc_orc_warlockAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD_ACTION);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_POISON_CLOUD_ACTION);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1069,6 +1093,9 @@ struct npc_human_footmanAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HEROIC_BLOW);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_HEROIC_BLOW);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1083,6 +1110,9 @@ struct npc_human_footmanAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHIELD_BLOCK);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_SHIELD_BLOCK);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1159,6 +1189,9 @@ struct npc_orc_gruntAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_VICIOUS_STRIKE);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_VICIOUS_STRIKE);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1173,6 +1206,9 @@ struct npc_orc_gruntAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_WEAPON_DEFLECTION);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_WEAPON_DEFLECTION);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1235,6 +1271,9 @@ struct npc_water_elementalAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_GEYSER);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_GEYSER);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1249,6 +1288,9 @@ struct npc_water_elementalAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_WATER_SHIELD);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_WATER_SHIELD);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1311,6 +1353,9 @@ struct npc_summoned_daemonAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HELLFIRE);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_HELLFIRE);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1325,6 +1370,9 @@ struct npc_summoned_daemonAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_FIRE_SHIELD);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_FIRE_SHIELD);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1387,6 +1435,9 @@ struct npc_human_chargerAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SMASH);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_SMASH);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1401,6 +1452,9 @@ struct npc_human_chargerAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_STOMP);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_STOMP);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1463,6 +1517,9 @@ struct npc_orc_wolfAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_BITE);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_BITE);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1477,6 +1534,9 @@ struct npc_orc_wolfAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HOWL);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_HOWL);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1539,6 +1599,9 @@ struct npc_human_clericAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HEALING);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_HEALING);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1553,6 +1616,9 @@ struct npc_human_clericAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HOLY_LANCE);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_HOLY_LANCE);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1615,6 +1681,9 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND_ACTION);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_SHADOW_MEND_ACTION);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1629,6 +1698,9 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_SPEAR);
+			if (!pSpell)
+				pSpell = GetDBCSpellStore()->LookupEntry(SPELL_SHADOW_SPEAR);
+
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 

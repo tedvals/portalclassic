@@ -359,6 +359,9 @@ struct npc_dragonmaw_peonAI : public ScriptedAI
                     {
                         const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SERVING_MUTTON);
 
+						if (!pSpell)
+							pSpell = GetDBCSpellStore()->LookupEntry(SPELL_SERVING_MUTTON);
+
                         uint32 uiGameobjectEntry = pSpell->EffectMiscValue[EFFECT_INDEX_0];
 
                         // this can fail, but very low chance

@@ -31,6 +31,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "WaypointMovementGenerator.h"
 #include "Mail.h"
+#include "SpellMgr.h"
 
 ScriptMapMapName sQuestEndScripts;
 ScriptMapMapName sQuestStartScripts;
@@ -92,11 +93,11 @@ uint8 GetSpellStartDBScriptPriority(SpellEntry const* spellinfo, SpellEffectInde
         return 9;
 
     // NonExisting triggered spells can also start DB-Spell-Scripts
-    if (spellinfo->Effect[effIdx] == SPELL_EFFECT_TRIGGER_SPELL && !sSpellTemplate.LookupEntry<SpellEntry>(spellinfo->EffectTriggerSpell[effIdx]))
+    if (spellinfo->Effect[effIdx] == SPELL_EFFECT_TRIGGER_SPELL && !GetSpellTemplate(spellinfo->EffectTriggerSpell[effIdx]))
         return 5;
 
     // NonExisting trigger missile spells can also start DB-Spell-Scripts
-    if (spellinfo->Effect[effIdx] == SPELL_EFFECT_TRIGGER_MISSILE && !sSpellTemplate.LookupEntry<SpellEntry>(spellinfo->EffectTriggerSpell[effIdx]))
+    if (spellinfo->Effect[effIdx] == SPELL_EFFECT_TRIGGER_MISSILE && !GetSpellTemplate(spellinfo->EffectTriggerSpell[effIdx]))
         return 4;
 
     // Can not start script
@@ -449,7 +450,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 break;
             case SCRIPT_COMMAND_REMOVE_AURA:                // 14
             {
-                if (!sSpellTemplate.LookupEntry<SpellEntry>(tmp.removeAura.spellId))
+                if (!GetSpellTemplate(tmp.removeAura.spellId))
                 {
                     sLog.outErrorDb("Table `%s` using nonexistent spell (id: %u) in SCRIPT_COMMAND_REMOVE_AURA or SCRIPT_COMMAND_CAST_SPELL for script id %u",
                                     tablename, tmp.removeAura.spellId, tmp.id);
@@ -459,7 +460,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             }
             case SCRIPT_COMMAND_CAST_SPELL:                 // 15
             {
-                if (!sSpellTemplate.LookupEntry<SpellEntry>(tmp.castSpell.spellId))
+                if (!GetSpellTemplate(tmp.castSpell.spellId))
                 {
                     sLog.outErrorDb("Table `%s` using nonexistent spell (id: %u) in SCRIPT_COMMAND_REMOVE_AURA or SCRIPT_COMMAND_CAST_SPELL for script id %u",
                                     tablename, tmp.castSpell.spellId, tmp.id);
@@ -468,7 +469,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 bool hasErrored = false;
                 for (uint8 i = 0; i < MAX_TEXT_ID; ++i)
                 {
-                    if (tmp.textId[i] && !sSpellTemplate.LookupEntry<SpellEntry>(uint32(tmp.textId[i])))
+                    if (tmp.textId[i] && !GetSpellTemplate(uint32(tmp.textId[i])))
                     {
                         sLog.outErrorDb("Table `%s` using nonexistent spell (id: %u) in SCRIPT_COMMAND_CAST_SPELL for script id %u, dataint%u",
                                         tablename, uint32(tmp.textId[i]), tmp.id, i + 1);
@@ -629,7 +630,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                     uint32 taxiSpell = 0;
                     for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry() && taxiSpell == 0; ++i)
                     {
-                        if (SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(i))
+                        if (SpellEntry const* spell = GetSpellTemplate(i))
                             for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
                             {
                                 if (spell->Effect[j] == SPELL_EFFECT_SEND_TAXI && spell->EffectMiscValue[j] == int32(tmp.sendTaxiPath.taxiPathId))
@@ -817,7 +818,7 @@ void ScriptMgr::LoadSpellScripts()
     // check ids
     for (ScriptMapMap::const_iterator itr = sSpellScripts.second.begin(); itr != sSpellScripts.second.end(); ++itr)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+        SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
         if (!spellInfo)
         {
             sLog.outErrorDb("Table `dbscripts_on_spell` has not existing spell (Id: %u) as script id", itr->first);
@@ -2496,7 +2497,7 @@ void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
     // Load all possible script entries from spells
     for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
     {
-        SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(i);
+        SpellEntry const* spell = GetSpellTemplate(i);
         if (spell)
         {
             for (int j = 0; j < MAX_EFFECT_INDEX; ++j)

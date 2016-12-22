@@ -221,6 +221,9 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* pTarget, int32 uiSchool, int32 i
     {
         pTempSpell = GetSpellStore()->LookupEntry<SpellEntry>(m_creature->m_spells[i]);
 
+		if (!pTempSpell)
+			pTempSpell = GetDBCSpellStore()->LookupEntry(m_creature->m_spells[i]);
+
         // This spell doesn't exist
         if (!pTempSpell)
             continue;
@@ -312,87 +315,174 @@ bool ScriptedAI::CanCast(Unit* pTarget, SpellEntry const* pSpellEntry, bool bTri
 
 void FillSpellSummary()
 {
-    SpellSummary = new TSpellSummary[GetSpellStore()->GetMaxEntry()];
+	if (GetSpellStore()->GetMaxEntry() > 0)
+	{
+		SpellSummary = new TSpellSummary[GetSpellStore()->GetMaxEntry()];
 
-    SpellEntry const* pTempSpell;
+		SpellEntry const* pTempSpell;
 
-    for (uint32 i = 0; i < GetSpellStore()->GetMaxEntry(); ++i)
-    {
-        SpellSummary[i].Effects = 0;
-        SpellSummary[i].Targets = 0;
+		for (uint32 i = 0; i < GetSpellStore()->GetMaxEntry(); ++i)
+		{
+			SpellSummary[i].Effects = 0;
+			SpellSummary[i].Targets = 0;
 
-        pTempSpell = GetSpellStore()->LookupEntry<SpellEntry>(i);
-        // This spell doesn't exist
-        if (!pTempSpell)
-            continue;
+			pTempSpell = GetSpellStore()->LookupEntry<SpellEntry>(i);
+			// This spell doesn't exist
+			if (!pTempSpell)
+				continue;
 
-        for (uint8 j = 0; j < 3; ++j)
-        {
-            // Spell targets self
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SELF - 1);
+			for (uint8 j = 0; j < 3; ++j)
+			{
+				// Spell targets self
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SELF - 1);
 
-            // Spell targets a single enemy
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_CHAIN_DAMAGE ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_CURRENT_ENEMY_COORDINATES)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SINGLE_ENEMY - 1);
+				// Spell targets a single enemy
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_CHAIN_DAMAGE ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CURRENT_ENEMY_COORDINATES)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SINGLE_ENEMY - 1);
 
-            // Spell targets AoE at enemy
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_INSTANT ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_CHANNELED)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_AOE_ENEMY - 1);
+				// Spell targets AoE at enemy
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_INSTANT ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_CHANNELED)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_AOE_ENEMY - 1);
 
-            // Spell targets an enemy
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_CHAIN_DAMAGE ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_CURRENT_ENEMY_COORDINATES ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_INSTANT ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_CHANNELED)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_ANY_ENEMY - 1);
+				// Spell targets an enemy
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_CHAIN_DAMAGE ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CURRENT_ENEMY_COORDINATES ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_INSTANT ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_CHANNELED)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_ANY_ENEMY - 1);
 
-            // Spell targets a single friend(or self)
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_FRIEND ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_PARTY)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SINGLE_FRIEND - 1);
+				// Spell targets a single friend(or self)
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_FRIEND ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_PARTY)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SINGLE_FRIEND - 1);
 
-            // Spell targets aoe friends
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_PARTY_AROUND_CASTER ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_PARTY ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_AOE_FRIEND - 1);
+				// Spell targets aoe friends
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_PARTY_AROUND_CASTER ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_PARTY ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_AOE_FRIEND - 1);
 
-            // Spell targets any friend(or self)
-            if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_FRIEND ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_PARTY ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_PARTY_AROUND_CASTER ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_PARTY ||
-                    pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES)
-                SpellSummary[i].Targets |= 1 << (SELECT_TARGET_ANY_FRIEND - 1);
+				// Spell targets any friend(or self)
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_FRIEND ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_PARTY ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_PARTY_AROUND_CASTER ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_PARTY ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_ANY_FRIEND - 1);
 
-            // Make sure that this spell includes a damage effect
-            if (pTempSpell->Effect[j] == SPELL_EFFECT_SCHOOL_DAMAGE ||
-                    pTempSpell->Effect[j] == SPELL_EFFECT_INSTAKILL ||
-                    pTempSpell->Effect[j] == SPELL_EFFECT_ENVIRONMENTAL_DAMAGE ||
-                    pTempSpell->Effect[j] == SPELL_EFFECT_HEALTH_LEECH)
-                SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_DAMAGE - 1);
+				// Make sure that this spell includes a damage effect
+				if (pTempSpell->Effect[j] == SPELL_EFFECT_SCHOOL_DAMAGE ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_INSTAKILL ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_ENVIRONMENTAL_DAMAGE ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_HEALTH_LEECH)
+					SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_DAMAGE - 1);
 
-            // Make sure that this spell includes a healing effect (or an apply aura with a periodic heal)
-            if (pTempSpell->Effect[j] == SPELL_EFFECT_HEAL ||
-                    pTempSpell->Effect[j] == SPELL_EFFECT_HEAL_MAX_HEALTH ||
-                    pTempSpell->Effect[j] == SPELL_EFFECT_HEAL_MECHANICAL ||
-                    (pTempSpell->Effect[j] == SPELL_EFFECT_APPLY_AURA  && pTempSpell->EffectApplyAuraName[j] == 8))
-                SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_HEALING - 1);
+				// Make sure that this spell includes a healing effect (or an apply aura with a periodic heal)
+				if (pTempSpell->Effect[j] == SPELL_EFFECT_HEAL ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_HEAL_MAX_HEALTH ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_HEAL_MECHANICAL ||
+					(pTempSpell->Effect[j] == SPELL_EFFECT_APPLY_AURA  && pTempSpell->EffectApplyAuraName[j] == 8))
+					SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_HEALING - 1);
 
-            // Make sure that this spell applies an aura
-            if (pTempSpell->Effect[j] == SPELL_EFFECT_APPLY_AURA)
-                SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_AURA - 1);
-        }
-    }
+				// Make sure that this spell applies an aura
+				if (pTempSpell->Effect[j] == SPELL_EFFECT_APPLY_AURA)
+					SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_AURA - 1);
+			}
+		}
+	}
+	else
+	{
+		SpellSummary = new TSpellSummary[GetDBCSpellStore()->GetNumRows()];
+
+		SpellEntry const* pTempSpell;
+
+		for (uint32 i = 0; i < GetDBCSpellStore()->GetNumRows(); ++i)
+		{
+			SpellSummary[i].Effects = 0;
+			SpellSummary[i].Targets = 0;
+
+			pTempSpell = GetDBCSpellStore()->LookupEntry(i);
+			// This spell doesn't exist
+			if (!pTempSpell)
+				continue;
+
+			for (uint8 j = 0; j < 3; ++j)
+			{
+				// Spell targets self
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SELF - 1);
+
+				// Spell targets a single enemy
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_CHAIN_DAMAGE ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CURRENT_ENEMY_COORDINATES)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SINGLE_ENEMY - 1);
+
+				// Spell targets AoE at enemy
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_INSTANT ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_CHANNELED)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_AOE_ENEMY - 1);
+
+				// Spell targets an enemy
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_CHAIN_DAMAGE ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CURRENT_ENEMY_COORDINATES ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_INSTANT ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_ENEMY_IN_AREA_CHANNELED)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_ANY_ENEMY - 1);
+
+				// Spell targets a single friend(or self)
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_FRIEND ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_PARTY)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_SINGLE_FRIEND - 1);
+
+				// Spell targets aoe friends
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_PARTY_AROUND_CASTER ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_PARTY ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_AOE_FRIEND - 1);
+
+				// Spell targets any friend(or self)
+				if (pTempSpell->EffectImplicitTargetA[j] == TARGET_SELF ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_FRIEND ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_SINGLE_PARTY ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_ALL_PARTY_AROUND_CASTER ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_PARTY ||
+					pTempSpell->EffectImplicitTargetA[j] == TARGET_CASTER_COORDINATES)
+					SpellSummary[i].Targets |= 1 << (SELECT_TARGET_ANY_FRIEND - 1);
+
+				// Make sure that this spell includes a damage effect
+				if (pTempSpell->Effect[j] == SPELL_EFFECT_SCHOOL_DAMAGE ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_INSTAKILL ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_ENVIRONMENTAL_DAMAGE ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_HEALTH_LEECH)
+					SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_DAMAGE - 1);
+
+				// Make sure that this spell includes a healing effect (or an apply aura with a periodic heal)
+				if (pTempSpell->Effect[j] == SPELL_EFFECT_HEAL ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_HEAL_MAX_HEALTH ||
+					pTempSpell->Effect[j] == SPELL_EFFECT_HEAL_MECHANICAL ||
+					(pTempSpell->Effect[j] == SPELL_EFFECT_APPLY_AURA  && pTempSpell->EffectApplyAuraName[j] == 8))
+					SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_HEALING - 1);
+
+				// Make sure that this spell applies an aura
+				if (pTempSpell->Effect[j] == SPELL_EFFECT_APPLY_AURA)
+					SpellSummary[i].Effects |= 1 << (SELECT_EFFECT_AURA - 1);
+			}
+		}
+	}
 }
 
 void ScriptedAI::DoResetThreat()

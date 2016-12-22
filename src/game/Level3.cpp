@@ -1286,7 +1286,7 @@ bool ChatHandler::HandleCooldownCommand(char* args)
         if (!spell_id)
             return false;
 
-        if (!sSpellTemplate.LookupEntry<SpellEntry>(spell_id))
+        if (!GetSpellTemplate(spell_id))
         {
             PSendSysMessage(LANG_UNKNOWN_SPELL, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
             SetSentErrorMessage(true);
@@ -1913,7 +1913,7 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
         if (m_session->GetPlayer()->HasSpell(spell))
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+        SpellEntry const* spellInfo = GetSpellTemplate(spell);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, m_session->GetPlayer()))
         {
             PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spell);
@@ -1953,7 +1953,7 @@ bool ChatHandler::HandleLearnAllGMCommand(char* /*args*/)
     {
         uint32 spell = std::stoul((char*)gmSpellList[gmSpellIter++]);
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+        SpellEntry const* spellInfo = GetSpellTemplate(spell);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, m_session->GetPlayer()))
         {
             PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spell);
@@ -1988,7 +1988,7 @@ bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
         if (!entry)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(entry->spellId);
+        SpellEntry const* spellInfo = GetSpellTemplate(entry->spellId);
         if (!spellInfo)
             continue;
 
@@ -2053,7 +2053,7 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
         if (!spellid)                                       // ??? none spells in talent
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+        SpellEntry const* spellInfo = GetSpellTemplate(spellid);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player, false))
             continue;
 
@@ -2104,14 +2104,14 @@ bool ChatHandler::HandleLearnCommand(char* args)
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spell = ExtractSpellIdFromLink(&args);
-    if (!spell || !sSpellTemplate.LookupEntry<SpellEntry>(spell))
+    if (!spell || !GetSpellTemplate(spell))
         return false;
 
     bool allRanks = ExtractLiteralArg(&args, "all") != nullptr;
     if (!allRanks && *args)                                 // can be fail also at syntax error
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell);
     if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player))
     {
         PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spell);
@@ -2884,7 +2884,7 @@ bool ChatHandler::HandleLookupSpellCommand(char* args)
     // Search in Spell.dbc
     for (uint32 id = 0; id < sSpellTemplate.GetMaxEntry(); ++id)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(id);
+        SpellEntry const* spellInfo = GetSpellTemplate(id);
         if (spellInfo)
         {
             int loc = GetSessionDbcLocale();
@@ -3449,7 +3449,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spellid = ExtractSpellIdFromLink(&args);
-    if (!spellid || !sSpellTemplate.LookupEntry<SpellEntry>(spellid))
+    if (!spellid || !GetSpellTemplate(spellid))
         return false;
 
     player->SpellNonMeleeDamageLog(target, spellid, damage);
@@ -3488,7 +3488,7 @@ bool ChatHandler::HandleAuraCommand(char* args)
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spellID = ExtractSpellIdFromLink(&args);
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellID);
+    SpellEntry const* spellInfo = GetSpellTemplate(spellID);
     if (!spellInfo)
         return false;
 
@@ -4418,7 +4418,7 @@ bool ChatHandler::HandleListTalentsCommand(char* /*args*/)
         if (cost_itr == 0)
             continue;
 
-        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+        SpellEntry const* spellEntry = GetSpellTemplate(itr->first);
         if (!spellEntry)
             continue;
 
@@ -5686,7 +5686,7 @@ bool ChatHandler::HandleCastCommand(char* args)
     if (!spell)
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell);
     if (!spellInfo)
         return false;
 
@@ -5720,7 +5720,7 @@ bool ChatHandler::HandleCastBackCommand(char* args)
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spell = ExtractSpellIdFromLink(&args);
-    if (!spell || !sSpellTemplate.LookupEntry<SpellEntry>(spell))
+    if (!spell || !GetSpellTemplate(spell))
         return false;
 
     bool triggered = ExtractLiteralArg(&args, "triggered") != nullptr;
@@ -5744,7 +5744,7 @@ bool ChatHandler::HandleCastDistCommand(char* args)
     if (!spell)
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell);
     if (!spellInfo)
         return false;
 
@@ -5790,7 +5790,7 @@ bool ChatHandler::HandleCastTargetCommand(char* args)
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spell = ExtractSpellIdFromLink(&args);
-    if (!spell || !sSpellTemplate.LookupEntry<SpellEntry>(spell))
+    if (!spell || !GetSpellTemplate(spell))
         return false;
 
     bool triggered = ExtractLiteralArg(&args, "triggered") != nullptr;
@@ -5845,7 +5845,7 @@ bool ChatHandler::HandleCastSelfCommand(char* args)
     if (!spell)
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell);
     if (!spellInfo)
         return false;
 

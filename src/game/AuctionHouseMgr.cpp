@@ -33,6 +33,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "Mail.h"
+#include "SpellMgr.h"
 
 #include "Policies/Singleton.h"
 
@@ -617,7 +618,7 @@ void AuctionHouseObject::BuildListAuctionItems(WorldPacket& data, Player* player
 
                 if (proto->Class == ITEM_CLASS_RECIPE)
                 {
-                    if (SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(proto->Spells[0].SpellId))
+                    if (SpellEntry const* spell = GetSpellTemplate(proto->Spells[0].SpellId))
                     {
                         if (player->HasSpell(spell->EffectTriggerSpell[EFFECT_INDEX_0]))
                             continue;

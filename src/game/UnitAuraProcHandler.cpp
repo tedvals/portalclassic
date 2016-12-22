@@ -419,7 +419,7 @@ SpellAuraProcResult Unit::HandleHasteAuraProc(Unit* pVictim, uint32 damage, Aura
     if (!triggered_spell_id)
         return SPELL_AURA_PROC_OK;
 
-    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* triggerEntry = GetSpellTemplate(triggered_spell_id);
 
     if (!triggerEntry)
     {
@@ -1137,7 +1137,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
     if (!triggered_spell_id)
         return SPELL_AURA_PROC_OK;
 
-    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* triggerEntry = GetSpellTemplate(triggered_spell_id);
 
     if (!triggerEntry)
     {
@@ -1469,7 +1469,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                             return SPELL_AURA_PROC_FAILED;
                     }
                 }
-                SpellEntry const* originalSpell = sSpellTemplate.LookupEntry<SpellEntry>(originalSpellId);
+                SpellEntry const* originalSpell = GetSpellTemplate(originalSpellId);
                 if (!originalSpell)
                 {
                     sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u unknown but selected as original in Illu", originalSpellId);
@@ -1572,7 +1572,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
     }
 
     // All ok. Check current trigger spell
-    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry<SpellEntry>(trigger_spell_id);
+    SpellEntry const* triggerEntry = GetSpellTemplate(trigger_spell_id);
     if (!triggerEntry)
     {
         // Not cast unknown spell
@@ -1714,7 +1714,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 				const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
 				for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
 				{
-					SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+					SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
 
 					if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->Id == 19574) && GetSpellRecoveryTime(spellInfo) > 0)
 					{
@@ -1739,7 +1739,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 			const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
 			for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
 			{
-				SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+				SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
 
 				if (spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && (spellInfo->Id == 18288) && GetSpellRecoveryTime(spellInfo) > 0)
 				{
@@ -1775,7 +1775,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 				const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
 				for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
 				{
-					SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+					SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
 
 					if (spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && spellInfo->Id == 16166 && GetSpellRecoveryTime(spellInfo) > 0)
 					{
@@ -1815,7 +1815,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 				const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
 				for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
 				{
-					SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+					SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
 
 					if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->Id == 19574) && GetSpellRecoveryTime(spellInfo) > 0)
 					{
@@ -1850,7 +1850,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 				const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
 				for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
 				{
-					SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+					SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
 
 					if (spellInfo->SpellFamilyName == SPELLFAMILY_MAGE && (spellInfo->Id == 11129 || spellInfo->Id == 12472) && GetSpellRecoveryTime(spellInfo) > 0)
 					{
@@ -1875,7 +1875,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 				const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
 				for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
 				{
-					SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+					SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
 
 					if (spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && (spellInfo->Id == 10060) && GetSpellRecoveryTime(spellInfo) > 0)
 					{
@@ -1942,7 +1942,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
         return SPELL_AURA_PROC_OK;
 
     // standard non-dummy case
-    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* triggerEntry = GetSpellTemplate(triggered_spell_id);
 
     if (!triggerEntry)
     {

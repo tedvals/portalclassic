@@ -48,7 +48,7 @@ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
 bool IsQuestTameSpell(uint32 spellId)
 {
-    SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellproto = GetSpellTemplate(spellId);
     if (!spellproto)
         return false;
 
@@ -255,7 +255,7 @@ void SpellCastTargets::write(ByteBuffer& data) const
 Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
-    MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");
+    MANGOS_ASSERT(info == GetSpellTemplate(info->Id) && "`info` must be pointer to sSpellTemplate element");
 
     m_spellInfo = info;
     m_triggeredBySpellInfo = triggeredBy;
@@ -1005,7 +1005,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
                 {
                     // stored in unused spell effect basepoints in main spell code
                     uint32 spellid = m_currentBasePoints[EFFECT_INDEX_1];
-                    spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+                    spellInfo = GetSpellTemplate(spellid);
                 }
             }
 
@@ -3964,7 +3964,7 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOT
 
 void Spell::AddTriggeredSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
     if (!spellInfo)
     {
@@ -3977,7 +3977,7 @@ void Spell::AddTriggeredSpell(uint32 spellId)
 
 void Spell::AddPrecastSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
     if (!spellInfo)
     {
@@ -4750,7 +4750,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[i]);
+                SpellEntry const* learn_spellproto = GetSpellTemplate(m_spellInfo->EffectTriggerSpell[i]);
 
                 if (!learn_spellproto)
                     return SPELL_FAILED_NOT_KNOWN;
@@ -4773,7 +4773,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[i]);
+                SpellEntry const* learn_spellproto = GetSpellTemplate(m_spellInfo->EffectTriggerSpell[i]);
 
                 if (!learn_spellproto)
                     return SPELL_FAILED_NOT_KNOWN;

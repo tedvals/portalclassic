@@ -26,6 +26,7 @@
 #include "LootMgr.h"
 #include "World.h"
 #include "Util.h"
+#include "SpellMgr.h"
 
 void AddItemsSetItem(Player* player, Item* item)
 {
@@ -94,7 +95,7 @@ void AddItemsSetItem(Player* player, Item* item)
         {
             if (!eff->spells[y])                            // free slot
             {
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(set->spells[x]);
+                SpellEntry const* spellInfo = GetSpellTemplate(set->spells[x]);
                 if (!spellInfo)
                 {
                     sLog.outError("WORLD: unknown spell id %u in items set %u effects", set->spells[x], setid);

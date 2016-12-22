@@ -39,6 +39,7 @@
 #include "Chat.h"
 #include "SQLStorages.h"
 
+
 #include<vector>
 
 struct Mail;
@@ -2410,6 +2411,10 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellId);
+
     if (!spellInfo) return 0;
     int32 totalpct = 0;
     int32 totalflat = 0;

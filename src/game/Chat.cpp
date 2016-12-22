@@ -1671,7 +1671,7 @@ bool ChatHandler::isValidChatMessage(const char* message) const
                     if (!talentInfo)
                         return false;
 
-                    linkedSpell = sSpellTemplate.LookupEntry<SpellEntry>(talentInfo->RankID[0]);
+                    linkedSpell = GetSpellTemplate(talentInfo->RankID[0]);
                     if (!linkedSpell)
                         return false;
 
@@ -1698,7 +1698,7 @@ bool ChatHandler::isValidChatMessage(const char* message) const
                         spellid += c - '0';
                         c = reader.peek();
                     }
-                    linkedSpell = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+                    linkedSpell = GetSpellTemplate(spellid);
                     if (!linkedSpell)
                         return false;
                 }
@@ -1717,7 +1717,7 @@ bool ChatHandler::isValidChatMessage(const char* message) const
                         spellid += c - '0';
                         c = reader.peek();
                     }
-                    linkedSpell = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+                    linkedSpell = GetSpellTemplate(spellid);
                     if (!linkedSpell)
                         return false;
                 }

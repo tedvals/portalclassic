@@ -89,6 +89,14 @@ uint16 GetSpellAuraMaxTicks(SpellEntry const* spellInfo);
 uint16 GetSpellAuraMaxTicks(uint32 spellId);
 WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo);
 
+inline SpellEntry const* GetSpellTemplate(uint32 spell_id)
+{
+	const SpellEntry* spell = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+	if (!spell)
+		spell = sSpellStore.LookupEntry(spell_id);
+	return spell;
+}
+
 inline bool IsSpellHaveEffect(SpellEntry const* spellInfo, SpellEffects effect)
 {
 	for (int i = 0; i < MAX_EFFECT_INDEX; ++i)

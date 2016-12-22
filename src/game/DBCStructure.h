@@ -619,7 +619,7 @@ struct SpellEntry
         uint32    manaPerSecondPerLevel;                    // 35
         uint32    rangeIndex;                               // 36
         float     speed;                                    // 37
-        //uint32    modalNextSpell;                           // 38 not used
+        uint32    modalNextSpell;                           // 38 not used
         uint32    StackAmount;                              // 39
         uint32    Totem[MAX_SPELL_TOTEMS];                  // 40-41
         int32     Reagent[MAX_SPELL_REAGENTS];              // 42-49
