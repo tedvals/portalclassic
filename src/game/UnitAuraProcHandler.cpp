@@ -829,7 +829,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     triggered_spell_id = 28848;
                     break;
                 }				
-					// Lifebloom
+					// Natural Perfection
 				case 54418:
 				case 54419:
 				case 54420:
@@ -1206,6 +1206,14 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     trigger_spell_id = 23781;
                     break;
                 // case 24949: break;                   // Defensive State 2 (DND)
+				case 24905:                                 // Moonkin Form (Passive)
+				{
+					// Elune's Touch (instead non-existed triggered spell) 30% from AP
+					trigger_spell_id = 33926;
+					basepoints[0] = GetTotalAttackPowerValue(BASE_ATTACK) * 30 / 100;
+					target = this;
+					break;
+				}
                 case 27522:                                 // Mana Drain Trigger
                 {
                     // On successful melee or ranged attack gain $29471s1 mana and if possible drain $27526s1 mana from the target.
@@ -1901,6 +1909,11 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		case 5021:
 		{
 			triggered_spell_id = 54461;                     // Ice veins (Mage)
+			break;
+		}
+		case 5022:
+		{
+			triggered_spell_id = 54643;                     // Ice veins (Mage)
 			break;
 		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus

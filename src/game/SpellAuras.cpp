@@ -1739,7 +1739,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 					{
 						// Lifebloom dummy store single stack amount always
 						int32 amount = m_modifier.m_amount;
-						target->CastCustomSpell(target, 33778, &amount, nullptr, nullptr, true, nullptr, this, GetCasterGuid());
+						target->CastCustomSpell(target, 54724, &amount, nullptr, nullptr, true, nullptr, this, GetCasterGuid());
 					}
 				}
 				return;
@@ -3168,11 +3168,19 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
     {
         switch (GetId())
         {
+			case 66:                                        // Invisibility
+			if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+				target->CastSpell(target, 32612, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+			return;
             case 29213:                                     // Curse of the Plaguebringer
                 if (m_removeMode != AURA_REMOVE_BY_DISPEL)
                     // Cast Wrath of the Plaguebringer if not dispelled
                     target->CastSpell(target, 29214, TRIGGERED_OLD_TRIGGERED, 0, this);
                 return;
+			case 42783:                                     // Wrath of the Astrom...
+				if (m_removeMode == AURA_REMOVE_BY_EXPIRE && GetEffIndex() + 1 < MAX_EFFECT_INDEX)
+					target->CastSpell(target, GetSpellProto()->CalculateSimpleValue(SpellEffectIndex(GetEffIndex() + 1)), TRIGGERED_OLD_TRIGGERED);
             default:
                 break;
         }

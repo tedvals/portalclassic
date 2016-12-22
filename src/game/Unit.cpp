@@ -6022,6 +6022,56 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
                 DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
                 break;
             }
+			// Molten Fury
+			case 4919:
+			case 4920:
+			case 4921:
+			{
+				if (pVictim->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))
+					DoneTotalMod *= (100.0f + (*i)->GetModifier()->m_amount) / 100.0f;
+				break;
+			}
+			// Soul Siphon
+			case 4992:
+			case 4993:
+			{
+				// effect 1 m_amount
+				int32 maxPercent = (*i)->GetModifier()->m_amount;
+				// effect 0 m_amount
+				int32 stepPercent = CalculateSpellDamage(this, (*i)->GetSpellProto(), EFFECT_INDEX_0);
+				// count affliction effects and calc additional damage in percentage
+				int32 modPercent = 0;
+				SpellAuraHolderMap const& victimAuras = pVictim->GetSpellAuraHolderMap();
+				for (SpellAuraHolderMap::const_iterator itr = victimAuras.begin(); itr != victimAuras.end(); ++itr)
+				{
+					SpellEntry const* m_spell = itr->second->GetSpellProto();
+					if (m_spell->SpellFamilyName != SPELLFAMILY_WARLOCK || !(m_spell->SpellFamilyFlags & uint64(0x0000871B804CC41A)))
+						continue;
+					modPercent += stepPercent * itr->second->GetStackAmount();
+					if (modPercent >= maxPercent)
+					{
+						modPercent = maxPercent;
+						break;
+					}
+				}
+				DoneTotalMod *= (modPercent + 100.0f) / 100.0f;
+				break;
+			}
+			// Starfire Bonus
+			case 5481:
+			{
+				if (pVictim->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, uint64(0x0000000000200002)))
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+				break;
+			}
+			case 5142: // Increased Lightning Damage
+			case 5147: // Improved Consecration
+			case 5148: // Idol of the Shooting Star
+			case 6008: // Increased Lightning Damage / Totem of Hex
+			{
+				DoneTotal += (*i)->GetModifier()->m_amount;
+				break;
+			}
 			case 8005: //Shaman (Natural Guidance)
 			{
 				if (pVictim->GetHealth() < pVictim->GetMaxHealth() * 0.35f)
@@ -6059,6 +6109,23 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 			}
         }
     }
+
+	// Custom scripted damage
+	switch (spellProto->SpellFamilyName)
+	{
+	case SPELLFAMILY_MAGE:
+	{
+		// Ice Lance
+		if (spellProto->SpellIconID == 186)
+		{
+			if (pVictim->isFrozen())
+				DoneTotalMod *= 3.0f;
+		}
+		break;
+	}
+	default:
+		break;
+	}
 
     // Done fixed damage bonus auras
     int32 DoneAdvertisedBenefit = SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto));
@@ -8927,7 +8994,7 @@ void CharmInfo::SetStayPosition(bool stay)
 
 bool Unit::isFrozen() const
 {
-    return HasAuraState(AURA_STATE_FROZEN);
+    return (HasAuraState(AURA_STATE_FROZEN)||HasAura(54643));
 }
 
 struct ProcTriggeredData
