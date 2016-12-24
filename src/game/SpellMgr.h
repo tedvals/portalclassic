@@ -70,6 +70,7 @@ enum SpellSpecific
     SPELL_MAGE_ARMOR,
     SPELL_WARLOCK_ARMOR,
     SPELL_ELEMENTAL_SHIELD,
+	SPELL_CORRUPTION,
 };
 
 SpellSpecific GetSpellSpecific(uint32 spellId);
@@ -1053,6 +1054,7 @@ inline bool IsSpellSpecificUniquePerCaster(SpellSpecific specific)
         case SPELL_ASPECT:
         case SPELL_JUDGEMENT:
         case SPELL_SOUL_CAPTURE:
+		case SPELL_CORRUPTION:
             return true;
     }
     return false;

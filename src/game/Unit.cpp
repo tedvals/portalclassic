@@ -2562,6 +2562,10 @@ float Unit::SpellResistChance(Unit *pVictim, const SpellEntry *spell)
 
     int32 modResistChance = 0;
 
+	// Increase resist chance for dispel mechanic spells from victim SPELL_AURA_MOD_DISPEL_RESIST
+	if (IsDispelSpell(spell))
+		modResistChance += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_DISPEL_RESIST);
+
     // Chance resist mechanic (select max value from every mechanic spell effect)
     int32 modResistMechanics = 0;
     // Get effects mechanic and chance
@@ -4249,6 +4253,40 @@ void Unit::RemoveSingleAuraFromSpellAuraHolder(uint32 spellId, SpellEffectIndex 
 
 void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 stackAmount, ObjectGuid casterGuid, Unit* dispeller)
 {
+	SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+
+	// Custom dispel case
+	// Unstable Affliction
+	if (spellEntry->SpellFamilyName == SPELLFAMILY_WARLOCK && (spellEntry->SpellFamilyFlags & uint64(0x010000000000)))
+	{
+		if (Aura* dotAura = GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, uint64(0x010000000000), casterGuid))
+		{
+			// use clean value for initial damage
+			int32 damage = dotAura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
+			damage *= 9;
+
+			// Remove spell auras from stack
+			RemoveAuraHolderFromStack(spellId, stackAmount, casterGuid, AURA_REMOVE_BY_DISPEL);
+
+			// backfire damage and silence
+			dispeller->CastCustomSpell(dispeller, 31117, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, casterGuid);
+			return;
+		}
+	}
+	// Lifebloom
+	else if (spellEntry->SpellFamilyName == SPELLFAMILY_DRUID && (spellEntry->SpellFamilyFlags & uint64(0x0000001000000000)))
+	{
+		if (Aura* dotAura = GetAura(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, uint64(0x0000001000000000), casterGuid))
+		{
+			if (dotAura->GetStackAmount() <= stackAmount)
+			{
+				// Lifebloom dummy store single stack amount always
+				int32 amount = dotAura->GetModifier()->m_amount;
+				CastCustomSpell(this, 33778, &amount, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, dotAura, casterGuid);
+			}
+		}
+	}
+
     RemoveAuraHolderFromStack(spellId, stackAmount, casterGuid, AURA_REMOVE_BY_DISPEL);
 }
 
@@ -6254,6 +6292,13 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
 				DoneAdvertisedBenefit += int32(GetStat(usedStat) * (*i)->GetModifier()->m_amount / 100.0f);
             }
         }
+		// ... and attack power
+		AuraList const& mDamageDonebyAP = GetAurasByType(SPELL_AURA_MOD_SPELL_DAMAGE_OF_ATTACK_POWER);
+		for (AuraList::const_iterator i = mDamageDonebyAP.begin(); i != mDamageDonebyAP.end(); ++i)
+		{
+			if ((*i)->GetModifier()->m_miscvalue & schoolMask)
+				DoneAdvertisedBenefit += int32(GetTotalAttackPowerValue(BASE_ATTACK) * (*i)->GetModifier()->m_amount / 100.0f);
+		}
     }
     return DoneAdvertisedBenefit;
 }
@@ -6567,12 +6612,31 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
     {
         // Healing bonus from stats
         AuraList const& mHealingDoneOfStatPercent = GetAurasByType(SPELL_AURA_MOD_SPELL_HEALING_OF_STAT_PERCENT);
-        for (AuraList::const_iterator i = mHealingDoneOfStatPercent.begin(); i != mHealingDoneOfStatPercent.end(); ++i)
-        {
-            // 1.12.* have only 1 stat type support
-            Stats usedStat = STAT_SPIRIT;
-            AdvertisedBenefit += int32(GetStat(usedStat) * (*i)->GetModifier()->m_amount / 100.0f);
-        }
+		for (AuraList::const_iterator i = mHealingDoneOfStatPercent.begin(); i != mHealingDoneOfStatPercent.end(); ++i)
+		{
+			if ((*i)->GetModifier()->m_miscvalue & schoolMask)
+			{
+				Stats usedStat;
+				// stat used stored in miscValueB for this aura
+				if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000100))
+					usedStat = STAT_STRENGTH;
+				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000200))
+					usedStat = STAT_AGILITY;
+				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000400))
+					usedStat = STAT_STAMINA;
+				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000800))
+					usedStat = STAT_INTELLECT;
+				else usedStat = STAT_SPIRIT;
+
+				AdvertisedBenefit += int32(GetStat(usedStat) * (*i)->GetModifier()->m_amount / 100.0f);
+			}
+		}
+
+		// ... and attack power
+		AuraList const& mHealingDonebyAP = GetAurasByType(SPELL_AURA_MOD_SPELL_HEALING_OF_ATTACK_POWER);
+		for (AuraList::const_iterator i = mHealingDonebyAP.begin(); i != mHealingDonebyAP.end(); ++i)
+			if ((*i)->GetModifier()->m_miscvalue & schoolMask)
+				AdvertisedBenefit += int32(GetTotalAttackPowerValue(BASE_ATTACK) * (*i)->GetModifier()->m_amount / 100.0f);
     }
     return AdvertisedBenefit;
 }

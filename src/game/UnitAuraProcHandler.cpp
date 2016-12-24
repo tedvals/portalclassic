@@ -703,7 +703,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
         case SPELLFAMILY_WARLOCK:
         {
 			// Seed of Corruption
-			if (dummySpell->SpellFamilyFlags & uint64(0x0000001000000000))
+			if (dummySpell->SpellFamilyFlags && dummySpell->SpellIconID == 1932)
 			{
 				Modifier* mod = triggeredByAura->GetModifier();
 				// if damage is more than need or target die from damage deal finish spell
@@ -716,7 +716,25 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 					RemoveAurasDueToSpell(triggeredByAura->GetId());
 
 					// Cast finish spell (triggeredByAura already not exist!)
-					CastSpell(this, 27285, true, castItem, nullptr, casterGuid);
+					switch (dummySpell->Id)
+					{ 
+					case 54731: 
+						CastSpell(this, 54739, true, castItem, nullptr, casterGuid);
+						break;
+					case 54732: 
+						CastSpell(this, 54740, true, castItem, nullptr, casterGuid);
+						break;
+					case 54733:
+						CastSpell(this, 54741, true, castItem, nullptr, casterGuid);
+						break;
+					case 54734:
+						CastSpell(this, 54742, true, castItem, nullptr, casterGuid);
+						break;
+					case 54735:
+						CastSpell(this, 54743, true, castItem, nullptr, casterGuid);
+						break;
+					}
+				//	CastSpell(this, 27285, true, castItem, nullptr, casterGuid);
 					return SPELL_AURA_PROC_OK;              // no hidden cooldown
 				}
 
@@ -744,6 +762,52 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 				// Damage counting
 				mod->m_amount -= damage;
 				return SPELL_AURA_PROC_OK;
+			}
+			switch (dummySpell->Id)
+			{
+				// Nightfall
+			case 18094:
+			case 18095:
+			{
+				target = this;
+				triggered_spell_id = 17941;
+				break;
+			}
+			// Soul Leech
+			case 30293:
+			case 30295:
+			case 30296:
+			{
+				// health
+				basepoints[0] = int32(damage * triggerAmount / 100);
+				target = this;
+				triggered_spell_id = 30294;
+				break;
+			}
+			// Shadowflame (Voidheart Raiment set bonus)
+			case 37377:
+			{
+				triggered_spell_id = 37379;
+				break;
+			}
+			// Pet Healing (Corruptor Raiment or Rift Stalker Armor)
+			case 37381:
+			{
+				target = GetPet();
+				if (!target)
+					return SPELL_AURA_PROC_FAILED;
+
+				// heal amount
+				basepoints[0] = damage * triggerAmount / 100;
+				triggered_spell_id = 37382;
+				break;
+			}
+			// Shadowflame Hellfire (Voidheart Raiment set bonus)
+			case 39437:
+			{
+				triggered_spell_id = 37378;
+				break;
+			}
 			}
 			break;
         }
@@ -1552,13 +1616,13 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             }
 			else if (auraSpellInfo->SpellIconID == 2013)
 			{
-				// Check health condition - should drop to less 30% (trigger at any attack with result health less 30%, independent original health state)
-				int32 health30 = int32(GetMaxHealth()) * 3 / 10;
-				if (int32(GetHealth()) - int32(damage) >= health30)
+				// Check health condition - should drop to less 40% (trigger at any attack with result health less 40%, independent original health state)
+				int32 health40 = int32(GetMaxHealth()) * 4 / 10;
+				if (int32(GetHealth()) - int32(damage) >= health40)
 					return SPELL_AURA_PROC_FAILED;
 
 				if (pVictim && pVictim->isAlive())
-					pVictim->getThreatManager().modifyThreatPercent(this, -10);
+					pVictim->getThreatManager().modifyThreatPercent(this, 10);
 
 				basepoints[0] = triggerAmount * GetMaxHealth() / 100;
 				trigger_spell_id = 31616;
@@ -1615,6 +1679,19 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             }
             return SPELL_AURA_PROC_FAILED;
         }
+		// Shamanistic Rage triggered spell
+		case 30824:
+		{
+			basepoints[0] = int32(GetTotalAttackPowerValue(BASE_ATTACK) * triggerAmount / 100);
+			break;
+		}
+		// Enlightenment (trigger only from mana cost spells)
+		case 35095:
+		{
+			if (!procSpell || procSpell->powerType != POWER_MANA || (procSpell->manaCost == 0 && procSpell->ManaCostPercentage == 0 && procSpell->manaCostPerlevel == 0))
+				return SPELL_AURA_PROC_FAILED;
+			break;
+		}
     }
 
     if (cooldown && GetTypeId() == TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(trigger_spell_id))
@@ -1914,6 +1991,11 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		case 5022:
 		{
 			triggered_spell_id = 54643;                     // Ice veins (Mage)
+			break;
+		}
+		case 5023:
+		{
+			triggered_spell_id = 54457;                     // Pyromaniac
 			break;
 		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus

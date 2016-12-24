@@ -351,6 +351,24 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
             }
             case SPELLFAMILY_WARLOCK:
             {
+				// Incinerate Rank 1 & 2
+				if ((m_spellInfo->SpellFamilyFlags & uint64(0x00004000000000)) && m_spellInfo->SpellIconID == 2128)
+				{
+					// for caster applied auras only
+					// Incinerate does more dmg (dmg*0.25) if the target is Immolated.
+					Unit::AuraList const& mPeriodic = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+					for (Unit::AuraList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)
+					{
+						if ((*i)->GetCasterGuid() == m_caster->GetObjectGuid() &&
+							// Immolate
+							(*i)->GetSpellProto()->IsFitToFamily(SPELLFAMILY_WARLOCK, uint64(0x0000000000000004)))
+						{
+							damage += int32(damage * 0.25);
+							break;
+						}
+					}
+											
+				}
                 // Conflagrate - consumes Immolate
                 if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000000200))
                 {
