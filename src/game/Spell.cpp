@@ -1515,6 +1515,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 		break;
 	}
 	case TARGET_SELF:
+	case TARGET_SELF2:
 		targetUnitMap.push_back(m_caster);
 		break;
 	case TARGET_RANDOM_ENEMY_CHAIN_IN_AREA:
@@ -1898,6 +1899,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (m_targets.getUnitTarget())
                 targetUnitMap.push_back(m_targets.getUnitTarget());
             break;
+		case TARGET_NONCOMBAT_PET:
+		if (Unit* target = m_targets.getUnitTarget())
+			if (target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->IsPet() && ((Pet*)target)->getPetType() == MINI_PET)
+				targetUnitMap.push_back(target);
+		break;
         case TARGET_CASTER_COORDINATES:
         {
             // Check original caster is GO - set its coordinates as src cast
@@ -2078,6 +2084,20 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_DUEL)
                 targetUnitMap.push_back(m_caster);
             break;
+		case TARGET_SINGLE_ENEMY:
+		{
+			if (Unit* target = m_targets.getUnitTarget())
+			{
+				if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(target, this, effIndex))
+				{
+					m_targets.setUnitTarget(pUnitTarget);
+					targetUnitMap.push_back(pUnitTarget);
+				}
+				else
+					targetUnitMap.push_back(target);
+			}
+			break;
+		}
         case TARGET_AREAEFFECT_PARTY:
         {
             Unit* owner = m_caster->GetCharmerOrOwner();
@@ -2266,6 +2286,51 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 sLog.outError("SPELL: unknown target coordinates for spell ID %u", m_spellInfo->Id);
             break;
         }
+		case TARGET_INFRONT_OF_VICTIM:
+		case TARGET_BEHIND_VICTIM:
+		case TARGET_RIGHT_FROM_VICTIM:
+		case TARGET_LEFT_FROM_VICTIM:
+		{
+			Unit* pTarget = nullptr;
+
+			// explicit cast data from client or server-side cast
+			// some spell at client send caster
+			if (m_targets.getUnitTarget() && m_targets.getUnitTarget() != m_caster)
+				pTarget = m_targets.getUnitTarget();
+			else if (m_caster->getVictim())
+				pTarget = m_caster->getVictim();
+			else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+				pTarget = ObjectAccessor::GetUnit(*m_caster, ((Player*)m_caster)->GetSelectionGuid());
+			else if (m_targets.getUnitTarget())
+				pTarget = m_caster;
+
+			if (pTarget)
+			{
+				float angle = 0.0f;
+
+				switch (targetMode)
+				{
+				case TARGET_INFRONT_OF_VICTIM:                        break;
+				case TARGET_BEHIND_VICTIM:      angle = M_PI_F;       break;
+				case TARGET_RIGHT_FROM_VICTIM:  angle = -M_PI_F / 2;  break;
+				case TARGET_LEFT_FROM_VICTIM:   angle = M_PI_F / 2;   break;
+				}
+
+				float _target_x, _target_y, _target_z;
+				pTarget->GetClosePoint(_target_x, _target_y, _target_z, pTarget->GetObjectBoundingRadius(), radius, angle);
+				if (pTarget->IsWithinLOS(_target_x, _target_y, _target_z))
+				{
+					targetUnitMap.push_back(m_caster);
+					m_targets.setDestination(_target_x, _target_y, _target_z);
+				}
+			}
+			break;
+		}
+		case TARGET_DYNAMIC_OBJECT_COORDINATES:
+			// if parent spell create dynamic object extract area from it
+			if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
+				m_targets.setDestination(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ());
+			break;
         case TARGET_DYNAMIC_OBJECT_FRONT:
         case TARGET_DYNAMIC_OBJECT_BEHIND:
         case TARGET_DYNAMIC_OBJECT_LEFT_SIDE:
@@ -2298,6 +2363,38 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             targetUnitMap.push_back(m_caster);
             break;
         }
+		case TARGET_POINT_AT_NORTH:
+		case TARGET_POINT_AT_SOUTH:
+		case TARGET_POINT_AT_EAST:
+		case TARGET_POINT_AT_WEST:
+		case TARGET_POINT_AT_NE:
+		case TARGET_POINT_AT_NW:
+		case TARGET_POINT_AT_SE:
+		case TARGET_POINT_AT_SW:
+		{
+			if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+			{
+				Unit* currentTarget = m_targets.getUnitTarget() ? m_targets.getUnitTarget() : m_caster;
+				float angle = currentTarget != m_caster ? currentTarget->GetAngle(m_caster) : m_caster->GetOrientation();
+
+				switch (targetMode)
+				{
+				case TARGET_POINT_AT_NORTH:                         break;
+				case TARGET_POINT_AT_SOUTH: angle += M_PI_F;        break;
+				case TARGET_POINT_AT_EAST:  angle -= M_PI_F / 2;    break;
+				case TARGET_POINT_AT_WEST:  angle += M_PI_F / 2;    break;
+				case TARGET_POINT_AT_NE:    angle -= M_PI_F / 4;    break;
+				case TARGET_POINT_AT_NW:    angle += M_PI_F / 4;    break;
+				case TARGET_POINT_AT_SE:    angle -= 3 * M_PI_F / 4;    break;
+				case TARGET_POINT_AT_SW:    angle += 3 * M_PI_F / 4;    break;
+				}
+
+				float x, y;
+				currentTarget->GetNearPoint2D(x, y, radius + currentTarget->GetObjectBoundingRadius(), angle);
+				m_targets.setDestination(x, y, currentTarget->GetPositionZ());
+			}
+			break;
+		}
         case TARGET_EFFECT_SELECT:
         {
             // add here custom effects that need default target.

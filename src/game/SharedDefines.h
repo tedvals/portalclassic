@@ -836,6 +836,17 @@ enum AuraState
     // AURA_STATE_UNKNOWN6                   = 6,           //     | not used
     AURA_STATE_HUNTER_PARRY                 = 7,            // C   |
     AURA_STATE_ROGUE_ATTACK_FROM_STEALTH    = 7,            // C   | FIX ME: not implemented yet!
+	AURA_STATE_WARRIOR_VICTORY_RUSH = 10,           // C   | warrior victory rush
+	AURA_STATE_HUNTER_CRIT_STRIKE = 10,           // C   | hunter crit strike
+	AURA_STATE_CRIT = 11,           // C   |
+	AURA_STATE_FAERIE_FIRE = 12,           //  c t|
+	AURA_STATE_HEALTHLESS_35_PERCENT = 13,           // C T |
+	AURA_STATE_CONFLAGRATE = 14,           //   T | per-caster
+	AURA_STATE_SWIFTMEND = 15,           //   T |
+	AURA_STATE_DEADLY_POISON = 16,           //   T |
+	AURA_STATE_FORBEARANCE = 17,           //  c t|
+	AURA_STATE_WEAKENED_SOUL = 18,           //    t|
+	AURA_STATE_HYPOTHERMIA = 19            //  c  |
 };
 
 // Spell mechanics
@@ -992,6 +1003,29 @@ enum Targets
     TARGET_NARROW_FRONTAL_CONE         = 60,
     TARGET_AREAEFFECT_PARTY_AND_CLASS  = 61,
     TARGET_DUELVSPLAYER_COORDINATES    = 63,
+	TARGET_INFRONT_OF_VICTIM = 64,
+	TARGET_BEHIND_VICTIM = 65,                // used in teleport behind spells, caster/target dependent from spell effect
+	TARGET_RIGHT_FROM_VICTIM = 66,
+	TARGET_LEFT_FROM_VICTIM = 67,
+	TARGET_70 = 70,
+	TARGET_RANDOM_NEARBY_LOC = 72,                // used in teleport onto nearby locations
+	TARGET_RANDOM_CIRCUMFERENCE_POINT = 73,
+	TARGET_74 = 74,
+	TARGET_75 = 75,
+	TARGET_DYNAMIC_OBJECT_COORDINATES = 76,
+	TARGET_SINGLE_ENEMY = 77,
+	TARGET_POINT_AT_NORTH = 78,                // 78-85 possible _COORDINATES at radius with pi/4 step around target in unknown order, N?
+	TARGET_POINT_AT_SOUTH = 79,                // S?
+	TARGET_POINT_AT_EAST = 80,                // 80/81 must be symmetric from line caster->target, E (base at 82/83, 84/85 order) ?
+	TARGET_POINT_AT_WEST = 81,                // 80/81 must be symmetric from line caster->target, W (base at 82/83, 84/85 order) ?
+	TARGET_POINT_AT_NE = 82,                // from spell desc: "(NE)"
+	TARGET_POINT_AT_NW = 83,                // from spell desc: "(NW)"
+	TARGET_POINT_AT_SE = 84,                // from spell desc: "(SE)"
+	TARGET_POINT_AT_SW = 85,                // from spell desc: "(SW)"
+	TARGET_RANDOM_NEARBY_DEST = 86,                // "Test Nearby Dest Random" - random around selected destination
+	TARGET_SELF2 = 87,
+	TARGET_88 = 88,                // Smoke Flare(s)
+	TARGET_NONCOMBAT_PET = 90,
 };
 
 enum SpellMissInfo

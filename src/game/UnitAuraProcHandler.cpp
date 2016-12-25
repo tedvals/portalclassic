@@ -802,6 +802,24 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 				triggered_spell_id = 37382;
 				break;
 			}
+			// Pet Healing (Corruptor Raiment or Rift Stalker Armor)
+			case 54323:
+			case 54324:
+			case 54325:
+			case 54326:
+			case 54327:
+			{
+				target = GetPet();
+				if (!target)
+					return SPELL_AURA_PROC_FAILED;
+
+				// heal amount
+				//basepoints[0] = damage * triggerAmount / 100;
+				basepoints[0] = (GetHealth() + target->GetHealth())/ 25;
+				basepoints[1] = (GetHealth() + target->GetHealth()) / 25;
+				triggered_spell_id = 54756;
+				break;
+			}
 			// Shadowflame Hellfire (Voidheart Raiment set bonus)
 			case 39437:
 			{
@@ -1353,6 +1371,19 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 trigger_spell_id = 12721;
                 break;
             }
+			// Rampage
+			else if (auraSpellInfo->SpellIconID == 2006 && auraSpellInfo->IsFitToFamilyMask(uint64(0x0000000000100000)))
+			{
+				switch (auraSpellInfo->Id)
+				{
+				case 29801: trigger_spell_id = 30029; break;       // Rank 1
+				case 30030: trigger_spell_id = 30031; break;       // Rank 2
+				case 30033: trigger_spell_id = 30032; break;       // Rank 3
+				default:
+					sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u not handled in Rampage", auraSpellInfo->Id);
+					return SPELL_AURA_PROC_FAILED;
+				}
+			}
             break;
         case SPELLFAMILY_WARLOCK:
         {
@@ -1970,12 +2001,13 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5018:
 		{
-			triggered_spell_id = 54395;                     // Backdraft (Warlock)
+			if (HasAura(18788))
+				triggered_spell_id = 54395;                     // Decimation (Warlock)
 			break;
 		}
 		case 5019:											//Payback (Hunter)
 		{
-			triggered_spell_id = 54395;                     // Backdraft (Warlock)
+			triggered_spell_id = 1491;
 			break;
 		}
 		case 5020:                                          // Hit or Miss

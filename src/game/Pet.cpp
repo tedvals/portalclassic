@@ -2166,7 +2166,13 @@ void Pet::CastPetAura(PetAura const* aura)
     if (!auraId)
         return;
 
-    CastSpell(this, auraId, TRIGGERED_OLD_TRIGGERED);
+	if (auraId == 35696)                                    // Demonic Knowledge
+	{
+		int32 basePoints = int32(aura->GetDamage() * (GetStat(STAT_STAMINA) + GetStat(STAT_INTELLECT)) / 100);
+		CastCustomSpell(this, auraId, &basePoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+	}
+	else
+		CastSpell(this, auraId, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Pet::SynchronizeLevelWithOwner()

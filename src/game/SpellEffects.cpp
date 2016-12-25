@@ -263,6 +263,7 @@ void Spell::EffectInstaKill(SpellEffectIndex /*eff_idx*/)
             case   417: spellID = 18792; break;             // fellhunter
             case  1860: spellID = 18790; break;             // void
             case  1863: spellID = 18791; break;             // succubus
+			case 17252: spellID = 35701; break;             // fellguard
             default:
                 sLog.outError("EffectInstaKill: Unhandled creature entry (%u) case.", entry);
                 return;
@@ -1241,18 +1242,20 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->ModifyHealth(-dmg);
 
                     int32 mana = dmg;
-
+					int32 manaFeedVal;
                     // Improved Life Tap mod
                     Unit::AuraList const& auraDummy = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
                     for (Unit::AuraList::const_iterator itr = auraDummy.begin(); itr != auraDummy.end(); ++itr)
-                        if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK && (*itr)->GetSpellProto()->SpellIconID == 208)
-                            mana = ((*itr)->GetModifier()->m_amount + 100) * mana / 100;
-
+						if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK && (*itr)->GetSpellProto()->SpellIconID == 208)
+						{
+							mana = ((*itr)->GetModifier()->m_amount + 100) * mana / 100;
+							manaFeedVal = ((*itr)->GetModifier()->m_miscvalue + 100) * mana / 100;
+						}
                     m_caster->CastCustomSpell(m_caster, 31818, &mana, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
 
                     // Mana Feed
-                    int32 manaFeedVal = m_caster->CalculateSpellDamage(m_caster, m_spellInfo, EFFECT_INDEX_1);
-                    manaFeedVal = manaFeedVal * mana / 100;
+                    //int32 manaFeedVal = m_caster->CalculateSpellDamage(m_caster, m_spellInfo, EFFECT_INDEX_1);
+                    //manaFeedVal = manaFeedVal * mana / 100;
                     if (manaFeedVal > 0)
                         m_caster->CastCustomSpell(m_caster, 32553, &manaFeedVal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr);
                 }

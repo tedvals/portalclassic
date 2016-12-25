@@ -9174,6 +9174,17 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
                     ((Player*)this)->AddComboPoints(pTarget, 1);
                     StartReactiveTimer(REACTIVE_OVERPOWER);
                 }
+				// Enable AURA_STATE_CRIT on crit
+				if (procExtra & PROC_EX_CRITICAL_HIT)
+				{
+					ModifyAuraState(AURA_STATE_CRIT, true);
+					StartReactiveTimer(REACTIVE_CRIT);
+					if (getClass() == CLASS_HUNTER)
+					{
+						ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, true);
+						StartReactiveTimer(REACTIVE_HUNTER_CRIT);
+					}
+				}
             }
         }
     }
@@ -9685,6 +9696,11 @@ void Unit::ClearAllReactives()
     if (getClass() == CLASS_HUNTER && HasAuraState(AURA_STATE_HUNTER_PARRY))
         ModifyAuraState(AURA_STATE_HUNTER_PARRY, false);
 
+	if (HasAuraState(AURA_STATE_CRIT))
+		ModifyAuraState(AURA_STATE_CRIT, false);
+	if (getClass() == CLASS_HUNTER && HasAuraState(AURA_STATE_HUNTER_CRIT_STRIKE))
+		ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
+
     if (getClass() == CLASS_WARRIOR && GetTypeId() == TYPEID_PLAYER)
         ((Player*)this)->ClearComboPoints();
 }
@@ -9712,6 +9728,14 @@ void Unit::UpdateReactives(uint32 p_time)
                     if (getClass() == CLASS_HUNTER && HasAuraState(AURA_STATE_HUNTER_PARRY))
                         ModifyAuraState(AURA_STATE_HUNTER_PARRY, false);
                     break;
+				case REACTIVE_CRIT:
+					if (HasAuraState(AURA_STATE_CRIT))
+						ModifyAuraState(AURA_STATE_CRIT, false);
+					break;
+				case REACTIVE_HUNTER_CRIT:
+					if (getClass() == CLASS_HUNTER && HasAuraState(AURA_STATE_HUNTER_CRIT_STRIKE))
+						ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
+					break;
                 case REACTIVE_OVERPOWER:
                     if (getClass() == CLASS_WARRIOR && GetTypeId() == TYPEID_PLAYER)
                         ((Player*)this)->ClearComboPoints();
