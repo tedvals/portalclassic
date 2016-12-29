@@ -1642,6 +1642,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     return;
                 }
                 case 29266:                                 // Permanent Feign Death
+				case 35356:                                 // Spawn Feign Death
+				case 35357:                                 // Spawn Feign Death
                 {
                     // Unclear what the difference really is between them.
                     // Some has effect1 that makes the difference, however not all.
@@ -1658,6 +1660,10 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         target->m_AuraFlags &= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
                     return;
+				case 32216:                                 // Victorious
+					if (target->getClass() == CLASS_WARRIOR)
+						target->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, apply);
+					return;
 				case 40133:                                 // Summon Fire Elemental
 				{
 					Unit* caster = GetCaster();
@@ -5718,6 +5724,32 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
             }
             break;
         }
+		case SPELLFAMILY_WARRIOR:
+		{
+			if (!apply)
+			{
+				// Remove Blood Frenzy only if target no longer has any Deep Wound or Rend (applying is handled by procs)
+				if (GetSpellProto()->Mechanic != MECHANIC_BLEED)
+					return;
+
+				// If target still has one of Warrior's bleeds, do nothing
+				Unit::AuraList const& PeriodicDamage = m_target->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+				for (Unit::AuraList::const_iterator i = PeriodicDamage.begin(); i != PeriodicDamage.end(); ++i)
+					if ((*i)->GetCasterGuid() == GetCasterGuid() &&
+						(*i)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARRIOR &&
+						(*i)->GetSpellProto()->Mechanic == MECHANIC_BLEED)
+						return;
+
+				spellId1 = 30069;                           // Blood Frenzy (Rank 1)
+				spellId2 = 30070;                           // Blood Frenzy (Rank 2)
+				spellId1 = 30071;                           // Blood Frenzy (Rank 3)
+				spellId2 = 30072;                           // Blood Frenzy (Rank 4)		
+				spellId2 = 30073;                           // Blood Frenzy (Rank 5)
+			}
+			else
+				return;
+			break;
+		}
         case SPELLFAMILY_HUNTER:
         {
             switch (GetId())

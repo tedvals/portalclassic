@@ -1525,6 +1525,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         }
 
         bool HasAuraType(AuraType auraType) const;
+		bool HasAuraWithMechanic(uint32 mechanic) const;
         bool HasAffectedAura(AuraType auraType, SpellEntry const* spellProto) const;
         bool HasAura(uint32 spellId, SpellEffectIndex effIndex) const;
         bool HasAura(uint32 spellId) const
@@ -1539,8 +1540,18 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool isFeared()  const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
         bool isInRoots() const { return HasAuraType(SPELL_AURA_MOD_ROOT); }
         bool IsPolymorphed() const;
+		bool isPossessed() const { return hasUnitState(UNIT_STAT_CONTROLLED); }
+		bool isConfused() { return hasUnitState(UNIT_STAT_CONFUSED); }
+		bool isBleeding() { return HasAuraWithMechanic(MECHANIC_BLEED); }
 
         bool isFrozen() const;
+		bool IsCharmed() const { return !(GetCharmer() == nullptr); }
+		bool isSnared() const { return HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED); }
+
+		bool isAsleep() const { return HasAuraWithMechanic(MECHANIC_SLEEP); }
+		bool isSilenced()  const { return HasAuraWithMechanic(MECHANIC_SILENCE); }
+
+		bool UnderCc() { return isConfused() || IsIncapacitated() || IsPolymorphed() || isPossessed() || isFeared() || isInRoots(); }
 
         bool isTargetableForAttack(bool inversAlive = false) const;
         bool isPassiveToHostile() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE); }
@@ -1866,6 +1877,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);
         Aura* GetAura(AuraType type, SpellFamily family, uint64 familyFlag, ObjectGuid casterGuid = ObjectGuid());
+		Aura* GetBestAuraType(AuraType auraType, uint32 mechanic, bool positiveValue = true);
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid) const;
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid, ObjectGuid casterGUID) const;
 

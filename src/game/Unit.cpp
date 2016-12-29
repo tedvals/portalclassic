@@ -10703,3 +10703,52 @@ float Unit::GetAttackDistance(Unit const* pl) const
 
     return (RetDistance * aggroRate);
 }
+
+bool Unit::HasAuraWithMechanic(uint32 mechanic) const
+{
+	for (SpellAuraHolderMap::const_iterator itr = GetSpellAuraHolderMap().begin(); itr != GetSpellAuraHolderMap().end(); ++itr)
+	{
+		SpellAuraHolder* holder = itr->second;
+		SpellEntry const* spellEntry = holder->GetSpellProto();
+
+		if (spellEntry->Mechanic == mechanic)
+			return true;
+
+		for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+		{
+			if (spellEntry->EffectMechanic[i] == mechanic)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+Aura* Unit::GetBestAuraType(AuraType auraType, uint32 mechanic, bool positiveValue)
+{
+	int32 value = 0;
+	Aura* aura = nullptr;
+	AuraList const& auras = GetAurasByType(auraType);
+	for (AuraList::const_iterator i = auras.begin(); i != auras.end(); ++i)
+	{
+
+		for (int32 j = 0; j < MAX_EFFECT_INDEX; ++j)
+		{
+			if ((*i)->GetSpellProto()->EffectMechanic[j] == mechanic)
+			{
+				if (positiveValue && (*i)->GetSpellProto()->EffectBasePoints[j] > value)
+				{
+					value = (*i)->GetSpellProto()->EffectBasePoints[j];
+					aura = (*i);
+				}
+				else if ((*i)->GetSpellProto()->EffectBasePoints[j] < value)
+				{
+					value = (*i)->GetSpellProto()->EffectBasePoints[j];
+					aura = (*i);
+				}
+			}
+		}
+	}
+
+	return aura;
+}

@@ -417,6 +417,7 @@ class MANGOS_DLL_SPEC Aura
 
         SpellEffectIndex GetEffIndex() const { return m_effIndex; }
         int32 GetBasePoints() const { return m_currentBasePoints; }
+		void SetBasePoints(int32 value) { m_currentBasePoints = value; }
 
         int32 GetAuraMaxDuration() const { return GetHolder()->GetAuraMaxDuration(); }
         int32 GetAuraDuration() const { return GetHolder()->GetAuraDuration(); }

@@ -348,6 +348,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 // Shield Slam
                 else if (m_spellInfo->SpellIconID == 413 && m_spellInfo->SpellFamilyFlags & uint64(0x2000000))
                     damage += int32(m_caster->GetShieldBlockValue());
+				// Victory Rush
+				else if (m_spellInfo->SpellFamilyFlags & uint64(0x10000000000))
+				{
+					damage = uint32(damage * m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 100);
+					m_caster->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, false);
+				}
                 break;
             }
             case SPELLFAMILY_WARLOCK:
@@ -1221,8 +1227,52 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     return;
                 }
             }
+		case 30012:                                 // Move
+		{
+			if (!unitTarget || unitTarget->HasAura(39400))
+				return;
 
-            break;
+			unitTarget->CastSpell(m_caster, 30253, TRIGGERED_OLD_TRIGGERED);
+		}
+		case 30284:                                 // Change Facing
+		{
+			if (!unitTarget)
+				return;
+
+			unitTarget->CastSpell(m_caster, 30270, TRIGGERED_OLD_TRIGGERED);
+			return;
+		}
+		case 37144:                                 // Move (Chess event player knight move)
+		case 37146:                                 // Move (Chess event player pawn move)
+		case 37148:                                 // Move (Chess event player queen move)
+		case 37151:                                 // Move (Chess event player rook move)
+		case 37152:                                 // Move (Chess event player bishop move)
+		case 37153:                                 // Move (Chess event player king move)
+		{
+			if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
+				return;
+
+			// cast generic move spell
+			m_caster->CastSpell(unitTarget, 30012, TRIGGERED_OLD_TRIGGERED);
+			return;
+		}
+		case 54678:									//Open Wound
+		{
+
+			if (!unitTarget || !unitTarget->isBleeding())
+				return;
+
+			int basePoints = 0;
+			Aura* bleedAura = unitTarget->GetBestAuraType(SPELL_AURA_PERIODIC_DAMAGE, MECHANIC_BLEED);
+			if (bleedAura && bleedAura->IsPeriodic)
+			{
+				basePoints = bleedAura->GetBasePoints();
+			}
+
+			m_caster->CastCustomSpell(m_caster, 12721, &basePoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+		}
+		
+		break;
         }
         case SPELLFAMILY_WARLOCK:
         {
@@ -1298,6 +1348,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         }
         case SPELLFAMILY_DRUID:
         {
+
             // Loatheb Corrupted Mind triggered sub spells
             if (m_spellInfo->Id == 29201)
             {
@@ -1313,6 +1364,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 if (spellid != 0)
                 m_caster->CastSpell(unitTarget, spellid, TRIGGERED_OLD_TRIGGERED, nullptr);
             }
+			else if (m_spellInfo->Id == 5420)
+			{
+				{
+					// Tree of Life area effect
+					int32 health_mod = int32(m_caster->GetStat(STAT_SPIRIT) / 4);
+					m_caster->CastCustomSpell(m_caster, 34123, &health_mod, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr);
+					return;
+				}
+			}
 
             break;
         }
@@ -1361,7 +1421,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         case SPELLFAMILY_HUNTER:
         {
             // Setup Shot
-            if (m_spellInfo->SpellFamilyFlags & uint64(0x100000000))
+            if (m_spellInfo->SpellFamilyFlags & uint64(0x80000))
             {
                 if (unitTarget && unitTarget->isAlive())
                 {
@@ -1384,6 +1444,56 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                 return;
             }
+			// Steady Shot
+			if (m_spellInfo->SpellFamilyFlags & uint64(0x100000000))
+			{
+				if (unitTarget && unitTarget->isAlive())
+				{
+					bool found = false;
+
+					// check dazed affect
+					Unit::AuraList const& decSpeedList = unitTarget->GetAurasByType(SPELL_AURA_MOD_DECREASE_SPEED);
+					for (Unit::AuraList::const_iterator iter = decSpeedList.begin(); iter != decSpeedList.end(); ++iter)
+					{
+						if ((*iter)->GetSpellProto()->SpellIconID == 15 && (*iter)->GetSpellProto()->Dispel == 0)
+						{
+							found = true;
+							break;
+						}
+					}
+
+					if (found)
+						m_damage += damage;
+				}
+
+				return;
+			}
+			// Kill command
+			if (m_spellInfo->SpellFamilyFlags & uint64(0x00080000000000))
+			{
+				if (m_caster->getClass() != CLASS_HUNTER)
+					return;
+
+				// clear hunter crit aura state
+				m_caster->ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
+
+				// additional damage from pet to pet target
+				Pet* pet = m_caster->GetPet();
+				if (!pet || !pet->getVictim())
+					return;
+
+				uint32 spell_id = 0;
+				switch (m_spellInfo->Id)
+				{
+				case 34026: spell_id = 34027; break;    // rank 1
+				default:
+					sLog.outError("Spell::EffectDummy: Spell %u not handled in KC", m_spellInfo->Id);
+					return;
+				}
+
+				pet->CastSpell(pet->getVictim(), spell_id, TRIGGERED_OLD_TRIGGERED);
+				return;
+			}
 
             switch (m_spellInfo->Id)
             {
@@ -3725,6 +3835,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 				Aura* sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, uint64(0x0000000000004000), m_caster->GetObjectGuid());
 
 				// apply sunder armor first
+			/*
 				if (!sunder || sunder && sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
 				{
 					// get highest rank of the sunder armor spell
@@ -3750,9 +3861,11 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 					if (!sunder)
 						sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, uint64(0x0000000000004000), m_caster->GetObjectGuid());
 				}
-
+				*/
 				// Devastate bonus and sunder armor refresh, additional threat
-				if (sunder)
+				if (!sunder)
+					break;
+				else
 				{
 					if (sunder->GetStackAmount() == sunder->GetSpellProto()->StackAmount)
 						sunder->GetHolder()->RefreshHolder();

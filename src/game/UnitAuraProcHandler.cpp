@@ -768,6 +768,9 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 				// Nightfall
 			case 18094:
 			case 18095:
+			case 54266:
+			case 54267:
+			case 54268:
 			{
 				target = this;
 				triggered_spell_id = 17941;
@@ -802,7 +805,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 				triggered_spell_id = 37382;
 				break;
 			}
-			// Pet Healing (Corruptor Raiment or Rift Stalker Armor)
+			// Pet Healing 
 			case 54323:
 			case 54324:
 			case 54325:
@@ -822,6 +825,11 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 			}
 			// Shadowflame Hellfire (Voidheart Raiment set bonus)
 			case 39437:
+			{
+				triggered_spell_id = 37378;
+				break;
+			}
+			case 547777:
 			{
 				triggered_spell_id = 37378;
 				break;
@@ -2028,6 +2036,23 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		case 5023:
 		{
 			triggered_spell_id = 54457;                     // Pyromaniac
+			break;
+		}
+		case 5024:                                          //Overheat
+		{
+			if (HasAura(54778))
+				RemoveAurasDueToSpell(54778);
+
+			triggered_spell_id = 54777;
+
+			break;
+		}
+		case 5025:
+		{
+			if (HasAura(54777))
+				RemoveAurasDueToSpell(54777);
+
+			triggered_spell_id = 54778;                     // Hypothermia
 			break;
 		}
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus
