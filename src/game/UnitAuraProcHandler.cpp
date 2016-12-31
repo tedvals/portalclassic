@@ -320,6 +320,9 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, S
     if (EventProcFlag & PROC_FLAG_KILL && GetTypeId() == TYPEID_PLAYER)
     {
         bool allow = ((Player*)this)->isHonorOrXPTarget(pVictim);
+		// Shadow Word: Death - can trigger from every kill
+		if (holder->GetId() == 32409 || holder->GetId() == 54788 || holder->GetId() == 54789 || holder->GetId() == 54790 || holder->GetId() == 54791)
+			allow = true;
         if (!allow)
             return false;
     }
@@ -699,6 +702,31 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 				break;
 			}			
             break;
+
+			// Battle Hardened
+			if (dummySpell->SpellIconID == 2781)
+			{
+				// only for spells and hit/crit (trigger start always) and not start from self casted spells (5530 Mace Stun Effect for example)
+				if (!procSpell || !(procEx & (PROC_EX_PERIODIC_POSITIVE)) || this == pVictim)
+					return SPELL_AURA_PROC_FAILED;				
+
+				if (!(GetAllSpellMechanicMask(procSpell) & IMMUNE_TO_ROOT_AND_STUN_MASK))
+					return SPELL_AURA_PROC_FAILED;
+
+				switch (dummySpell->Id)
+				{
+				case 54100: triggered_spell_id = 29841; break;
+				case 54101: triggered_spell_id = 29842; break;
+				case 54102: triggered_spell_id = 29843; break;
+				default:
+					sLog.outError("Unit::HandleDummyAuraProc: non handled spell id: %u (SW)", dummySpell->Id);
+					return SPELL_AURA_PROC_FAILED;
+				}
+					
+				target = this;
+				break;
+			}
+			break;
         }
         case SPELLFAMILY_WARLOCK:
         {
@@ -1424,16 +1452,8 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     return SPELL_AURA_PROC_FAILED;
 
                 trigger_spell_id = 18093;
+				break;
             }
-            // Cheat Death
-            else if (auraSpellInfo->Id == 28845)
-            {
-                // When your health drops below 20% ....
-                int32 health20 = int32(GetMaxHealth()) / 5;
-                if (int32(GetHealth()) - int32(damage) >= health20 || int32(GetHealth()) < health20)
-                    return SPELL_AURA_PROC_FAILED;
-            }
-            break;
         }
         case SPELLFAMILY_PRIEST:
         {
@@ -1524,6 +1544,14 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 				if (auraSpellInfo->SpellIconID == 2260)         // Combat Potency
 				{
 					if (!(procFlags & PROC_FLAG_SUCCESSFUL_OFFHAND_HIT))
+						return SPELL_AURA_PROC_FAILED;
+				}
+				// Cheat Death
+				else if (auraSpellInfo->Id == 28845)
+				{
+					// When your health drops below 20% ....
+					int32 health20 = int32(GetMaxHealth()) / 5;
+					if (int32(GetHealth()) - int32(damage) >= health20 || int32(GetHealth()) < health20)
 						return SPELL_AURA_PROC_FAILED;
 				}
 
@@ -1693,6 +1721,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
     {
         // Cast positive spell on enemy target
         case 7099:  // Curse of Mending
+		case 39647: // Curse of Mending
         case 29494: // Temptation
         case 20233: // Improved Lay on Hands (cast on target)
         {
@@ -1909,7 +1938,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5010:
 		{
-			triggered_spell_id = 54312;                     // Vampiric Touch (Priest)
+			triggered_spell_id = 15271;                     // Pain and Gain
 			break;
 		}
 		case 5011:

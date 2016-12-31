@@ -3343,6 +3343,11 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 WeaponAttackType attackType = GetWeaponAttackType(GetSpellProto());
                 m_modifier.m_amount = caster->MeleeDamageBonusDone(target, m_modifier.m_amount, attackType, GetSpellProto(), DOT, GetStackAmount());
             }
+
+			// Contagion
+			if (target && target->HasAura(54804))
+				if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
+					m_modifier.m_amount *= 1.1;
         }
     }
 }
@@ -3370,6 +3375,13 @@ void Aura::HandlePeriodicLeech(bool apply, bool /*Real*/)
             return;
 
         m_modifier.m_amount = caster->SpellDamageBonusDone(GetTarget(), GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount());
+
+		Unit* target = GetTarget();
+		SpellEntry const* spellProto = GetSpellProto();
+		// Contagion
+		if (target && target->HasAura(54804))
+			if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
+				m_modifier.m_amount *= 1.1;
     }
 }
 

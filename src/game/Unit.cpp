@@ -491,7 +491,10 @@ void Unit::Update(uint32 update_diff, uint32 p_time)
         AI()->UpdateAI(p_time);   // AI not react good at real update delays (while freeze in non-active part of map)
     
     if (isAlive())
-        ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, GetHealth() < GetMaxHealth() * 0.20f);
+		if (HasAura(54781) || HasAura(54782) || HasAura(54783)) //sudden death
+			ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, true);
+		else
+			ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, (GetHealth() < GetMaxHealth() * 0.20f)); 
 }
 
 bool Unit::UpdateMeleeAttackingState()
@@ -2031,6 +2034,11 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
 
     int32 RemainingDamage = damage - *resist;
 
+	// Reflect damage spells (not cast any damage spell in aura lookup)
+	uint32 reflectSpell = 0;
+	int32  reflectDamage = 0;
+	Aura*  reflectTriggeredBy = nullptr;                       // expected as not expired at reflect as in current cases
+
     // full absorb cases (by chance)
     /* none cases, but preserve for better backporting conflict resolve
     AuraList const& vAbsorb = GetAurasByType(SPELL_AURA_SCHOOL_ABSORB);
@@ -2068,6 +2076,74 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
             continue;
         }
 
+		// Handle custom absorb auras
+		// TODO: try find better way
+
+		switch (spellProto->SpellFamilyName)
+		{
+			case SPELLFAMILY_GENERIC:
+			{
+			// Reflective Shield (Lady Malande boss)
+			if (spellProto->Id == 41475 && canReflect)
+			{
+				if (RemainingDamage < currentAbsorb)
+					reflectDamage = RemainingDamage / 2;
+				else
+					reflectDamage = currentAbsorb / 2;
+				reflectSpell = 33619;
+				reflectTriggeredBy = *i;
+				reflectTriggeredBy->SetInUse(true);     // lock aura from final deletion until processing
+				break;
+			}
+			if (spellProto->Id == 39228)                // Argussian Compass
+			{
+				// Max absorb stored in 1 dummy effect
+				int32 max_absorb = spellProto->CalculateSimpleValue(EFFECT_INDEX_1);
+				if (max_absorb < currentAbsorb)
+					currentAbsorb = max_absorb;
+				break;
+			}
+			break;
+			}
+		case SPELLFAMILY_PRIEST:
+		{
+			// Reflective Shield
+			if (spellProto->IsFitToFamilyMask(uint64(0x0000000000000001)) && canReflect)
+			{
+				if (pCaster == this)
+					break;
+				Unit* caster = (*i)->GetCaster();
+				if (!caster)
+					break;
+				AuraList const& vOverRideCS = caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+				for (AuraList::const_iterator k = vOverRideCS.begin(); k != vOverRideCS.end(); ++k)
+				{
+					switch ((*k)->GetModifier()->m_miscvalue)
+					{
+					case 5065:                      // Rank 1
+					case 5064:                      // Rank 2
+					case 5063:                      // Rank 3
+					case 5062:                      // Rank 4
+					case 5061:                      // Rank 5
+					{
+						if (RemainingDamage >= currentAbsorb)
+							reflectDamage = (*k)->GetModifier()->m_amount * currentAbsorb / 100;
+						else
+							reflectDamage = (*k)->GetModifier()->m_amount * RemainingDamage / 100;
+						reflectSpell = 33619;
+						reflectTriggeredBy = *i;
+						reflectTriggeredBy->SetInUse(true);// lock aura from final deletion until processing
+					} break;
+					default: break;
+					}
+				}
+				break;
+			}
+			break;
+		}
+		default:
+			break;
+	}
         // currentAbsorb - damage can be absorbed by shield
         // If need absorb less damage
         if (RemainingDamage < currentAbsorb)
@@ -2098,6 +2174,13 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
                 ++i;
         }
     }
+
+	// Cast back reflect damage spell
+	if (canReflect && reflectSpell)
+	{
+		CastCustomSpell(pCaster, reflectSpell, &reflectDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, reflectTriggeredBy);
+		reflectTriggeredBy->SetInUse(false);                // free lock from deletion
+	}
 
     // absorb by mana cost
     AuraList const& vManaShield = GetAurasByType(SPELL_AURA_MANA_SHIELD);
