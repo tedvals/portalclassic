@@ -5203,6 +5203,49 @@ void Aura::PeriodicDummyTick()
 					}
 					return;
 				}
+				case 30019:                                 // Control Piece
+				{
+					if (target->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					Unit* chessPiece = target->GetCharm();
+					if (!chessPiece)
+					{
+						target->CastSpell(target, 30529, TRIGGERED_OLD_TRIGGERED);
+						target->RemoveAurasDueToSpell(30019);
+						target->RemoveAurasDueToSpell(30532);
+					}
+					return;
+				}
+				case SPELLFAMILY_HUNTER:
+				{
+					// Aspect of the Viper
+					switch (spell->Id)
+					{
+					case 34074:
+					{
+						if (target->GetTypeId() != TYPEID_PLAYER)
+							return;
+						// Should be manauser
+						if (target->GetPowerType() != POWER_MANA)
+							return;
+						Unit* caster = GetCaster();
+						if (!caster)
+							return;
+						// Regen amount is max (100% from spell) on 21% or less mana and min on 92.5% or greater mana (20% from spell)
+						int mana = target->GetPower(POWER_MANA);
+						int max_mana = target->GetMaxPower(POWER_MANA);
+						int32 base_regen = caster->CalculateSpellDamage(target, GetSpellProto(), m_effIndex, &m_currentBasePoints);
+						float regen_pct = 1.20f - 1.1f * mana / max_mana;
+						if (regen_pct > 1.0f) regen_pct = 1.0f;
+						else if (regen_pct < 0.2f) regen_pct = 0.2f;
+						m_modifier.m_amount = int32(base_regen * regen_pct);
+						((Player*)target)->UpdateManaRegen();
+						return;
+					}
+					}
+					break;
+				}
             }
             break;
         }

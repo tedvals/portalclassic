@@ -6286,16 +6286,23 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 
 				break;
 			}
-			case 8008: //Warlock (Masochism)
+			case 8008: //Warlock (Masochism) //self
 			{
-				if (GetHealth() < pVictim->GetMaxHealth() * 0.8f)
+				if (GetHealth() < GetMaxHealth() * 0.8f)
 					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 
 				break;
 			}
-			case 8009: //Warlock (Masochism)
+			case 8009: //Warlock (Masochism) //enemies
 			{
 				if (pVictim->isFeared() || pVictim->isCharmed())
+					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+
+				break;
+			}
+			case 8012: //Priest (Improved Mana Burn)
+			{
+				if ((pVictim->GetPowerType() == POWER_MANA) && (pVictim->GetPower(POWER_MANA) < pVictim->GetMaxPower(POWER_MANA)*0.2f))
 					DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 
 				break;
@@ -6639,6 +6646,10 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
 				break;
 			case 8002: //Priest Mental Strength
 				if (pVictim->GetHealth() < pVictim->GetMaxHealth() * 0.20f)
+					DoneTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
+				break;
+			case 8011: //Spiritual Healing
+				if (GetHealth() <= GetMaxHealth() * 0.35f)
 					DoneTotal *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 				break;
 
@@ -6998,6 +7009,17 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
 				if (pVictim->GetHealth() > GetMaxHealth() * 0.80f)
 					DonePercent *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
 
+				break;
+			}
+
+			// Aspect of the Viper
+			case 8013:
+			{
+				if ((GetPowerType() == POWER_MANA) && (pVictim->GetMaxPower(POWER_MANA) > 0) && HasAura(34074))
+				{
+					float penalty =float(GetPower(POWER_MANA) / (GetMaxPower(POWER_MANA)*2)) + 0.5f;
+					DonePercent *= penalty;
+				}
 				break;
 			}
 		}

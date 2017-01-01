@@ -346,6 +346,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
 		case 696:       // Demon Skin, Rank 2
 			return SPELL_WARLOCK_ARMOR;
 		case 13161:     // Aspect of the Beast
+		case 30074:     //Aspect of the Viper
 			return SPELL_ASPECT;
 		}
 
