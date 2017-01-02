@@ -3017,6 +3017,28 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
     }
 
     target->ApplySpellImmune(GetId(), IMMUNITY_MECHANIC, misc, apply);
+
+	// Bestial Wrath
+	if (GetSpellProto()->SpellFamilyName == SPELLFAMILY_HUNTER && GetSpellProto()->SpellIconID == 1680)
+	{
+		// The Beast Within cast on owner if talent present
+		if (Unit* owner = target->GetOwner())
+		{
+			// Search talent The Beast Within
+			Unit::AuraList const& dummyAuras = owner->GetAurasByType(SPELL_AURA_DUMMY);
+			for (Unit::AuraList::const_iterator i = dummyAuras.begin(); i != dummyAuras.end(); ++i)
+			{
+				if ((*i)->GetSpellProto()->SpellIconID == 2229)
+				{
+					if (apply)
+						owner->CastSpell(owner, 34471, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+					else
+						owner->RemoveAurasDueToSpell(34471);
+					break;
+				}
+			}
+		}
+	}
 }
 
 void Aura::HandleModMechanicImmunityMask(bool apply, bool /*Real*/)
@@ -5811,6 +5833,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
             {
                 // The Beast Within and Bestial Wrath - immunity
                 case 19574:
+				case 34471:
                 {
                     spellId1 = 24395;
                     spellId2 = 24396;
@@ -5818,6 +5841,13 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     spellId4 = 26592;
                     break;
                 }
+				// Misdirection, main spell
+				case 34477:
+				{
+					if (!apply)
+						m_target->getHostileRefManager().ResetThreatRedirection();
+					return;
+				}
                 default:
                     return;
             }

@@ -1137,6 +1137,642 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 					if (Unit* pTarget = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 						m_caster->CastSpell(pTarget, 24020, TRIGGERED_OLD_TRIGGERED);
 				}
+				case 28730:                                 // Arcane Torrent (Mana)
+				{
+					Aura* dummy = m_caster->GetDummyAura(28734);
+					if (dummy)
+					{
+						int32 bp = damage * dummy->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 28733, &bp, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+						m_caster->RemoveAurasDueToSpell(28734);
+					}
+
+					return;
+				}
+				case 29200:                                 // Purify Helboar Meat
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					uint32 spell_id = roll_chance_i(50)
+						? 29277               // Summon Purified Helboar Meat
+						: 29278;              // Summon Toxic Helboar Meat
+
+					m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED, nullptr);
+					return;
+				}
+				case 29858:                                 // Soulshatter
+				{
+					if (unitTarget && unitTarget->GetTypeId() == TYPEID_UNIT && unitTarget->IsHostileTo(m_caster))
+						m_caster->CastSpell(unitTarget, 32835, TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 29969:                                 // Summon Blizzard
+				{
+					if (unitTarget)
+						unitTarget->CastSpell(unitTarget, 29952, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+
+					return;
+				}
+				case 29979:                                 // Massive Magnetic Pull
+				{
+					if (unitTarget)
+						m_caster->CastSpell(unitTarget, 30010, TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 30004:                                 // Flame Wreath
+				{
+					if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
+						m_caster->CastSpell(unitTarget, 29946, TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 30458:                                 // Nigh Invulnerability
+				{
+					if (!m_CastItem)
+						return;
+
+					if (roll_chance_i(86))                  // Nigh-Invulnerability   - success
+						m_caster->CastSpell(m_caster, 30456, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+					else                                    // Complete Vulnerability - backfire in 14% casts
+						m_caster->CastSpell(m_caster, 30457, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+
+					return;
+				}
+				case 30507:                                 // Poultryizer
+				{
+					if (!m_CastItem)
+						return;
+
+					if (roll_chance_i(80))                  // Poultryized! - success
+						m_caster->CastSpell(unitTarget, 30501, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+					else                                    // Poultryized! - backfire 20%
+						m_caster->CastSpell(unitTarget, 30504, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+
+					return;
+				}
+				case 32027:                                 // Expedition Flare
+				{
+					// 32029 = Expedition Preserver | 32030 = Expedition Scout
+					m_caster->CastSpell(m_caster, (urand(0, 1) ? 32029 : 32030), TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 32146:                                 // Liquid Fire
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT || m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					((Player*)m_caster)->KilledMonsterCredit(unitTarget->GetEntry(), unitTarget->GetObjectGuid());
+					((Creature*)unitTarget)->ForcedDespawn();
+					return;
+				}
+				case 32300:                                 // Focus Fire
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, unitTarget->GetMap()->IsRegularDifficulty() ? 32302 : 38382, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 32312:                                 // Move 1 (Chess event AI short distance move)
+				case 37388:                                 // Move 2 (Chess event AI long distance move)
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
+						return;
+
+					// cast generic move spell
+					m_caster->CastSpell(unitTarget, 30012, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 33060:                                 // Make a Wish
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					uint32 spell_id = 0;
+
+					switch (urand(1, 5))
+					{
+					case 1: spell_id = 33053; break;    // Mr Pinchy's Blessing
+					case 2: spell_id = 33057; break;    // Summon Mighty Mr. Pinchy
+					case 3: spell_id = 33059; break;    // Summon Furious Mr. Pinchy
+					case 4: spell_id = 33062; break;    // Tiny Magical Crawdad
+					case 5: spell_id = 33064; break;    // Mr. Pinchy's Gift
+					}
+
+					m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED, nullptr);
+					return;
+				}
+				case 34803:                                 // Summon Reinforcements
+				{
+					m_caster->CastSpell(m_caster, 34810, TRIGGERED_OLD_TRIGGERED); // Summon 20083 behind of the caster
+					m_caster->CastSpell(m_caster, 34817, TRIGGERED_OLD_TRIGGERED); // Summon 20078 right of the caster
+					m_caster->CastSpell(m_caster, 34818, TRIGGERED_OLD_TRIGGERED); // Summon 20078 left of the caster
+					m_caster->CastSpell(m_caster, 34819, TRIGGERED_OLD_TRIGGERED); // Summon 20078 front of the caster
+					return;
+				}
+				case 36677:                                 // Chaos Breath
+				{
+					if (!unitTarget)
+						return;
+
+					uint32 possibleSpells[] = { 36693, 36694, 36695, 36696, 36697, 36698, 36699, 36700 };
+					std::vector<uint32> spellPool(possibleSpells, possibleSpells + countof(possibleSpells));
+					std::random_shuffle(spellPool.begin(), spellPool.end());
+
+					for (uint8 i = 0; i < (m_caster->GetMap()->IsRegularDifficulty() ? 2 : 4); ++i)
+						m_caster->CastSpell(m_caster, spellPool[i], TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 33923:                                 // Sonic Boom
+				case 38796:                                 // Sonic Boom (heroic)
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, m_spellInfo->Id == 33923 ? 33666 : 38795, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 35745:                                 // Socrethar's Stone
+				{
+					uint32 spell_id;
+					switch (m_caster->GetAreaId())
+					{
+					case 3900: spell_id = 35743; break; // Socrethar Portal
+					case 3742: spell_id = 35744; break; // Socrethar Portal
+					default: return;
+					}
+
+					m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 37573:                                 // Temporal Phase Modulator
+				{
+					if (!unitTarget)
+						return;
+
+					TemporarySummon* tempSummon = dynamic_cast<TemporarySummon*>(unitTarget);
+					if (!tempSummon)
+						return;
+
+					uint32 health = tempSummon->GetHealth();
+					const uint32 entry_list[6] = { 21821, 21820, 21817 };
+
+					float x = tempSummon->GetPositionX();
+					float y = tempSummon->GetPositionY();
+					float z = tempSummon->GetPositionZ();
+					float o = tempSummon->GetOrientation();
+
+					tempSummon->UnSummon();
+
+					Creature* pCreature = m_caster->SummonCreature(entry_list[urand(0, 2)], x, y, z, o, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 180000);
+					if (!pCreature)
+						return;
+
+					pCreature->SetHealth(health);
+
+					if (pCreature->AI())
+						pCreature->AI()->AttackStart(m_caster);
+
+					return;
+				}
+				case 37674:                                 // Chaos Blast
+				{
+					if (!unitTarget)
+						return;
+
+					int32 basepoints0 = 100;
+					m_caster->CastCustomSpell(unitTarget, 37675, &basepoints0, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 39189:                                 // Sha'tari Torch
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT || m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					// Flames
+					if (unitTarget->HasAura(39199))
+						return;
+
+					unitTarget->CastSpell(unitTarget, 39199, TRIGGERED_OLD_TRIGGERED);
+					((Player*)m_caster)->KilledMonsterCredit(unitTarget->GetEntry(), unitTarget->GetObjectGuid());
+					((Creature*)unitTarget)->ForcedDespawn(10000);
+					return;
+				}
+				case 39635:                                 // Throw Glaive (first)
+				case 39849:                                 // Throw Glaive (second)
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 41466, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+					return;
+				}
+				case 40802:                                 // Mingo's Fortune Generator (Mingo's Fortune Giblets)
+				{
+					// selecting one from Bloodstained Fortune item
+					uint32 newitemid;
+					switch (urand(1, 20))
+					{
+					case 1:  newitemid = 32688; break;
+					case 2:  newitemid = 32689; break;
+					case 3:  newitemid = 32690; break;
+					case 4:  newitemid = 32691; break;
+					case 5:  newitemid = 32692; break;
+					case 6:  newitemid = 32693; break;
+					case 7:  newitemid = 32700; break;
+					case 8:  newitemid = 32701; break;
+					case 9:  newitemid = 32702; break;
+					case 10: newitemid = 32703; break;
+					case 11: newitemid = 32704; break;
+					case 12: newitemid = 32705; break;
+					case 13: newitemid = 32706; break;
+					case 14: newitemid = 32707; break;
+					case 15: newitemid = 32708; break;
+					case 16: newitemid = 32709; break;
+					case 17: newitemid = 32710; break;
+					case 18: newitemid = 32711; break;
+					case 19: newitemid = 32712; break;
+					case 20: newitemid = 32713; break;
+					default:
+						return;
+					}
+
+					DoCreateItem(eff_idx, newitemid);
+					return;
+				}
+				case 40834:                                 // Agonizing Flames
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					m_caster->CastSpell(unitTarget, 40932, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 40869:                                 // Fatal Attraction
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					m_caster->CastSpell(unitTarget, 41001, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 40962:                                 // Blade's Edge Terrace Demon Boss Summon Branch
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					uint32 spell_id = 0;
+					switch (urand(1, 4))
+					{
+					case 1: spell_id = 40957; break;    // Blade's Edge Terrace Demon Boss Summon 1
+					case 2: spell_id = 40959; break;    // Blade's Edge Terrace Demon Boss Summon 2
+					case 3: spell_id = 40960; break;    // Blade's Edge Terrace Demon Boss Summon 3
+					case 4: spell_id = 40961; break;    // Blade's Edge Terrace Demon Boss Summon 4
+					}
+					unitTarget->CastSpell(unitTarget, spell_id, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 41283:                                 // Abyssal Toss
+				{
+					if (!unitTarget)
+						return;
+
+					m_caster->SummonCreature(23416, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+					return;
+				}
+				case 41333:                                 // Empyreal Equivalency
+				{
+					if (!unitTarget)
+						return;
+
+					// Equilize the health of all targets based on the corresponding health percent
+					float health_diff = (float)unitTarget->GetMaxHealth() / (float)m_caster->GetMaxHealth();
+					unitTarget->SetHealth(m_caster->GetHealth() * health_diff);
+					return;
+				}
+				case 42287:                                 // Salvage Wreckage
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					if (roll_chance_i(66))
+						m_caster->CastSpell(m_caster, 42289, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+					else
+						m_caster->CastSpell(m_caster, 42288, TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 42628:                                 // Fire Bomb (throw)
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 42629, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 42631:                                 // Fire Bomb (explode)
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
+						return;
+
+					unitTarget->RemoveAurasDueToSpell(42629);
+					unitTarget->CastSpell(unitTarget, 42630, TRIGGERED_OLD_TRIGGERED);
+
+					// despawn the bomb after exploding
+					((Creature*)unitTarget)->ForcedDespawn(3000);
+					return;
+				}
+				case 43096:                                 // Summon All Players
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					m_caster->CastSpell(unitTarget, 43097, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 43144:                                 // Hatch All Eggs
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 42493, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+					return;
+				}
+				case 43498:                                 // Siphon Soul
+				{
+					// This spell should cast the next spell only for one (player)target, however it should hit multiple targets, hence this kind of implementation
+					if (!unitTarget || m_UniqueTargetInfo.rbegin()->targetGUID != unitTarget->GetObjectGuid())
+						return;
+
+					std::vector<Unit*> possibleTargets;
+					possibleTargets.reserve(m_UniqueTargetInfo.size());
+					for (TargetList::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
+					{
+						// Skip Non-Players
+						if (!itr->targetGUID.IsPlayer())
+							continue;
+
+						if (Unit* target = m_caster->GetMap()->GetPlayer(itr->targetGUID))
+							possibleTargets.push_back(target);
+					}
+
+					// Cast Siphon Soul channeling spell
+					if (!possibleTargets.empty())
+						m_caster->CastSpell(possibleTargets[urand(0, possibleTargets.size() - 1)], 43501, TRIGGERED_NONE);
+
+					return;
+				}
+				// Demon Broiled Surprise
+				case 43723:
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					((Player*)m_caster)->CastSpell(unitTarget, 43753, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);
+					return;
+				}
+				case 44869:                                 // Spectral Blast
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					// If target has spectral exhaustion or spectral realm aura return
+					if (unitTarget->HasAura(44867) || unitTarget->HasAura(46021))
+						return;
+
+					// Cast the spectral realm effect spell, visual spell and spectral blast rift summoning
+					unitTarget->CastSpell(unitTarget, 44866, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+					unitTarget->CastSpell(unitTarget, 46648, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+					unitTarget->CastSpell(unitTarget, 44811, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 44875:                                 // Complete Raptor Capture
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
+						return;
+
+					Creature* creatureTarget = (Creature*)unitTarget;
+
+					creatureTarget->ForcedDespawn();
+
+					// cast spell Raptor Capture Credit
+					m_caster->CastSpell(m_caster, 42337, TRIGGERED_OLD_TRIGGERED, nullptr);
+					return;
+				}
+				case 44997:                                 // Converting Sentry
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_UNIT)
+						return;
+
+					Creature* creatureTarget = (Creature*)unitTarget;
+
+					creatureTarget->ForcedDespawn();
+
+					// Converted Sentry Credit
+					m_caster->CastSpell(m_caster, 45009, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45030:                                 // Impale Emissary
+				{
+					// Emissary of Hate Credit
+					m_caster->CastSpell(m_caster, 45088, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45235:                                 // Blaze
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 45236, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+					return;
+				}
+				case 45260:                                 // Karazhan - Chess - Force Player to Kill Bunny
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 45259, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45714:                                 // Fog of Corruption (caster inform)
+				{
+					if (!unitTarget || m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					unitTarget->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45717:                                 // Fog of Corruption (player buff)
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 45726, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45785:                                 // Sinister Reflection Clone
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45833:                                 // Power of the Blue Flight
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->CastSpell(unitTarget, 45836, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 45892:                                 // Sinister Reflection
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					// Summon 4 clones of the same player
+					for (uint8 i = 0; i < 4; ++i)
+						unitTarget->CastSpell(unitTarget, 45891, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+					return;
+				}
+				case 45976:                                 // Open Portal
+				case 46177:                                 // Open All Portals
+				{
+					if (!unitTarget)
+						return;
+
+					// portal visual
+					unitTarget->CastSpell(unitTarget, 45977, TRIGGERED_OLD_TRIGGERED);
+
+					// break in case additional procressing in scripting library required
+					break;
+				}
+				case 45989:                                 // Summon Void Sentinel Summoner Visual
+				{
+					if (!unitTarget)
+						return;
+
+					// summon void sentinel
+					unitTarget->CastSpell(unitTarget, 45988, TRIGGERED_OLD_TRIGGERED);
+
+					return;
+				}
+				case 46292:                                 // Cataclysm Breath
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					uint32 spellId = 0;
+
+					switch (urand(0, 7))
+					{
+					case 0: spellId = 46293; break;     // Corrosive Poison
+					case 1: spellId = 46294; break;     // Fevered Fatigue
+					case 2: spellId = 46295; break;     // Hex
+					case 3: spellId = 46296; break;     // Necrotic Poison
+					case 4: spellId = 46297; break;     // Piercing Shadow
+					case 5: spellId = 46298; break;     // Shrink
+					case 6: spellId = 46299; break;     // Wavering Will
+					case 7: spellId = 46300; break;     // Withered Touch
+					}
+
+					m_caster->CastSpell(unitTarget, spellId, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 46372:                                 // Ice Spear Target Picker
+				{
+					if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					m_caster->CastSpell(unitTarget, 46359, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 46289:                                 // Negative Energy
+				{
+					if (!unitTarget)
+						return;
+
+					m_caster->CastSpell(unitTarget, 46285, TRIGGERED_OLD_TRIGGERED);
+					return;
+				}
+				case 46430:                                 // Synch Health
+				{
+					if (!unitTarget)
+						return;
+
+					unitTarget->SetHealth(m_caster->GetHealth());
+					return;
+				}
+				case 49357:                                 // Brewfest Mount Transformation
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					if (!m_caster->HasAuraType(SPELL_AURA_MOUNTED))
+						return;
+
+					m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
+
+					// Ram for Alliance, Kodo for Horde
+					if (((Player*)m_caster)->GetTeam() == ALLIANCE)
+					{
+						if (m_caster->GetSpeedRate(MOVE_RUN) >= 2.0f)
+							// 100% Ram
+							m_caster->CastSpell(m_caster, 43900, TRIGGERED_OLD_TRIGGERED);
+						else
+							// 60% Ram
+							m_caster->CastSpell(m_caster, 43899, TRIGGERED_OLD_TRIGGERED);
+					}
+					else
+					{
+						if (((Player*)m_caster)->GetSpeedRate(MOVE_RUN) >= 2.0f)
+							// 100% Kodo
+							m_caster->CastSpell(m_caster, 49379, TRIGGERED_OLD_TRIGGERED);
+						else
+							// 60% Kodo
+							m_caster->CastSpell(m_caster, 49378, TRIGGERED_OLD_TRIGGERED);
+					}
+					return;
+				}
+				case 50243:                                 // Teach Language
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					// spell has a 1/3 chance to trigger one of the below
+					if (roll_chance_i(66))
+						return;
+
+					if (((Player*)m_caster)->GetTeam() == ALLIANCE)
+					{
+						// 1000001 - gnomish binary
+						m_caster->CastSpell(m_caster, 50242, TRIGGERED_OLD_TRIGGERED);
+					}
+					else
+					{
+						// 01001000 - goblin binary
+						m_caster->CastSpell(m_caster, 50246, TRIGGERED_OLD_TRIGGERED);
+					}
+
+					return;
+				}
+				case 51582:                                 // Rocket Boots Engaged (Rocket Boots Xtreme and Rocket Boots Xtreme Lite)
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
+						bg->EventPlayerDroppedFlag((Player*)m_caster);
+
+					m_caster->CastSpell(m_caster, 30452, TRIGGERED_OLD_TRIGGERED, nullptr);
+					return;
+				}
             }
 
             // All IconID Check in there
@@ -1541,6 +2177,41 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+				case 54841: //Master Trap
+				{
+					ObjectGuid guid;
+					GameObject* obj;
+
+					uint8 slot;
+
+					if (!unitTarget || !m_caster)
+						return;
+
+					float radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->EffectRadiusIndex[0]));
+
+					if (m_caster->GetTypeId() == TYPEID_PLAYER)
+					{						
+						for (slot = 0; slot < 4; slot++)
+						{
+							if (m_caster->m_ObjectSlotGuid[slot])
+							{
+								guid = m_caster->m_ObjectSlotGuid[slot];
+								obj = m_caster ? m_caster->GetMap()->GetGameObject(guid) : nullptr;								
+
+								if (obj->GetDistance2d(m_caster->GetPositionX(), m_caster->GetPositionY()) > radius)
+									obj = nullptr;
+							}
+
+						}
+											
+						if (obj)
+						{
+							obj->Relocate(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ());
+						}
+						
+					}
+					return;
+				}
             }
 
             break;
