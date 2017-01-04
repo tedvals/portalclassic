@@ -26,6 +26,7 @@
 #include "ObjectGuid.h"
 #include "Unit.h"
 #include "Player.h"
+#include "World.h"
 
 class WorldSession;
 class WorldPacket;
@@ -763,7 +764,12 @@ namespace MaNGOS
                         }
                         else
                         {
-                            if (!i_originalCaster->IsHostileTo(itr->getSource()))
+							if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_FRIENDLY_FIRE) && (!itr->getSource()->isInCombat())) //custom	
+							{
+								if (!i_originalCaster->IsHostileTo(itr->getSource()))
+									continue;
+							}
+                            else if (!i_originalCaster->IsHostileTo(itr->getSource()))
                                 continue;
                         }
                     }

@@ -807,10 +807,12 @@ void World::LoadConfigSettings(bool reload)
 
 	setConfig(CONFIG_BOOL_CUSTOM_RULES, "Custom.CustomRules", false);
 	setConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM, "Custom.RandomizeItem", false);
+	setConfig(CONFIG_BOOL_CUSTOM_FRIENDLY_FIRE, "Custom.FriendlyFire", false);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL, "Custom.RandomizeItemMinLevel", 15);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY, "Custom.RandomizeItemMinQuality", 2);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF, "Custom.RandomizeItemDiff", 5);
-	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 10);
+	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 10.f);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ENEMY_COOLDOWN, "AdventureEnemyCooldown", 0.1f);
 	//Resistance Penaty
 	setConfig(CONFIG_BOOL_RESISTANCE_PENALTY, "Custom.ResistancePenalty", false);
 

@@ -1954,26 +1954,6 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		case 5013:
 		{
 			triggered_spell_id = 54533;                     // Cunningness (Hunter)
- // accumulated chance to finish the cooldown for Bestial Wrath
-			if (GetTypeId() == TYPEID_PLAYER)
-			{
-				const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
-				for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
-				{
-					SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
-
-					if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->Id == 19574) && GetSpellRecoveryTime(spellInfo) > 0)
-					{
-						if (((Player*)this)->RollAccumChance())
-							((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
-					}
-					else
-					{
-						((Player*)this)->AddAccumChance(5);
-						++itr;
-					}
-				}
-			}
 			break;
 		}
 		case 5014:

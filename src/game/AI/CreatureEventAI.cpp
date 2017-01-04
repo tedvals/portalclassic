@@ -36,7 +36,7 @@ bool CreatureEventAIHolder::UpdateRepeatTimer(Creature* creature, uint32 repeatM
     if (repeatMin == repeatMax)
         Time = repeatMin;
     else if (repeatMax > repeatMin)
-        Time = urand(repeatMin, repeatMax);
+        Time = creature->RandomizeCooldown(urand(repeatMin, repeatMax));
     else
     {
         sLog.outErrorEventAI("Creature %u using Event %u (Type = %u) has RandomMax < RandomMin. Event repeating disabled.", creature->GetEntry(), Event.event_id, Event.event_type);

@@ -2157,6 +2157,26 @@ void Pet::CastOwnerTalentAuras()
 
     Player* pOwner = static_cast<Player*>(GetOwner());
 
+	// Handle Ferocious Inspiration Talent
+	if (pOwner && pOwner->getClass() == CLASS_HUNTER)
+	{
+		// clear any existing Ferocious Inspiration auras
+		RemoveAurasDueToSpell(34455);
+		RemoveAurasDueToSpell(34459);
+		RemoveAurasDueToSpell(34460);
+
+		if (isAlive())
+		{
+			if (pOwner->HasSpell(34455)) // Ferocious Inspiration Rank 1
+				CastSpell(this, 34457, TRIGGERED_OLD_TRIGGERED); // Ferocious Inspiration 1%
+
+			if (pOwner->HasSpell(34459)) // Ferocious Inspiration Rank 2
+				CastSpell(this, 34457, TRIGGERED_OLD_TRIGGERED); // Ferocious Inspiration 2%
+
+			if (pOwner->HasSpell(34460)) // Ferocious Inspiration Rank 3
+				CastSpell(this, 34457, TRIGGERED_OLD_TRIGGERED); // Ferocious Inspiration 3%
+		}
+	} // End Ferocious Inspiration Talent
     // Add below code handling spells cast by pet when owner/player has aura from talent
 }
 

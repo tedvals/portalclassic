@@ -621,6 +621,12 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 uiDiff)
     EnterEvadeMode();
     return true;
 }
+//custom
+uint32 ScriptedAI::Randomize(uint32 interval)
+{
+	float multiplier = GetAdventureCooldownMultiplier(m_creature->GetTargetGuid());
+	return int(interval * multiplier);
+}
 
 void Scripted_NoMovementAI::GetAIInformation(ChatHandler& reader)
 {

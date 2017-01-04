@@ -8642,6 +8642,19 @@ MangosStringLocale const* GetMangosStringData(int32 entry)
     return sObjectMgr.GetMangosStringLocale(entry);
 }
 
+float GetAdventureCooldownMultiplier(ObjectGuid entry)
+{
+	if (!sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ENEMY_COOLDOWN))
+		return 1.f;
+
+	Player* player = sObjectMgr.GetPlayer(entry);
+
+	if (player)
+		return 1.f - (player->GetAdventureLevel()*0.1f);
+	else
+		return 1.f;
+}
+
 bool FindCreatureData::operator()(CreatureDataPair const& dataPair)
 {
     // skip wrong entry ids

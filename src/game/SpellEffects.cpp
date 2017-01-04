@@ -452,51 +452,57 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
             }
             case SPELLFAMILY_ROGUE:
             {
-                // Eviscerate
-				if ((m_spellInfo->SpellFamilyFlags & uint64(0x00020000)) && m_caster->GetTypeId() == TYPEID_PLAYER)
-				{
-					if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
-					{
-						damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * combo * 0.03f);
-					}
-				}
 				// Envenom
 				if (m_caster->GetTypeId() == TYPEID_PLAYER && (m_spellInfo->SpellFamilyFlags & uint64(0x800000000)))
 				{
 					// consume from stack dozes not more that have combo-points
 					if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
 					{
-							Aura* poison = nullptr;
-							// Lookup for Deadly poison (only attacker applied)
-							Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
-							for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+						Aura* poison = nullptr;
+						// Lookup for Deadly poison (only attacker applied)
+						Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+						for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+						{
+							if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
+								((*itr)->GetSpellProto()->SpellFamilyFlags & uint64(0x10000)) &&
+								(*itr)->GetSpellProto()->SpellVisual == 5100 &&
+								(*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
 							{
-								if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
-									((*itr)->GetSpellProto()->SpellFamilyFlags & uint64(0x10000)) &&
-									(*itr)->GetSpellProto()->SpellVisual == 5100 &&
-									(*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
-								{
-									poison = *itr;
-									break;
-								}
+								poison = *itr;
+								break;
 							}
-							// count consumed deadly poison doses at target
-							if (poison)
-							{
-								uint32 spellId = poison->GetId();
-								uint32 doses = poison->GetStackAmount();
-								if (doses > combo)
-									doses = combo;
-
-								unitTarget->RemoveAuraHolderFromStack(spellId, doses, m_caster->GetObjectGuid());
-
-								damage *= doses;
-								damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
-							}
-
 						}
+						// count consumed deadly poison doses at target
+						if (poison)
+						{
+							uint32 spellId = poison->GetId();
+							uint32 doses = poison->GetStackAmount();
+							if (doses > combo)
+								doses = combo;
+
+							unitTarget->RemoveAuraHolderFromStack(spellId, doses, m_caster->GetObjectGuid());
+
+							damage *= doses;
+							damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
+						}
+						// Eviscerate and Envenom Bonus Damage (item set effect)
+						if (m_caster->GetDummyAura(37169))
+							damage += ((Player*)m_caster)->GetComboPoints() * 40;
 					}
-					break;
+				}
+				// Eviscerate
+				else if ((m_spellInfo->SpellFamilyFlags & uint64(0x00020000)) && m_caster->GetTypeId() == TYPEID_PLAYER)
+				{
+					if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
+					{
+						damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * combo * 0.03f);
+
+						// Eviscerate and Envenom Bonus Damage (item set effect)
+						if (m_caster->GetDummyAura(37169))
+							damage += combo * 40;
+					}
+				}				
+				break;
             }
             case SPELLFAMILY_HUNTER:
 				// Setup Shot
@@ -2146,13 +2152,36 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				uint32 spell_id = 0;
 				switch (m_spellInfo->Id)
 				{
-				case 34026: spell_id = 34027; break;    // rank 1
+				case 54842: spell_id = 54843; break;    // rank 1
+				case 54844: spell_id = 54845; break;    // rank 1
+				case 54846: spell_id = 54847; break;    // rank 1
+				case 54848: spell_id = 54849; break;    // rank 1
 				default:
 					sLog.outError("Spell::EffectDummy: Spell %u not handled in KC", m_spellInfo->Id);
 					return;
 				}
 
 				pet->CastSpell(pet->getVictim(), spell_id, TRIGGERED_OLD_TRIGGERED);
+				// accumulated chance to finish the cooldown for Bestial Wrath
+				if (m_caster->GetTypeId() == TYPEID_PLAYER)
+				{
+					const SpellCooldowns& cm = ((Player*)m_caster)->GetSpellCooldownMap();
+					for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+					{
+						SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
+
+						if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && (spellInfo->Id == 19574) && GetSpellRecoveryTime(spellInfo) > 0)
+						{
+							if (((Player*)m_caster)->RollAccumChance())
+								((Player*)m_caster)->RemoveSpellCooldown((itr++)->first, true);
+						}
+						else
+						{
+							((Player*)m_caster)->AddAccumChance(5);
+							++itr;
+						}
+					}
+				}
 				return;
 			}
 
@@ -4482,23 +4511,29 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 bonusDamagePercentMod = 2.5f;               // 250%
             }
             // Mutilate (for each hand)
-			else if (m_spellInfo->SpellFamilyFlags & uint64(0x802000))
+			// Mutilate (for each hand)
+			else if (m_spellInfo->SpellFamilyFlags & uint64(0x600000000))
 			{
 				bool found = false;
+				// fast check
+				if (unitTarget->HasAuraState(AURA_STATE_DEADLY_POISON))
+					found = true;
 				// full aura scan
-				
-				Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
-				for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+				else
 				{
-					if (itr->second->GetSpellProto()->Dispel == DISPEL_POISON)
+					Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
+					for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
 					{
-						found = true;
-						break;
+						if (itr->second->GetSpellProto()->Dispel == DISPEL_POISON)
+						{
+							found = true;
+							break;
+						}
 					}
-				}	
+				}
 
 				if (found)
-					bonusDamagePercentMod = 1.5f;          // 150% if poisoned
+					totalDamagePercentMod *= 1.5f;          // 150% if poisoned
 			}
 			break;
         }

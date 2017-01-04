@@ -5508,6 +5508,22 @@ void SpellAuraHolder::_AddSpellAuraHolder()
     // Update Seals information
     if (IsSealSpell(GetSpellProto()))
         m_target->ModifyAuraState(AURA_STATE_JUDGEMENT, true);
+
+	// Conflagrate aura state
+	if (GetSpellProto()->IsFitToFamily(SPELLFAMILY_WARLOCK, uint64(0x0000000000000004)))
+		m_target->ModifyAuraState(AURA_STATE_CONFLAGRATE, true);
+
+	// Faerie Fire (druid versions)
+	if (m_spellProto->IsFitToFamily(SPELLFAMILY_DRUID, uint64(0x0000000000000400)))
+		m_target->ModifyAuraState(AURA_STATE_FAERIE_FIRE, true);
+
+	// Swiftmend state on Regrowth & Rejuvenation
+	if (m_spellProto->IsFitToFamily(SPELLFAMILY_DRUID, uint64(0x0000000000000050)))
+		m_target->ModifyAuraState(AURA_STATE_SWIFTMEND, true);
+
+	// Deadly poison aura state
+	if (m_spellProto->IsFitToFamily(SPELLFAMILY_ROGUE, uint64(0x0000000000010000)))
+		m_target->ModifyAuraState(AURA_STATE_DEADLY_POISON, true);
 }
 
 void SpellAuraHolder::_RemoveSpellAuraHolder()
@@ -5567,6 +5583,24 @@ void SpellAuraHolder::_RemoveSpellAuraHolder()
                 if (IsSealSpell(m_spellProto))
                     removeState = AURA_STATE_JUDGEMENT;     // Update Seals information
                 break;
+
+			case SPELLFAMILY_WARLOCK:
+				if (m_spellProto->IsFitToFamilyMask(uint64(0x0000000000000004)))
+					removeState = AURA_STATE_CONFLAGRATE;   // Conflagrate aura state
+				break;
+			case SPELLFAMILY_DRUID:
+				if (m_spellProto->IsFitToFamilyMask(uint64(0x0000000000000400)))
+					removeState = AURA_STATE_FAERIE_FIRE;   // Faerie Fire (druid versions)
+				else if (m_spellProto->IsFitToFamilyMask(uint64(0x0000000000000050)))
+				{
+					removeFamilyFlag = ClassFamilyMask(uint64(0x00000000000050));
+					removeState = AURA_STATE_SWIFTMEND;     // Swiftmend aura state
+				}
+				break;
+			case SPELLFAMILY_ROGUE:
+				if (m_spellProto->IsFitToFamilyMask(uint64(0x0000000000010000)))
+					removeState = AURA_STATE_DEADLY_POISON; // Deadly poison aura state
+				break;
         }
 
         // Remove state (but need check other auras for it)

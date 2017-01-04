@@ -2764,3 +2764,16 @@ bool Creature::IsTappedBy(Player* plr) const
     }
     return false;
 }
+
+uint32 Creature::RandomizeCooldown(uint32 cooldown)
+{
+	if (!sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ENEMY_COOLDOWN))
+		return 1.f;
+
+	Player* player = sObjectMgr.GetPlayer(GetTargetGuid());
+
+	if (player)
+		return 1.f - (player->GetAdventureLevel()*0.1f);
+	else
+		return 1.f;
+}
