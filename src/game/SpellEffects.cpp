@@ -1930,7 +1930,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 				return;
 
 			int basePoints = 0;
-			Aura* bleedAura = unitTarget->GetBestAuraType(SPELL_AURA_PERIODIC_DAMAGE, MECHANIC_BLEED);
+			Aura* bleedAura = unitTarget->GetBestAuraTypeByMechanic(SPELL_AURA_PERIODIC_DAMAGE, MECHANIC_BLEED);
 			if (bleedAura && bleedAura->IsPeriodic())
 			{
 				basePoints = bleedAura->GetBasePoints();
@@ -2081,6 +2081,30 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
 				m_caster->CastSpell(unitTarget, 34288, TRIGGERED_OLD_TRIGGERED);
 				return;
+				}
+				case 54855:      //Blade Twist
+				{
+					if (m_caster->GetTypeId() != TYPEID_PLAYER)
+						return;
+
+					Aura* rupture = unitTarget->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARRIOR, uint64(0x0000000000100000), m_caster->GetObjectGuid());
+
+					if (!rupture)
+						break;
+					else
+					{
+						rupture->GetHolder()->RefreshHolder();
+					}
+
+					Aura* garrote = unitTarget->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARRIOR, uint64(0x0000000000000100), m_caster->GetObjectGuid());
+
+					if (!garrote)
+						break;
+					else
+					{
+						garrote->GetHolder()->RefreshHolder();
+					}
+					return;
 				}
 			}
 			break;
@@ -2590,7 +2614,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex eff_idx)
 		  return;
 	  }
 	  // Cloak of Shadows
-	  case 35729:
+	  case 39666:
 	  {
 		  Unit::SpellAuraHolderMap& Auras = unitTarget->GetSpellAuraHolderMap();
 		  for (Unit::SpellAuraHolderMap::iterator iter = Auras.begin(); iter != Auras.end(); ++iter)
@@ -2975,7 +2999,7 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
                 idx++;
             }
 
-            int32 tickheal = targetAura->GetModifier()->m_amount;
+            int32 tickheal = targetAura->GetModifierAmount(caster->getLevel());
             int32 tickcount = GetSpellDuration(targetAura->GetSpellProto()) / targetAura->GetSpellProto()->EffectAmplitude[idx];
 
             unitTarget->RemoveAurasByCasterSpell(targetAura->GetId(), targetAura->GetCasterGuid());
@@ -4511,7 +4535,6 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 bonusDamagePercentMod = 2.5f;               // 250%
             }
             // Mutilate (for each hand)
-			// Mutilate (for each hand)
 			else if (m_spellInfo->SpellFamilyFlags & uint64(0x600000000))
 			{
 				bool found = false;
@@ -4532,7 +4555,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 					}
 				}
 
-				if (found)
+				if (found && unitTarget->hasReducedArmor())
 					totalDamagePercentMod *= 1.5f;          // 150% if poisoned
 			}
 			break;

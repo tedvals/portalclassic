@@ -1551,6 +1551,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 		bool isPossessed() const { return hasUnitState(UNIT_STAT_CONTROLLED); }
 		bool isConfused() { return hasUnitState(UNIT_STAT_CONFUSED); }
 		bool isBleeding() { return HasAuraWithMechanic(MECHANIC_BLEED); }
+		bool hasReducedArmor() { return (GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_RESISTANCE, 1) < 0); }		
 
         bool isFrozen() const;
 		bool IsCharmed() const { return !(GetCharmer() == nullptr); }
@@ -1885,7 +1886,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);
         Aura* GetAura(AuraType type, SpellFamily family, uint64 familyFlag, ObjectGuid casterGuid = ObjectGuid());
-		Aura* GetBestAuraType(AuraType auraType, uint32 mechanic, bool positiveValue = true);
+		Aura* GetBestAuraTypeByMechanic(AuraType auraType, uint32 mechanic, bool positiveValue = true);
+		Aura* GetBestAuraType(AuraType auraType, bool positiveValue = true);
+		Aura* GetBestAuraTypeBySchool(AuraType auraType, SpellSchoolMask schoolMask, bool positiveValue);
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid) const;
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid, ObjectGuid casterGUID) const;
 

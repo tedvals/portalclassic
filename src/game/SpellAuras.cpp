@@ -344,7 +344,10 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* currentBas
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura: construct Spellid : %u, Aura : %u Target : %d Damage : %d", spellproto->Id, spellproto->EffectApplyAuraName[eff], spellproto->EffectImplicitTargetA[eff], damage);
 
-    SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff]);
+	if (spellproto->EffectRealPointsPerLevel[eff])
+		SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff], spellproto->EffectRealPointsPerLevel[eff]);
+	else
+		SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff]);
 
     Player* modOwner = caster ? caster->GetSpellModOwner() : nullptr;
 
@@ -448,12 +451,13 @@ SpellAuraHolder* CreateSpellAuraHolder(SpellEntry const* spellproto, Unit* targe
     return new SpellAuraHolder(spellproto, target, caster, castItem, triggeredBy);
 }
 
-void Aura::SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue)
+void Aura::SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue, float scale)
 {
     m_modifier.m_auraname = t;
     m_modifier.m_amount = a;
     m_modifier.m_miscvalue = miscValue;
     m_modifier.periodictime = pt;
+	m_modifier.m_scale = scale;
 }
 
 void Aura::Update(uint32 diff)
@@ -852,6 +856,8 @@ void Aura::HandleAddModifier(bool apply, bool Real)
                 GetHolder()->SetAuraCharges(1);
                 break;
         }
+
+		
 
         m_spellmod = new SpellModifier(
             SpellModOp(m_modifier.m_miscvalue),
@@ -2285,11 +2291,11 @@ void Aura::HandleAuraModSkill(bool apply, bool /*Real*/)
         return;
 
     uint32 prot = GetSpellProto()->EffectMiscValue[m_effIndex];
-    int32 points = GetModifier()->m_amount;
+	int32 points = GetModifierAmount(((Player*)GetTarget())->getLevel());
 
-	//custom for Anticipation;
-	float basePointsPerLevel = GetSpellProto()->EffectRealPointsPerLevel[m_effIndex];
-	points += int32(((Player*)GetTarget())->getLevel() * basePointsPerLevel);
+	//custom for Anticipation and similar spells;
+	//float basePointsPerLevel = GetSpellProto()->EffectRealPointsPerLevel[m_effIndex];
+	//points += int32(((Player*)GetTarget())->getLevel() * basePointsPerLevel);
 	
     ((Player*)GetTarget())->ModifySkillBonus(prot, (apply ? points : -points), m_modifier.m_auraname == SPELL_AURA_MOD_SKILL_TALENT);
     if (prot == SKILL_DEFENSE)
@@ -2668,6 +2674,23 @@ void Aura::HandleModStealth(bool apply, bool Real)
             // for RACE_NIGHTELF stealth
             if (target->GetTypeId() == TYPEID_PLAYER && GetId() == 20580)
                 target->CastSpell(target, 21009, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+
+			// apply full stealth period bonuses only at first stealth aura in stack
+			if (target->GetAurasByType(SPELL_AURA_MOD_STEALTH).size() <= 1)
+			{
+				Unit::AuraList const& mDummyAuras = target->GetAurasByType(SPELL_AURA_DUMMY);
+				for (Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
+				{
+					// Master of Subtlety
+					if ((*i)->GetSpellProto()->SpellIconID == 2114)
+					{
+						target->RemoveAurasDueToSpell(31666);
+						int32 bp = (*i)->GetModifier()->m_amount;
+						target->CastCustomSpell(target, 31665, &bp, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+						break;
+					}
+				}
+			}
         }
     }
     else
@@ -2696,6 +2719,23 @@ void Aura::HandleModStealth(bool apply, bool Real)
                 else
                     target->SetVisibility(VISIBILITY_ON);
             }
+
+			// apply full stealth period bonuses only at first stealth aura in stack
+			if (target->GetAurasByType(SPELL_AURA_MOD_STEALTH).size() <= 1)
+			{
+				Unit::AuraList const& mDummyAuras = target->GetAurasByType(SPELL_AURA_DUMMY);
+				for (Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
+				{
+					// Master of Subtlety
+					if ((*i)->GetSpellProto()->SpellIconID == 2114)
+					{
+						target->RemoveAurasDueToSpell(31666);
+						int32 bp = (*i)->GetModifier()->m_amount;
+						target->CastCustomSpell(target, 31665, &bp, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+						break;
+					}
+				}
+			}
         }
     }
 }
@@ -3453,8 +3493,8 @@ void Aura::HandleAuraModResistanceExclusive(bool apply, bool /*Real*/)
 
             Unit::AuraList const& mTotalAuraList = GetTarget()->GetAurasByType(m_modifier.m_auraname);
             for (Unit::AuraList::const_iterator i = mTotalAuraList.begin(); i != mTotalAuraList.end(); ++i)
-                if ((*i)->GetModifier()->m_amount > highestValue && (*i)->GetId() != GetId() && (*i)->GetMiscValue() & int32(1 << x))
-                    highestValue = (*i)->GetModifier()->m_amount;
+                if ((*i)->GetModifierAmount(GetTarget()->getLevel()) > highestValue && (*i)->GetId() != GetId() && (*i)->GetMiscValue() & int32(1 << x))
+                    highestValue = (*i)->GetModifierAmount(GetTarget()->getLevel());
 
             // If current value is higher or equal value of currently existed value on apply calculate application difference.
             // Ie. Current resistance 45 new 70 (70-45) = 35 difference will be applied

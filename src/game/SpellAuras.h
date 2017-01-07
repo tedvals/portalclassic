@@ -62,6 +62,14 @@ struct Modifier
      * the Aura is removed
      */
     uint32 periodictime;
+
+	//custom
+	float m_scale;
+	/**
+	* Decides how the amount scales per level (minlevel to maxlevel)
+	* set to 0 if it does not slale
+	* 
+	*/
 };
 
 class Unit;
@@ -403,10 +411,16 @@ class MANGOS_DLL_SPEC Aura
 
         virtual ~Aura();
 
-        void SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue);
+        void SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue, float scale = 0);
         Modifier*       GetModifier()       { return &m_modifier; }
         Modifier const* GetModifier() const { return &m_modifier; }
         int32 GetMiscValue() const { return m_spellAuraHolder->GetSpellProto()->EffectMiscValue[m_effIndex]; }
+		int32 GetModifierAmount(int32 level)
+		{
+			if (GetHolder()->GetSpellProto()->HasAttribute(SPELL_ATTR_LEVEL_CALCULATION))
+				return m_modifier.m_amount; //calculated elseware
+			else  return m_modifier.m_amount + int32(level *  m_modifier.m_scale);
+		}
 
         SpellEntry const* GetSpellProto() const { return GetHolder()->GetSpellProto(); }
         uint32 GetId() const { return GetHolder()->GetSpellProto()->Id; }

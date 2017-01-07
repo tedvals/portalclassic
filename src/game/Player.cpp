@@ -2059,7 +2059,7 @@ void Player::Regenerate(Powers power)
         AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
         for (AuraList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
             if ((*i)->GetModifier()->m_miscvalue == int32(power))
-                addvalue *= ((*i)->GetModifier()->m_amount + 100) / 100.0f;
+                addvalue *= ((*i)->GetModifierAmount(getLevel()) + 100) / 100.0f;
     }
 
     if (power != POWER_RAGE)
@@ -2389,7 +2389,7 @@ void Player::GiveXP(uint32 xp, Unit* victim)
 	// handle SPELL_AURA_MOD_XP_PCT auras
 	Unit::AuraList const& ModXPPctAuras = GetAurasByType(SPELL_AURA_MOD_XP_PCT);
 	for (Unit::AuraList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
-		xp = uint32(xp * (1.0f + (*i)->GetModifier()->m_amount / 100.0f));
+		xp = uint32(xp * (1.0f + (*i)->GetModifierAmount(getLevel()) / 100.0f));
 
     // XP resting bonus for kill
     uint32 rested_bonus_xp = victim ? GetXPRestBonus(xp) : 0;
@@ -6796,7 +6796,7 @@ void Player::_ApplyWeaponDependentAuraCritMod(Item* item, WeaponAttackType attac
 
     if (item->IsFitToSpellRequirements(aura->GetSpellProto()))
     {
-        HandleBaseModValue(mod, FLAT_MOD, float(aura->GetModifier()->m_amount), apply);
+        HandleBaseModValue(mod, FLAT_MOD, float(aura->GetModifierAmount(getLevel())), apply);
     }
 }
 
@@ -6830,7 +6830,7 @@ void Player::_ApplyWeaponDependentAuraDamageMod(Item* item, WeaponAttackType att
 
     if (item->IsFitToSpellRequirements(aura->GetSpellProto()))
     {
-        HandleStatModifier(unitMod, unitModType, float(modifier->m_amount), apply);
+        HandleStatModifier(unitMod, unitModType, float(aura->GetModifierAmount(getLevel())), apply);
     }
 }
 
@@ -13991,7 +13991,7 @@ void Player::_LoadAuras(QueryResult* result, uint32 timediff)
 
                 Aura* aura = CreateAura(spellproto, SpellEffectIndex(i), nullptr, holder, this);
                 if (!damage[i])
-                    damage[i] = aura->GetModifier()->m_amount;
+                    damage[i] = aura->GetModifierAmount(getLevel());
 
                 aura->SetLoadedState(damage[i], periodicTime[i]);
                 holder->AddAura(aura, SpellEffectIndex(i));

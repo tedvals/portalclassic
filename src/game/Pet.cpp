@@ -1653,7 +1653,7 @@ void Pet::_LoadAuras(uint32 timediff)
 
                 Aura* aura = CreateAura(spellproto, SpellEffectIndex(i), nullptr, holder, this);
                 if (!damage[i])
-                    damage[i] = aura->GetModifier()->m_amount;
+                    damage[i] = aura->GetModifierAmount(getLevel());
 
                 aura->SetLoadedState(damage[i], periodicTime[i]);
                 holder->AddAura(aura, SpellEffectIndex(i));

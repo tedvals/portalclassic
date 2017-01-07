@@ -5739,7 +5739,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
         if (Player* modOwner = caster->GetSpellModOwner())
             modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_COST, powerCost, spell);
 
-    if (spellInfo->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION))
+    if (spellInfo->HasAttribute(SPELL_ATTR_LEVEL_CALCULATION))
         powerCost = int32(powerCost / (1.117f * spellInfo->spellLevel / caster->getLevel() - 0.1327f));
 
     // PCT mod from user auras by school
