@@ -2047,7 +2047,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 		{
 			switch (m_spellInfo->Id)
 			{ 
-				case 34289:                                  // Shiv
+				case 5938:                                  // Shiv
 				{
 				if (m_caster->GetTypeId() != TYPEID_PLAYER)
 					return;
@@ -2072,14 +2072,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 					if (pEnchant->type[s] != ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL)
 						continue;
 
-					SpellEntry const* combatEntry = GetSpellTemplate(pEnchant->spellid[s]);
+					SpellEntry const* combatEntry = sSpellTemplate.LookupEntry<SpellEntry>(pEnchant->spellid[s]);
 					if (!combatEntry || combatEntry->Dispel != DISPEL_POISON)
 						continue;
 
-					m_caster->CastSpell(unitTarget, combatEntry, true, item);
+					m_caster->CastSpell(unitTarget, combatEntry, TRIGGERED_OLD_TRIGGERED, item);
 				}
 
-				m_caster->CastSpell(unitTarget, 34288, TRIGGERED_OLD_TRIGGERED);
+				m_caster->CastSpell(unitTarget, 5940, TRIGGERED_OLD_TRIGGERED);
 				return;
 				}
 				case 54855:      //Blade Twist

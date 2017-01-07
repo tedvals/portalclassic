@@ -1239,7 +1239,7 @@ struct boss_romuloAI : public ScriptedAI
         if (m_uiDaringTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_DARING) == CAST_OK)
-                m_uiDaringTimer = Randomize(urand(20000, 40000);
+                m_uiDaringTimer = Randomize(urand(20000, 40000));
         }
         else
             m_uiDaringTimer -= uiDiff;

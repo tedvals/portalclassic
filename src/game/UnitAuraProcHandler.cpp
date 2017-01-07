@@ -1546,6 +1546,82 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 					if (!(procFlags & PROC_FLAG_SUCCESSFUL_OFFHAND_HIT))
 						return SPELL_AURA_PROC_FAILED;
 				}
+				else if (auraSpellInfo->SpellIconID == 1477)         // Blade Twisting
+				{
+					// accumulated chance to finish the cooldown of Power Infusion
+					if (GetTypeId() == TYPEID_PLAYER)
+					{
+						const SpellCooldowns& cm = ((Player*)this)->GetSpellCooldownMap();
+						for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
+						{
+							SpellEntry const* spellInfo = GetSpellTemplate(itr->first);
+
+							if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (spellInfo->Id == 13877) && GetSpellRecoveryTime(spellInfo) > 0)
+							{
+								if (((Player*)this)->RollAccumChance())
+									((Player*)this)->RemoveSpellCooldown((itr++)->first, true);
+							}
+							else
+							{
+								((Player*)this)->AddAccumChance(4);
+								++itr;
+							}
+						}
+
+						trigger_spell_id = 31125;
+						break;
+					}
+					if (auraSpellInfo->SpellIconID == 1939)         // Shadow Strikes
+					{
+						if (!(procFlags & PROC_FLAG_SUCCESSFUL_OFFHAND_HIT))						
+							return SPELL_AURA_PROC_FAILED;
+						
+						if (pVictim)
+						{
+
+							bool found = false;
+							// fast check
+							if (pVictim->HasAuraState(AURA_STATE_DEADLY_POISON))
+								found = true;
+							// full aura scan
+							else
+							{
+								Unit::SpellAuraHolderMap const& auras = pVictim->GetSpellAuraHolderMap();
+								for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+								{
+									if (itr->second->GetSpellProto()->Dispel == DISPEL_POISON)
+									{
+										found = true;
+										break;
+									}
+								}
+
+
+								if (!found)
+								{
+									// check dazed affect
+									Unit::AuraList const& decSpeedList = pVictim->GetAurasByType(SPELL_AURA_MOD_DECREASE_SPEED);
+									for (Unit::AuraList::const_iterator iter = decSpeedList.begin(); iter != decSpeedList.end(); ++iter)
+									{
+										if ((*iter)->GetSpellProto()->SpellIconID == 15 && (*iter)->GetSpellProto()->Dispel == 0)
+										{
+											found = true;
+											break;
+										}
+									}
+								}
+
+								if (!found)
+								{
+									return SPELL_AURA_PROC_FAILED;
+								}
+							}
+							trigger_spell_id = 31139;
+							break;														
+						}
+					}
+					break;
+				}
 				// Cheat Death
 				else if (auraSpellInfo->Id == 28845)
 				{
