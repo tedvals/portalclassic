@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_z2692_04_mangos_npc_trainer_template` bit(1) DEFAULT NULL
+  `required_z2693_01_mangos_gameobject_template` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -894,34 +894,6 @@ CREATE TABLE `creature_equip_template` (
 LOCK TABLES `creature_equip_template` WRITE;
 /*!40000 ALTER TABLE `creature_equip_template` DISABLE KEYS */;
 /*!40000 ALTER TABLE `creature_equip_template` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `creature_equip_template_raw`
---
-
-DROP TABLE IF EXISTS `creature_equip_template_raw`;
-CREATE TABLE `creature_equip_template_raw` (
-  `entry` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'Unique entry',
-  `equipmodel1` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `equipmodel2` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `equipmodel3` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `equipinfo1` int(10) unsigned NOT NULL DEFAULT '0',
-  `equipinfo2` int(10) unsigned NOT NULL DEFAULT '0',
-  `equipinfo3` int(10) unsigned NOT NULL DEFAULT '0',
-  `equipslot1` int(11) NOT NULL DEFAULT '0',
-  `equipslot2` int(11) NOT NULL DEFAULT '0',
-  `equipslot3` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`entry`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Creature System (Equipment)';
-
---
--- Dumping data for table `creature_equip_template_raw`
---
-
-LOCK TABLES `creature_equip_template_raw` WRITE;
-/*!40000 ALTER TABLE `creature_equip_template_raw` DISABLE KEYS */;
-/*!40000 ALTER TABLE `creature_equip_template_raw` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1912,6 +1884,7 @@ CREATE TABLE `gameobject_template` (
   `name` varchar(100) NOT NULL DEFAULT '',
   `faction` smallint(5) unsigned NOT NULL DEFAULT '0',
   `flags` int(10) unsigned NOT NULL DEFAULT '0',
+  `ExtraFlags` int(10) unsigned NOT NULL DEFAULT '0',
   `size` float NOT NULL DEFAULT '1',
   `data0` int(10) unsigned NOT NULL DEFAULT '0',
   `data1` int(10) unsigned NOT NULL DEFAULT '0',
@@ -1937,6 +1910,7 @@ CREATE TABLE `gameobject_template` (
   `data21` int(10) unsigned NOT NULL DEFAULT '0',
   `data22` int(10) unsigned NOT NULL DEFAULT '0',
   `data23` int(10) unsigned NOT NULL DEFAULT '0',
+  `CustomData1` int(10) unsigned NOT NULL DEFAULT '0',
   `mingold` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `maxgold` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `ScriptName` varchar(64) NOT NULL DEFAULT '',

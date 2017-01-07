@@ -219,7 +219,7 @@ struct boss_nightbaneAI : public npc_escortAI
                 if (m_uiBellowingRoarTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_BELLOWING_ROAR) == CAST_OK)
-                        m_uiBellowingRoarTimer = urand(20000, 30000);
+                        m_uiBellowingRoarTimer = Randomize(urand(20000, 30000));
                 }
                 else
                     m_uiBellowingRoarTimer -= uiDiff;
@@ -227,7 +227,7 @@ struct boss_nightbaneAI : public npc_escortAI
                 if (m_uiSmolderingBreathTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SMOLDERING_BREATH) == CAST_OK)
-                        m_uiSmolderingBreathTimer = urand(14000, 20000);
+                        m_uiSmolderingBreathTimer = Randomize(urand(14000, 20000));
                 }
                 else
                     m_uiSmolderingBreathTimer -= uiDiff;
@@ -237,7 +237,7 @@ struct boss_nightbaneAI : public npc_escortAI
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_CHARRED_EARTH) == CAST_OK)
-                            m_uiCharredEarthTimer = urand(25000, 35000);
+                            m_uiCharredEarthTimer = Randomize(urand(25000, 35000));
                     }
                 }
                 else
@@ -246,7 +246,7 @@ struct boss_nightbaneAI : public npc_escortAI
                 if (m_uiTailSweepTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_TAIL_SWEEP) == CAST_OK)
-                        m_uiTailSweepTimer = urand(14000, 20000);
+                        m_uiTailSweepTimer = Randomize(urand(14000, 20000));
                 }
                 else
                     m_uiTailSweepTimer -= uiDiff;
@@ -254,7 +254,7 @@ struct boss_nightbaneAI : public npc_escortAI
                 if (m_uiCleavetimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                        m_uiCleavetimer = urand(6000, 12000);
+                        m_uiCleavetimer = Randomize(urand(6000, 12000));
                 }
                 else
                     m_uiCleavetimer -= uiDiff;
@@ -300,7 +300,7 @@ struct boss_nightbaneAI : public npc_escortAI
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_DISTRACTING_ASH) == CAST_OK)
-                            m_uiDistractingAshTimer = urand(7000, 13000);
+                            m_uiDistractingAshTimer = Randomize(urand(7000, 13000));
                     }
                 }
                 else

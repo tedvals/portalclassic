@@ -87,7 +87,7 @@ struct boss_broodlordAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = 7000;
+                m_uiCleaveTimer = Randomize(7000);
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -96,7 +96,7 @@ struct boss_broodlordAI : public ScriptedAI
         if (m_uiBlastWaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BLAST_WAVE) == CAST_OK)
-                m_uiBlastWaveTimer = urand(8000, 16000);
+                m_uiBlastWaveTimer = Randomize(urand(8000, 16000));
         }
         else
             m_uiBlastWaveTimer -= uiDiff;
@@ -105,7 +105,7 @@ struct boss_broodlordAI : public ScriptedAI
         if (m_uiMortalStrikeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
-                m_uiMortalStrikeTimer = urand(25000, 35000);
+                m_uiMortalStrikeTimer = Randomize(urand(25000, 35000));
         }
         else
             m_uiMortalStrikeTimer -= uiDiff;
@@ -113,7 +113,7 @@ struct boss_broodlordAI : public ScriptedAI
         if (m_uiKnockAwayTimer < uiDiff)
         {
 			if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
-				m_uiKnockAwayTimer = urand(15000, 30000);
+				m_uiKnockAwayTimer = Randomize(urand(15000, 30000));
         }
         else
             m_uiKnockAwayTimer -= uiDiff;

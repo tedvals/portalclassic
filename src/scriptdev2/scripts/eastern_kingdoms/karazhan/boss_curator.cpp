@@ -65,8 +65,8 @@ struct boss_curatorAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiFlareTimer       = 10000;
-        m_uiHatefulBoltTimer = 15000;                       // This time may be wrong
+        m_uiFlareTimer       = Randomize(10000);
+        m_uiHatefulBoltTimer = Randomize(15000);                       // This time may be wrong
         m_uiBerserkTimer     = 10 * MINUTE * IN_MILLISECONDS;
         m_bIsEnraged         = false;
 
@@ -148,7 +148,7 @@ struct boss_curatorAI : public ScriptedAI
         {
             if (m_uiFlareTimer < uiDiff)
             {
-                m_uiFlareTimer = 10000;
+                m_uiFlareTimer = Randomize(10000);
 
                 // summon Astral Flare
                 float fX, fY, fZ;
@@ -167,7 +167,7 @@ struct boss_curatorAI : public ScriptedAI
                         {
                             DoScriptText(SAY_EVOCATE, m_creature);
                             // this small delay should make first flare appear fast after evocate, and also prevent possible spawn flood
-                            m_uiFlareTimer = 1000;
+                            m_uiFlareTimer = Randomize(1000);
                         }
                         return;
                     }
@@ -202,7 +202,7 @@ struct boss_curatorAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_HATEFUL_BOLT) == CAST_OK)
-                    m_uiHatefulBoltTimer = m_bIsEnraged ? 7000 : 15000;
+                    m_uiHatefulBoltTimer = Randomize(m_bIsEnraged ? 7000 : 15000);
             }
         }
         else

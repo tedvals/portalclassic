@@ -48,9 +48,9 @@ struct boss_firemawAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiShadowFlameTimer = 30000;                       // These times are probably wrong
-        m_uiWingBuffetTimer = 24000;
-        m_uiFlameBuffetTimer = 5000;
+        m_uiShadowFlameTimer = Randomize(30000);                       // These times are probably wrong
+        m_uiWingBuffetTimer = Randomize(24000);
+        m_uiFlameBuffetTimer = Randomize(5000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -80,7 +80,7 @@ struct boss_firemawAI : public ScriptedAI
         if (m_uiShadowFlameTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_FLAME) == CAST_OK)
-                m_uiShadowFlameTimer = urand(15000, 18000);
+                m_uiShadowFlameTimer = Randomize(urand(15000, 18000));
         }
         else
             m_uiShadowFlameTimer -= uiDiff;
@@ -96,7 +96,7 @@ struct boss_firemawAI : public ScriptedAI
 						 m_creature->getThreatManager().modifyThreatPercent(pTarget, -75);
 					}
 
-                m_uiWingBuffetTimer = 25000;
+                m_uiWingBuffetTimer = Randomize(25000);
             }
         }
         else
@@ -106,7 +106,7 @@ struct boss_firemawAI : public ScriptedAI
         if (m_uiFlameBuffetTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FLAME_BUFFET) == CAST_OK)
-                m_uiFlameBuffetTimer = 5000;
+                m_uiFlameBuffetTimer = Randomize(5000);
         }
         else
             m_uiFlameBuffetTimer -= uiDiff;

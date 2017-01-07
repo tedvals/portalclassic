@@ -54,8 +54,8 @@ struct boss_garrAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiAntiMagicPulseTimer = 25000;
-        m_uiMagmaShacklesTimer = 15000;
+        m_uiAntiMagicPulseTimer = Randomize(25000);
+        m_uiMagmaShacklesTimer = Randomize(15000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -85,7 +85,7 @@ struct boss_garrAI : public ScriptedAI
         if (m_uiAntiMagicPulseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_ANTIMAGICPULSE) == CAST_OK)
-                m_uiAntiMagicPulseTimer = urand(10000, 15000);
+                m_uiAntiMagicPulseTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiAntiMagicPulseTimer -= uiDiff;
@@ -94,7 +94,7 @@ struct boss_garrAI : public ScriptedAI
         if (m_uiMagmaShacklesTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_MAGMASHACKLES) == CAST_OK)
-                m_uiMagmaShacklesTimer = urand(8000, 12000);
+                m_uiMagmaShacklesTimer = Randomize(urand(8000, 12000));
         }
         else
             m_uiMagmaShacklesTimer -= uiDiff;
@@ -120,7 +120,7 @@ struct mob_fireswornAI : public ScriptedAI
 
     void Reset() override
     {
-		immolateTimer = urand(4000, 8000);
+		immolateTimer = Randomize(urand(4000, 8000));
         m_uiSeparationCheckTimer = 5000;
     }
 
@@ -149,7 +149,7 @@ struct mob_fireswornAI : public ScriptedAI
 			if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 			{
 				if (DoCastSpellIfCan(pTarget, SPELL_IMMOLATE) == CAST_OK)
-					immolateTimer = urand(5000, 10000);
+					immolateTimer = Randomize(urand(5000, 10000));
 			}
 		}
 			else immolateTimer -= uiDiff;

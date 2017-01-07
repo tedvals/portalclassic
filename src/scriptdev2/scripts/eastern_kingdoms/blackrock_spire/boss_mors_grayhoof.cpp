@@ -91,16 +91,16 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 	{
 		roll = 0;
 		spell = 0;
-		AOE_Timer = urand(5000, 15000);
-		Healing_Timer = urand(5000, 15000);
-		Shock_Timer = urand(5000, 10000);
+		AOE_Timer = Randomize(urand(5000, 15000));
+		Healing_Timer = Randomize(urand(5000, 15000));
+		Shock_Timer = Randomize(urand(5000, 10000));
 
-		BearAbilities_Timer = 2500;
-		CatAbilities_Timer = 2500;
-		DragonSpells_Timer = urand(5000, 10000);
+		BearAbilities_Timer = Randomize(2500);
+		CatAbilities_Timer = Randomize(2500);
+		DragonSpells_Timer = Randomize(urand(5000, 10000));
 
-		BearForm_Timer = 10000;
-		CatForm_Timer = 10000;
+		BearForm_Timer = Randomize(10000);
+		CatForm_Timer = Randomize(10000);
 		DemoralizingRoar_Timer = 500;
 
 		BearForm_Used = false;
@@ -131,14 +131,14 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 				if (roll == 1) spell = SPELL_HURRICANE;
 				else spell = SPELL_MOONFIRE;
 				DoCastSpellIfCan(m_creature->getVictim(), spell);
-				AOE_Timer = urand(5000, 15000);
+				AOE_Timer = Randomize(urand(5000, 15000));
 			}
 			else AOE_Timer -= diff;
 
 			if (Shock_Timer < diff)
 			{
 				DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHOCK);
-				Shock_Timer = urand(5000, 10000);
+				Shock_Timer = Randomize(urand(5000, 10000));
 			}
 			else Shock_Timer -= diff;
 
@@ -148,7 +148,7 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 				if (roll == 1) spell = SPELL_HEALING_TOUCH;
 				else spell = SPELL_REJUVENATION;
 				DoCastSpellIfCan(m_creature, spell);
-				Healing_Timer = urand(5000, 15000);
+				Healing_Timer = Randomize(urand(5000, 15000));
 			}
 			else Healing_Timer -= diff;
 		}
@@ -157,7 +157,7 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 			if (DemoralizingRoar_Timer < diff)
 			{
 				DoCastSpellIfCan(m_creature->getVictim(), SPELL_DEMORALIZING_ROAR);
-				DemoralizingRoar_Timer = 30000;
+				DemoralizingRoar_Timer = Randomize(30000);
 			}
 			else DemoralizingRoar_Timer -= diff;
 
@@ -165,7 +165,7 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 			{
 				roll = urand(1, 2);
 				DoCastSpellIfCan(m_creature->getVictim(), SPELL_MAUL - 1 + roll); //small hack
-				BearAbilities_Timer = urand(2500, 5000);
+				BearAbilities_Timer = Randomize(urand(2500, 5000));
 			}
 			else BearAbilities_Timer -= diff;
 		}
@@ -175,7 +175,7 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 			{
 				roll = urand(1, 3);
 				DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHRED - 1 + roll); // small hack
-				CatAbilities_Timer = urand(2500, 5000);
+				CatAbilities_Timer = Randomize(urand(2500, 5000));
 			}
 			else CatAbilities_Timer -= diff;
 		}
@@ -188,7 +188,7 @@ struct boss_mor_grayhoofAI : public ScriptedAI
 				else if (roll == 2) spell = SPELL_CHAIN_LIGHTING;
 				else DoCastSpellIfCan(m_creature, SPELL_REFLECTION);
 				if (roll != 3) DoCastSpellIfCan(m_creature->getVictim(), spell);
-				DragonSpells_Timer = urand(5000, 10000);
+				DragonSpells_Timer = Randomize(urand(5000, 10000));
 			}
 			else DragonSpells_Timer -= diff;
 		}

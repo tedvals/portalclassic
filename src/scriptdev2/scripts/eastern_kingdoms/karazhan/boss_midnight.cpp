@@ -210,11 +210,11 @@ struct boss_attumenAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiCleaveTimer     = urand(10000, 16000);
-        m_uiCurseTimer      = 30000;
+        m_uiCleaveTimer     = Randomize(urand(10000, 16000));
+        m_uiCurseTimer      = Randomize(30000);
         m_uiRandomYellTimer = urand(30000, 60000);          // Occasionally yell
-        m_uiChargeTimer     = 20000;
-        m_uiKnockDown       = urand(6000, 9000);
+        m_uiChargeTimer     = Randomize(20000);
+        m_uiKnockDown       = Randomize(urand(6000, 9000));
 
         m_bHasSummonRider   = false;
     }
@@ -255,7 +255,7 @@ struct boss_attumenAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOWCLEAVE) == CAST_OK)
-                m_uiCleaveTimer = urand(10000, 16000);
+                m_uiCleaveTimer = Randomize(urand(10000, 16000));
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -263,7 +263,7 @@ struct boss_attumenAI : public ScriptedAI
         if (m_uiCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_INTANGIBLE_PRESENCE) == CAST_OK)
-                m_uiCurseTimer = 30000;
+                m_uiCurseTimer = Randomize(30000);
         }
         else
             m_uiCurseTimer -= uiDiff;
@@ -280,7 +280,7 @@ struct boss_attumenAI : public ScriptedAI
         {
             // Cast knockdown when mounted, otherwise uppercut
             if (DoCastSpellIfCan(m_creature->getVictim(), m_creature->GetEntry() == NPC_ATTUMEN_MOUNTED ? SPELL_KNOCKDOWN : SPELL_UPPERCUT) == CAST_OK)
-                m_uiKnockDown = urand(6000, 9000);
+                m_uiKnockDown = Randomize(urand(6000, 9000));
         }
         else
             m_uiKnockDown -= uiDiff;
@@ -293,10 +293,10 @@ struct boss_attumenAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_BERSERKER_CHARGE, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_IN_LOS))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_BERSERKER_CHARGE) == CAST_OK)
-                        m_uiChargeTimer = 20000;
+                        m_uiChargeTimer = Randomize(20000);
                 }
                 else
-                    m_uiChargeTimer = 2000;
+                    m_uiChargeTimer = Randomize(2000);
             }
             else
                 m_uiChargeTimer -= uiDiff;

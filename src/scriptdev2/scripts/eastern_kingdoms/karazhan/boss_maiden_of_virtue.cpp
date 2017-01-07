@@ -103,7 +103,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
         if (m_uiHolygroundTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_HOLYGROUND, CAST_TRIGGERED) == CAST_OK)
-                m_uiHolygroundTimer = 3000;
+                m_uiHolygroundTimer = Randomize(3000);
         }
         else
             m_uiHolygroundTimer -= uiDiff;
@@ -113,7 +113,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_REPENTANCE) == CAST_OK)
             {
                 DoScriptText(urand(0, 1) ? SAY_REPENTANCE1 : SAY_REPENTANCE2, m_creature);
-                m_uiRepentanceTimer = urand(25000, 35000);
+                m_uiRepentanceTimer = Randomize(urand(25000, 35000));
             }
         }
         else
@@ -124,7 +124,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_HOLYFIRE, SELECT_FLAG_NOT_IN_MELEE_RANGE))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_HOLYFIRE) == CAST_OK)
-                    m_uiHolyfireTimer = urand(8000, 23000);
+                    m_uiHolyfireTimer = Randomize(urand(8000, 23000));
             }
         }
         else
@@ -135,7 +135,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 DoCastSpellIfCan(pTarget, SPELL_HOLYWRATH);
 
-            m_uiHolywrathTimer = urand(20000, 25000);
+            m_uiHolywrathTimer = Randomize(urand(20000, 25000));
         }
         else
             m_uiHolywrathTimer -= uiDiff;

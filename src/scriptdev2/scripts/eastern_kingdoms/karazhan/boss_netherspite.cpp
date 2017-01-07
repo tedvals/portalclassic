@@ -194,8 +194,8 @@ struct boss_netherspiteAI : public ScriptedAI
                 m_uiActivePhase = BANISH_PHASE;
                 DoScriptText(EMOTE_PHASE_BANISH, m_creature);
 
-                m_uiNetherbreathTimer = 2000;
-                m_uiPhaseSwitchTimer  = 30000;
+                m_uiNetherbreathTimer = Randomize(2000);
+                m_uiPhaseSwitchTimer  = Randomize(30000);
             }
         }
         else
@@ -208,8 +208,8 @@ struct boss_netherspiteAI : public ScriptedAI
             DoScriptText(EMOTE_PHASE_BEAM, m_creature);
 
             DoSummonPortals();
-            m_uiEmpowermentTimer  = 10000;
-            m_uiPhaseSwitchTimer  = MINUTE * IN_MILLISECONDS;
+            m_uiEmpowermentTimer  = Randomize(10000);
+            m_uiPhaseSwitchTimer  = Randomize(MINUTE * IN_MILLISECONDS);
         }
 
         // reset threat every phase switch
@@ -272,7 +272,7 @@ struct boss_netherspiteAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_VOID_ZONE) == CAST_OK)
-                        m_uiVoidZoneTimer = 15000;
+                        m_uiVoidZoneTimer = Randomize(15000);
                 }
             }
             else
@@ -299,7 +299,7 @@ struct boss_netherspiteAI : public ScriptedAI
             if (m_uiNetherbreathTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_NETHERBREATH) == CAST_OK)
-                    m_uiNetherbreathTimer = urand(4000, 5000);
+                    m_uiNetherbreathTimer = Randomize(urand(4000, 5000));
             }
             else
                 m_uiNetherbreathTimer -= uiDiff;

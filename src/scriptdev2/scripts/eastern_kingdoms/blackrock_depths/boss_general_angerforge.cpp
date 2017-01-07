@@ -49,7 +49,7 @@ struct boss_general_angerforgeAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiSunderArmorTimer = urand(5 * IN_MILLISECONDS, 10 * IN_MILLISECONDS);
+        m_uiSunderArmorTimer = Randomize(urand(5 * IN_MILLISECONDS, 10 * IN_MILLISECONDS));
         m_uiAlarmTimer = 0;
     }
 
@@ -82,7 +82,7 @@ struct boss_general_angerforgeAI : public ScriptedAI
         if (m_uiSunderArmorTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
-                m_uiSunderArmorTimer = urand(5 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
+                m_uiSunderArmorTimer = Randomize(urand(5 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
         }
         else
             m_uiSunderArmorTimer -= uiDiff;

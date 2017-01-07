@@ -119,9 +119,9 @@ struct boss_aranAI : public ScriptedAI
         m_uiLastSuperSpell      = urand(SUPER_FLAME_WREATH, SUPER_ARCANE_EXPL);
         m_uiLastNormalSpell     = urand(0, 2);
 
-        m_uiSecondarySpellTimer = 5000;
+        m_uiSecondarySpellTimer = Randomize(5000);
         m_uiNormalCastTimer     = 0;
-        m_uiSuperCastTimer      = 35000;
+        m_uiSuperCastTimer      = Randomize(35000);
         m_uiManaRecoveryTimer   = 0;
         m_uiManaRecoveryStage   = 0;
         m_uiBerserkTimer        = 12 * MINUTE * IN_MILLISECONDS;
@@ -171,9 +171,10 @@ struct boss_aranAI : public ScriptedAI
         m_creature->RemoveGuardians();
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage) override
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType damagetype) override
     {
-        if (!m_bDrinkInturrupted && m_bIsDrinking && uiDamage > 0)
+		// Must only break drinking on direct damage
+		if (!m_bDrinkInturrupted && m_bIsDrinking && uiDamage > 0 && (damagetype == SPELL_DIRECT_DAMAGE || damagetype == DIRECT_DAMAGE))
         {
             if (!m_creature->HasAura(SPELL_DRINK))
                 return;
@@ -261,6 +262,9 @@ struct boss_aranAI : public ScriptedAI
             return;
         }
 
+		if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+			return;
+
         // Normal spell casts
         if (m_uiNormalCastTimer < uiDiff)
         {
@@ -283,15 +287,15 @@ struct boss_aranAI : public ScriptedAI
                 {
                     case 0:
                         uiCurrentSpellId = SPELL_ARCANE_MISSILES;
-                        m_uiNormalCastTimer = urand(6000, 7000);
+                        m_uiNormalCastTimer = Randomize(urand(6000, 7000));
                         break;
                     case 1:
                         uiCurrentSpellId = SPELL_FIREBALL;
-                        m_uiNormalCastTimer = urand(2000, 3000);
+                        m_uiNormalCastTimer = Randomize(urand(2000, 3000));
                         break;
                     case 2:
                         uiCurrentSpellId = SPELL_FROSTBOLT;
-                        m_uiNormalCastTimer = urand(2000, 3000);
+                        m_uiNormalCastTimer = Randomize(urand(2000, 3000));
                         break;
                 }
 
@@ -318,7 +322,7 @@ struct boss_aranAI : public ScriptedAI
                     break;
             }
             if (spellResult == CAST_OK)
-                m_uiSecondarySpellTimer = urand(5000, 20000);
+                m_uiSecondarySpellTimer = Randomize(urand(5000, 20000));
         }
         else
             m_uiSecondarySpellTimer -= uiDiff;
@@ -356,7 +360,7 @@ struct boss_aranAI : public ScriptedAI
                             DoScriptText(urand(0, 1) ? SAY_BLIZZARD1 : SAY_BLIZZARD2, m_creature);
                         break;
                 }
-                m_uiSuperCastTimer = 30000;
+                m_uiSuperCastTimer = Randomize(30000);
             }
         }
         else

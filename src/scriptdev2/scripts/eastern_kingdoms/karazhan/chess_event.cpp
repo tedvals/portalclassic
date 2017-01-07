@@ -217,7 +217,7 @@ struct npc_echo_of_medivhAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiCheatTimer = 90000;
+        m_uiCheatTimer = Randomize(90000);
     }
 
     void MoveInLineOfSight(Unit* /*pWho*/) override { }
@@ -247,7 +247,7 @@ struct npc_echo_of_medivhAI : public ScriptedAI
             }
 
             DoScriptText(EMOTE_CHEAT, m_creature);
-            m_uiCheatTimer = 90000;
+            m_uiCheatTimer = Randomize(90000);
         }
         else
             m_uiCheatTimer -= uiDiff;
@@ -660,7 +660,7 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
 
     bool m_bIsAttacked;
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage) override
+    void DamageTaken(Unit* pDoneBy, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (!uiDamage || !m_bIsAttacked || !m_pInstance || pDoneBy->GetTypeId() != TYPEID_UNIT)
             return;
@@ -777,7 +777,7 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
 
     bool m_bIsAttacked;
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage) override
+    void DamageTaken(Unit* pDoneBy, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (!uiDamage || !m_bIsAttacked || !m_pInstance || pDoneBy->GetTypeId() != TYPEID_UNIT)
             return;

@@ -154,7 +154,7 @@ struct boss_pyroguard_emberseerAI : public ScriptedAI
         if (m_uiFireNovaTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FIRENOVA) == CAST_OK)
-                m_uiFireNovaTimer = 6000;
+                m_uiFireNovaTimer = Randomize(6000);
         }
         else
             m_uiFireNovaTimer -= uiDiff;
@@ -163,7 +163,7 @@ struct boss_pyroguard_emberseerAI : public ScriptedAI
         if (m_uiFlameBuffetTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FLAMEBUFFET) == CAST_OK)
-                m_uiFlameBuffetTimer = 14000;
+                m_uiFlameBuffetTimer = Randomize(14000);
         }
         else
             m_uiFlameBuffetTimer -= uiDiff;
@@ -174,7 +174,7 @@ struct boss_pyroguard_emberseerAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_PYROBLAST) == CAST_OK)
-                    m_uiPyroBlastTimer = 15000;
+                    m_uiPyroBlastTimer = Randomize(15000);
             }
         }
         else

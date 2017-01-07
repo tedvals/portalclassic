@@ -80,7 +80,7 @@ struct boss_ebonrocAI : public ScriptedAI
         if (m_uiShadowFlameTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_FLAME) == CAST_OK)
-                m_uiShadowFlameTimer = urand(12000, 15000);
+                m_uiShadowFlameTimer = Randomize(urand(12000, 15000));
         }
         else
             m_uiShadowFlameTimer -= uiDiff;
@@ -89,7 +89,7 @@ struct boss_ebonrocAI : public ScriptedAI
         if (m_uiWingBuffetTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_WING_BUFFET) == CAST_OK)
-                m_uiWingBuffetTimer = 25000;
+                m_uiWingBuffetTimer = Randomize(25000);
         }
         else
             m_uiWingBuffetTimer -= uiDiff;
@@ -98,7 +98,7 @@ struct boss_ebonrocAI : public ScriptedAI
         if (m_uiShadowOfEbonrocTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_OF_EBONROC) == CAST_OK)
-                m_uiShadowOfEbonrocTimer = urand(25000, 35000);
+                m_uiShadowOfEbonrocTimer = Randomize(urand(25000, 35000));
         }
         else
             m_uiShadowOfEbonrocTimer -= uiDiff;

@@ -236,7 +236,7 @@ struct boss_moroesAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_VANISH) == CAST_OK)
                 {
-                    m_uiVanishTimer = 30000;
+                    m_uiVanishTimer = Randomize(30000);
                     m_uiWaitTimer   = 1000;
                 }
             }
@@ -247,7 +247,7 @@ struct boss_moroesAI : public ScriptedAI
             if (m_uiGougeTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GOUGE) == CAST_OK)
-                    m_uiGougeTimer = 40000;
+                    m_uiGougeTimer = Randomize(40000);
             }
             else
                 m_uiGougeTimer -= uiDiff;
@@ -257,7 +257,7 @@ struct boss_moroesAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_BLIND, SELECT_FLAG_PLAYER))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_BLIND) == CAST_OK)
-                        m_uiBlindTimer = 40000;
+                        m_uiBlindTimer = Randomize(40000);
                 }
             }
             else

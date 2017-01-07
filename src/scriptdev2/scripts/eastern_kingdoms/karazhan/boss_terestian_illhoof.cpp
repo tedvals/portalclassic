@@ -140,7 +140,7 @@ struct boss_terestianAI : public ScriptedAI
         {
             case NPC_KILREK:
                 pSummoned->CastSpell(m_creature, SPELL_BROKEN_PACT, TRIGGERED_OLD_TRIGGERED);
-                m_uiSummonKilrekTimer = 30000;
+                m_uiSummonKilrekTimer = Randomize(30000);
                 break;
             case NPC_DEMONCHAINS:
                 if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_sacrificeGuid))
@@ -183,7 +183,7 @@ struct boss_terestianAI : public ScriptedAI
                     DoCastSpellIfCan(m_creature, SPELL_SUMMON_DEMONCHAINS, CAST_TRIGGERED);
                     DoScriptText(urand(0, 1) ? SAY_SACRIFICE1 : SAY_SACRIFICE2, m_creature);
                     m_sacrificeGuid = pTarget->GetObjectGuid();
-                    m_uiSacrificeTimer = 43000;
+                    m_uiSacrificeTimer = Randomize(43000);
                 }
             }
         }
@@ -193,7 +193,7 @@ struct boss_terestianAI : public ScriptedAI
         if (m_uiShadowboltTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
-                m_uiShadowboltTimer = 10000;
+                m_uiShadowboltTimer = Randomize(10000);
         }
         else
             m_uiShadowboltTimer -= uiDiff;
@@ -249,7 +249,7 @@ struct npc_fiendish_portalAI : public ScriptedAI
         if (m_uiSummonTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_FIENDISH_IMP) == CAST_OK)
-                m_uiSummonTimer = 5000;
+                m_uiSummonTimer = Randomize(5000);
         }
         else
             m_uiSummonTimer -= uiDiff;

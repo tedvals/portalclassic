@@ -539,6 +539,8 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
 
     m_lastFallTime = 0;
     m_lastFallZ = 0;
+
+    m_cannotBeDetectedTimer = 0;
 }
 
 Player::~Player()
@@ -906,7 +908,11 @@ uint32 Player::EnvironmentalDamage(EnvironmentalDamageType type, uint32 damage)
 
     damage -= absorb + resist;
 
-    DealDamageMods(this, damage, &absorb);
+    DamageEffectType damageType = SELF_DAMAGE;
+    if (type == DAMAGE_FALL && getClass() == CLASS_ROGUE)
+        damageType = SELF_DAMAGE_ROGUE_FALL;
+
+    DealDamageMods(this, damage, &absorb, damageType);
 
     WorldPacket data(SMSG_ENVIRONMENTALDAMAGELOG, (21));
     data << GetObjectGuid();
@@ -915,10 +921,6 @@ uint32 Player::EnvironmentalDamage(EnvironmentalDamageType type, uint32 damage)
     data << uint32(absorb);
     data << uint32(resist);
     SendMessageToSet(data, true);
-
-    DamageEffectType damageType = SELF_DAMAGE;
-    if (type == DAMAGE_FALL && getClass() == CLASS_ROGUE)
-        damageType = SELF_DAMAGE_ROGUE_FALL;
 
     uint32 final_damage = DealDamage(this, damage, nullptr, damageType, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
 
@@ -1256,6 +1258,9 @@ void Player::Update(uint32 update_diff, uint32 p_time)
         else
             m_zoneUpdateTimer -= update_diff;
     }
+
+    if (m_cannotBeDetectedTimer > 0)
+        m_cannotBeDetectedTimer -= update_diff;
 
     if (isAlive())
     {
@@ -10825,6 +10830,13 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                 case ITEM_ENCHANTMENT_TYPE_NONE:
                     break;
                 case ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL:
+                    if (SpellModifier* mod = item->GetEnchantmentModifier())
+                    {
+                        if (!apply)
+                            item->SetEnchantmentModifier(nullptr);
+                        else
+                            AddSpellMod(mod, apply);
+                    }
                     // processed in Player::CastItemCombatSpell
                     break;
                 case ITEM_ENCHANTMENT_TYPE_DAMAGE:
@@ -16922,6 +16934,18 @@ void Player::AddSpellAndCategoryCooldowns(SpellEntry const* spellInfo, uint32 it
                     continue;
 
                 AddSpellCooldown(*i_scset, itemId, catrecTime);
+            }
+        }
+
+        ItemSpellCategoryStore::const_iterator i_iscstore = sItemSpellCategoryStore.find(cat);
+        if (i_iscstore != sItemSpellCategoryStore.end())
+        {
+            for (ItemSpellCategorySet::const_iterator i_iscset = i_iscstore->second.begin(); i_iscset != i_iscstore->second.end(); ++i_iscset)
+            {
+                if ((*i_iscset).spellId == spellInfo->Id)              // skip main spell, already handled above
+                    continue;
+
+                AddSpellCooldown((*i_iscset).spellId, (*i_iscset).itemId, catrecTime);
             }
         }
     }

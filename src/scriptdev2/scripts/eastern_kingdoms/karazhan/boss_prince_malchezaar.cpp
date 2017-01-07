@@ -269,7 +269,7 @@ struct boss_malchezaarAI : public ScriptedAI
 
                     m_creature->RemoveAurasDueToSpell(SPELL_THRASH_AURA);
                     m_uiShadowNovaTimer = m_uiEnfeebleTimer + 5000;
-                    m_uiInfernalTimer = 15000;
+                    m_uiInfernalTimer = Randomize(15000);
                     m_uiPhase = 3;
 
                     return;
@@ -279,7 +279,7 @@ struct boss_malchezaarAI : public ScriptedAI
             if (m_uiSunderArmorTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
-                    m_uiSunderArmorTimer = urand(10000, 18000);
+                    m_uiSunderArmorTimer = Randomize(urand(10000, 18000));
             }
             else
                 m_uiSunderArmorTimer -= uiDiff;
@@ -290,7 +290,7 @@ struct boss_malchezaarAI : public ScriptedAI
             if (m_uiAmplifyDamageTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_AMPLIFY_DAMAGE) == CAST_OK)
-                    m_uiAmplifyDamageTimer = urand(20000, 30000);
+                    m_uiAmplifyDamageTimer = Randomize(urand(20000, 30000));
             }
             else
                 m_uiAmplifyDamageTimer -= uiDiff;
@@ -307,7 +307,7 @@ struct boss_malchezaarAI : public ScriptedAI
                     {
                         pRelay->CastSpell(pTarget, SPELL_INFERNAL_RELAY_SUMMON, true, nullptr, nullptr, m_creature->GetObjectGuid());
                         DoScriptText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
-                        m_uiInfernalTimer =  m_uiPhase == 3 ? 17000 : 45000;
+                        m_uiInfernalTimer = Randomize(m_uiPhase == 3 ? 17000 : 45000);
                     }
                 }
                 else
@@ -323,7 +323,7 @@ struct boss_malchezaarAI : public ScriptedAI
             if (m_uiShadowNovaTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_NOVA) == CAST_OK)
-                    m_uiShadowNovaTimer = m_uiPhase == 3 ? 30000 : 0;
+                    m_uiShadowNovaTimer = Randomize(m_uiPhase == 3 ? 30000 : 0);
             }
             else
                 m_uiShadowNovaTimer -= uiDiff;
@@ -335,7 +335,7 @@ struct boss_malchezaarAI : public ScriptedAI
             if (m_uiSWPainTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_uiPhase == 1 ? m_creature->getVictim() : m_creature, m_uiPhase == 1 ? SPELL_SW_PAIN_PHASE1 : SPELL_SW_PAIN_PHASE3) == CAST_OK)
-                    m_uiSWPainTimer = 20000;
+                    m_uiSWPainTimer = Randomize(20000);
             }
             else
                 m_uiSWPainTimer -= uiDiff;

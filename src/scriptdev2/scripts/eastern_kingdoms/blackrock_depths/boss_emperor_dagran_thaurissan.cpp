@@ -102,7 +102,7 @@ struct boss_emperor_dagran_thaurissanAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_HANDOFTHAURISSAN) == CAST_OK)
-                    m_uiHandOfThaurissanTimer = urand(5, 10) * 1000;
+                    m_uiHandOfThaurissanTimer = Randomize(urand(5, 10) * 1000);
             }
         }
         else
@@ -112,7 +112,7 @@ struct boss_emperor_dagran_thaurissanAI : public ScriptedAI
         if (m_uiAvatarOfFlameTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_AVATAROFFLAME) == CAST_OK)
-                m_uiAvatarOfFlameTimer = 18000;
+                m_uiAvatarOfFlameTimer = Randomize(18000);
         }
         else
             m_uiAvatarOfFlameTimer -= uiDiff;
@@ -200,7 +200,7 @@ struct boss_moira_bronzebeardAI : public ScriptedAI
         if (m_uiMindBlastTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MINDBLAST) == CAST_OK)
-                m_uiMindBlastTimer = 14000;
+                m_uiMindBlastTimer = Randomize(14000);
         }
         else
             m_uiMindBlastTimer -= uiDiff;
@@ -209,7 +209,7 @@ struct boss_moira_bronzebeardAI : public ScriptedAI
         if (m_uiShadowWordPainTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOWWORDPAIN) == CAST_OK)
-                m_uiShadowWordPainTimer = 18000;
+                m_uiShadowWordPainTimer = Randomize(18000);
         }
         else
             m_uiShadowWordPainTimer -= uiDiff;
@@ -218,7 +218,7 @@ struct boss_moira_bronzebeardAI : public ScriptedAI
         if (m_uiSmiteTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SMITE) == CAST_OK)
-                m_uiSmiteTimer = 10000;
+                m_uiSmiteTimer = Randomize(10000);
         }
         else
             m_uiSmiteTimer -= uiDiff;
@@ -231,7 +231,7 @@ struct boss_moira_bronzebeardAI : public ScriptedAI
                 if (pEmperor->isAlive() && pEmperor->GetHealthPercent() != 100.0f)
                 {
                     if (DoCastSpellIfCan(pEmperor, SPELL_HEAL) == CAST_OK)
-                        m_uiHealTimer = 10000;
+                        m_uiHealTimer = Randomize(10000);
                 }
             }
         }

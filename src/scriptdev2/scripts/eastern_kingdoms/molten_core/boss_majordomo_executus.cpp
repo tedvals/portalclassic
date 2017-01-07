@@ -89,11 +89,11 @@ struct boss_majordomoAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMagicReflectionTimer  = 30000;                  // Damage reflection first so we alternate
-        m_uiDamageReflectionTimer = 15000;
-        m_uiBlastwaveTimer = 10000;
-        m_uiTeleportTimer = 20000;
-        m_uiAegisTimer = 5000;
+        m_uiMagicReflectionTimer  = Randomize(30000);                  // Damage reflection first so we alternate
+        m_uiDamageReflectionTimer = Randomize(15000);
+        m_uiBlastwaveTimer = Randomize(10000);
+        m_uiTeleportTimer = Randomize(20000);
+        m_uiAegisTimer = Randomize(5000);
         m_uiSpeechTimer = 1000;
 
         m_uiAddsKilled = 0;
@@ -242,7 +242,7 @@ struct boss_majordomoAI : public ScriptedAI
         m_luiMajordomoAddsGUIDs.clear();
     }
 
-    void DamageTaken(Unit* /*pDealer*/, uint32& uiDamage) override
+    void DamageTaken(Unit* /*pDealer*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (uiDamage > m_creature->GetHealth())
         {
@@ -367,14 +367,14 @@ struct boss_majordomoAI : public ScriptedAI
         if (m_creature->GetHealthPercent() < 90.0f && !m_uiAegisTimer)
         {
             DoCastSpellIfCan(m_creature, SPELL_AEGIS);
-            m_uiAegisTimer = 10000;
+            m_uiAegisTimer = Randomize(10000);
         }
 
         // Magic Reflection Timer
         if (m_uiMagicReflectionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_MAGIC_REFLECTION) == CAST_OK)
-                m_uiMagicReflectionTimer = 30000;
+                m_uiMagicReflectionTimer = Randomize(30000);
         }
         else
             m_uiMagicReflectionTimer -= uiDiff;
@@ -383,7 +383,7 @@ struct boss_majordomoAI : public ScriptedAI
         if (m_uiDamageReflectionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_DAMAGE_REFLECTION) == CAST_OK)
-                m_uiDamageReflectionTimer = 30000;
+                m_uiDamageReflectionTimer = Randomize(30000);
         }
         else
             m_uiDamageReflectionTimer -= uiDiff;
@@ -394,7 +394,7 @@ struct boss_majordomoAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_TELEPORT) == CAST_OK)
-                    m_uiTeleportTimer = 20000;
+                    m_uiTeleportTimer = Randomize(20000);
             }
         }
         else
@@ -404,7 +404,7 @@ struct boss_majordomoAI : public ScriptedAI
         if (m_uiBlastwaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BLASTWAVE) == CAST_OK)
-                m_uiBlastwaveTimer = 10000;
+                m_uiBlastwaveTimer = Randomize(10000);
         }
         else
             m_uiBlastwaveTimer -= uiDiff;

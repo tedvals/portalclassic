@@ -110,8 +110,8 @@ struct boss_dorotheeAI : public ScriptedAI
         m_uiAggroTimer      = 12000;
 
         m_uiWaterBoltTimer  = 5000;
-        m_uiFearTimer       = 15000;
-        m_uiSummonTitoTimer = 47500;
+        m_uiFearTimer       = Randomize(15000);
+        m_uiSummonTitoTimer = Randomize(47500);
 
         m_bTitoDied         = false;
     }
@@ -186,7 +186,7 @@ struct boss_dorotheeAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_WATERBOLT) == CAST_OK)
-                    m_uiWaterBoltTimer = m_bTitoDied ? 1500 : 5000;
+                    m_uiWaterBoltTimer = Randomize(m_bTitoDied ? 1500 : 5000);
             }
         }
         else
@@ -195,7 +195,7 @@ struct boss_dorotheeAI : public ScriptedAI
         if (m_uiFearTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SCREAM) == CAST_OK)
-                m_uiFearTimer = 30000;
+                m_uiFearTimer = Randomize(30000);
         }
         else
             m_uiFearTimer -= uiDiff;
@@ -235,8 +235,8 @@ struct boss_strawmanAI : public ScriptedAI
     void Reset() override
     {
         m_uiAggroTimer     = 27000;
-        m_uiBrainBashTimer = 5000;
-        m_uiBrainWipeTimer = 7000;
+        m_uiBrainBashTimer = Randomize(5000);
+        m_uiBrainWipeTimer = Randomize(7000);
     }
 
     void MoveInLineOfSight(Unit* pWho) override
@@ -299,7 +299,7 @@ struct boss_strawmanAI : public ScriptedAI
         if (m_uiBrainBashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BRAIN_BASH) == CAST_OK)
-                m_uiBrainBashTimer = 15000;
+                m_uiBrainBashTimer = Randomize(15000);
         }
         else
             m_uiBrainBashTimer -= uiDiff;
@@ -309,7 +309,7 @@ struct boss_strawmanAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_BRAIN_WIPE) == CAST_OK)
-                    m_uiBrainWipeTimer = 20000;
+                    m_uiBrainWipeTimer = Randomize(20000);
             }
         }
         else
@@ -335,9 +335,9 @@ struct boss_tinheadAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiAggroTimer  = 37000;
-        m_uiCleaveTimer = 5000;
-        m_uiRustTimer   = 30000;
+        m_uiAggroTimer  = Randomize(37000);
+        m_uiCleaveTimer = Randomize(5000);
+        m_uiRustTimer   = Randomize(30000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -399,7 +399,7 @@ struct boss_tinheadAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = 5000;
+                m_uiCleaveTimer = Randomize(5000);
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -409,7 +409,7 @@ struct boss_tinheadAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_RUST) == CAST_OK)
             {
                 DoScriptText(EMOTE_RUST, m_creature);
-                m_uiRustTimer = 6000;
+                m_uiRustTimer = Randomize(6000);
             }
         }
         else
@@ -436,10 +436,10 @@ struct boss_roarAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiAggroTimer  = 17000;
-        m_uiMangleTimer = 5000;
-        m_uiShredTimer  = 10000;
-        m_uiScreamTimer = 15000;
+        m_uiAggroTimer  = Randomize(17000);
+        m_uiMangleTimer = Randomize(5000);
+        m_uiShredTimer  = Randomize(10000);
+        m_uiScreamTimer = Randomize(15000);
     }
 
     void MoveInLineOfSight(Unit* pWho) override
@@ -501,7 +501,7 @@ struct boss_roarAI : public ScriptedAI
         if (m_uiMangleTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MANGLE) == CAST_OK)
-                m_uiMangleTimer = urand(5000, 8000);
+                m_uiMangleTimer = Randomize(urand(5000, 8000));
         }
         else
             m_uiMangleTimer -= uiDiff;
@@ -509,7 +509,7 @@ struct boss_roarAI : public ScriptedAI
         if (m_uiShredTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHRED) == CAST_OK)
-                m_uiShredTimer = urand(10000, 15000);
+                m_uiShredTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiShredTimer -= uiDiff;
@@ -517,7 +517,7 @@ struct boss_roarAI : public ScriptedAI
         if (m_uiScreamTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FRIGHTENED_SCREAM) == CAST_OK)
-                m_uiScreamTimer = urand(20000, 30000);
+                m_uiScreamTimer = Randomize(urand(20000, 30000));
         }
         else
             m_uiScreamTimer -= uiDiff;
@@ -542,7 +542,7 @@ struct boss_croneAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiChainLightningTimer = 10000;
+        m_uiChainLightningTimer = Randomize(10000);
     }
 
     void JustReachedHome() override
@@ -586,7 +586,7 @@ struct boss_croneAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_CHAIN_LIGHTNING) == CAST_OK)
-                    m_uiChainLightningTimer = 15000;
+                    m_uiChainLightningTimer = Randomize(15000);
             }
         }
         else
@@ -682,9 +682,9 @@ struct boss_bigbadwolfAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiRedRidingHoodTimer = 30000;
-        m_uiFearTimer          = urand(25000, 35000);
-        m_uiSwipeTimer         = 5000;
+        m_uiRedRidingHoodTimer = Randomize(30000);
+        m_uiFearTimer          = Randomize(urand(25000, 35000));
+        m_uiSwipeTimer         = Randomize(5000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -718,7 +718,7 @@ struct boss_bigbadwolfAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_PICK_RED_RIDING_HOOD) == CAST_OK)
             {
                 DoScriptText(SAY_WOLF_HOOD, m_creature);
-                m_uiRedRidingHoodTimer = 30000;
+                m_uiRedRidingHoodTimer = Randomize(30000);
             }
         }
         else
@@ -727,7 +727,7 @@ struct boss_bigbadwolfAI : public ScriptedAI
         if (m_uiFearTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_TERRIFYING_HOWL) == CAST_OK)
-                m_uiFearTimer = 24000;
+                m_uiFearTimer = Randomize(24000);
         }
         else
             m_uiFearTimer -= uiDiff;
@@ -735,7 +735,7 @@ struct boss_bigbadwolfAI : public ScriptedAI
         if (m_uiSwipeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_WIDE_SWIPE) == CAST_OK)
-                m_uiSwipeTimer = urand(25000, 30000);
+                m_uiSwipeTimer = Randomize(urand(25000, 30000));
         }
         else
             m_uiSwipeTimer -= uiDiff;
@@ -821,10 +821,10 @@ struct boss_julianneAI : public ScriptedAI
     {
         m_Phase                     = PHASE_JULIANNE;
 
-        m_uiBlindingPassionTimer    = 30000;
-        m_uiDevotionTimer           = 15000;
-        m_uiEternalAffectionTimer   = 25000;
-        m_uiPowerfulAttractionTimer = 5000;
+        m_uiBlindingPassionTimer    = Randomize(30000);
+        m_uiDevotionTimer           = Randomize(15000);
+        m_uiEternalAffectionTimer   = Randomize(25000);
+        m_uiPowerfulAttractionTimer = Randomize(5000);
         m_uiSummonRomuloTimer       = 0;
         m_uiResurrectSelfTimer      = 0;
 
@@ -844,7 +844,7 @@ struct boss_julianneAI : public ScriptedAI
         m_creature->ForcedDespawn();
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage) override
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (uiDamage < m_creature->GetHealth())
             return;
@@ -861,7 +861,7 @@ struct boss_julianneAI : public ScriptedAI
             {
                 m_Phase               = PHASE_BOTH;
                 m_bIsFakingDeath      = true;
-                m_uiSummonRomuloTimer = 12000;
+                m_uiSummonRomuloTimer = Randomize(12000);
             }
         }
         else if (m_Phase == PHASE_BOTH)
@@ -869,7 +869,7 @@ struct boss_julianneAI : public ScriptedAI
             // set fake death and allow 10 sec timer to kill Romulos
             DoScriptText(SAY_JULIANNE_DEATH02, m_creature);
             DoSetFakeDeath();
-            m_uiResurrectSelfTimer = 10000;
+            m_uiResurrectSelfTimer = Randomize(10000);
         }
     }
 
@@ -990,7 +990,7 @@ struct boss_julianneAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_BLINDING_PASSION) == CAST_OK)
-                    m_uiBlindingPassionTimer = urand(30000, 45000);
+                    m_uiBlindingPassionTimer = Randomize(urand(30000, 45000));
             }
         }
         else
@@ -999,7 +999,7 @@ struct boss_julianneAI : public ScriptedAI
         if (m_uiDevotionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_DEVOTION) == CAST_OK)
-                m_uiDevotionTimer = urand(15000, 45000);
+                m_uiDevotionTimer = Randomize(urand(15000, 45000));
         }
         else
             m_uiDevotionTimer -= uiDiff;
@@ -1009,7 +1009,7 @@ struct boss_julianneAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_POWERFUL_ATTRACTION) == CAST_OK)
-                    m_uiPowerfulAttractionTimer = urand(5000, 30000);
+                    m_uiPowerfulAttractionTimer = Randomize(urand(5000, 30000));
             }
         }
         else
@@ -1020,7 +1020,7 @@ struct boss_julianneAI : public ScriptedAI
             if (Unit* pTarget = DoSelectLowestHpFriendly(30.0f))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_ETERNAL_AFFECTION) == CAST_OK)
-                    m_uiEternalAffectionTimer = urand(45000, 60000);
+                    m_uiEternalAffectionTimer = Randomize(urand(45000, 60000));
             }
         }
         else
@@ -1091,7 +1091,7 @@ struct boss_romuloAI : public ScriptedAI
         m_creature->ForcedDespawn();
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage) override
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (uiDamage < m_creature->GetHealth())
             return;
@@ -1109,7 +1109,7 @@ struct boss_romuloAI : public ScriptedAI
         {
             // set fake death and allow 10 sec timer to kill Julianne
             DoSetFakeDeath();
-            m_uiResurrectSelfTimer = 10000;
+            m_uiResurrectSelfTimer = Randomize(10000);
         }
     }
 
@@ -1231,7 +1231,7 @@ struct boss_romuloAI : public ScriptedAI
         if (m_uiBackwardLungeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BACKWARD_LUNGE) == CAST_OK)
-                m_uiBackwardLungeTimer = urand(15000, 30000);
+                m_uiBackwardLungeTimer = Randomize(urand(15000, 30000));
         }
         else
             m_uiBackwardLungeTimer -= uiDiff;
@@ -1239,7 +1239,7 @@ struct boss_romuloAI : public ScriptedAI
         if (m_uiDaringTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_DARING) == CAST_OK)
-                m_uiDaringTimer = urand(20000, 40000);
+                m_uiDaringTimer = Randomize(urand(20000, 40000);
         }
         else
             m_uiDaringTimer -= uiDiff;
@@ -1249,7 +1249,7 @@ struct boss_romuloAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_DEADLY_SWATHE) == CAST_OK)
-                    m_uiDeadlySwatheTimer = urand(15000, 25000);
+                    m_uiDeadlySwatheTimer = Randomize(urand(15000, 25000));
             }
         }
         else
@@ -1258,7 +1258,7 @@ struct boss_romuloAI : public ScriptedAI
         if (m_uiPoisonThrustTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_POISON_THRUST) == CAST_OK)
-                m_uiPoisonThrustTimer = urand(10000, 20000);
+                m_uiPoisonThrustTimer = Randomize(urand(10000, 20000));
         }
         else
             m_uiPoisonThrustTimer -= uiDiff;

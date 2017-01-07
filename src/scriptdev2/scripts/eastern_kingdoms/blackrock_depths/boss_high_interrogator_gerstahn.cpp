@@ -43,9 +43,9 @@ struct boss_high_interrogator_gerstahnAI : public ScriptedAI
     void Reset() override
     {
         m_uiShadowWordPainTimer = 4000;
-        m_uiManaBurnTimer = 14000;
-        m_uiPsychicScreamTimer = 32000;
-        m_uiShadowShieldTimer = 8000;
+        m_uiManaBurnTimer = Randomize(14000);
+        m_uiPsychicScreamTimer = Randomize(32000);
+        m_uiShadowShieldTimer = Randomize(8000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -72,7 +72,7 @@ struct boss_high_interrogator_gerstahnAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MANABURN, SELECT_FLAG_POWER_MANA))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_MANABURN) == CAST_OK)
-                    m_uiManaBurnTimer = 10000;
+                    m_uiManaBurnTimer = Randomize(10000);
             }
         }
         else
@@ -82,7 +82,7 @@ struct boss_high_interrogator_gerstahnAI : public ScriptedAI
         if (m_uiPsychicScreamTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_PSYCHICSCREAM) == CAST_OK)
-                m_uiPsychicScreamTimer = 30000;
+                m_uiPsychicScreamTimer = Randomize(30000);
         }
         else
             m_uiPsychicScreamTimer -= uiDiff;
@@ -91,7 +91,7 @@ struct boss_high_interrogator_gerstahnAI : public ScriptedAI
         if (m_uiShadowShieldTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOWSHIELD) == CAST_OK)
-                m_uiShadowShieldTimer = 25000;
+                m_uiShadowShieldTimer = Randomize(25000);
         }
         else
             m_uiShadowShieldTimer -= uiDiff;

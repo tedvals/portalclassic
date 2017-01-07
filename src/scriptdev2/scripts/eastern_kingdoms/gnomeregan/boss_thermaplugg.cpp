@@ -64,8 +64,8 @@ struct boss_thermapluggAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiKnockAwayTimer = urand(17000, 20000);
-        m_uiActivateBombTimer = urand(10000, 15000);
+        m_uiKnockAwayTimer = Randomize(urand(17000, 20000));
+        m_uiActivateBombTimer = Randomize(urand(10000, 15000));
         m_bIsPhaseTwo = false;
         m_asBombFaces = nullptr;
 
@@ -177,12 +177,12 @@ struct boss_thermapluggAI : public ScriptedAI
             if (m_bIsPhaseTwo)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_KNOCK_AWAY_AOE) == CAST_OK)
-                    m_uiKnockAwayTimer = 12000;
+                    m_uiKnockAwayTimer = Randomize(12000);
             }
             else
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
-                    m_uiKnockAwayTimer = urand(17000, 20000);
+                    m_uiKnockAwayTimer = Randomize(urand(17000, 20000));
             }
         }
         else
@@ -192,7 +192,7 @@ struct boss_thermapluggAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, m_bIsPhaseTwo ? SPELL_ACTIVATE_BOMB_B : SPELL_ACTIVATE_BOMB_A) == CAST_OK)
             {
-                m_uiActivateBombTimer = (m_bIsPhaseTwo ? urand(6, 12) : urand(12, 17)) * IN_MILLISECONDS;
+                m_uiActivateBombTimer = Randomize((m_bIsPhaseTwo ? urand(6, 12) : urand(12, 17)) * IN_MILLISECONDS);
                 if (!urand(0, 5))                           // TODO, chance/ place for this correct?
                     DoScriptText(SAY_BOMB, m_creature);
             }
@@ -217,7 +217,7 @@ struct boss_thermapluggAI : public ScriptedAI
                             fY = 0.35 * m_afSpawnPos[1] + 0.65 * pFace->GetPositionY();
                         }
                         m_creature->SummonCreature(NPC_WALKING_BOMB, fX, fY, fBombSpawnZ, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 0);
-                        m_asBombFaces[i].m_uiBombTimer = urand(10000, 25000);   // TODO
+                        m_asBombFaces[i].m_uiBombTimer = Randomize(urand(10000, 25000));   // TODO
                     }
                     else
                         m_asBombFaces[i].m_uiBombTimer -= uiDiff;

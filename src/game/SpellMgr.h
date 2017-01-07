@@ -624,6 +624,7 @@ inline bool IsNeutralTarget(uint32 target)
 	case TARGET_DYNAMIC_OBJECT_BEHIND:
 	case TARGET_DYNAMIC_OBJECT_LEFT_SIDE:
 	case TARGET_DYNAMIC_OBJECT_RIGHT_SIDE:
+	case TARGET_DEST_CASTER_FRONT_LEAP:
 	case TARGET_58:
 	case TARGET_DUELVSPLAYER_COORDINATES:
 	case TARGET_INFRONT_OF_VICTIM:
@@ -993,6 +994,18 @@ inline bool IsReflectableSpell(SpellEntry const* spellInfo)
 	return spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MAGIC && !spellInfo->HasAttribute(SPELL_ATTR_ABILITY)
 		&& !spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_BE_REFLECTED) && !spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)
 		&& !spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !IsPositiveSpell(spellInfo);
+}
+
+// Mostly required by spells that target a creature inside GO
+inline bool IsIgnoreLosSpell(SpellEntry const* spellInfo)
+{
+    //switch (spellInfo->Id)
+    //{
+    //    default:
+    //        break;
+    //}
+
+    return spellInfo->rangeIndex == 13 || spellInfo->HasAttribute(SPELL_ATTR_EX2_IGNORE_LOS);
 }
 
 inline bool NeedsComboPoints(SpellEntry const* spellInfo)

@@ -57,10 +57,10 @@ struct boss_overlordwyrmthalakAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiBlastWaveTimer = 20000;
-        m_uiShoutTimer     = 2000;
-        m_uiCleaveTimer    = 6000;
-        m_uiKnockawayTimer = 12000;
+        m_uiBlastWaveTimer = Randomize(20000);
+        m_uiShoutTimer     = Randomize(2000);
+        m_uiCleaveTimer    = Randomize(6000);
+        m_uiKnockawayTimer = Randomize(12000);
         m_bSummoned = false;
     }
 
@@ -86,7 +86,7 @@ struct boss_overlordwyrmthalakAI : public ScriptedAI
         if (m_uiBlastWaveTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature, SPELL_BLASTWAVE);
-            m_uiBlastWaveTimer = 20000;
+            m_uiBlastWaveTimer = Randomize(20000);
         }
         else
             m_uiBlastWaveTimer -= uiDiff;
@@ -95,7 +95,7 @@ struct boss_overlordwyrmthalakAI : public ScriptedAI
         if (m_uiShoutTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature, SPELL_SHOUT);
-            m_uiShoutTimer = 10000;
+            m_uiShoutTimer = Randomize(10000);
         }
         else
             m_uiShoutTimer -= uiDiff;
@@ -104,7 +104,7 @@ struct boss_overlordwyrmthalakAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE);
-            m_uiCleaveTimer = 7000;
+            m_uiCleaveTimer = Randomize(7000);
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -113,7 +113,7 @@ struct boss_overlordwyrmthalakAI : public ScriptedAI
         if (m_uiKnockawayTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature, SPELL_KNOCKAWAY);
-            m_uiKnockawayTimer = 14000;
+            m_uiKnockawayTimer = Randomize(14000);
         }
         else
             m_uiKnockawayTimer -= uiDiff;

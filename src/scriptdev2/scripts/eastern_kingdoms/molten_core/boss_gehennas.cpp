@@ -49,10 +49,10 @@ struct boss_gehennasAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiGehennasCurseTimer    = urand(5 * IN_MILLISECONDS, 10 * IN_MILLISECONDS);
-        m_uiRainOfFireTimer       = urand(6 * IN_MILLISECONDS, 12 * IN_MILLISECONDS);
-        m_uiShadowBoltRandomTimer = urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS);
-        m_uiShadowBoltTargetTimer = urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS);
+        m_uiGehennasCurseTimer    = Randomize(urand(5 * IN_MILLISECONDS, 10 * IN_MILLISECONDS));
+        m_uiRainOfFireTimer       = Randomize(urand(6 * IN_MILLISECONDS, 12 * IN_MILLISECONDS));
+        m_uiShadowBoltRandomTimer = Randomize(urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS));
+        m_uiShadowBoltTargetTimer = Randomize(urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS));
     }
 
     void Aggro(Unit* /*pwho*/) override
@@ -82,7 +82,7 @@ struct boss_gehennasAI : public ScriptedAI
         if (m_uiRainOfFireTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_RAIN_OF_FIRE) == CAST_OK)
-                m_uiRainOfFireTimer = urand(6 * IN_MILLISECONDS, 12 * IN_MILLISECONDS);
+                m_uiRainOfFireTimer = Randomize(urand(6 * IN_MILLISECONDS, 12 * IN_MILLISECONDS));
         }
         else
             m_uiRainOfFireTimer -= uiDiff;
@@ -91,7 +91,7 @@ struct boss_gehennasAI : public ScriptedAI
         if (m_uiGehennasCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_GEHENNAS_CURSE) == CAST_OK)
-                m_uiGehennasCurseTimer = urand(25 * IN_MILLISECONDS, 30 * IN_MILLISECONDS);
+                m_uiGehennasCurseTimer = Randomize(urand(25 * IN_MILLISECONDS, 30 * IN_MILLISECONDS));
         }
         else
             m_uiGehennasCurseTimer -= uiDiff;
@@ -100,7 +100,7 @@ struct boss_gehennasAI : public ScriptedAI
         if (m_uiShadowBoltRandomTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0), SPELL_SHADOW_BOLT_RANDOM) == CAST_OK)
-                m_uiShadowBoltRandomTimer = urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS);
+                m_uiShadowBoltRandomTimer = Randomize(urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS));
         }
         else
             m_uiShadowBoltRandomTimer -= uiDiff;
@@ -109,7 +109,7 @@ struct boss_gehennasAI : public ScriptedAI
         if (m_uiShadowBoltTargetTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT_TARGET) == CAST_OK)
-                m_uiShadowBoltTargetTimer = urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS);
+                m_uiShadowBoltTargetTimer = Randomize(urand(3 * IN_MILLISECONDS, 6 * IN_MILLISECONDS));
         }
         else
             m_uiShadowBoltTargetTimer -= uiDiff;

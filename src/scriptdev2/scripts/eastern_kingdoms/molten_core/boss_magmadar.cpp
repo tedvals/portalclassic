@@ -52,9 +52,9 @@ struct boss_magmadarAI : public ScriptedAI
 
 	void Reset() override
 	{
-		m_uiFrenzyTimer = 30000;
-		m_uiPanicTimer = 7000;
-		m_uiLavabombTimer = 12000;
+		m_uiFrenzyTimer = Randomize(30000);
+		m_uiPanicTimer = Randomize(7000);
+		m_uiLavabombTimer = Randomize(12000);
 	}
 
 	void Aggro(Unit* /*pWho*/) override
@@ -88,7 +88,7 @@ struct boss_magmadarAI : public ScriptedAI
 			if (DoCastSpellIfCan(m_creature, SPELL_FRENZY) == CAST_OK)
 			{
 				DoScriptText(EMOTE_GENERIC_FRENZY_KILL, m_creature);
-				m_uiFrenzyTimer = urand(15000, 20000);
+				m_uiFrenzyTimer = Randomize(urand(15000, 20000));
 			}
 		}
 		else
@@ -98,7 +98,7 @@ struct boss_magmadarAI : public ScriptedAI
 		if (m_uiPanicTimer < uiDiff)
 		{
 			if (DoCastSpellIfCan(m_creature, SPELL_PANIC) == CAST_OK)
-				m_uiPanicTimer = urand(30000, 40000);
+				m_uiPanicTimer = Randomize(urand(30000, 40000));
 		}
 		else
 			m_uiPanicTimer -= uiDiff;
@@ -109,7 +109,7 @@ struct boss_magmadarAI : public ScriptedAI
 			if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 			{
 				if (DoCastSpellIfCan(pTarget, SPELL_LAVABOMB) == CAST_OK)
-					m_uiLavabombTimer = urand(12000, 15000);
+					m_uiLavabombTimer = Randomize(urand(12000, 15000));
 			}
 		}
 		else

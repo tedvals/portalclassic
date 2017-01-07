@@ -327,7 +327,7 @@ class Spell
         Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         ~Spell();
 
-        void SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura = nullptr);
+        SpellCastResult SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura = nullptr);
 
         void cancel();
 
@@ -455,6 +455,8 @@ class Spell
 
         void CleanupTargetList();
         void ClearCastItem();
+
+        void ProcSpellAuraTriggers();
 
         typedef std::list<Unit*> UnitList;
 

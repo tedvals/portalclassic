@@ -673,7 +673,7 @@ void Unit::RemoveSpellsCausingAura(AuraType auraType, ObjectGuid casterGuid)
     }
 }
 
-void Unit::DealDamageMods(Unit* pVictim, uint32& damage, uint32* absorb)
+void Unit::DealDamageMods(Unit* pVictim, uint32& damage, uint32* absorb, DamageEffectType damagetype, SpellEntry const* spellProto)
 {
     if (!pVictim->isAlive() || pVictim->IsTaxiFlying() || (pVictim->GetTypeId() == TYPEID_UNIT && ((Creature*)pVictim)->IsInEvadeMode()))
     {
@@ -687,10 +687,10 @@ void Unit::DealDamageMods(Unit* pVictim, uint32& damage, uint32* absorb)
 
     // Script Event damage Deal
     if (AI())
-        AI()->DamageDeal(pVictim, damage);
+        AI()->DamageDeal(pVictim, damage, damagetype, spellProto);
     // Script Event damage taken
     if (pVictim->AI())
-        pVictim->AI()->DamageTaken(this, damage);
+        pVictim->AI()->DamageTaken(this, damage, damagetype, spellProto);
 
     if (absorb && originalDamage > damage)
         *absorb += (originalDamage - damage);
@@ -1221,7 +1221,7 @@ void Unit::CastStop(uint32 except_spellid)
             InterruptSpell(CurrentSpellTypes(i), false);
 }
 
-void Unit::CastSpell(Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
+SpellCastResult Unit::CastSpell(Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
@@ -1231,13 +1231,13 @@ void Unit::CastSpell(Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* 
             sLog.outError("CastSpell: unknown spell id %i by caster: %s triggered by aura %u (eff %u)", spellId, GetGuidStr().c_str(), triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
         else
             sLog.outError("CastSpell: unknown spell id %i by caster: %s", spellId, GetGuidStr().c_str());
-        return;
+        return SPELL_NOT_FOUND;
     }
 
-    CastSpell(Victim, spellInfo, triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
+    return CastSpell(Victim, spellInfo, triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
-void Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
+SpellCastResult Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     if (!spellInfo)
     {
@@ -1245,6 +1245,8 @@ void Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint32 triggered
             sLog.outError("CastSpell: unknown spell by caster: %s triggered by aura %u (eff %u)", GetGuidStr().c_str(), triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
         else
             sLog.outError("CastSpell: unknown spell by caster: %s", GetGuidStr().c_str());
+
+        return SPELL_NOT_FOUND;
     }
 
     if (castItem)
@@ -1270,10 +1272,10 @@ void Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint32 triggered
             targets.setSource(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
 
     spell->m_CastItem = castItem;
-    spell->SpellStart(&targets, triggeredByAura);
+    return spell->SpellStart(&targets, triggeredByAura);
 }
 
-void Unit::CastCustomSpell(Unit* Victim, uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
+SpellCastResult Unit::CastCustomSpell(Unit* Victim, uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
@@ -1283,13 +1285,13 @@ void Unit::CastCustomSpell(Unit* Victim, uint32 spellId, int32 const* bp0, int32
             sLog.outError("CastCustomSpell: unknown spell id %i by caster: %s triggered by aura %u (eff %u)", spellId, GetGuidStr().c_str(), triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
         else
             sLog.outError("CastCustomSpell: unknown spell id %i by caster: %s", spellId, GetGuidStr().c_str());
-        return;
+        return SPELL_NOT_FOUND;
     }
 
-    CastCustomSpell(Victim, spellInfo, bp0, bp1, bp2, triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
+    return CastCustomSpell(Victim, spellInfo, bp0, bp1, bp2, triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
-void Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
+SpellCastResult Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     if (!spellInfo)
     {
@@ -1297,7 +1299,7 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo, int32 cons
             sLog.outError("CastCustomSpell: unknown spell by caster: %s triggered by aura %u (eff %u)", GetGuidStr().c_str(), triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
         else
             sLog.outError("CastCustomSpell: unknown spell by caster: %s", GetGuidStr().c_str());
-        return;
+        return SPELL_NOT_FOUND;
     }
 
     if (castItem)
@@ -1332,11 +1334,11 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo, int32 cons
         if (WorldObject* caster = spell->GetCastingObject())
             targets.setSource(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
 
-    spell->SpellStart(&targets, triggeredByAura);
+    return spell->SpellStart(&targets, triggeredByAura);
 }
 
 // used for scripting
-void Unit::CastSpell(float x, float y, float z, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
+SpellCastResult Unit::CastSpell(float x, float y, float z, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
@@ -1346,14 +1348,14 @@ void Unit::CastSpell(float x, float y, float z, uint32 spellId, uint32 triggered
             sLog.outError("CastSpell(x,y,z): unknown spell id %i by caster: %s triggered by aura %u (eff %u)", spellId, GetGuidStr().c_str(), triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
         else
             sLog.outError("CastSpell(x,y,z): unknown spell id %i by caster: %s", spellId, GetGuidStr().c_str());
-        return;
+        return SPELL_NOT_FOUND;
     }
 
-    CastSpell(x, y, z, spellInfo, triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
+    return CastSpell(x, y, z, spellInfo, triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
 // used for scripting
-void Unit::CastSpell(float x, float y, float z, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
+SpellCastResult Unit::CastSpell(float x, float y, float z, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
     if (!spellInfo)
     {
@@ -1361,7 +1363,7 @@ void Unit::CastSpell(float x, float y, float z, SpellEntry const* spellInfo, uin
             sLog.outError("CastSpell(x,y,z): unknown spell by caster: %s triggered by aura %u (eff %u)", GetGuidStr().c_str(), triggeredByAura->GetId(), triggeredByAura->GetEffIndex());
         else
             sLog.outError("CastSpell(x,y,z): unknown spell by caster: %s", GetGuidStr().c_str());
-        return;
+        return SPELL_NOT_FOUND;
     }
 
     if (castItem)
@@ -1389,7 +1391,7 @@ void Unit::CastSpell(float x, float y, float z, SpellEntry const* spellInfo, uin
         targets.setDestination(x, y, z);
 
     spell->m_CastItem = castItem;
-    spell->SpellStart(&targets, triggeredByAura);
+    return spell->SpellStart(&targets, triggeredByAura);
 }
 
 // Obsolete func need remove, here only for comotability vs another patches
@@ -1399,7 +1401,7 @@ uint32 Unit::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
     SpellNonMeleeDamage damageInfo(this, pVictim, spellInfo->Id, SpellSchools(spellInfo->School));
     CalculateSpellDamage(&damageInfo, damage, spellInfo);
     damageInfo.target->CalculateAbsorbResistBlock(this, &damageInfo, spellInfo);
-    DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb);
+    DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb, SPELL_DIRECT_DAMAGE, spellInfo);
     SendSpellNonMeleeDamageLog(&damageInfo);
     DealSpellDamage(&damageInfo, true);
     return damageInfo.damage;
@@ -1932,7 +1934,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss)
                     // CalcAbsorbResist(pVictim, SpellSchools(spellProto->School), SPELL_DIRECT_DAMAGE, damage, &absorb, &resist);
                     // damage-=absorb + resist;
 
-                    pVictim->DealDamageMods(this, damage, nullptr);
+                    pVictim->DealDamageMods(this, damage, nullptr, SPELL_DIRECT_DAMAGE, i_spellProto);
 
                     WorldPacket data(SMSG_SPELLDAMAGESHIELD, (8 + 8 + 4 + 4));
                     data << pVictim->GetObjectGuid();
@@ -2261,7 +2263,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
 
             uint32 splitted = currentAbsorb;
             uint32 splitted_absorb = 0;
-            pCaster->DealDamageMods(caster, splitted, &splitted_absorb);
+            pCaster->DealDamageMods(caster, splitted, &splitted_absorb, DIRECT_DAMAGE, (*i)->GetSpellProto());
 
             pCaster->SendSpellNonMeleeDamageLog(caster, (*i)->GetSpellProto()->Id, splitted, schoolMask, splitted_absorb, 0, false, 0, false);
 
@@ -2294,7 +2296,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
             }
 
             uint32 split_absorb = 0;
-            pCaster->DealDamageMods(caster, splitted, &split_absorb);
+            pCaster->DealDamageMods(caster, splitted, &split_absorb, DIRECT_DAMAGE, (*i)->GetSpellProto());
 
             pCaster->SendSpellNonMeleeDamageLog(caster, (*i)->GetSpellProto()->Id, splitted, schoolMask, split_absorb, 0, false, 0, false);
 
@@ -2340,17 +2342,6 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     if (attType == BASE_ATTACK && m_currentSpells[CURRENT_MELEE_SPELL])
     {
         m_currentSpells[CURRENT_MELEE_SPELL]->cast();
-
-        // not recent extra attack only at any non extra attack (melee spell case)
-        if (!extra && extraAttacks)
-        {
-            while (m_extraAttacks)
-            {
-                AttackerStateUpdate(pVictim, BASE_ATTACK, true);
-                if (m_extraAttacks > 0)
-                    --m_extraAttacks;
-            }
-        }
         return;
     }
 
@@ -2362,7 +2353,7 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     for (uint8 i = 0; i < m_weaponDamageCount[attType]; i++)
     {
         damageInfo.totalDamage -= damageInfo.subDamage[i].damage;
-        DealDamageMods(pVictim, damageInfo.subDamage[i].damage, &damageInfo.subDamage[i].absorb);
+        DealDamageMods(pVictim, damageInfo.subDamage[i].damage, &damageInfo.subDamage[i].absorb, DIRECT_DAMAGE);
         damageInfo.totalDamage += damageInfo.subDamage[i].damage;
     }
 
@@ -2404,16 +2395,15 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
 
     // if damage pVictim call AI reaction
     pVictim->AttackedBy(this);
+}
 
-    // extra attack only at any non extra attack (normal case)
-    if (!extra && extraAttacks)
+void Unit::DoExtraAttacks(Unit* pVictim)
+{
+    while (m_extraAttacks)
     {
-        while (m_extraAttacks)
-        {
-            AttackerStateUpdate(pVictim, BASE_ATTACK, true);
-            if (m_extraAttacks > 0)
-                --m_extraAttacks;
-        }
+        AttackerStateUpdate(pVictim, BASE_ATTACK, true);
+        if (m_extraAttacks > 0)
+            --m_extraAttacks;
     }
 }
 
@@ -6139,11 +6129,14 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const* spellProto, int32 total, int3
         float LvlPenalty = CalculateLevelPenalty(spellProto);
 
         // Spellmod SpellDamage
-        if (Player* modOwner = GetSpellModOwner())
+        if (coeff) // If something has 0 coeff to begin with, do not add spellmod
         {
-            coeff *= 100.0f;
-            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_SPELL_BONUS_DAMAGE, coeff);
-            coeff /= 100.0f;
+            if (Player* modOwner = GetSpellModOwner()) // Spellmod SpellDamage
+            {
+                coeff *= 100.0f;
+                modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_SPELL_BONUS_DAMAGE, coeff);
+                coeff /= 100.0f;
+            }
         }
 
         total += int32(benefit * coeff * LvlPenalty);
@@ -7402,6 +7395,9 @@ void Unit::ClearInCombat()
 
 bool Unit::isTargetableForAttack(bool inverseAlive /*=false*/) const
 {
+    if (!CanBeDetected())
+        return false;
+
     if (GetTypeId() == TYPEID_PLAYER && ((Player*)this)->isGameMaster())
         return false;
 
