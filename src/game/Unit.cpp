@@ -7022,8 +7022,21 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
 				}
 				break;
 			}
+			//Improved Hunter's Mark
+			case 5236:				
+			case 5237:
+			case 5238:
+			case 5239:
+			case 5240:
+			{				
+				if (Aura* huntersMarkAura = pVictim->GetAura(SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS, SPELLFAMILY_HUNTER, uint64(0x0000000000000400)))
+					if ((GetTypeId() == TYPEID_UNIT && ((Creature*)this)->IsPet()) || (GetTypeId() == TYPEID_PLAYER &&    //applicable to pets or druids or hunters with aspect of the Beast
+						((((Player*)this)->getClass() == CLASS_DRUID && (((Player*)this)->HasAuraType(SPELL_AURA_MOD_SHAPESHIFT)))))|| ((Player*)this)->HasAuraType(SPELL_AURA_UNTRACKABLE))
+						APbonus = huntersMarkAura->GetModifier()->m_amount * (*i)->GetModifier()->m_amount / 100;
+			}
 		}
 	}
+
 	//who dares win - 25% extra damage
 	if (HasAura(54554))
 		DonePercent *= 1.25f;

@@ -457,7 +457,7 @@ void Aura::SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue, float sc
     m_modifier.m_amount = a;
     m_modifier.m_miscvalue = miscValue;
     m_modifier.periodictime = pt;
-	m_modifier.m_scale = scale;
+	m_modifier.m_scale = scale;	
 }
 
 void Aura::Update(uint32 diff)

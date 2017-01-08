@@ -965,6 +965,13 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 					triggered_spell_id = 54417;
 					break;
 				}
+				// Maim Interrupt
+				case 44835:
+				{
+					// Deadly Interrupt Effect
+					triggered_spell_id = 32747;
+					break;
+				}
             }
             break;
         }
@@ -979,7 +986,18 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                         return SPELL_AURA_PROC_FAILED;
                     triggered_spell_id = 23583;
                     break;
+					// Deadly Throw Interrupt
+				case 32748:
+				{
+					// Prevent cast Deadly Throw Interrupt on self from last effect (apply dummy) of Deadly Throw
+					if (this == pVictim)
+						return SPELL_AURA_PROC_FAILED;
+
+					triggered_spell_id = 32747;
+					break;
+				}
             }
+
             break;
         }
         case SPELLFAMILY_HUNTER:

@@ -65,11 +65,6 @@ struct Modifier
 
 	//custom
 	float m_scale;
-	/**
-	* Decides how the amount scales per level (minlevel to maxlevel)
-	* set to 0 if it does not slale
-	* 
-	*/
 };
 
 class Unit;
@@ -418,8 +413,18 @@ class MANGOS_DLL_SPEC Aura
 		int32 GetModifierAmount(int32 level)
 		{
 			if (GetHolder()->GetSpellProto()->HasAttribute(SPELL_ATTR_LEVEL_CALCULATION))
-				return m_modifier.m_amount; //calculated elseware
-			else  return m_modifier.m_amount + int32(level *  m_modifier.m_scale);
+				return m_modifier.m_amount; //calculated elsewhere
+			else
+			{ 
+				int32 _level = level;
+				if (_level >  m_spellAuraHolder->GetSpellProto()->maxLevel &&  m_spellAuraHolder->GetSpellProto()->maxLevel > 0)
+					level = (int32)m_spellAuraHolder->GetSpellProto()->maxLevel;
+				else if (level < (int32)m_spellAuraHolder->GetSpellProto()->baseLevel)
+					level = (int32)m_spellAuraHolder->GetSpellProto()->baseLevel;
+				level -= (int32)m_spellAuraHolder->GetSpellProto()->spellLevel;
+				
+				return m_modifier.m_amount + int32(level *  m_modifier.m_scale);			  
+			}
 		}
 
         SpellEntry const* GetSpellProto() const { return GetHolder()->GetSpellProto(); }
