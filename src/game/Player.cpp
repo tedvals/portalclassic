@@ -1341,7 +1341,20 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 					RemoveAurasDueToSpell(54600);
 				//Add Grevious wounded Aura
 				if (!HasAura(54603))
-					_CreateCustomAura(54603);
+					_CreateCustomAura(54603);	
+			}
+
+			//Dizzyness effect
+			if (health < 15)
+			{
+				if (!HasAura(55007))
+					_CreateCustomAura(55007);
+			}
+			else if (HasAura(55007))
+			{
+				RemoveAurasDueToSpell(55007);
+				if (health > 25)
+					SetDrunkValue(0);
 			}
 		}
 		//Custom

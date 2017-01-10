@@ -1987,17 +1987,27 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (m_targets.getGOTarget())
                 AddGOTarget(m_targets.getGOTarget(), effIndex);
             break;
-        case TARGET_IN_FRONT_OF_CASTER:
+        case TARGET_PARTY_IN_FRONT_OF_CASTER:
         {
             SpellNotifyPushType pushType = PUSH_IN_FRONT;
             switch (m_spellInfo->SpellVisual)            // Some spell require a different target fill
             {
-                case 3879: pushType = PUSH_IN_BACK;     break;
                 case 7441: pushType = PUSH_IN_FRONT_15; break;
             }
-            FillAreaTargets(targetUnitMap, radius, pushType, SPELL_TARGETS_AOE_DAMAGE);
+            FillAreaTargets(targetUnitMap, radius, pushType, SPELL_TARGETS_FRIENDLY);
             break;
         }
+		case TARGET_IN_FRONT_OF_CASTER:
+		{
+			SpellNotifyPushType pushType = PUSH_IN_FRONT;
+			switch (m_spellInfo->SpellVisual)            // Some spell require a different target fill
+			{
+			case 3879: pushType = PUSH_IN_BACK;     break;
+			case 7441: pushType = PUSH_IN_FRONT_15; break;
+			}
+			FillAreaTargets(targetUnitMap, radius, pushType, SPELL_TARGETS_AOE_DAMAGE);
+			break;
+		}
         case TARGET_LARGE_FRONTAL_CONE:
             FillAreaTargets(targetUnitMap, radius, PUSH_IN_FRONT_90, SPELL_TARGETS_AOE_DAMAGE);
             break;
@@ -2871,6 +2881,15 @@ void Spell::Prepare()
     m_casttime = GetSpellCastTime(m_spellInfo, this);
     m_duration = CalculateSpellDuration(m_spellInfo, m_caster);
 
+	//Moonkin penalty
+	if (m_caster->HasAura(24858) && m_casttime> 0)
+		if (unitTarget)
+		{
+			int32 range = m_caster->GetDistance2d(unitTarget);
+			if (range > 20)
+				m_casttime = int32(range*(range - 20)/ 36);
+		}
+		
     // set timer base at cast time
     ReSetTimer();
 
@@ -2878,7 +2897,6 @@ void Spell::Prepare()
     if (!m_IsTriggeredSpell)
 		if (!(m_spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (m_spellInfo->SpellFamilyFlags & uint64(0x00000080) || m_spellInfo->SpellFamilyFlags & 2147483648)))
         m_caster->RemoveAurasOnCast(m_spellInfo);
-
 
     // add non-triggered (with cast time and without)
     if (!m_IsTriggeredSpell)

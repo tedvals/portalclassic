@@ -1031,6 +1031,7 @@ enum Targets
 	TARGET_SELF2 = 87,
 	TARGET_88 = 88,                // Smoke Flare(s)
 	TARGET_NONCOMBAT_PET = 90,
+	TARGET_PARTY_IN_FRONT_OF_CASTER = 91,
 };
 
 enum SpellMissInfo

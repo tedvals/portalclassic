@@ -2227,7 +2227,19 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
             next = vManaShield.begin();
         }
 
-        RemainingDamage -= currentAbsorb;
+		//Prismatic Cloak
+		if (currentAbsorb > int32(GetHealth()*0.25f))
+		{
+			if (HasAura(31576))
+				CastSpell(this, 54871, TRIGGERED_NONE); //Cast Mana Absorb
+			else if (HasAura(31575))
+				CastSpell(this, 54870, TRIGGERED_NONE); //Cast Mana Absorb
+			else if (HasAura(31574))
+				CastSpell(this, 54869, TRIGGERED_NONE); //Cast Mana Absorb
+		}
+		else
+			RemainingDamage -= currentAbsorb;
+		
     }
 
     // only split damage if not damaging yourself
@@ -6303,6 +6315,13 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 			case 8012: //Priest (Improved Mana Burn)
 			{
 				if ((pVictim->GetPowerType() == POWER_MANA) && (pVictim->GetPower(POWER_MANA) < pVictim->GetMaxPower(POWER_MANA)*0.2f))
+					DoneTotalMod *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
+
+				break;
+			}
+			case 8014: //Mage Arcane Potency
+			{
+				if ((GetPowerType() == POWER_MANA) && (GetPower(POWER_MANA) > GetMaxPower(POWER_MANA)*0.75f))
 					DoneTotalMod *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
 
 				break;

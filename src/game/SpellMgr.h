@@ -399,6 +399,7 @@ inline bool IsCasterSourceTarget(uint32 target)
 	case TARGET_TOTEM_AIR:
 	case TARGET_TOTEM_FIRE:
 	case TARGET_AREAEFFECT_GO_AROUND_DEST:
+	TARGET_PARTY_IN_FRONT_OF_CASTER:
 		return true;
 	default:
 		break;
@@ -482,6 +483,7 @@ inline bool IsAreaEffectTarget(Targets target)
 	case TARGET_AREAEFFECT_GO_AROUND_DEST:
 	case TARGET_ALL_RAID_AROUND_CASTER:
 	case TARGET_AREAEFFECT_PARTY_AND_CLASS:
+	case TARGET_PARTY_IN_FRONT_OF_CASTER:
 		return true;
 	default:
 		break;
@@ -680,6 +682,7 @@ inline bool IsFriendlyTarget(uint32 target)
 	case TARGET_AREAEFFECT_PARTY_AND_CLASS:
 	case TARGET_SELF2:
 	case TARGET_NONCOMBAT_PET:
+	case TARGET_PARTY_IN_FRONT_OF_CASTER:
 		return true;
 	default:
 		break;
