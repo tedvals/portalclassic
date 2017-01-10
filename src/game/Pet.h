@@ -170,7 +170,7 @@ class MANGOS_DLL_SPEC Pet : public Creature
         bool Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, uint32 pet_number);
         bool CreateBaseAtCreature(Creature* creature);
         void SavePetToDB(PetSaveMode mode, Unit* owner = nullptr);
-        bool LoadPetFromDB(Player* owner, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0);
+        bool LoadPetFromDB(Player* owner, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0, bool permanentOnly = false);
         void Unsummon(PetSaveMode mode, Unit* owner = nullptr);
         static void DeleteFromDB(uint32 guidlow, bool separate_transaction = true);
         static void DeleteFromDB(Unit* owner, PetSaveMode slot);
@@ -289,6 +289,8 @@ class MANGOS_DLL_SPEC Pet : public Creature
         // return charminfo ai only when this pet is possessed. (eye of the beast case for ex.)
         virtual CreatureAI* AI() override { if (hasUnitState(UNIT_STAT_CONTROLLED) && m_charmInfo->GetAI()) return m_charmInfo->GetAI(); else return m_ai.get(); }
         virtual CombatData* GetCombatData() override { return m_combatData; }
+
+        void InitTamedPetPassives(Unit* player);
 
     protected:
         uint32  m_happinessTimer;

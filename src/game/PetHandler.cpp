@@ -181,15 +181,20 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                                 }
                             }
                             else
-                                pet->Attack(targetUnit, true);
+                                petUnit->Attack(targetUnit, true);
                         }
                     }
                     break;
                 }
                 case COMMAND_ABANDON:                       // abandon (hunter pet) or dismiss (summoned pet)
                 {
-                    if (pet && pet->getPetType() == HUNTER_PET)
-                        pet->Unsummon(PET_SAVE_AS_DELETED, _player);
+                    if (pet)
+                    {
+                        if(pet->getPetType() == HUNTER_PET)
+                            pet->Unsummon(PET_SAVE_AS_DELETED, _player);
+                        else
+                            petUnit->SetDeathState(CORPSE);
+                    }                        
                     else
                     {
                         // dismissing a summoned pet is like killing them (this prevents returning a soulshard...)

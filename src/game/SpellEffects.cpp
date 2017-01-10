@@ -3969,12 +3969,20 @@ void Spell::EffectSummonGuardian(SpellEffectIndex eff_idx)
     // set timer for unsummon
     int32 duration = CalculateSpellDuration(m_spellInfo, m_caster);
 
-    // Search old Guardian only for players (if casted spell not have duration or cooldown)
-    // FIXME: some guardians have control spell applied and controlled by player and anyway player can't summon in this time
-    //        so this code hack in fact
-    if (m_caster->GetTypeId() == TYPEID_PLAYER && (duration <= 0 || GetSpellRecoveryTime(m_spellInfo) == 0))
-        if (m_caster->FindGuardianWithEntry(pet_entry))
-            return;                                         // find old guardian, ignore summon
+    // second direct cast unsummon guardian(s) (guardians without like functionality have cooldown > spawn time)
+    if (!m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        bool found = false;
+        // including protector
+        while (Pet* old_summon = m_caster->FindGuardianWithEntry(pet_entry))
+        {
+            old_summon->Unsummon(PET_SAVE_AS_DELETED, m_caster);
+            found = true;
+        }
+
+        if (found && !(m_spellInfo->DurationIndex && m_spellInfo->Category))
+            return;
+    }
 
     // Get casting object
     WorldObject* realCaster = GetCastingObject();
@@ -3994,7 +4002,7 @@ void Spell::EffectSummonGuardian(SpellEffectIndex eff_idx)
     {
         // pet players do not need this
         // TODO :: Totem, Pet and Critter may not use this. This is probably wrongly used and need more research.
-        uint32 resultLevel = level + std::max(m_spellInfo->EffectMultipleValue[eff_idx], 1.0f);
+        uint32 resultLevel = level + std::max(m_spellInfo->EffectMultipleValue[eff_idx], .0f);
 
         // result level should be a possible level for creatures
         if (resultLevel > 0 && resultLevel <= DEFAULT_MAX_CREATURE_LEVEL)
@@ -4322,6 +4330,12 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     // this enables pet details window (Shift+P)
     pet->InitPetCreateSpells();
 
+    pet->LearnPetPassives();
+    pet->CastPetAuras(true);
+    pet->CastOwnerTalentAuras();
+    pet->InitTamedPetPassives(m_caster);
+    pet->UpdateAllStats();
+
     // caster have pet now
     plr->SetPet(pet);
 
@@ -4441,6 +4455,12 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
 
         if (m_caster->IsPvP())
             NewSummon->SetPvP(true);
+
+        NewSummon->LearnPetPassives();
+        NewSummon->CastPetAuras(true);
+        NewSummon->CastOwnerTalentAuras();
+        NewSummon->InitTamedPetPassives(m_caster);
+        NewSummon->UpdateAllStats();
 
 		NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT, m_caster);
         ((Player*)m_caster)->PetSpellInitialize();
