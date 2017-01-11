@@ -455,7 +455,9 @@ void Spell::FillTargetMap()
                         case TARGET_AREAEFFECT_CUSTOM:
                         case TARGET_ALL_ENEMY_IN_AREA:
                         case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
+						case TARGET_ALL_FRIENDS_IN_AREA_INSTANT:
                         case TARGET_ALL_ENEMY_IN_AREA_CHANNELED:
+						case TARGET_ALL_FRIENDS_IN_AREA_CHANNELED:
                         case TARGET_ALL_FRIENDLY_UNITS_IN_AREA:
                         case TARGET_AREAEFFECT_GO_AROUND_DEST:
                             // triggered spells get dest point from default target set, ignore it
@@ -1857,6 +1859,22 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 		}
 		break;
 	}
+	case TARGET_ALL_FRIENDS_IN_AREA_INSTANT:
+	{
+		// targets the ground, not the units in the area
+		switch (m_spellInfo->Effect[effIndex])
+		{
+		case SPELL_EFFECT_PERSISTENT_AREA_AURA:
+			break;
+		case SPELL_EFFECT_SUMMON:
+			targetUnitMap.push_back(m_caster);
+			break;
+		default:
+			FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_FRIENDLY);
+			break;
+		}
+		break;
+	}
 	case TARGET_DUELVSPLAYER_COORDINATES:
 	{
 		if (Unit* currentTarget = m_targets.getUnitTarget())
@@ -1992,7 +2010,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             SpellNotifyPushType pushType = PUSH_IN_FRONT;
             switch (m_spellInfo->SpellVisual)            // Some spell require a different target fill
             {
-                case 7441: pushType = PUSH_IN_FRONT_15; break;
+                case 7441: pushType = PUSH_IN_FRONT_90; break;
             }
             FillAreaTargets(targetUnitMap, radius, pushType, SPELL_TARGETS_FRIENDLY);
             break;
@@ -2096,6 +2114,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_PERSISTENT_AREA_AURA)
                 FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
             break;
+		case TARGET_ALL_FRIENDS_IN_AREA_CHANNELED:
+			// targets the ground, not the units in the area
+			if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_PERSISTENT_AREA_AURA)
+				FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
+			break;
         case TARGET_MINION:
             if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_DUEL)
                 targetUnitMap.push_back(m_caster);
@@ -3072,9 +3095,10 @@ void Spell::cast(bool skipCheck)
         case SPELLFAMILY_PALADIN:
         {
             // Blessing of Protection (Divine Shield, Divine Protection in generic switch case)
-            if (m_spellInfo->Mechanic == MECHANIC_INVULNERABILITY && m_spellInfo->Id != 25771)
+            if ((m_spellInfo->Mechanic == MECHANIC_INVULNERABILITY && m_spellInfo->Id != 25771) || (m_spellInfo->Id == 31884))
                 AddPrecastSpell(25771);                     // Forbearance
-            break;
+            break;		
+
         }
         default:
             break;
@@ -4262,7 +4286,6 @@ void Spell::CastTriggerSpells()
 		
 			Spell* spell = new Spell(m_caster, (*si), _triggered, m_originalCasterGUID);
 			spell->SpellStart(&m_targets);                         // use original spell original targets
-
     }
 }
 

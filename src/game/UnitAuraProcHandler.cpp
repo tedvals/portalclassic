@@ -1704,6 +1704,64 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 trigger_spell_id = 20272;
                 target = this;
             }
+			//Purifing Power
+			else if (auraSpellInfo->SpellIconID == 3019)
+			{
+				if (!procSpell)
+					return SPELL_AURA_PROC_FAILED;
+				// procspell is triggered spell but we need damage of original casted spell
+				uint32 originalSpellId = procSpell->Id;
+				
+				SpellEntry const* originalSpell = GetSpellTemplate(originalSpellId);
+				if (!originalSpell)
+				{
+					sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u unknown but selected as original in Illu", originalSpellId);
+					return SPELL_AURA_PROC_FAILED;
+				}
+				
+				switch (auraSpellInfo->Id)
+				{
+					case 54305: basepoints[0] = int32(originalSpell->EffectBasePoints[0]*0.33f);
+					case 54306: basepoints[0] = int32(originalSpell->EffectBasePoints[0]*0.66f);
+					case 54307: basepoints[0] = int32(originalSpell->EffectBasePoints[0]);
+					default:
+						sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u not handled correctly", procSpell->Id);
+						return SPELL_AURA_PROC_FAILED;
+				}				
+
+				trigger_spell_id = 54877;
+				target = this;
+			}
+			//Blessed Life
+			else if (auraSpellInfo->SpellIconID == 2137)
+			{
+				if (!procSpell)
+					return SPELL_AURA_PROC_FAILED;
+				// procspell is triggered spell but we need base heal of original casted spell
+				uint32 originalSpellId = procSpell->Id;
+
+				SpellEntry const* originalSpell = GetSpellTemplate(originalSpellId);
+				if (!originalSpell)
+				{
+					sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u unknown but selected as original in Illu", originalSpellId);
+					return SPELL_AURA_PROC_FAILED;
+				}
+
+				switch (auraSpellInfo->Id)
+				{
+					case 54878: basepoints[0] = int32(originalSpell->EffectBasePoints[0] * 0.05f);
+					case 54879: basepoints[0] = int32(originalSpell->EffectBasePoints[0] * 0.1f);
+					case 54880: basepoints[0] = int32(originalSpell->EffectBasePoints[0] * 0.15f);
+					case 54881: basepoints[0] = int32(originalSpell->EffectBasePoints[0] * 0.2f);
+					case 54882: basepoints[0] = int32(originalSpell->EffectBasePoints[0] * 0.25f);
+					default:
+						sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u not handled correctly", procSpell->Id);
+						return SPELL_AURA_PROC_FAILED;
+				}
+
+				trigger_spell_id = 54883;
+				target = this;
+			}
 			// Lightning Capacitor
 			else if (auraSpellInfo->Id == 37657)
 			{
@@ -1727,9 +1785,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 				// If your target is below $s1% health
 				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * triggerAmount / 100)
 					return SPELL_AURA_PROC_FAILED;
-			}
-			break;
-            break;
+			}			
         }
         case SPELLFAMILY_SHAMAN:
         {

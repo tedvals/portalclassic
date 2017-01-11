@@ -3019,6 +3019,29 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
             addhealth += tickheal * tickcount;
         }
 
+		// Blessed Life - Required Blessing of Light
+		if (m_spellInfo->Id == 54883)
+		{
+			Unit::AuraList const& BlessingLight = unitTarget->GetAurasByType(SPELL_AURA_DUMMY);
+			// find most short by duration
+			bool found = false;
+			for (Unit::AuraList::const_iterator i = BlessingLight.begin(); i != BlessingLight.end(); ++i)
+			{
+				if ((*i)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_PALADIN &&
+					// Blessing of Light  
+					((*i)->GetSpellProto()->SpellFamilyFlags & uint64(0x0000000010000000)) &&
+					caster == (*i)->GetCaster())
+				{
+
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+				return;
+		}
+
         addhealth = caster->SpellHealingBonusDone(unitTarget, m_spellInfo, addhealth, HEAL);
         addhealth = unitTarget->SpellHealingBonusTaken(caster, m_spellInfo, addhealth, HEAL);
 

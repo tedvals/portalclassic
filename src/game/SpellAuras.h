@@ -416,7 +416,7 @@ class MANGOS_DLL_SPEC Aura
 				return m_modifier.m_amount; //calculated elsewhere
 			else
 			{ 
-				int32 _level = level;
+				int32 _level = (int32)level;
 				if (_level >  m_spellAuraHolder->GetSpellProto()->maxLevel &&  m_spellAuraHolder->GetSpellProto()->maxLevel > 0)
 					level = (int32)m_spellAuraHolder->GetSpellProto()->maxLevel;
 				else if (level < (int32)m_spellAuraHolder->GetSpellProto()->baseLevel)

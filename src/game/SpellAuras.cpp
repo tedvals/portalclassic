@@ -3750,7 +3750,7 @@ void Aura::HandleAuraModResistenceOfStatPercent(bool /*apply*/, bool /*Real*/)
     }
 
 	Stats usedStat;
-	float value;
+	float value = 0;
 	
 	if (m_modifier.m_miscvalue & uint64(0x00000100))
 		usedStat = STAT_STRENGTH;
