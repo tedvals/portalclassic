@@ -6467,6 +6467,10 @@ bool Spell::CheckTargetCreatureType(Unit* target) const
         spellCreatureTargetMask = 0x7FF;
     }
 
+	// Expel Evil allows Exorcism and Holy Wrath on Dragonkin, Elementals and Humanoids
+    if (m_caster->HasAura(54885) && ((m_spellInfo->SpellIconID == 292)||(m_spellInfo->SpellIconID == 158)))
+		spellCreatureTargetMask = 0x76F;
+
     // Dismiss Pet and Taming Lesson skipped
     if (m_spellInfo->Id == 2641 || m_spellInfo->Id == 23356)
         spellCreatureTargetMask =  0;

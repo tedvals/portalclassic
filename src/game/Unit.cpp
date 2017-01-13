@@ -6280,6 +6280,19 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 
 				break;
 			}
+			case 8016: //Druid Gift of Nature
+			{
+				Aura* InsectSwarmAura = pVictim->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, uint64(0x0000000000200000));
+				if (InsectSwarmAura->GetCaster() == this)
+					DoneTotalMod *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
+				break;
+			}
+			case 8017: //Thorny Embrace
+			{
+				if (pVictim->isInRoots())
+					DoneTotalMod *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
+				break;
+			}
         }
     }
 
@@ -6993,6 +7006,12 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
 					float penalty =float(GetPower(POWER_MANA) / (GetMaxPower(POWER_MANA)*2)) + 0.5f;
 					DonePercent *= penalty;
 				}
+				break;
+			}
+			case 8017: //Thorny Embrace
+			{
+				if (pVictim->isInRoots())
+					DonePercent *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
 				break;
 			}
 			//Improved Hunter's Mark

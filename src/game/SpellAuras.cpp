@@ -3330,6 +3330,14 @@ void Aura::HandlePeriodicHeal(bool apply, bool /*Real*/)
         if (!caster)
             return;
 
+		// Renewal
+		if (target && target->HasAura(54884))
+			m_modifier.m_amount = int32(m_modifier.m_amount * 105 / 100);
+		
+		// Contagion
+		if (target && target->HasAura(54804))
+			m_modifier.m_amount *= int32(m_modifier.m_amount * 90 / 100);
+
         m_modifier.m_amount = caster->SpellHealingBonusDone(target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount());
     }
 }
@@ -3406,10 +3414,25 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 m_modifier.m_amount = caster->MeleeDamageBonusDone(target, m_modifier.m_amount, attackType, GetSpellProto(), DOT, GetStackAmount());
             }
 
-			// Contagion
-			if (target && target->HasAura(54804))
+			// Renewal
+			if (target && target->HasAura(54884))
 				if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
-					m_modifier.m_amount *= 1.1;
+					m_modifier.m_amount = int32(m_modifier.m_amount * 95/100);
+
+			// Misery
+			if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
+			{
+				if (target && target->HasAura(33200))
+					m_modifier.m_amount = int32(m_modifier.m_amount * 110 / 100);
+				else if (target && target->HasAura(33199))
+					m_modifier.m_amount = int32(m_modifier.m_amount * 108 / 100);
+				else if (target && target->HasAura(33198))
+					m_modifier.m_amount = int32(m_modifier.m_amount * 106 / 100);
+				else  if (target && target->HasAura(33197))
+					m_modifier.m_amount = int32(m_modifier.m_amount * 104 / 100);
+				else if (target && target->HasAura(33196))
+					m_modifier.m_amount = int32(m_modifier.m_amount * 102 / 100);
+			}
         }
     }
 }
@@ -3442,8 +3465,7 @@ void Aura::HandlePeriodicLeech(bool apply, bool /*Real*/)
 		SpellEntry const* spellProto = GetSpellProto();
 		// Contagion
 		if (target && target->HasAura(54804))
-			if (spellProto->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
-				m_modifier.m_amount *= 1.1;
+				m_modifier.m_amount = (m_modifier.m_amount * 110/100);
     }
 }
 
