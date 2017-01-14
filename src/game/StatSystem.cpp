@@ -97,6 +97,7 @@ bool Player::UpdateAllStats()
     for (int i = POWER_MANA; i < MAX_POWERS; ++i)
         UpdateMaxPower(Powers(i));
 
+	UpdateAllRatings();
     UpdateAllCritPercentages();
     UpdateAllSpellCritChances();
     UpdateDefenseBonusesMod();
@@ -429,6 +430,8 @@ void Player::UpdateBlockPercentage()
         // Increase from SPELL_AURA_MOD_BLOCK_PERCENT aura
         value += GetTotalAuraModifier(SPELL_AURA_MOD_BLOCK_PERCENT);
         real = value;
+		// Increase from rating
+		value += GetRatingBonusValue(CR_BLOCK);
         // Set UI display value: modify value from defense skill against same level target
         value += (int32(GetDefenseSkillValue()) - int32(GetMaxSkillValueForLevel())) * 0.04f;
     }
@@ -439,23 +442,25 @@ void Player::UpdateBlockPercentage()
 void Player::UpdateCritPercentage(WeaponAttackType attType)
 {
     BaseModGroup modGroup;
+	CombatRating cr;
     uint16 index;
 
-    switch (attType)
-    {
-        case RANGED_ATTACK:
-            modGroup = RANGED_CRIT_PERCENTAGE;
-            index = PLAYER_RANGED_CRIT_PERCENTAGE;
-            break;
-        case BASE_ATTACK:
-            modGroup = CRIT_PERCENTAGE;
-            index = PLAYER_CRIT_PERCENTAGE;
-            break;
-        default:
-            return;
-    }
+	switch (attType)
+	{
+	case RANGED_ATTACK:
+		modGroup = RANGED_CRIT_PERCENTAGE;
+		index = PLAYER_RANGED_CRIT_PERCENTAGE;
+		cr = CR_CRIT_RANGED;
+		break;
+	case BASE_ATTACK:
+	default:
+		modGroup = CRIT_PERCENTAGE;
+		index = PLAYER_CRIT_PERCENTAGE;
+		cr = CR_CRIT_MELEE;
+		break;
+	}
 
-    float value = GetTotalPercentageModValue(modGroup);
+    float value = GetTotalPercentageModValue(modGroup) + GetRatingBonusValue(cr);
     m_modCritChance[attType] = value;
     // Modify crit from weapon skill and maximized defense skill of same level victim difference
     value += (int32(GetWeaponSkillValue(attType)) - int32(GetMaxSkillValueForLevel())) * 0.04f;
@@ -484,7 +489,9 @@ void Player::UpdateParryPercentage()
         // Base parry
         value  = 5.0f;
         // Parry from SPELL_AURA_MOD_PARRY_PERCENT aura
-        value += GetTotalAuraModifier(SPELL_AURA_MOD_PARRY_PERCENT);
+        value += GetTotalAuraModifier(SPELL_AURA_MOD_PARRY_PERCENT);        
+		// Parry from rating
+		value += GetRatingBonusValue(CR_PARRY);
         real = value;
         // Set UI display value: modify value from defense skill against same level target
         value += (int32(GetDefenseSkillValue()) - int32(GetMaxSkillValueForLevel())) * 0.04f;
@@ -519,6 +526,8 @@ void Player::UpdateDodgePercentage()
     value += GetDodgeFromAgility(GetStat(STAT_AGILITY));
     // Dodge from SPELL_AURA_MOD_DODGE_PERCENT aura
     value += GetTotalAuraModifier(SPELL_AURA_MOD_DODGE_PERCENT);
+	// Dodge from rating
+	value += GetRatingBonusValue(CR_DODGE);
     // Set current dodge chance
     m_modDodgeChance = value;
     // Set UI display value: modify value from defense skill against same level target
@@ -535,8 +544,28 @@ void Player::UpdateSpellCritChance(uint32 school)
     crit += GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_CRIT_CHANCE);
     // Increase crit by school from SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL
     crit += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, (1 << school));
+	// Increase crit from spell crit ratings
+	crit += GetRatingBonusValue(CR_CRIT_SPELL);
     // Set current crit chance
     m_modSpellCritChance[school] = crit;
+}
+
+void Player::UpdateMeleeHitChances()
+{
+	m_modMeleeHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_HIT_CHANCE);
+	m_modMeleeHitChance += GetRatingBonusValue(CR_HIT_MELEE);
+}
+
+void Player::UpdateRangedHitChances()
+{
+	m_modRangedHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_HIT_CHANCE);
+	m_modRangedHitChance += GetRatingBonusValue(CR_HIT_RANGED);
+}
+
+void Player::UpdateSpellHitChances()
+{
+	m_modSpellHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_HIT_CHANCE);
+	m_modSpellHitChance += GetRatingBonusValue(CR_HIT_SPELL);
 }
 
 void Player::UpdateAllSpellCritChances()
@@ -593,7 +622,7 @@ void Player::_ApplyAllStatBonuses()
     _ApplyAllItemMods();
 
     SetCanModifyStats(true);
-
+	
     UpdateAllStats();
 }
 
@@ -605,7 +634,7 @@ void Player::_RemoveAllStatBonuses()
     _RemoveAllAuraMods();
 
     SetCanModifyStats(true);
-
+	UpdateAllRatings();
     UpdateAllStats();
 }
 

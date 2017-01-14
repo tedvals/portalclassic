@@ -528,6 +528,9 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
         m_auraBaseMod[i][PCT_MOD] = 1.0f;
     }
 
+	for (int i = 0; i < MAX_COMBAT_RATING; ++i)
+		m_baseRatingValue[i] = 0;
+
     // Player summoning
     m_summon_expire = 0;
     m_summon_mapid = 0;
@@ -6697,6 +6700,90 @@ void Player::_ApplyItemBonuses(ItemPrototype const* proto, uint8 slot, bool appl
                 HandleStatModifier(UNIT_MOD_STAT_STAMINA, BASE_VALUE, float(val), apply);
                 ApplyStatBuffMod(STAT_STAMINA, float(val), apply);
                 break;
+			case ITEM_MOD_DEFENSE_SKILL_RATING:
+				ApplyRatingMod(CR_DEFENSE_SKILL, int32(val), apply);
+				break;
+			case ITEM_MOD_DODGE_RATING:
+				ApplyRatingMod(CR_DODGE, int32(val), apply);
+				break;
+			case ITEM_MOD_PARRY_RATING:
+				ApplyRatingMod(CR_PARRY, int32(val), apply);
+				break;
+			case ITEM_MOD_BLOCK_RATING:
+				ApplyRatingMod(CR_BLOCK, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_MELEE_RATING:
+				ApplyRatingMod(CR_HIT_MELEE, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_RANGED_RATING:
+				ApplyRatingMod(CR_HIT_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_SPELL_RATING:
+				ApplyRatingMod(CR_HIT_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_MELEE_RATING:
+				ApplyRatingMod(CR_CRIT_MELEE, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_RANGED_RATING:
+				ApplyRatingMod(CR_CRIT_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_SPELL_RATING:
+				ApplyRatingMod(CR_CRIT_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_TAKEN_MELEE_RATING:
+				ApplyRatingMod(CR_HIT_TAKEN_MELEE, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_TAKEN_RANGED_RATING:
+				ApplyRatingMod(CR_HIT_TAKEN_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_TAKEN_SPELL_RATING:
+				ApplyRatingMod(CR_HIT_TAKEN_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_TAKEN_MELEE_RATING:
+				ApplyRatingMod(CR_CRIT_TAKEN_MELEE, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_TAKEN_RANGED_RATING:
+				ApplyRatingMod(CR_CRIT_TAKEN_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_TAKEN_SPELL_RATING:
+				ApplyRatingMod(CR_CRIT_TAKEN_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_HASTE_MELEE_RATING:
+				ApplyRatingMod(CR_HASTE_MELEE, int32(val), apply);
+				break;
+			case ITEM_MOD_HASTE_RANGED_RATING:
+				ApplyRatingMod(CR_HASTE_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_HASTE_SPELL_RATING:
+				ApplyRatingMod(CR_HASTE_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_RATING:
+				ApplyRatingMod(CR_HIT_MELEE, int32(val), apply);
+				ApplyRatingMod(CR_HIT_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_RATING:
+				ApplyRatingMod(CR_CRIT_MELEE, int32(val), apply);
+				ApplyRatingMod(CR_CRIT_RANGED, int32(val), apply);
+				break;
+			case ITEM_MOD_HIT_TAKEN_RATING:
+				ApplyRatingMod(CR_HIT_TAKEN_MELEE, int32(val), apply);
+				ApplyRatingMod(CR_HIT_TAKEN_RANGED, int32(val), apply);
+				ApplyRatingMod(CR_HIT_TAKEN_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_CRIT_TAKEN_RATING:
+				ApplyRatingMod(CR_CRIT_TAKEN_MELEE, int32(val), apply);
+				ApplyRatingMod(CR_CRIT_TAKEN_RANGED, int32(val), apply);
+				ApplyRatingMod(CR_CRIT_TAKEN_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_RESILIENCE_RATING:
+				ApplyRatingMod(CR_CRIT_TAKEN_MELEE, int32(val), apply);
+				ApplyRatingMod(CR_CRIT_TAKEN_RANGED, int32(val), apply);
+				ApplyRatingMod(CR_CRIT_TAKEN_SPELL, int32(val), apply);
+				break;
+			case ITEM_MOD_HASTE_RATING:
+				ApplyRatingMod(CR_HASTE_MELEE, int32(val), apply);
+				ApplyRatingMod(CR_HASTE_RANGED, int32(val), apply);
+				break;
         }
     }
 
@@ -10912,6 +10999,107 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                             HandleStatModifier(UNIT_MOD_STAT_STAMINA, TOTAL_VALUE, float(enchant_amount), apply);
                             ApplyStatBuffMod(STAT_STAMINA, float(enchant_amount), apply);
                             break;
+						case ITEM_MOD_DEFENSE_SKILL_RATING:
+							ApplyRatingMod(CR_DEFENSE_SKILL, enchant_amount, apply);
+							DEBUG_LOG("+ %u DEFENCE", enchant_amount);
+							break;
+						case  ITEM_MOD_DODGE_RATING:
+							ApplyRatingMod(CR_DODGE, enchant_amount, apply);
+							DEBUG_LOG("+ %u DODGE", enchant_amount);
+							break;
+						case ITEM_MOD_PARRY_RATING:
+							ApplyRatingMod(CR_PARRY, enchant_amount, apply);
+							DEBUG_LOG("+ %u PARRY", enchant_amount);
+							break;
+						case ITEM_MOD_BLOCK_RATING:
+							ApplyRatingMod(CR_BLOCK, enchant_amount, apply);
+							DEBUG_LOG("+ %u SHIELD_BLOCK", enchant_amount);
+							break;
+						case ITEM_MOD_HIT_MELEE_RATING:
+							ApplyRatingMod(CR_HIT_MELEE, enchant_amount, apply);
+							DEBUG_LOG("+ %u MELEE_HIT", enchant_amount);
+							break;
+						case ITEM_MOD_HIT_RANGED_RATING:
+							ApplyRatingMod(CR_HIT_RANGED, enchant_amount, apply);
+							DEBUG_LOG("+ %u RANGED_HIT", enchant_amount);
+							break;
+						case ITEM_MOD_HIT_SPELL_RATING:
+							ApplyRatingMod(CR_HIT_SPELL, enchant_amount, apply);
+							DEBUG_LOG("+ %u SPELL_HIT", enchant_amount);
+							break;
+						case ITEM_MOD_CRIT_MELEE_RATING:
+							ApplyRatingMod(CR_CRIT_MELEE, enchant_amount, apply);
+							DEBUG_LOG("+ %u MELEE_CRIT", enchant_amount);
+							break;
+						case ITEM_MOD_CRIT_RANGED_RATING:
+							ApplyRatingMod(CR_CRIT_RANGED, enchant_amount, apply);
+							DEBUG_LOG("+ %u RANGED_CRIT", enchant_amount);
+							break;
+						case ITEM_MOD_CRIT_SPELL_RATING:
+							ApplyRatingMod(CR_CRIT_SPELL, enchant_amount, apply);
+							DEBUG_LOG("+ %u SPELL_CRIT", enchant_amount);
+							break;
+							//                        Values from ITEM_STAT_MELEE_HA_RATING to ITEM_MOD_HASTE_RANGED_RATING are never used
+							//                        in Enchantments
+							//                        case ITEM_MOD_HIT_TAKEN_MELEE_RATING:
+							//                            ApplyRatingMod(CR_HIT_TAKEN_MELEE, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_HIT_TAKEN_RANGED_RATING:
+							//                            ApplyRatingMod(CR_HIT_TAKEN_RANGED, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_HIT_TAKEN_SPELL_RATING:
+							//                            ApplyRatingMod(CR_HIT_TAKEN_SPELL, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_CRIT_TAKEN_MELEE_RATING:
+							//                            ApplyRatingMod(CR_CRIT_TAKEN_MELEE, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_CRIT_TAKEN_RANGED_RATING:
+							//                            ApplyRatingMod(CR_CRIT_TAKEN_RANGED, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_CRIT_TAKEN_SPELL_RATING:
+							//                            ApplyRatingMod(CR_CRIT_TAKEN_SPELL, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_HASTE_MELEE_RATING:
+							//                            ApplyRatingMod(CR_HASTE_MELEE, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_HASTE_RANGED_RATING:
+							//                            ApplyRatingMod(CR_HASTE_RANGED, enchant_amount, apply);
+							//                            break;
+						case ITEM_MOD_HASTE_SPELL_RATING:
+							ApplyRatingMod(CR_HASTE_SPELL, enchant_amount, apply);
+							break;
+						case ITEM_MOD_HIT_RATING:
+							ApplyRatingMod(CR_HIT_MELEE, enchant_amount, apply);
+							ApplyRatingMod(CR_HIT_RANGED, enchant_amount, apply);
+							DEBUG_LOG("+ %u HIT", enchant_amount);
+							break;
+						case ITEM_MOD_CRIT_RATING:
+							ApplyRatingMod(CR_CRIT_MELEE, enchant_amount, apply);
+							ApplyRatingMod(CR_CRIT_RANGED, enchant_amount, apply);
+							DEBUG_LOG("+ %u CRITICAL", enchant_amount);
+							break;
+							//                        Values ITEM_MOD_HIT_TAKEN_RATING and ITEM_MOD_CRIT_TAKEN_RATING are never used in Enchantment
+							//                        case ITEM_MOD_HIT_TAKEN_RATING:
+							//                            ApplyRatingMod(CR_HIT_TAKEN_MELEE, enchant_amount, apply);
+							//                            ApplyRatingMod(CR_HIT_TAKEN_RANGED, enchant_amount, apply);
+							//                            ApplyRatingMod(CR_HIT_TAKEN_SPELL, enchant_amount, apply);
+							//                            break;
+							//                        case ITEM_MOD_CRIT_TAKEN_RATING:
+							//                            ApplyRatingMod(CR_CRIT_TAKEN_MELEE, enchant_amount, apply);
+							//                            ApplyRatingMod(CR_CRIT_TAKEN_RANGED, enchant_amount, apply);
+							//                            ApplyRatingMod(CR_CRIT_TAKEN_SPELL, enchant_amount, apply);
+							//                            break;
+						case ITEM_MOD_RESILIENCE_RATING:
+							ApplyRatingMod(CR_CRIT_TAKEN_MELEE, enchant_amount, apply);
+							ApplyRatingMod(CR_CRIT_TAKEN_RANGED, enchant_amount, apply);
+							ApplyRatingMod(CR_CRIT_TAKEN_SPELL, enchant_amount, apply);
+							DEBUG_LOG("+ %u RESILIENCE", enchant_amount);
+							break;
+						case ITEM_MOD_HASTE_RATING:
+							ApplyRatingMod(CR_HASTE_MELEE, enchant_amount, apply);
+							ApplyRatingMod(CR_HASTE_RANGED, enchant_amount, apply);
+							DEBUG_LOG("+ %u HASTE", enchant_amount);
+							break;
                         default:
                             break;
                     }
@@ -19254,6 +19442,177 @@ void Player::ForceHealAndPowerUpdateInZone()
 
 
 //Custom
+void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
+{
+	m_baseRatingValue[cr] += (apply ? value : -value);
+	bool affectStats = CanModifyStats();
+	// explicit affected values
+	switch (cr)
+	{
+	case CR_HASTE_MELEE:
+	{
+		float RatingChange = value * GetRatingMultiplier(cr);
+		ApplyAttackTimePercentMod(BASE_ATTACK, RatingChange, apply);
+		ApplyAttackTimePercentMod(OFF_ATTACK, RatingChange, apply);
+		break;
+	}
+	case CR_HASTE_RANGED:
+	{
+		float RatingChange = value * GetRatingMultiplier(cr);
+		ApplyAttackTimePercentMod(RANGED_ATTACK, RatingChange, apply);
+		break;
+	}
+	case CR_HASTE_SPELL:
+	{
+		float RatingChange = value * GetRatingMultiplier(cr);
+		ApplyCastTimePercentMod(RatingChange, apply);
+		break;
+	}
+	case CR_WEAPON_SKILL:                               // Implemented in Unit::RollMeleeOutcomeAgainst
+	case CR_DEFENSE_SKILL:
+		UpdateDefenseBonusesMod();
+		break;
+	case CR_DODGE:
+		UpdateDodgePercentage();
+		break;
+	case CR_PARRY:
+		UpdateParryPercentage();
+		break;
+	case CR_BLOCK:
+		UpdateBlockPercentage();
+		break;
+	case CR_HIT_MELEE:
+		UpdateMeleeHitChances();
+		break;
+	case CR_HIT_RANGED:
+		UpdateRangedHitChances();
+		break;
+	case CR_HIT_SPELL:
+		UpdateSpellHitChances();
+		break;
+	case CR_CRIT_MELEE:
+		if (affectStats)
+		{
+			UpdateCritPercentage(BASE_ATTACK);
+			UpdateCritPercentage(OFF_ATTACK);
+		}
+		break;
+	case CR_CRIT_RANGED:
+		if (affectStats)
+			UpdateCritPercentage(RANGED_ATTACK);
+		break;
+	case CR_CRIT_SPELL:
+		if (affectStats)
+			UpdateAllSpellCritChances();
+		break;
+	case CR_HIT_TAKEN_MELEE:                            // Implemented in Unit::MeleeMissChanceCalc
+	case CR_HIT_TAKEN_RANGED:
+		break;
+	case CR_HIT_TAKEN_SPELL:                            // Implemented in Unit::MagicSpellHitResult
+		break;
+	case CR_CRIT_TAKEN_MELEE:                           // Implemented in Unit::CalculateEffectiveCritChance (only for chance to crit)
+	case CR_CRIT_TAKEN_RANGED:
+		break;
+	case CR_CRIT_TAKEN_SPELL:                           // Implemented in Unit::SpellCriticalBonus (only for chance to crit)
+		break;
+	case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
+	case CR_WEAPON_SKILL_OFFHAND:
+	case CR_WEAPON_SKILL_RANGED:
+		break;
+		/*
+		case CR_EXPERTISE:
+			if (affectStats)
+			{
+				UpdateExpertise(BASE_ATTACK);
+				UpdateExpertise(OFF_ATTACK);
+			}
+			break;
+		}
+		*/
+	default:
+		break;
+	}
+}
+
+void Player::UpdateRating(CombatRating cr)
+{
+	int32 amount = m_baseRatingValue[cr];
+	if (amount < 0)
+		amount = 0;
+	SetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr, uint32(amount));
+
+	bool affectStats = CanModifyStats();
+
+	switch (cr)
+	{
+	case CR_WEAPON_SKILL:                               // Implemented in Unit::RollMeleeOutcomeAgainst
+	case CR_DEFENSE_SKILL:
+		UpdateDefenseBonusesMod();
+		break;
+	case CR_DODGE:
+		UpdateDodgePercentage();
+		break;
+	case CR_PARRY:
+		UpdateParryPercentage();
+		break;
+	case CR_BLOCK:
+		UpdateBlockPercentage();
+		break;
+	case CR_HIT_MELEE:
+		UpdateMeleeHitChances();
+		break;
+	case CR_HIT_RANGED:
+		UpdateRangedHitChances();
+		break;
+	case CR_HIT_SPELL:
+		UpdateSpellHitChances();
+		break;
+	case CR_CRIT_MELEE:
+		if (affectStats)
+		{
+			UpdateCritPercentage(BASE_ATTACK);
+			UpdateCritPercentage(OFF_ATTACK);
+		}
+		break;
+	case CR_CRIT_RANGED:
+		if (affectStats)
+			UpdateCritPercentage(RANGED_ATTACK);
+		break;
+	case CR_CRIT_SPELL:
+		if (affectStats)
+			UpdateAllSpellCritChances();
+		break;
+	case CR_HIT_TAKEN_MELEE:                            // Implemented in Unit::MeleeMissChanceCalc
+	case CR_HIT_TAKEN_RANGED:
+		break;
+	case CR_HIT_TAKEN_SPELL:                            // Implemented in Unit::MagicSpellHitResult
+		break;
+	case CR_CRIT_TAKEN_MELEE:                           // Implemented in Unit::CalculateEffectiveCritChance (only for chance to crit)
+	case CR_CRIT_TAKEN_RANGED:
+		break;
+	case CR_CRIT_TAKEN_SPELL:                           // Implemented in Unit::SpellCriticalBonus (only for chance to crit)
+		break;
+	case CR_HASTE_MELEE:                                // Implemented in Player::ApplyRatingMod
+	case CR_HASTE_RANGED:
+	case CR_HASTE_SPELL:
+		break;
+	case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
+	case CR_WEAPON_SKILL_OFFHAND:
+	case CR_WEAPON_SKILL_RANGED:
+		break;
+	}
+}
+void Player::UpdateAllRatings()
+{
+	for (int cr = 0; cr < MAX_COMBAT_RATING; ++cr)
+		UpdateRating(CombatRating(cr));
+}
+
+float Player::GetRatingBonusValue(CombatRating cr) const
+{
+	return float(m_baseRatingValue[cr]) * GetRatingMultiplier(cr);
+}
+
 uint32 Player::GetAdventureLevelGroup()
 {
 	uint32 level = 0;
@@ -19276,6 +19635,19 @@ uint32 Player::GetAdventureLevelGroup()
 	}
 	
 	return level;
+}
+
+float Player::GetRatingMultiplier(CombatRating cr) const
+{
+	uint32 level = getLevel();
+
+	if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
+
+	CombatRatingsEntry const* Rating = sCombatRatingsStore.LookupEntry(cr * GT_MAX_LEVEL + level - 1);
+	if (!Rating)
+		return 1.0f;                                        // By default use minimum coefficient (not must be called)
+
+	return 1.0f / Rating->ratio;
 }
 
 uint32 Player::GetAdventureLevel()

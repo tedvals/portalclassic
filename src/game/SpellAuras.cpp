@@ -244,7 +244,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleNoImmediateEffect,                         // 186 SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE  implemented in Unit::MagicSpellHitResult
     &Aura::HandleNoImmediateEffect,                         // 187 SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_CHANCE  implemented in Unit::CalculateEffectiveCritChance
     &Aura::HandleNoImmediateEffect,                         // 188 SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_CHANCE implemented in Unit::CalculateEffectiveCritChance
-    &Aura::HandleUnused,                                    // 189 SPELL_AURA_MOD_RATING (not used in 1.12.1)
+    &Aura::HandleModRating,                                 // 189 SPELL_AURA_MOD_RATING (not used in 1.12.1, custom addition)
     &Aura::HandleNoImmediateEffect,                         // 190 SPELL_AURA_MOD_FACTION_REPUTATION_GAIN     implemented in Player::CalculateReputationGain
     &Aura::HandleAuraModUseNormalSpeed,                     // 191 SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED
     &Aura::HandleModMeleeRangedSpeedPct,                    //192  SPELL_AURA_MOD_MELEE_RANGED_HASTE
@@ -3665,6 +3665,21 @@ void Aura::HandleModPercentStat(bool apply, bool /*Real*/)
     }
 }
 
+void Aura::HandleModRating(bool apply, bool /*Real*/)
+{
+	if (m_modifier.m_miscvalue < ITEM_MOD_DEFENSE_SKILL_RATING || m_modifier.m_miscvalue > 23)
+	{
+		sLog.outError("WARNING: Spell %u effect %u have unsupported misc value (%i) for SPELL_AURA_MOD_STAT ", GetId(), GetEffIndex(), m_modifier.m_miscvalue);
+		return;
+	}
+
+	for (int32 i = CR_WEAPON_SKILL; i <MAX_COMBAT_RATING; ++i)
+	{
+		if (GetTarget()->GetTypeId() == TYPEID_PLAYER)
+			((Player*)GetTarget())->ApplyRatingMod(CombatRating(i), float(m_modifier.m_amount), apply);
+	}
+}
+
 void Aura::HandleModSpellDamagePercentFromStat(bool /*apply*/, bool /*Real*/)
 {
     if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
@@ -4073,13 +4088,28 @@ void Aura::HandleModHitChance(bool apply, bool /*Real*/)
 {
     Unit* target = GetTarget();
 
-    target->m_modMeleeHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
-    target->m_modRangedHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
+	if (target->GetTypeId() == TYPEID_PLAYER)
+	{
+		((Player*)target)->UpdateMeleeHitChances();
+		((Player*)target)->UpdateRangedHitChances();
+	}
+	else
+	{
+		target->m_modMeleeHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
+		target->m_modRangedHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
+	}
 }
 
 void Aura::HandleModSpellHitChance(bool apply, bool /*Real*/)
 {
-    GetTarget()->m_modSpellHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
+	if (GetTarget()->GetTypeId() == TYPEID_PLAYER)
+	{
+		((Player*)GetTarget())->UpdateSpellHitChances();
+	}
+	else
+	{
+		GetTarget()->m_modSpellHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
+	}
 }
 
 void Aura::HandleModSpellCritChance(bool apply, bool Real)

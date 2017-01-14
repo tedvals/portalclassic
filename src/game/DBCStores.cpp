@@ -83,6 +83,8 @@ DBCStorage <FactionTemplateEntry> sFactionTemplateStore(FactionTemplateEntryfmt)
 
 DBCStorage <GameObjectDisplayInfoEntry> sGameObjectDisplayInfoStore(GameObjectDisplayInfofmt);
 
+DBCStorage <CombatRatingsEntry>         sCombatRatingsStore(CombatRatingsfmt);
+
 DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore(ItemBagFamilyfmt);
 DBCStorage <ItemClassEntry>               sItemClassStore(ItemClassfmt);
 // DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt); -- not used currently

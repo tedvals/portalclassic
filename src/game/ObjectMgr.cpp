@@ -1590,7 +1590,7 @@ void ObjectMgr::LoadItemPrototypes()
         for (int j = 0; j < MAX_ITEM_PROTO_STATS; ++j)
         {
             // for ItemStatValue != 0
-            if (proto->ItemStat[j].ItemStatValue && proto->ItemStat[j].ItemStatType >= MAX_ITEM_MOD)
+            if (proto->ItemStat[j].ItemStatValue && proto->ItemStat[j].ItemStatType >= MAX_ITEM_MOD_EX)
             {
                 sLog.outErrorDb("Item (Entry: %u) has wrong stat_type%d (%u)", i, j + 1, proto->ItemStat[j].ItemStatType);
                 const_cast<ItemPrototype*>(proto)->ItemStat[j].ItemStatType = 0;

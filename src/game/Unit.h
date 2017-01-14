@@ -464,6 +464,36 @@ enum UnitMoveType
 
 #define MAX_MOVE_TYPE     6
 
+
+enum CombatRating
+{
+	CR_WEAPON_SKILL = 0,
+	CR_DEFENSE_SKILL = 1,
+	CR_DODGE = 2,
+	CR_PARRY = 3,
+	CR_BLOCK = 4,
+	CR_HIT_MELEE = 5,
+	CR_HIT_RANGED = 6,
+	CR_HIT_SPELL = 7,
+	CR_CRIT_MELEE = 8,
+	CR_CRIT_RANGED = 9,
+	CR_CRIT_SPELL = 10,
+	CR_HIT_TAKEN_MELEE = 11,
+	CR_HIT_TAKEN_RANGED = 12,
+	CR_HIT_TAKEN_SPELL = 13,
+	CR_CRIT_TAKEN_MELEE = 14,
+	CR_CRIT_TAKEN_RANGED = 15,
+	CR_CRIT_TAKEN_SPELL = 16,
+	CR_HASTE_MELEE = 17,
+	CR_HASTE_RANGED = 18,
+	CR_HASTE_SPELL = 19,
+	CR_WEAPON_SKILL_MAINHAND = 20,
+	CR_WEAPON_SKILL_OFFHAND = 21,
+	CR_WEAPON_SKILL_RANGED = 22,
+	CR_EXPERTISE = 23
+};
+
+#define MAX_COMBAT_RATING         24
 /// internal used flags for marking special auras - for example some dummy-auras
 enum UnitAuraFlags
 {
@@ -2221,6 +2251,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
     private:
         void CleanupDeletedAuras();
         void UpdateSplineMovement(uint32 t_diff);
+
+		float GetCombatRatingReduction(CombatRating cr) const;
+		uint32 GetCombatRatingDamageReduction(CombatRating cr, float rate, float cap, uint32 damage) const;
 
         Unit* _GetTotem(TotemSlot slot) const;              // for templated function without include need
         Pet* _GetPet(ObjectGuid guid) const;                // for templated function without include need

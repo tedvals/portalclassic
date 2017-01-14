@@ -2651,6 +2651,7 @@ uint32 Unit::GetDefenseSkillValue(Unit const* target) const
         uint32 value = (target && target->GetTypeId() == TYPEID_PLAYER)
                        ? std::max(((Player*)this)->GetMaxSkillValue(SKILL_DEFENSE), ((Player*)this)->GetSkillValue(SKILL_DEFENSE))
                        : ((Player*)this)->GetSkillValue(SKILL_DEFENSE);
+		value += uint32(((Player*)this)->GetRatingBonusValue(CR_DEFENSE_SKILL));
         return value;
     }
     else
@@ -3164,15 +3165,15 @@ float Unit::GetCritTakenChance(SpellSchoolMask dmgSchoolMask, SpellDmgClass dmgC
 		{
 		case SPELL_DAMAGE_CLASS_MELEE:
 			chance += GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_CHANCE);
-			//chance -= GetCombatRatingReduction(CR_CRIT_TAKEN_MELEE);
+			chance -= GetCombatRatingReduction(CR_CRIT_TAKEN_MELEE);
 			break;
 		case SPELL_DAMAGE_CLASS_RANGED:
 			chance += GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_CHANCE);
-			//chance -= GetCombatRatingReduction(CR_CRIT_TAKEN_RANGED);
+			chance -= GetCombatRatingReduction(CR_CRIT_TAKEN_RANGED);
 			break;
 		case SPELL_DAMAGE_CLASS_MAGIC:
 			chance += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE, dmgSchoolMask);
-			//chance -= GetCombatRatingReduction(CR_CRIT_TAKEN_SPELL);
+			chance -= GetCombatRatingReduction(CR_CRIT_TAKEN_SPELL);
 			break;
 		}
 		chance += GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
@@ -3337,7 +3338,7 @@ float Unit::GetHitChance(const SpellEntry *entry, SpellSchoolMask schoolMask) co
     return chance;
 }
 
-float Unit::GetMissChance(WeaponAttackType /*attackType*/) const
+float Unit::GetMissChance(WeaponAttackType attackType) const
 {
     // Totems have no inherit miss chance
     if (GetTypeId() == TYPEID_UNIT && ((const Creature*)this)->IsTotem())
@@ -3352,6 +3353,10 @@ float Unit::GetMissChance(WeaponAttackType /*attackType*/) const
 	else
 		chance = 5.0f;
 
+	// Rating contribution
+	if (GetTypeId() == TYPEID_PLAYER)
+		chance += ((const Player*)this)->GetRatingBonusValue((attackType == RANGED_ATTACK) ? CR_HIT_TAKEN_RANGED : CR_HIT_TAKEN_MELEE);
+
     return chance;
 }
 
@@ -3362,6 +3367,9 @@ float Unit::GetMissChance(SpellSchoolMask /*schoolMask*/) const
         return 0.0f;
     // Default base chance to be missed by a spell for all acting units: 4%
     float chance = 4.0f;
+	// Rating contribution
+	if (GetTypeId() == TYPEID_PLAYER)
+		chance += ((const Player*)this)->GetRatingBonusValue(CR_HIT_TAKEN_SPELL);
     return chance;
 }
 
@@ -3678,6 +3686,15 @@ uint32 Unit::GetWeaponSkillValue(WeaponAttackType attType, Unit const* target) c
         value = (target && target->GetTypeId() == TYPEID_PLAYER)
                 ? std::max(((Player*)this)->GetMaxSkillValue(skill), ((Player*)this)->GetSkillValue(skill))
                 : ((Player*)this)->GetSkillValue(skill);
+
+		// Modify value from ratings
+		value += uint32(((Player*)this)->GetRatingBonusValue(CR_WEAPON_SKILL));
+		switch (attType)
+		{
+		case BASE_ATTACK:   value += uint32(((Player*)this)->GetRatingBonusValue(CR_WEAPON_SKILL_MAINHAND)); break;
+		case OFF_ATTACK:    value += uint32(((Player*)this)->GetRatingBonusValue(CR_WEAPON_SKILL_OFFHAND)); break;
+		case RANGED_ATTACK: value += uint32(((Player*)this)->GetRatingBonusValue(CR_WEAPON_SKILL_RANGED)); break;
+		}
     }
     else
         value = GetUnitMeleeSkill(target);
@@ -11002,4 +11019,20 @@ Aura* Unit::GetBestAuraTypeBySchool(AuraType auraType, SpellSchoolMask schoolMas
 	}
 
 	return aura;
+}
+
+float Unit::GetCombatRatingReduction(CombatRating cr) const
+{
+	if (GetTypeId() == TYPEID_PLAYER)
+		return ((Player const*)this)->GetRatingBonusValue(cr);
+
+	return 0.0f;
+}
+
+uint32 Unit::GetCombatRatingDamageReduction(CombatRating cr, float rate, float cap, uint32 damage) const
+{
+	float percent = GetCombatRatingReduction(cr) * rate;
+	if (percent > cap)
+		percent = cap;
+	return uint32(percent * damage / 100.0f);
 }

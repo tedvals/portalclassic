@@ -1548,6 +1548,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
         void UpdateDamagePhysical(WeaponAttackType attType) override;
         void UpdateSpellDamageAndHealingBonus();
+		void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
+		void UpdateRating(CombatRating cr);
+		void UpdateAllRatings();
 
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, float& min_damage, float& max_damage, uint8 index = 0);
 
@@ -1557,13 +1560,17 @@ class MANGOS_DLL_SPEC Player : public Unit
         float GetSpellCritFromIntellect() const;
         float OCTRegenHPPerSpirit() const;
         float OCTRegenMPPerSpirit() const;
-
+		float GetRatingMultiplier(CombatRating cr) const;
+		float GetRatingBonusValue(CombatRating cr) const;
+		
         void UpdateBlockPercentage();
         void UpdateCritPercentage(WeaponAttackType attType);
         void UpdateAllCritPercentages();
         void UpdateParryPercentage();
         void UpdateDodgePercentage();
-
+		void UpdateMeleeHitChances();
+		void UpdateRangedHitChances();
+		void UpdateSpellHitChances();
         void UpdateAllSpellCritChances();
         void UpdateSpellCritChance(uint32 school);
         void UpdateManaRegen();
@@ -2278,6 +2285,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 		uint32 adventure_xp;
 //custom 
 		uint8 m_AccumChance;
+		int16 m_baseRatingValue[MAX_COMBAT_RATING];
 		
 		public:
 		void AddAdventureXP(int32 xp);
