@@ -3275,7 +3275,9 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
             level_diff = m_caster->getLevel() - 60;
             level_multiplier = 4;
             break;
-        default:
+		case 54887:											//Preservance
+			damage = (m_caster->GetMaxPower(power) * 2) / 100;
+		default:
             break;
     }
 

@@ -6564,7 +6564,6 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
             if ((*i)->GetModifier()->m_miscvalue & schoolMask)
             {
 				Stats usedStat;
-                // stat used stored in miscValueB for this aura
 				if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000100))
 					usedStat = STAT_STRENGTH;
 				else if ((*i)->GetModifier()->m_miscvalue & uint64(0x00000200))
