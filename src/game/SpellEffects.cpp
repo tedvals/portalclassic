@@ -3453,10 +3453,8 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
     if (itemTarget)
         itemTarget->SetFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_UNLOCKED);
 
-    SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
-
     // not allow use skill grow at item base open
-    if (!m_CastItem && skillId != SKILL_NONE)
+    if (!m_CastItem && skillId != SKILL_NONE && !gameObjTarget->loot)
     {
         // update skill if really known
         if (uint32 pureSkillValue = player->GetPureSkillValue(skillId))
@@ -3475,6 +3473,8 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
             }
         }
     }
+
+    SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
 }
 
 void Spell::EffectSummonChangeItem(SpellEffectIndex eff_idx)
@@ -5873,7 +5873,7 @@ void Spell::EffectDismissPet(SpellEffectIndex /*eff_idx*/)
     if (!pet || !pet->isAlive())
         return;
 
-    pet->Unsummon(PET_SAVE_AS_CURRENT, m_caster);
+    pet->Unsummon(PET_SAVE_NOT_IN_SLOT, m_caster);
 }
 
 void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
@@ -6107,8 +6107,18 @@ void Spell::EffectSkinning(SpellEffectIndex /*eff_idx*/)
     uint32 skill = creature->GetCreatureInfo()->GetRequiredLootSkill();
 
     Loot*& loot = unitTarget->loot;
+
     if (!loot)
+    {
         loot = new Loot((Player*)m_caster, creature, LOOT_SKINNING);
+
+        int32 reqValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
+
+        int32 skillValue = ((Player*)m_caster)->GetPureSkillValue(skill);
+
+        // Double chances for elites
+        ((Player*)m_caster)->UpdateGatherSkill(skill, skillValue, reqValue, creature->IsElite() ? 2 : 1);
+    }
     else
     {
         if (loot->GetLootType() != LOOT_SKINNING)
@@ -6120,13 +6130,6 @@ void Spell::EffectSkinning(SpellEffectIndex /*eff_idx*/)
 
     loot->ShowContentTo((Player*)m_caster);
     creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
-
-    int32 reqValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
-
-    int32 skillValue = ((Player*)m_caster)->GetPureSkillValue(skill);
-
-    // Double chances for elites
-    ((Player*)m_caster)->UpdateGatherSkill(skill, skillValue, reqValue, creature->IsElite() ? 2 : 1);
 }
 
 void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)

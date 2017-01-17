@@ -352,6 +352,10 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     InitTamedPetPassives(owner);
     UpdateAllStats();
 
+    // The following call was moved here to fix health is not full after pet invocation (before, they where placed after map->Add())
+    _LoadSpells();
+    // TODO: confirm line above work in all situation
+
     // failsafe check
     savedhealth = savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth;
     savedpower = savedpower > GetMaxPower(powerType) ? GetMaxPower(powerType) : savedpower;
@@ -379,7 +383,6 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     AIM_Initialize();
 
     // Spells should be loaded after pet is added to map, because in CheckCast is check on it
-    _LoadSpells();
     CleanupActionBar();                                     // remove unknown spells from action bar after load
 
     _LoadSpellCooldowns();
@@ -440,13 +443,7 @@ void Pet::SavePetToDB(PetSaveMode mode, Unit* owner /*= nullptr*/)
     {
         // reagents must be returned before save call
         if (mode == PET_SAVE_REAGENTS)
-        {
-            // Hunter Pets always save as current if dismissed or unsummoned due to range/etc.
-            if (getPetType() == HUNTER_PET)
-                mode = PET_SAVE_AS_CURRENT;
-            else
-                mode = PET_SAVE_NOT_IN_SLOT;
-        }
+            mode = PET_SAVE_NOT_IN_SLOT;
         // not save pet as current if another pet temporary unsummoned
         else if (mode == PET_SAVE_AS_CURRENT && pOwner->GetTemporaryUnsummonedPetNumber() &&
                  pOwner->GetTemporaryUnsummonedPetNumber() != m_charmInfo->GetPetNumber())
@@ -463,7 +460,7 @@ void Pet::SavePetToDB(PetSaveMode mode, Unit* owner /*= nullptr*/)
         uint32 curpower = GetPower(GetPowerType());
 
         // stable and not in slot saves
-        if (mode != PET_SAVE_AS_CURRENT)
+        if (mode != PET_SAVE_AS_CURRENT && getPetType() != HUNTER_PET)
             RemoveAllAuras();
 
         // save pet's data as one single transaction
@@ -1624,7 +1621,7 @@ void Pet::_LoadAuras(uint32 timediff)
             if (casterGuid != GetObjectGuid() && IsSingleTargetSpell(spellproto))
                 continue;
 
-            if (remaintime != -1 && !IsPositiveSpell(spellproto))
+            if (remaintime != -1)
             {
                 if (remaintime / IN_MILLISECONDS <= int32(timediff))
                     continue;
