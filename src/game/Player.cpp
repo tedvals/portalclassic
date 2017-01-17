@@ -19539,8 +19539,7 @@ void Player::UpdateRating(CombatRating cr)
 	int32 amount = m_baseRatingValue[cr];
 	if (amount < 0)
 		amount = 0;
-	SetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr, uint32(amount));
-
+	
 	bool affectStats = CanModifyStats();
 
 	switch (cr)

@@ -1648,8 +1648,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
             damageInfo->HitInfo |= HITINFO_CRITICALHIT;
             damageInfo->TargetState = VICTIMSTATE_NORMAL;
             damageInfo->procEx |= PROC_EX_CRITICAL_HIT;
-
-            CalculateCritAmount(damageInfo);
+            damageInfo->totalDamage = CalculateCritAmount(damageInfo);
             break;
         }
         case MELEE_HIT_PARRY:
@@ -3150,7 +3149,7 @@ float Unit::GetCritChance(const SpellEntry *entry, SpellSchoolMask schoolMask) c
     }
     // Add mod
     if (Player* modOwner = GetSpellModOwner())
-        modOwner->ApplySpellMod(entry->Id, SPELLMOD_RESIST_MISS_CHANCE, chance);
+        modOwner->ApplySpellMod(entry->Id, SPELLMOD_CRITICAL_CHANCE, chance);
     return chance;
 }
 
@@ -3334,7 +3333,7 @@ float Unit::GetHitChance(const SpellEntry *entry, SpellSchoolMask schoolMask) co
     }
     // Add mod
     if (Player* modOwner = GetSpellModOwner())
-        modOwner->ApplySpellMod(entry->Id, SPELLMOD_CRITICAL_CHANCE, chance);
+        modOwner->ApplySpellMod(entry->Id, SPELLMOD_RESIST_MISS_CHANCE, chance);
     return chance;
 }
 
@@ -6430,6 +6429,25 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 			{
 				if (pVictim->isInRoots())
 					DoneTotalMod *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
+				break;
+			}
+			case 8018: //Fading Light
+			{
+				if (GetTypeId() == TYPEID_PLAYER)
+				{
+					Unit::AuraList const& Fade = GetAurasByType(SPELL_AURA_MOD_TOTAL_THREAT);
+					// find most short by duration
+					for (Unit::AuraList::const_iterator i = Fade.begin(); i != Fade.end(); ++i)
+					{
+						if ((*i)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_PRIEST &&
+							// Fade 
+							((*i)->GetSpellProto()->SpellFamilyFlags & uint64(0x0000000000004000)))
+						{
+							DoneTotal += int32((*i)->GetModifierAmount(getLevel())*((Player*)this)->SpellBaseHealingBonusDone(SPELL_SCHOOL_MASK_HOLY));
+							break;
+						}
+					}					
+				}
 				break;
 			}
         }
