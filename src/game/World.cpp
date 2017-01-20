@@ -62,6 +62,7 @@
 #include "CharacterDatabaseCleaner.h"
 #include "CreatureLinkingMgr.h"
 #include "Weather.h"
+#include "LuaEngine.h"
 
 #include <algorithm>
 #include <mutex>
@@ -817,6 +818,10 @@ void World::LoadConfigSettings(bool reload)
 	setConfig(CONFIG_BOOL_RESISTANCE_PENALTY, "Custom.ResistancePenalty", false);
 
 	
+    setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", true);
+    if (reload)
+        sEluna->OnConfigLoad(reload);
+
     sLog.outString();
 }
 
@@ -907,6 +912,10 @@ void World::SetInitialWorldSettings()
     ///- Init highest guids before any guid using table loading to prevent using not initialized guids in some code.
     sObjectMgr.SetHighestGuids();                           // must be after packing instances
     sLog.outString();
+
+    ///- Initialize Lua Engine
+    sLog.outString("Initialize Eluna Lua Engine...");
+    Eluna::Initialize();
 
     sLog.outString("Loading Page Texts...");
     sObjectMgr.LoadPageTexts();
@@ -1295,6 +1304,11 @@ void World::SetInitialWorldSettings()
 
     PlayerbotMgr::SetInitialWorldSettings();
     //Get playerbot configuration file
+    ///- Run eluna scripts.
+    // in multithread foreach: run scripts
+    sEluna->RunScripts();
+    sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
+    sLog.outString();
 
     sLog.outString("---------------------------------------");
     sLog.outString("      CMANGOS: World initialized       ");
@@ -1412,6 +1426,9 @@ void World::Update(uint32 diff)
     sMapMgr.Update(diff);
     sBattleGroundMgr.Update(diff);
     sOutdoorPvPMgr.Update(diff);
+
+    ///- used by eluna
+    sEluna->OnWorldUpdate(diff);
 
     ///- Update groups with offline leaders
     if (m_timers[WUPDATE_GROUPS].Passed())
@@ -1769,6 +1786,8 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
         m_ShutdownTimer = time;
         ShutdownMsg(true);
     }
+    ///- Used by Eluna
+    sEluna->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
 }
 
 /// Display a shutdown message to the user(s)
@@ -1810,6 +1829,9 @@ void World::ShutdownCancel()
     SendServerMessage(msgid);
 
     DEBUG_LOG("Server %s cancelled.", (m_ShutdownMask & SHUTDOWN_MASK_RESTART ? "restart" : "shutdown"));
+
+    ///- Used by Eluna
+    sEluna->OnShutdownCancel();
 }
 
 void World::UpdateSessions(uint32 /*diff*/)

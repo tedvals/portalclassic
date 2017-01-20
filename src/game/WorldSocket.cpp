@@ -31,6 +31,7 @@
 #include "WorldSession.h"
 #include "Log.h"
 #include "DBCStores.h"
+#include "LuaEngine.h"
 
 #include <chrono>
 #include <functional>
@@ -59,9 +60,13 @@ WorldSocket::WorldSocket(boost::asio::io_service &service, std::function<void (S
       m_useExistingHeader(false), m_session(nullptr),m_seed(urand())
 {}
 
-void WorldSocket::SendPacket(const WorldPacket& pct, bool immediate)
+void WorldSocket::SendPacket(const WorldPacket& pkt, bool immediate)
 {
     if (IsClosed())
+        return;
+
+    WorldPacket pct = pkt;
+    if (!sEluna->OnPacketSend(m_session, pct))
         return;
 
     // Dump outgoing packet.
@@ -188,6 +193,8 @@ bool WorldSocket::ProcessIncomingData()
                     return false;
                 }
 
+                if (!sEluna->OnPacketReceive(m_session, *pct))
+                    return false;
                 return HandleAuthSession(*pct);
 
             case CMSG_PING:
@@ -206,6 +213,8 @@ bool WorldSocket::ProcessIncomingData()
                     return false;
                 }
 
+                if (!sEluna->OnPacketReceive(m_session, *pct))
+                    return false;
                 m_session->QueuePacket(std::move(pct));
 
                 return true;

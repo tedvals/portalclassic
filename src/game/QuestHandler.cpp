@@ -29,6 +29,7 @@
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
 #include "Group.h"
+#include "LuaEngine.h"
 
 // Playerbot mod:
 #include "playerbot/PlayerbotAI.h"
@@ -329,6 +330,9 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recv_data)
             }
 
             _player->SetQuestStatus(quest, QUEST_STATUS_NONE);
+
+            // used by eluna
+            sEluna->OnQuestAbandon(_player, quest);
         }
 
         _player->SetQuestSlot(slot, 0);
