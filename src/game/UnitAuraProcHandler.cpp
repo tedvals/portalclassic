@@ -663,7 +663,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 
                     CastSpell(this, 28682, TRIGGERED_OLD_TRIGGERED, castItem, triggeredByAura);
                     return (procEx & PROC_EX_CRITICAL_HIT) ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED; // charge update only at crit hits, no hidden cooldowns
-                }
+                }				
             }
             break;
         }
@@ -1261,6 +1261,38 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 
 					return SPELL_AURA_PROC_OK;
 				}
+				// Tidal Force
+				case 54906:
+				{
+					// last charge and crit
+					if (triggeredByAura->GetHolder()->GetAuraCharges() <= 1 && (procEx & PROC_EX_CRITICAL_HIT))
+					{
+						RemoveAurasDueToSpell(54907);       //-> remove Combustion auras
+						return SPELL_AURA_PROC_OK;          // charge counting (will removed)
+					}
+
+					CastSpell(this, 54907, TRIGGERED_OLD_TRIGGERED, castItem, triggeredByAura);
+					return (procEx & PROC_EX_CRITICAL_HIT) ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED; // charge update only at crit hits, no hidden cooldowns
+				}
+
+				// Telluric Waves
+				case 54908:
+				case 54909:
+				case 54910:
+				{
+					if (procEx & PROC_EX_CRITICAL_HIT)
+					{
+					
+						int32 critical_chance = int32(pVictim->GetCritChance(procSpell, GetSchoolMask(SPELL_SCHOOL_NATURE)));
+
+						pVictim->CastCustomSpell(pVictim, 54911, &critical_chance, nullptr, nullptr, true, castItem, triggeredByAura);
+						
+					}
+
+					
+					return SPELL_AURA_PROC_OK;
+				}
+
 				
             }
             break;

@@ -211,6 +211,10 @@ inline bool IsSpellMagePolymorph(uint32 spellid)
 {
     // Only mage polymorph bears hidden scripted regeneration
     const SpellEntry* entry = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+
+	if (!entry)
+		entry = sSpellStore.LookupEntry(spellid);
+
     return (entry && entry->SpellFamilyName == SPELLFAMILY_MAGE && (entry->SpellFamilyFlags & uint64(0x1000000)) && IsSpellHaveAura(entry, SPELL_AURA_MOD_CONFUSE));
 }
 
@@ -286,6 +290,9 @@ inline bool IsPassiveSpell(SpellEntry const* spellInfo)
 inline bool IsPassiveSpell(uint32 spellId)
 {
     const SpellEntry* entry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+	if (!entry)
+		entry = sSpellStore.LookupEntry(spellId);
+
     return (entry && IsPassiveSpell(entry));
 }
 
@@ -305,6 +312,9 @@ inline bool IsAutocastable(SpellEntry const* spellInfo)
 inline bool IsAutocastable(uint32 spellId)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellId);
+
     if (!spellInfo)
         return false;
     return IsAutocastable(spellInfo);
@@ -815,6 +825,15 @@ inline bool IsPositiveEffectTargetMode(const SpellEntry* entry, SpellEffectIndex
                         return false;
                 }
             }
+			else if (const SpellEntry* triggered = sSpellStore.LookupEntry(spellid))
+			{
+				for (uint32 i = EFFECT_INDEX_0; i < MAX_EFFECT_INDEX; ++i)
+				{
+					if (!IsPositiveEffectTargetMode(triggered, SpellEffectIndex(i), caster, target, true))
+						return false;
+				}
+			}
+
         }
         // For trigger effects target modes are inconsistent: we have invalid and coflicting ones
         // Let's try to ignore them completely
@@ -931,7 +950,12 @@ inline bool IsPositiveSpellTargetModeForSpecificTarget(uint32 spellId, uint8 eff
 {
     if (!spellId)
         return false;
-    return IsPositiveSpellTargetModeForSpecificTarget(sSpellTemplate.LookupEntry<SpellEntry>(spellId), effectMask, caster, target);
+
+	SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellId);
+
+    return IsPositiveSpellTargetModeForSpecificTarget(spellInfo, effectMask, caster, target);
 }
 
 inline bool IsPositiveSpellTargetMode(const SpellEntry* entry, const WorldObject* caster = nullptr, const WorldObject* target = nullptr)
@@ -950,7 +974,12 @@ inline bool IsPositiveSpellTargetMode(uint32 spellId, const WorldObject* caster,
 {
     if (!spellId)
         return false;
-    return IsPositiveSpellTargetMode(sSpellTemplate.LookupEntry<SpellEntry>(spellId), caster, target);
+
+	SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellId);
+
+    return IsPositiveSpellTargetMode(spellInfo, caster, target);
 }
 
 inline bool IsPositiveSpell(const SpellEntry* entry, const WorldObject* caster = nullptr, const WorldObject* target = nullptr)
@@ -969,7 +998,12 @@ inline bool IsPositiveSpell(uint32 spellId, const WorldObject* caster = nullptr,
 {
     if (!spellId)
         return false;
-    return IsPositiveSpell(sSpellTemplate.LookupEntry<SpellEntry>(spellId), caster, target);
+
+	SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellId);
+
+    return IsPositiveSpell(spellInfo, caster, target);
 }
 
 inline bool IsDispelSpell(SpellEntry const* spellInfo)
@@ -1094,7 +1128,11 @@ inline uint32 GetDispellMask(DispelType dispel)
 inline bool IsAuraAddedBySpell(uint32 auraType, uint32 spellId)
 {
     SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-    if (!spellproto) return false;
+    if (!spellproto) 		
+		spellproto = sSpellStore.LookupEntry(spellId);
+
+	if (!spellproto)
+		return false;
 
 	for (int i = 0; i < 3; i++)
 		if (spellproto->EffectApplyAuraName[i] == auraType)
@@ -1447,7 +1485,12 @@ inline bool IsSimilarExistingAuraStronger(const Unit* caster, uint32 spellid, co
 {
     if (!spellid)
         return false;
-    return IsSimilarExistingAuraStronger(caster, sSpellTemplate.LookupEntry<SpellEntry>(spellid), existing);
+
+	SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellid);
+
+    return IsSimilarExistingAuraStronger(caster, spellInfo, existing);
 }
 
 // Diminishing Returns interaction with spells
@@ -1765,6 +1808,8 @@ class SpellMgr
                 return ClassFamilyMask(itr->second);
             if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId))
                 return ClassFamilyMask(spellEntry->EffectItemType[effectId]);
+			else if (SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellId))
+				return ClassFamilyMask(spellEntry->EffectItemType[effectId]);
             return ClassFamilyMask();
         }
 

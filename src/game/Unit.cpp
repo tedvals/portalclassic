@@ -3176,6 +3176,31 @@ float Unit::GetCritTakenChance(SpellSchoolMask dmgSchoolMask, SpellDmgClass dmgC
 			break;
 		}
 		chance += GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
+
+		AuraList const& mOverrideClassScript = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+		for (AuraList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
+		{
+
+			switch ((*i)->GetModifier()->m_miscvalue)
+			{
+			case 8020: // Elemental Shields
+			{
+				Unit::AuraList const& Shield = GetAurasByType(SPELL_AURA_DUMMY);
+				for (Unit::AuraList::const_iterator i = Shield.begin(); i != Shield.end(); ++i)
+				{
+					if ((*i)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_SHAMAN &&
+						// Shields
+						((*i)->GetSpellProto()->SpellFamilyFlags & uint64(0x42000000400)))
+					{
+						chance += (*i)->GetModifierAmount(getLevel());
+						break;
+					}
+
+					break;
+				}
+			}
+			}
+		}
 	}
     return chance;
 }
@@ -4510,6 +4535,8 @@ void Unit::RemoveSingleAuraFromSpellAuraHolder(uint32 spellId, SpellEffectIndex 
 void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 stackAmount, ObjectGuid casterGuid, Unit* dispeller)
 {
 	SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+	if (!spellEntry)
+		spellEntry = sSpellStore.LookupEntry(spellId);
 
 	// Custom dispel case
 	// Unstable Affliction
@@ -6448,6 +6475,12 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 						}
 					}					
 				}
+				break;
+			}
+			case 8019: //Master Summoner
+			{
+				if ((GetTypeId() == TYPEID_PLAYER) && GetPet())
+					DoneTotalMod *=(((*i)->GetModifierAmount(getLevel()) + GetPet()->GetHealthPercent())/ 100.0f);
 				break;
 			}
         }
