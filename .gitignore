@@ -94,3 +94,5 @@ cmake_install.cmake
 /dep/lib/x64_Debug/libboost_program_options-vc140-mt-gd-1_60.lib
 /dep/lib/x64_Debug/libboost_date_time-vc140-mt-gd-1_60.lib
 /dep/lib/x64_release/libboost_thread-vc140-mt-gd-1_60.lib
+/dep/lib/x64_Debug/libboost_chrono-vc140-mt-gd-1_60.lib
+/dep/lib/x64_Debug/libboost_filesystem-vc140-mt-gd-1_60.lib
