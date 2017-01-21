@@ -44,10 +44,10 @@ struct boss_hazzarahAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiManaBurnTimer   = urand(4000, 10000);
-        m_uiSleepTimer      = urand(10000, 18000);
-        m_uiEarthShockTimer = urand(7000, 14000);
-        m_uiIllusionsTimer  = urand(10000, 18000);
+        m_uiManaBurnTimer   = Randomize(urand(4000, 10000));
+        m_uiSleepTimer      = Randomize(urand(10000, 18000));
+        m_uiEarthShockTimer = Randomize(urand(7000, 14000));
+        m_uiIllusionsTimer  = Randomize(urand(10000, 18000));
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -67,7 +67,7 @@ struct boss_hazzarahAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CHAIN_BURN, SELECT_FLAG_POWER_MANA))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_CHAIN_BURN) == CAST_OK)
-                    m_uiManaBurnTimer = urand(8000, 16000);
+                    m_uiManaBurnTimer = Randomize(urand(8000, 16000));
             }
         }
         else
@@ -79,7 +79,7 @@ struct boss_hazzarahAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SLEEP) == CAST_OK)
-                    m_uiSleepTimer = urand(12000, 20000);
+                    m_uiSleepTimer = Randomize(urand(12000, 20000));
             }
         }
         else
@@ -89,7 +89,7 @@ struct boss_hazzarahAI : public ScriptedAI
         if (m_uiEarthShockTimer < uiDiff)
         {
 			if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTH_SHOCK) == CAST_OK)
-                m_uiEarthShockTimer = urand(9000, 16000);
+                m_uiEarthShockTimer = Randomize(urand(9000, 16000));
         }
         else
             m_uiEarthShockTimer -= uiDiff;
@@ -110,7 +110,7 @@ struct boss_hazzarahAI : public ScriptedAI
 				}
 			}
 
-			m_uiIllusionsTimer = urand(15000, 25000);
+			m_uiIllusionsTimer = Randomize(urand(15000, 25000));
 		}
 		else
 			m_uiIllusionsTimer -= uiDiff;

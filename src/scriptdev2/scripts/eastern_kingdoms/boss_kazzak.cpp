@@ -62,12 +62,12 @@ struct boss_kazzakAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiShadowVolleyTimer       = urand(3000, 12000);
-        m_uiCleaveTimer             = 7000;
-        m_uiThunderClapTimer        = urand(16000, 20000);
-        m_uiVoidBoltTimer           = 30000;
-        m_uiMarkOfKazzakTimer       = 25000;
-        m_uiTwistedReflectionTimer  = 33000;
+        m_uiShadowVolleyTimer       = Randomize(urand(3000, 12000));
+        m_uiCleaveTimer             = Randomize(7000);
+        m_uiThunderClapTimer        = Randomize(urand(16000, 20000));
+        m_uiVoidBoltTimer           = Randomize(30000);
+        m_uiMarkOfKazzakTimer       = Randomize(25000);
+        m_uiTwistedReflectionTimer  = Randomize(33000);
         m_uiSupremeTimer            = 3 * MINUTE * IN_MILLISECONDS;
     }
 
@@ -124,7 +124,7 @@ struct boss_kazzakAI : public ScriptedAI
             if (m_uiShadowVolleyTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_VOLLEY) == CAST_OK)
-                    m_uiShadowVolleyTimer = urand(5000, 30000);
+                    m_uiShadowVolleyTimer = Randomize(urand(5000, 30000));
             }
             else
                 m_uiShadowVolleyTimer -= uiDiff;
@@ -133,7 +133,7 @@ struct boss_kazzakAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = urand(8000, 12000);
+                m_uiCleaveTimer = Randomize(urand(8000, 12000));
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -141,7 +141,7 @@ struct boss_kazzakAI : public ScriptedAI
         if (m_uiThunderClapTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_THUNDERCLAP) == CAST_OK)
-                m_uiThunderClapTimer = urand(10000, 14000);
+                m_uiThunderClapTimer = Randomize(urand(10000, 14000));
         }
         else
             m_uiThunderClapTimer -= uiDiff;
@@ -149,7 +149,7 @@ struct boss_kazzakAI : public ScriptedAI
         if (m_uiVoidBoltTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_VOIDBOLT) == CAST_OK)
-                m_uiVoidBoltTimer = urand(15000, 28000);
+                m_uiVoidBoltTimer = Randomize(urand(15000, 28000));
         }
         else
             m_uiVoidBoltTimer -= uiDiff;
@@ -159,7 +159,7 @@ struct boss_kazzakAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MARK_OF_KAZZAK, SELECT_FLAG_POWER_MANA))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_MARK_OF_KAZZAK) == CAST_OK)
-                    m_uiMarkOfKazzakTimer = 20000;
+                    m_uiMarkOfKazzakTimer = Randomize(20000);
             }
         }
         else
@@ -170,7 +170,7 @@ struct boss_kazzakAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_TWISTEDREFLECTION) == CAST_OK)
-                    m_uiTwistedReflectionTimer = 15000;
+                    m_uiTwistedReflectionTimer = Randomize(15000);
             }
         }
         else

@@ -108,9 +108,9 @@ struct boss_mandokirAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiWatchTimer          = 33000;
-        m_uiCleaveTimer         = 7000;
-        m_uiWhirlwindTimer      = 20000;
+        m_uiWatchTimer          = Randomize(33000);
+        m_uiCleaveTimer         = Randomize(7000);
+        m_uiWhirlwindTimer      = Randomize(20000);
         m_uiFearTimer           = 1000;
         m_uiMortalStrikeTimer   = 1000;
         m_uiCheckTimer          = 1000;
@@ -275,7 +275,7 @@ struct boss_mandokirAI : public ScriptedAI
                 }
             }
 
-            m_uiWatchTimer = 20000;
+            m_uiWatchTimer = Randomize(20000);
         }
         else
             m_uiWatchTimer -= uiDiff;
@@ -286,7 +286,7 @@ struct boss_mandokirAI : public ScriptedAI
             if (m_uiCleaveTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                    m_uiCleaveTimer = 7000;
+                    m_uiCleaveTimer = Randomize(7000);
             }
             else
                 m_uiCleaveTimer -= uiDiff;
@@ -295,7 +295,7 @@ struct boss_mandokirAI : public ScriptedAI
             if (m_uiWhirlwindTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_WHIRLWIND) == CAST_OK)
-                    m_uiWhirlwindTimer = 18000;
+                    m_uiWhirlwindTimer = Randomize(18000);
             }
             else
                 m_uiWhirlwindTimer -= uiDiff;
@@ -328,7 +328,7 @@ struct boss_mandokirAI : public ScriptedAI
                 if (m_uiMortalStrikeTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
-                        m_uiMortalStrikeTimer = 15000;
+                        m_uiMortalStrikeTimer = Randomize(15000);
                 }
                 else
                     m_uiMortalStrikeTimer -= uiDiff;
@@ -348,7 +348,7 @@ struct mob_ohganAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiSunderArmorTimer = 5000;
+        m_uiSunderArmorTimer = Randomize(5000);
     }
 
     void KilledUnit(Unit* pVictim) override
@@ -372,7 +372,7 @@ struct mob_ohganAI : public ScriptedAI
         if (m_uiSunderArmorTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDERARMOR) == CAST_OK)
-                m_uiSunderArmorTimer = urand(10000, 15000);
+                m_uiSunderArmorTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiSunderArmorTimer -= uiDiff;

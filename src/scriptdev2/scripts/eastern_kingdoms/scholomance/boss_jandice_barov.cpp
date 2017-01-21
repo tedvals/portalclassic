@@ -40,9 +40,9 @@ struct boss_jandicebarovAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiCurseOfBloodTimer = 5000;
-        m_uiIllusionTimer = 15000;
-        m_uiBanishTimer = urand(9000, 13000);
+        m_uiCurseOfBloodTimer = Randomize(5000);
+        m_uiIllusionTimer = Randomize(15000);
+        m_uiBanishTimer = Randomize(urand(9000, 13000));
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -63,7 +63,7 @@ struct boss_jandicebarovAI : public ScriptedAI
         if (m_uiCurseOfBloodTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_CURSE_OF_BLOOD) == CAST_OK)
-                m_uiCurseOfBloodTimer = urand(30000, 35000);
+                m_uiCurseOfBloodTimer = Randomize(urand(30000, 35000));
         }
         else
             m_uiCurseOfBloodTimer -= uiDiff;
@@ -74,7 +74,7 @@ struct boss_jandicebarovAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_BANISH) == CAST_OK)
-                    m_uiBanishTimer = urand(17000, 21000);
+                    m_uiBanishTimer = Randomize(urand(17000, 21000));
             }
         }
         else
@@ -84,7 +84,7 @@ struct boss_jandicebarovAI : public ScriptedAI
         if (m_uiIllusionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSIONS) == CAST_OK)
-                m_uiIllusionTimer = 25000;
+                m_uiIllusionTimer = Randomize(25000);
         }
         else
             m_uiIllusionTimer -= uiDiff;

@@ -60,10 +60,10 @@ struct boss_loathebAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiPoisonAuraTimer = 5000;
+        m_uiPoisonAuraTimer = Randomize(5000);
         m_uiCorruptedMindTimer = 4000;
         m_uiRemoveCurseTimer = 2000;
-        m_uiInevitableDoomTimer = MINUTE * 2 * IN_MILLISECONDS;
+        m_uiInevitableDoomTimer = Randomize(MINUTE * 2 * IN_MILLISECONDS);
         m_uiSummonTimer = 12000;
         // m_uiBerserkTimer = MINUTE*12*IN_MILLISECONDS;    // not used
         m_uiCorruptedMindCount = 0;
@@ -114,7 +114,7 @@ struct boss_loathebAI : public ScriptedAI
         if (m_uiInevitableDoomTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_INEVITABLE_DOOM) == CAST_OK)
-                m_uiInevitableDoomTimer = (m_uiCorruptedMindCount <= 5) ? 30000 : 15000;
+                m_uiInevitableDoomTimer = Randomize((m_uiCorruptedMindCount <= 5) ? 30000 : 15000);
         }
         else
             m_uiInevitableDoomTimer -= uiDiff;
@@ -125,7 +125,7 @@ struct boss_loathebAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_CORRUPTED_MIND) == CAST_OK)
             {
                 ++m_uiCorruptedMindCount;
-                m_uiCorruptedMindTimer = 60000;
+                m_uiCorruptedMindTimer = Randomize(60000);
             }
         }
         else
@@ -144,7 +144,7 @@ struct boss_loathebAI : public ScriptedAI
         if (m_uiPoisonAuraTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_POISON_AURA) == CAST_OK)
-                m_uiPoisonAuraTimer = 12000;
+                m_uiPoisonAuraTimer = Randomize(12000);
         }
         else
             m_uiPoisonAuraTimer -= uiDiff;
@@ -153,7 +153,7 @@ struct boss_loathebAI : public ScriptedAI
         if (m_uiRemoveCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_REMOVE_CURSE) == CAST_OK)
-                m_uiRemoveCurseTimer = 30000;
+                m_uiRemoveCurseTimer = Randomize(30000);
         }
         else
             m_uiRemoveCurseTimer -= uiDiff;

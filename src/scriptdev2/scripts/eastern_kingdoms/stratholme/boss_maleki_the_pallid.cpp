@@ -42,10 +42,10 @@ struct boss_maleki_the_pallidAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiDrainManaTimer  = 30000;
+        m_uiDrainManaTimer  = Randomize(30000);
         m_uiFrostboltTimer  = 0;
-        m_uiIceTombTimer    = 15000;
-        m_uiDrainLifeTimer  = 20000;
+        m_uiIceTombTimer    = Randomize(15000);
+        m_uiDrainLifeTimer  = Randomize(20000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -71,7 +71,7 @@ struct boss_maleki_the_pallidAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_ICE_TOMB) == CAST_OK)
-                    m_uiIceTombTimer = urand(15000, 20000);
+                    m_uiIceTombTimer = Randomize(urand(15000, 20000));
             }
         }
         else
@@ -83,7 +83,7 @@ struct boss_maleki_the_pallidAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_DRAIN_LIFE) == CAST_OK)
-                    m_uiDrainLifeTimer = urand(15000, 20000);
+                    m_uiDrainLifeTimer = Randomize(urand(15000, 20000));
             }
         }
         else
@@ -95,7 +95,7 @@ struct boss_maleki_the_pallidAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_MANA, SELECT_FLAG_POWER_MANA))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_DRAIN_MANA) == CAST_OK)
-                    m_uiDrainManaTimer = urand(20000, 30000);
+                    m_uiDrainManaTimer = Randomize(urand(20000, 30000));
             }
         }
         else

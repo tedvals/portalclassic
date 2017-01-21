@@ -57,8 +57,8 @@ struct boss_razuviousAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiUnbalancingStrikeTimer = 30000;                 // 30 seconds
-        m_uiDisruptingShoutTimer   = 25000;                 // 25 seconds               
+        m_uiUnbalancingStrikeTimer = Randomize(30000);                 // 30 seconds
+        m_uiDisruptingShoutTimer   = Randomize(25000);                 // 25 seconds               
     }
 
     void KilledUnit(Unit* /*Victim*/) override
@@ -112,7 +112,7 @@ struct boss_razuviousAI : public ScriptedAI
         if (m_uiUnbalancingStrikeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_UNBALANCING_STRIKE) == CAST_OK)
-                m_uiUnbalancingStrikeTimer = 30000;
+                m_uiUnbalancingStrikeTimer = Randomize(30000);
         }
         else
             m_uiUnbalancingStrikeTimer -= uiDiff;
@@ -121,7 +121,7 @@ struct boss_razuviousAI : public ScriptedAI
         if (m_uiDisruptingShoutTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_DISRUPTING_SHOUT) == CAST_OK)
-                m_uiDisruptingShoutTimer = 25000;
+                m_uiDisruptingShoutTimer = Randomize(25000);
 
             // TODO need core support to make this yells happen only when spell Disrupting Shout hit a target
             // For now, Razuvious will yell it at each cast

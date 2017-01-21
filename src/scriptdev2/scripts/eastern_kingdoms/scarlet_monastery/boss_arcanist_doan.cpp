@@ -47,9 +47,9 @@ struct boss_arcanist_doanAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiPolymorphTimer       = 15000;
-        m_uiSilenceTimer         = 7500;
-        m_uiArcaneExplosionTimer = urand(1000, 3000);
+        m_uiPolymorphTimer       = Randomize(15000);
+        m_uiSilenceTimer         = Randomize(7500);
+        m_uiArcaneExplosionTimer = Randomize(urand(1000, 3000));
         m_uiDetonationTimer      = 0;
         bShielded                = false;
     }
@@ -97,7 +97,7 @@ struct boss_arcanist_doanAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_POLYMORPH) == CAST_OK)
-                    m_uiPolymorphTimer = 20000;
+                    m_uiPolymorphTimer = Randomize(20000);
             }
         }
         else
@@ -107,7 +107,7 @@ struct boss_arcanist_doanAI : public ScriptedAI
         if (m_uiSilenceTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SILENCE) == CAST_OK)
-                m_uiSilenceTimer = urand(15000, 22000);
+                m_uiSilenceTimer = Randomize(urand(15000, 22000));
         }
         else
             m_uiSilenceTimer -= uiDiff;
@@ -116,7 +116,7 @@ struct boss_arcanist_doanAI : public ScriptedAI
         if (m_uiArcaneExplosionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_ARCANE_EXPLOSION) == CAST_OK)
-                m_uiArcaneExplosionTimer = urand(2500, 8500);
+                m_uiArcaneExplosionTimer = Randomize(urand(2500, 8500));
         }
         else
             m_uiArcaneExplosionTimer -= uiDiff;

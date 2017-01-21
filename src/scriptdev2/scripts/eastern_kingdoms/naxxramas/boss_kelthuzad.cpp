@@ -120,12 +120,12 @@ struct boss_kelthuzadAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiFrostBoltTimer       = urand(1000, 60000);       // It won't be more than a minute without cast it
-        m_uiFrostBoltNovaTimer   = 15000;                    // Cast every 15 seconds
-        m_uiChainsTimer          = urand(60000, 120000);     // Cast every 60 - 120 seconds
-        m_uiManaDetonationTimer  = 20000;                    // Seems to cast about every 20 seconds
-        m_uiShadowFissureTimer   = urand(10000, 12000);      // Cast every 10 - 12 seconds
-        m_uiFrostBlastTimer      = urand(30000, 40000);      // Cast every 30 - 40 seconds
+        m_uiFrostBoltTimer       = Randomize(urand(1000, 60000));       // It won't be more than a minute without cast it
+        m_uiFrostBoltNovaTimer   = Randomize(15000);                    // Cast every 15 seconds
+        m_uiChainsTimer          = Randomize(urand(60000, 120000));     // Cast every 60 - 120 seconds
+        m_uiManaDetonationTimer  = Randomize(20000);                    // Seems to cast about every 20 seconds
+        m_uiShadowFissureTimer   = Randomize(urand(10000, 12000));      // Cast every 10 - 12 seconds
+        m_uiFrostBlastTimer      = Randomize(urand(30000, 40000));      // Cast every 30 - 40 seconds
         m_uiGuardiansTimer       = 5000;                     // 5 seconds for summoning each Guardian of Icecrown in phase 3
         m_uiLichKingAnswerTimer  = 4000;
         m_uiGuardiansCount       = 0;
@@ -435,7 +435,7 @@ struct boss_kelthuzadAI : public ScriptedAI
             if (m_uiFrostBoltTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROST_BOLT) == CAST_OK)
-                    m_uiFrostBoltTimer = urand(1000, 60000);
+                    m_uiFrostBoltTimer = Randomize(urand(1000, 60000));
             }
             else
                 m_uiFrostBoltTimer -= uiDiff;
@@ -443,7 +443,7 @@ struct boss_kelthuzadAI : public ScriptedAI
             if (m_uiFrostBoltNovaTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROST_BOLT_NOVA) == CAST_OK)
-                    m_uiFrostBoltNovaTimer = 15000;
+                    m_uiFrostBoltNovaTimer = Randomize(15000);
             }
             else
                 m_uiFrostBoltNovaTimer -= uiDiff;
@@ -457,7 +457,7 @@ struct boss_kelthuzadAI : public ScriptedAI
                         if (urand(0, 1))
                             DoScriptText(SAY_SPECIAL1_MANA_DET, m_creature);
 
-                        m_uiManaDetonationTimer = 20000;
+                        m_uiManaDetonationTimer = Randomize(20000);
                     }
                 }
             }
@@ -473,7 +473,7 @@ struct boss_kelthuzadAI : public ScriptedAI
                         if (urand(0, 1))
                             DoScriptText(SAY_SPECIAL3_MANA_DET, m_creature);
 
-                        m_uiShadowFissureTimer = urand(10000, 12000);
+                        m_uiShadowFissureTimer = Randomize(urand(10000, 12000));
                     }
                 }
             }
@@ -487,7 +487,7 @@ struct boss_kelthuzadAI : public ScriptedAI
                     if (urand(0, 1))
                         DoScriptText(SAY_FROST_BLAST, m_creature);
 
-                    m_uiFrostBlastTimer = urand(30000, 40000);
+                    m_uiFrostBlastTimer = Randomize(urand(30000, 40000));
                 }
             }
             else
@@ -499,7 +499,7 @@ struct boss_kelthuzadAI : public ScriptedAI
                 {
                     DoScriptText(urand(0, 1) ? SAY_CHAIN1 : SAY_CHAIN2, m_creature);
 
-                    m_uiChainsTimer = urand(60000, 120000);
+                    m_uiChainsTimer = Randomize(urand(60000, 120000));
                 }
             }
             else

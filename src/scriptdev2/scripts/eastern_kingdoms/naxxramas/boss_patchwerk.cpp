@@ -59,7 +59,7 @@ struct boss_patchwerkAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiHatefulStrikeTimer = 1000;                      // 1 second
+        m_uiHatefulStrikeTimer = Randomize(1000);                      // 1 second
         m_uiBerserkTimer = MINUTE * 7 * IN_MILLISECONDS;    // 7 minutes
         m_uiBerserkSlimeBoltTimer = m_uiBerserkTimer + 30 * IN_MILLISECONDS; // Slime Bolt Enrage
         m_uiSlimeboltTimer = 10000;
@@ -144,7 +144,7 @@ struct boss_patchwerkAI : public ScriptedAI
         if (m_uiHatefulStrikeTimer < uiDiff)
         {
             DoHatefulStrike();
-            m_uiHatefulStrikeTimer = 1000;
+            m_uiHatefulStrikeTimer = Randomize(1000);
         }
         else
             m_uiHatefulStrikeTimer -= uiDiff;

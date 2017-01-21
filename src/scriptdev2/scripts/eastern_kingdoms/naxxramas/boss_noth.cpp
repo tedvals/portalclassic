@@ -106,7 +106,7 @@ struct boss_nothAI : public ScriptedAI
         m_uiPhaseSub = PHASE_GROUND;
         m_uiPhaseTimer = 90000;
 
-        m_uiBlinkTimer = 25000;
+        m_uiBlinkTimer = Randomize(25000);
         m_uiCurseTimer = 4000;
         m_uiSummonTimer = 12000;
     }
@@ -195,7 +195,7 @@ struct boss_nothAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature, auiSpellBlink[urand(0, 3)]) == CAST_OK)
                 {
                     DoResetThreat();
-                    m_uiBlinkTimer = 25000;
+                    m_uiBlinkTimer = Randomize(25000);
                 }
             }
             else
@@ -204,7 +204,7 @@ struct boss_nothAI : public ScriptedAI
             if (m_uiCurseTimer < uiDiff)
             {
                 DoCastSpellIfCan(m_creature, SPELL_CURSE_PLAGUEBRINGER);
-                m_uiCurseTimer = 28000;
+                m_uiCurseTimer = Randomize(28000);
             }
             else
                 m_uiCurseTimer -= uiDiff;
@@ -230,7 +230,7 @@ struct boss_nothAI : public ScriptedAI
                     DoCastSpellIfCan(m_creature, SPELL_SUMMON_WARRIOR_THREE, CAST_TRIGGERED);
                 }
 
-                m_uiSummonTimer = 30000;
+                m_uiSummonTimer = Randomize(30000);
             }
             else
                 m_uiSummonTimer -= uiDiff;
@@ -305,7 +305,7 @@ struct boss_nothAI : public ScriptedAI
                     }
                 }
 
-                m_uiSummonTimer = 30000;
+                m_uiSummonTimer = Randomize(30000);
             }
             else
                 m_uiSummonTimer -= uiDiff;

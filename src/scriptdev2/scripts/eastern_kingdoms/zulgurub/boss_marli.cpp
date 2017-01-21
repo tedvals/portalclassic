@@ -74,10 +74,10 @@ struct boss_marliAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiPoisonVolleyTimer   = 15000;
-        m_uiSpawnSpiderTimer    = 55000;
-        m_uiTransformTimer      = 60000;
-        m_uiDrainLifeTimer      = 30000;
+        m_uiPoisonVolleyTimer   = Randomize(15000);
+        m_uiSpawnSpiderTimer    = Randomize(55000);
+        m_uiTransformTimer      = Randomize(60000);
+        m_uiDrainLifeTimer      = Randomize(30000);
         m_uiCorrosivePoisonTimer = 1000;
         m_uiWebsTimer           = 5000;
         m_uiTrashTimer          = 5000;
@@ -117,7 +117,7 @@ struct boss_marliAI : public ScriptedAI
             if (m_uiPoisonVolleyTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_POISON_VOLLEY) == CAST_OK)
-                    m_uiPoisonVolleyTimer = urand(10000, 20000);
+                    m_uiPoisonVolleyTimer = Randomize(urand(10000, 20000));
             }
             else
                 m_uiPoisonVolleyTimer -= uiDiff;
@@ -127,7 +127,7 @@ struct boss_marliAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_DRAIN_LIFE) == CAST_OK)
-                        m_uiDrainLifeTimer = urand(20000, 50000);
+                        m_uiDrainLifeTimer = Randomize(urand(20000, 50000));
                 }
             }
             else
@@ -144,7 +144,7 @@ struct boss_marliAI : public ScriptedAI
                             DoScriptText(SAY_SPIDER_SPAWN, m_creature);
 
                         pEgg->Use(m_creature);
-                        m_uiSpawnSpiderTimer = 60000;
+                        m_uiSpawnSpiderTimer = Randomize(60000);
                     }
                 }
             }
@@ -158,7 +158,7 @@ struct boss_marliAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_ENVELOPING_WEBS) == CAST_OK)
                 {
-                    m_uiWebsTimer = urand(15000, 20000);
+                    m_uiWebsTimer = Randomize(urand(15000, 20000));
                     m_uiChargeTimer = 1000;
                 }
             }
@@ -188,7 +188,7 @@ struct boss_marliAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_CORROSIVE_POISON) == CAST_OK)
-                        m_uiCorrosivePoisonTimer = urand(25000, 35000);
+                        m_uiCorrosivePoisonTimer = Randomize(urand(25000, 35000));
                 }
             }
             else
@@ -204,7 +204,7 @@ struct boss_marliAI : public ScriptedAI
                 {
                     DoScriptText(SAY_TRANSFORM, m_creature);
                     DoResetThreat();
-                    m_uiTransformTimer = 60000;
+                    m_uiTransformTimer = Randomize(60000);
                     m_uiWebsTimer = 5000;
                     m_bIsInPhaseTwo = true;
                 }
@@ -216,7 +216,7 @@ struct boss_marliAI : public ScriptedAI
                     DoScriptText(SAY_TRANSFORM_BACK, m_creature);
                     m_creature->RemoveAurasDueToSpell(SPELL_SPIDER_FORM);
                     m_bIsInPhaseTwo = false;
-                    m_uiTransformTimer = 60000;
+                    m_uiTransformTimer = Randomize(60000);
                 }
             }
         }
@@ -226,7 +226,7 @@ struct boss_marliAI : public ScriptedAI
         if (m_uiTrashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRASH) == CAST_OK)
-                m_uiTrashTimer = urand(10000, 20000);
+                m_uiTrashTimer = Randomize(urand(10000, 20000));
         }
         else
             m_uiTrashTimer -= uiDiff;

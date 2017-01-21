@@ -83,14 +83,14 @@ struct boss_heiganAI : public ScriptedAI
         m_uiEruptionTimer = m_uiPhase == PHASE_GROUND ? 15000 : 7500;
         m_uiDisruptionTimer = 5000;
         m_uiStartChannelingTimer = 1000;
-        m_uiPhaseTimer = m_uiPhase == PHASE_GROUND ? 90000 : 45000;
-        m_uiTeleportTimer = 60000;
+        m_uiPhaseTimer = m_uiPhase == Randomize(PHASE_GROUND ? 90000 : 45000);
+        m_uiTeleportTimer = Randomize(60000);
     }
 
     void Reset() override
     {
         m_uiPhase = PHASE_GROUND;
-        m_uiTauntTimer = urand(20000, 60000);               // TODO, find information
+        m_uiTauntTimer = Randomize(urand(20000, 60000));               // TODO, find information
         ResetPhase();
     }
 
@@ -153,7 +153,7 @@ struct boss_heiganAI : public ScriptedAI
             if (m_uiFeverTimer < uiDiff)
             {
                 DoCastSpellIfCan(m_creature, SPELL_DECREPIT_FEVER);
-                m_uiFeverTimer = 21000;
+                m_uiFeverTimer = Randomize(21000);
             }
             else
                 m_uiFeverTimer -= uiDiff;
@@ -162,7 +162,7 @@ struct boss_heiganAI : public ScriptedAI
             if (m_uiDisruptionTimer < uiDiff)
             {
                 DoCastSpellIfCan(m_creature, SPELL_DISRUPTION);
-                m_uiDisruptionTimer = 10000;
+                m_uiDisruptionTimer = Randomize(10000);
             }
             else
                 m_uiDisruptionTimer -= uiDiff;
@@ -180,7 +180,7 @@ struct boss_heiganAI : public ScriptedAI
                     }
                 }
 
-                m_uiTeleportTimer = 70000;
+                m_uiTeleportTimer = Randomize(70000);
             }
             else
                 m_uiTeleportTimer -= uiDiff;
@@ -226,7 +226,7 @@ struct boss_heiganAI : public ScriptedAI
                 case 2: DoScriptText(SAY_TAUNT3, m_creature); break;
                 case 3: DoScriptText(SAY_TAUNT4, m_creature); break;
             }
-            m_uiTauntTimer = urand(20000, 70000);
+            m_uiTauntTimer = Randomize(urand(20000, 70000));
         }
         else
             m_uiTauntTimer -= uiDiff;

@@ -71,13 +71,13 @@ struct boss_venoxisAI : public ScriptedAI
 
 	void Reset() override
 	{
-		m_uiHolyWrathTimer = 40000;
-		m_uiVenomSpitTimer = 5500;
-		m_uiRenewTimer = 30000;
+		m_uiHolyWrathTimer = Randomize(40000);
+		m_uiVenomSpitTimer = Randomize(5500);
+		m_uiRenewTimer = Randomize(30000);
 		m_uiPoisonCloudTimer = 2000;
-		m_uiHolySpellTimer = 10000;
-		m_uiDispellTimer = 35000;
-		m_uiTrashTimer = 5000;
+		m_uiHolySpellTimer = Randomize(10000);
+		m_uiDispellTimer = Randomize(35000);
+		m_uiTrashTimer = Randomize(5000);
 		m_uiSUMMONPARASITCSERPENTTimer = 15000;
 
 		m_bPhaseTwo = false;
@@ -109,7 +109,7 @@ struct boss_venoxisAI : public ScriptedAI
 			if (m_uiDispellTimer < uiDiff)
 			{
 				if (DoCastSpellIfCan(m_creature, SPELL_DISPELL) == CAST_OK)
-					m_uiDispellTimer = urand(15000, 30000);
+					m_uiDispellTimer = Randomize(urand(15000, 30000));
 			}
 			else
 				m_uiDispellTimer -= uiDiff;
@@ -117,7 +117,7 @@ struct boss_venoxisAI : public ScriptedAI
 			if (m_uiRenewTimer < uiDiff)
 			{
 				if (DoCastSpellIfCan(m_creature, SPELL_RENEW) == CAST_OK)
-					m_uiRenewTimer = urand(20000, 30000);
+					m_uiRenewTimer = Randomize(urand(20000, 30000));
 			}
 			else
 				m_uiRenewTimer -= uiDiff;
@@ -125,7 +125,7 @@ struct boss_venoxisAI : public ScriptedAI
 			if (m_uiHolyWrathTimer < uiDiff)
 			{
 				if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_WRATH) == CAST_OK)
-					m_uiHolyWrathTimer = urand(15000, 25000);
+					m_uiHolyWrathTimer = Randomize(urand(15000, 25000));
 			}
 			else
 				m_uiHolyWrathTimer -= uiDiff;
@@ -155,7 +155,7 @@ struct boss_venoxisAI : public ScriptedAI
 						DoCastSpellIfCan(pTarget, SPELL_HOLY_FIRE);
 				}
 
-				m_uiHolySpellTimer = urand(4000, 8000);
+				m_uiHolySpellTimer = Randomize(urand(4000, 8000));
 			}
 			else
 				m_uiHolySpellTimer -= uiDiff;
@@ -196,7 +196,7 @@ struct boss_venoxisAI : public ScriptedAI
 				if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
 				{
 					if (DoCastSpellIfCan(pTarget, SPELL_VENOMSPIT) == CAST_OK)
-						m_uiVenomSpitTimer = urand(15000, 20000);
+						m_uiVenomSpitTimer = Randomize(urand(15000, 20000));
 				}
 			}
 			else
@@ -208,7 +208,7 @@ struct boss_venoxisAI : public ScriptedAI
 		if (m_uiTrashTimer < uiDiff)
 		{
 			if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRASH) == CAST_OK)
-				m_uiTrashTimer = urand(10000, 20000);
+				m_uiTrashTimer = Randomize(urand(10000, 20000));
 		}
 		else
 			m_uiTrashTimer -= uiDiff;

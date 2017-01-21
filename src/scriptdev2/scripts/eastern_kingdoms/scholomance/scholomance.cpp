@@ -52,9 +52,9 @@ struct npc_spectral_tutorAI : public ScriptedAI
     void Reset() override
     {
         m_uiProjEndTimer    = 0;
-        m_uiManaBurnTimer   = urand(4000, 19000);
+        m_uiManaBurnTimer   = Randomize(urand(4000, 19000));
         m_uiSilenceTimer    = urand(0, 3000);
-        m_uiProjectionTimer = urand(12000, 13000);
+        m_uiProjectionTimer = Randomize(urand(12000, 13000));
     }
 
     void EnterEvadeMode() override
@@ -87,7 +87,7 @@ struct npc_spectral_tutorAI : public ScriptedAI
         if (m_uiManaBurnTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MANA_BURN) == CAST_OK)
-                m_uiManaBurnTimer = urand(9000, 26000);
+                m_uiManaBurnTimer = Randomize(urand(9000, 26000));
         }
         else
             m_uiManaBurnTimer -= uiDiff;
@@ -95,7 +95,7 @@ struct npc_spectral_tutorAI : public ScriptedAI
         if (m_uiSilenceTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SILENCE) == CAST_OK)
-                m_uiSilenceTimer = urand(12000, 26000);
+                m_uiSilenceTimer = Randomize(urand(12000, 26000));
         }
         else
             m_uiSilenceTimer -= uiDiff;
@@ -106,7 +106,7 @@ struct npc_spectral_tutorAI : public ScriptedAI
             {
                 DoCastSpellIfCan(m_creature, SPELL_IMAGE_PROJECTION_SUMMON, CAST_TRIGGERED);
                 m_uiProjEndTimer = 1000;
-                m_uiProjectionTimer = urand(18000, 25000);
+                m_uiProjectionTimer = Randomize(urand(18000, 25000));
             }
         }
         else

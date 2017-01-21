@@ -90,16 +90,16 @@ struct boss_jeklikAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiChargeTimer         = 20000;
-        m_uiSwoopTimer          = 5000;
-        m_uiSonicBurstTimer     = 8000;
-        m_uiSpawnBatsTimer      = 50000;
-        m_uiShadowWordPainTimer = 6000;
-        m_uiMindFlayTimer       = 11000;
-        m_uiChainMindFlayTimer  = 26000;
-        m_uiGreaterHealTimer    = 20000;
-        m_uiFlyingBatsTimer     = 10000;
-		m_uiPSYHIC_SCREAMTimer  = 13000;
+        m_uiChargeTimer         = Randomize(20000);
+        m_uiSwoopTimer          = Randomize(5000);
+        m_uiSonicBurstTimer     = Randomize(8000);
+        m_uiSpawnBatsTimer      = Randomize(50000);
+        m_uiShadowWordPainTimer = Randomize(6000);
+        m_uiMindFlayTimer       = Randomize(11000);
+        m_uiChainMindFlayTimer  = Randomize(26000);
+        m_uiGreaterHealTimer    = Randomize(20000);
+        m_uiFlyingBatsTimer     = Randomize(10000);
+		m_uiPSYHIC_SCREAMTimer  = Randomize(13000);
         m_bIsPhaseOne           = true;
 		
 
@@ -211,7 +211,7 @@ struct boss_jeklikAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_CHARGE) == CAST_OK)
-                        m_uiChargeTimer = urand(15000, 30000);
+                        m_uiChargeTimer = Randomize(urand(15000, 30000));
                 }
             }
             else
@@ -220,7 +220,7 @@ struct boss_jeklikAI : public ScriptedAI
             if (m_uiSwoopTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SWOOP) == CAST_OK)
-                    m_uiSwoopTimer = urand(4000, 9000);
+                    m_uiSwoopTimer = Randomize(urand(4000, 9000));
             }
             else
                 m_uiSwoopTimer -= uiDiff;
@@ -228,7 +228,7 @@ struct boss_jeklikAI : public ScriptedAI
             if (m_uiSonicBurstTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SONIC_BURST) == CAST_OK)
-                    m_uiSonicBurstTimer = urand(8000, 13000);
+                    m_uiSonicBurstTimer = Randomize(urand(8000, 13000));
             }
             else
                 m_uiSonicBurstTimer -= uiDiff;
@@ -236,7 +236,7 @@ struct boss_jeklikAI : public ScriptedAI
 			if (m_uiPSYHIC_SCREAMTimer < uiDiff)
 			{
 				if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PSYHIC_SCREAM) == CAST_OK)
-					m_uiPSYHIC_SCREAMTimer = urand(18000, 26000);
+					m_uiPSYHIC_SCREAMTimer = Randomize(urand(18000, 26000));
 			}
 			else
 				m_uiPSYHIC_SCREAMTimer -= uiDiff;
@@ -250,7 +250,7 @@ struct boss_jeklikAI : public ScriptedAI
 				}
 				
                 DoScriptText(SAY_SHRIEK, m_creature);
-                m_uiSpawnBatsTimer = 60000;
+                m_uiSpawnBatsTimer = Randomize(60000);
                 
             }
             else
@@ -264,7 +264,7 @@ struct boss_jeklikAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_WORD_PAIN) == CAST_OK)
-                        m_uiShadowWordPainTimer = urand(12000, 18000);
+                        m_uiShadowWordPainTimer = Randomize(urand(12000, 18000));
                 }
             }
             else
@@ -273,7 +273,7 @@ struct boss_jeklikAI : public ScriptedAI
             if (m_uiMindFlayTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_FLAY) == CAST_OK)
-                    m_uiMindFlayTimer = 16000;
+                    m_uiMindFlayTimer = Randomize(16000);
             }
             else
                 m_uiMindFlayTimer -= uiDiff;
@@ -281,7 +281,7 @@ struct boss_jeklikAI : public ScriptedAI
 			if (m_uiChainMindFlayTimer < uiDiff)
             {
 				if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CHAIN_MIND_FLAY) == CAST_OK)
-                    m_uiChainMindFlayTimer = urand(15000, 30000);
+                    m_uiChainMindFlayTimer = Randomize(urand(15000, 30000));
             }
             else
                 m_uiChainMindFlayTimer -= uiDiff;
@@ -291,7 +291,7 @@ struct boss_jeklikAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature, SPELL_GREATERHEAL, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
                 {
                     DoScriptText(SAY_HEAL, m_creature);
-                    m_uiGreaterHealTimer = urand(25000, 35000);
+                    m_uiGreaterHealTimer = Randomize(urand(25000, 35000));
                 }
             }
             else
@@ -338,8 +338,8 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
 	ObjectGuid m_trapGuid;
     void Reset() override
     {
-        m_uiInfectedBiteTimer = 6500;
-        m_uiBattleCommandTimer = 8000;
+        m_uiInfectedBiteTimer = Randomize(6500);
+        m_uiBattleCommandTimer = Randomize(8000);
 		m_uiTrapTriggerTimer = 0;
         m_bHasDoneConcoction = false;
 
@@ -389,7 +389,7 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
         if (m_uiInfectedBiteTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_INFECTED_BITE) == CAST_OK)
-                m_uiInfectedBiteTimer = 6500;
+                m_uiInfectedBiteTimer = Randomize(6500);
         }
         else
             m_uiInfectedBiteTimer -= uiDiff;
@@ -397,7 +397,7 @@ struct npc_gurubashi_bat_riderAI : public ScriptedAI
 		if (m_uiBattleCommandTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BATTLE_COMMAND) == CAST_OK)
-                m_uiBattleCommandTimer = 25000;
+                m_uiBattleCommandTimer = Randomize(25000);
         }
         else
             m_uiBattleCommandTimer -= uiDiff;

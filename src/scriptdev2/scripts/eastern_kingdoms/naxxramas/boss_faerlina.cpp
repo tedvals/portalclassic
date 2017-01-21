@@ -63,9 +63,9 @@ struct boss_faerlinaAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiPoisonBoltVolleyTimer = 8000;
-        m_uiRainOfFireTimer = 16000;
-        m_uiEnrageTimer = 60000;
+        m_uiPoisonBoltVolleyTimer = Randomize(8000);
+        m_uiRainOfFireTimer = Randomize(16000);
+        m_uiEnrageTimer = Randomize(60000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -119,7 +119,7 @@ struct boss_faerlinaAI : public ScriptedAI
             // If we remove the Frenzy, the Enrage Timer is reseted to 60s
             if (m_creature->HasAura(SPELL_ENRAGE))
             {
-                m_uiEnrageTimer = 60000;
+                m_uiEnrageTimer = Randomize(60000);
                 m_creature->RemoveAurasDueToSpell(SPELL_ENRAGE);
 
                 bIsFrenzyRemove = true;
@@ -127,8 +127,8 @@ struct boss_faerlinaAI : public ScriptedAI
 
             // In any case we prevent Frenzy and Poison Bolt Volley for Widow's Embrace Duration (30s)
             // We do this be setting the timers to at least bigger than 30s
-            m_uiEnrageTimer = std::max(m_uiEnrageTimer, (uint32)30000);
-            m_uiPoisonBoltVolleyTimer = std::max(m_uiPoisonBoltVolleyTimer, urand(33000, 38000));
+            m_uiEnrageTimer = std::max(m_uiEnrageTimer, Randomize((uint32)30000));
+            m_uiPoisonBoltVolleyTimer = std::max(m_uiPoisonBoltVolleyTimer, Randomize(urand(33000, 38000)));
         }
     }
 
@@ -141,7 +141,7 @@ struct boss_faerlinaAI : public ScriptedAI
         if (m_uiPoisonBoltVolleyTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_POSIONBOLT_VOLLEY) == CAST_OK)
-                m_uiPoisonBoltVolleyTimer = 11000;
+                m_uiPoisonBoltVolleyTimer = Randomize(11000);
         }
         else
             m_uiPoisonBoltVolleyTimer -= uiDiff;
@@ -152,7 +152,7 @@ struct boss_faerlinaAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_RAIN_OF_FIRE) == CAST_OK)
-                    m_uiRainOfFireTimer = 16000;
+                    m_uiRainOfFireTimer = Randomize(16000);
             }
         }
         else
@@ -169,7 +169,7 @@ struct boss_faerlinaAI : public ScriptedAI
                     case 1: DoScriptText(SAY_ENRAGE_2, m_creature); break;
                     case 2: DoScriptText(SAY_ENRAGE_3, m_creature); break;
                 }
-                m_uiEnrageTimer = 60000;
+                m_uiEnrageTimer = Randomize(60000);
             }
         }
         else

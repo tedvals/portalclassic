@@ -62,11 +62,11 @@ struct boss_grobbulusAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiInjectionTimer = 12 * IN_MILLISECONDS;
-        m_uiPoisonCloudTimer = urand(20 * IN_MILLISECONDS, 25 * IN_MILLISECONDS);
-        m_uiSlimeSprayTimer = urand(20 * IN_MILLISECONDS, 30 * IN_MILLISECONDS);
+        m_uiInjectionTimer = Randomize(12 * IN_MILLISECONDS);
+        m_uiPoisonCloudTimer = Randomize(urand(20 * IN_MILLISECONDS, 25 * IN_MILLISECONDS));
+        m_uiSlimeSprayTimer = Randomize(urand(20 * IN_MILLISECONDS, 30 * IN_MILLISECONDS));
         m_uiBerserkTimer = 12 * MINUTE * IN_MILLISECONDS;
-        m_uiSlimeStreamTimer = 5 * IN_MILLISECONDS;         // The first few secs it is ok to be out of range
+        m_uiSlimeStreamTimer = Randomize(5 * IN_MILLISECONDS);         // The first few secs it is ok to be out of range
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -164,7 +164,7 @@ struct boss_grobbulusAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_SPRAY) == CAST_OK)
             {
-                m_uiSlimeSprayTimer = urand(30 * IN_MILLISECONDS, 60 * IN_MILLISECONDS);
+                m_uiSlimeSprayTimer = Randomize(urand(30 * IN_MILLISECONDS, 60 * IN_MILLISECONDS));
                 DoScriptText(EMOTE_SPRAY_SLIME, m_creature);
             }
         }
@@ -178,9 +178,9 @@ struct boss_grobbulusAI : public ScriptedAI
             {
                 // Mutagen Injection should be used more often when below 30%
                 if (m_creature->GetHealthPercent() > 30.0f)
-                    m_uiInjectionTimer = urand(7000, 13000);
+                    m_uiInjectionTimer = Randomize(urand(7000, 13000));
                 else
-                    m_uiInjectionTimer = urand(3000, 7000);
+                    m_uiInjectionTimer = Randomize(urand(3000, 7000));
             }
         }
         else
@@ -190,7 +190,7 @@ struct boss_grobbulusAI : public ScriptedAI
         if (m_uiPoisonCloudTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_POISON_CLOUD) == CAST_OK)
-                m_uiPoisonCloudTimer = 15 * IN_MILLISECONDS;
+                m_uiPoisonCloudTimer = Randomize(15 * IN_MILLISECONDS);
         }
         else
             m_uiPoisonCloudTimer -= uiDiff;

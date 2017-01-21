@@ -49,10 +49,10 @@ struct boss_darkmaster_gandlingAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiArcaneMissilesTimer = 4500;
-        m_uiShadowShieldTimer = 12000;
+        m_uiArcaneMissilesTimer = Randomize(4500);
+        m_uiShadowShieldTimer = Randomize(12000);
         m_uiCurseTimer = 2000;
-        m_uiTeleportTimer = 16000;
+        m_uiTeleportTimer = Randomize(16000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -64,7 +64,7 @@ struct boss_darkmaster_gandlingAI : public ScriptedAI
         if (m_uiArcaneMissilesTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ARCANE_MISSILES) == CAST_OK)
-                m_uiArcaneMissilesTimer = 8000;
+                m_uiArcaneMissilesTimer = Randomize(8000);
         }
         else
             m_uiArcaneMissilesTimer -= uiDiff;
@@ -73,7 +73,7 @@ struct boss_darkmaster_gandlingAI : public ScriptedAI
         if (m_uiShadowShieldTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_SHIELD) == CAST_OK)
-                m_uiShadowShieldTimer = urand(14000, 28000);
+                m_uiShadowShieldTimer = Randomize(urand(14000, 28000));
         }
         else
             m_uiShadowShieldTimer -= uiDiff;
@@ -82,7 +82,7 @@ struct boss_darkmaster_gandlingAI : public ScriptedAI
         if (m_uiCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CURSE) == CAST_OK)
-                m_uiCurseTimer = urand(15000, 27000);
+                m_uiCurseTimer = Randomize(urand(15000, 27000));
         }
         else
             m_uiCurseTimer -= uiDiff;
@@ -97,7 +97,7 @@ struct boss_darkmaster_gandlingAI : public ScriptedAI
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_PORTAL) == CAST_OK)
                     
-                        m_uiTeleportTimer = urand(20000, 35000);
+                        m_uiTeleportTimer = Randomize(urand(20000, 35000));
                     
                 }
             }
