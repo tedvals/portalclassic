@@ -1623,6 +1623,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         bool HasAuraType(AuraType auraType) const;
 		bool HasAuraWithMechanic(uint32 mechanic) const;
+		bool HasAuraWithMiscValue(AuraType auraType, uint32 value) const;
         bool HasAffectedAura(AuraType auraType, SpellEntry const* spellProto) const;
         bool HasAura(uint32 spellId, SpellEffectIndex effIndex) const;
         bool HasAura(uint32 spellId) const
@@ -1980,6 +1981,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 		Aura* GetBestAuraTypeByMechanic(AuraType auraType, uint32 mechanic, bool positiveValue = true);
 		Aura* GetBestAuraType(AuraType auraType, bool positiveValue = true);
 		Aura* GetBestAuraTypeBySchool(AuraType auraType, SpellSchoolMask schoolMask, bool positiveValue);
+		Aura* GetAuraWithMiscValue(AuraType auraType, uint32 value);
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid) const;
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid, ObjectGuid casterGUID) const;
 

@@ -411,20 +411,23 @@ class MANGOS_DLL_SPEC Aura
         Modifier*       GetModifier()       { return &m_modifier; }
         Modifier const* GetModifier() const { return &m_modifier; }
         int32 GetMiscValue() const { return m_spellAuraHolder->GetSpellProto()->EffectMiscValue[m_effIndex]; }
-		int32 GetModifierAmount(int32 level)
+		int32 GetModifierAmount(uint32 level = 0)
 		{
 			if (GetHolder()->GetSpellProto()->HasAttribute(SPELL_ATTR_LEVEL_CALCULATION))
 				return m_modifier.m_amount; //calculated elsewhere
 			else
 			{ 
+				if (level == 0)
+					return m_modifier.m_amount;
+
 				int32 _level = (int32)level;
 				if (_level >  m_spellAuraHolder->GetSpellProto()->maxLevel &&  m_spellAuraHolder->GetSpellProto()->maxLevel > 0)
-					level = (int32)m_spellAuraHolder->GetSpellProto()->maxLevel;
-				else if (level < (int32)m_spellAuraHolder->GetSpellProto()->baseLevel)
-					level = (int32)m_spellAuraHolder->GetSpellProto()->baseLevel;
-				level -= (int32)m_spellAuraHolder->GetSpellProto()->spellLevel;
+					_level = (int32)m_spellAuraHolder->GetSpellProto()->maxLevel;
+				else if (_level < (int32)m_spellAuraHolder->GetSpellProto()->baseLevel)
+					_level = (int32)m_spellAuraHolder->GetSpellProto()->baseLevel;
+				_level -= (int32)m_spellAuraHolder->GetSpellProto()->spellLevel;
 				
-				return m_modifier.m_amount + int32(level *  m_modifier.m_scale);			  
+				return m_modifier.m_amount + int32(_level *  m_modifier.m_scale);			  
 			}
 		}
 

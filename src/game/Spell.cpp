@@ -1999,6 +1999,54 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             }
             break;
         }
+		case TARGET_LOWEST_HEALTH_FRIEND:
+		{
+			Group*  pGroup = nullptr;
+			Unit* target = nullptr;
+
+			if (m_caster->GetTypeId() == TYPEID_PLAYER)
+			{
+				pGroup = ((Player*)m_caster)->GetGroup();
+
+				if (pGroup)
+				{
+					uint32 health = 100;
+					for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
+					{
+						Player* pGroupGuy = itr->getSource();
+						if (!pGroupGuy)
+							continue;
+
+						if (!pGroupGuy->isAlive())
+							continue;
+
+						if (pGroupGuy->GetHealthPercent() < health)
+							target = (Unit*)pGroupGuy;
+					}
+
+					if (target)
+						targetUnitMap.push_back(target);
+					break;
+				}
+			}
+
+			Unit* owner = m_caster->GetCharmerOrOwner();			
+			if (owner)
+			{
+				targetUnitMap.push_back(target);
+				break;					
+				}			
+			else
+			{
+				Unit* pet = m_caster->GetPet();
+				if (pet)
+				{					
+					targetUnitMap.push_back(pet);
+					break;					
+					}
+			}			
+			break;
+		}
         case TARGET_GAMEOBJECT:
             if (m_targets.getGOTarget())
                 AddGOTarget(m_targets.getGOTarget(), effIndex);
@@ -4621,14 +4669,16 @@ SpellCastResult Spell::CheckCast(bool strict)
         // Check if more powerful spell applied on target (if spell only contains non-aoe auras)
         if (IsAuraApplyEffects(m_spellInfo, EFFECT_MASK_ALL) && !IsAreaOfEffectSpell(m_spellInfo) && !HasAreaAuraEffect(m_spellInfo))
         {
+            const ObjectGuid casterGuid = m_caster->GetObjectGuid();
             Unit::SpellAuraHolderMap const& spair = target->GetSpellAuraHolderMap();
             for (Unit::SpellAuraHolderMap::const_iterator iter = spair.begin(); iter != spair.end(); ++iter)
             {
                 const SpellAuraHolder* existing = iter->second;
                 const SpellEntry* entry = existing->GetSpellProto();
-                if (m_caster != existing->GetCaster() && sSpellMgr.IsNoStackSpellDueToSpell(m_spellInfo, entry))
+                const bool own = (casterGuid == existing->GetCasterGuid());
+                // Cannot overwrite someone else's auras
+                if (!own && sSpellMgr.IsNoStackSpellDueToSpell(m_spellInfo, entry))
                 {
-                    // We cannot overwrite someone else's more powerful spell
                     if (IsSimilarExistingAuraStronger(m_caster, m_spellInfo->Id, existing) ||
                         (sSpellMgr.IsRankSpellDueToSpell(m_spellInfo, entry->Id) && sSpellMgr.IsHighRankOfSpell(entry->Id, m_spellInfo->Id)))
                         return SPELL_FAILED_AURA_BOUNCED;

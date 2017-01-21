@@ -2207,12 +2207,8 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
 		//Prismatic Cloak
 		if (currentAbsorb > int32(GetHealth()*0.25f))
 		{
-			if (HasAura(31576))
-				CastSpell(this, 54871, TRIGGERED_NONE); //Cast Mana Absorb
-			else if (HasAura(31575))
-				CastSpell(this, 54870, TRIGGERED_NONE); //Cast Mana Absorb
-			else if (HasAura(31574))
-				CastSpell(this, 54869, TRIGGERED_NONE); //Cast Mana Absorb
+			if (HasAuraWithMiscValue(SPELL_AURA_DUMMY, 8501))				
+				CastSpell(this, uint32(GetAuraWithMiscValue(SPELL_AURA_DUMMY, 8501)->GetModifierAmount()), TRIGGERED_NONE); //Cast Mana Absorb
 		}
 		else
 			RemainingDamage -= currentAbsorb;
@@ -4265,13 +4261,10 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
                     delete holder;
                     return false;
                 }
-                else
+                else if (!IsStackableSpell(aurSpellInfo, foundHolder->GetSpellProto(), holder->GetTarget()))
                 {
-                    if (!IsStackableSpell(holder->GetSpellProto(), foundHolder->GetSpellProto(), holder->GetTarget()))
-                    {
-                        RemoveSpellAuraHolder(foundHolder, AURA_REMOVE_BY_STACK);
-                        break;
-                    }
+                    RemoveSpellAuraHolder(foundHolder, AURA_REMOVE_BY_STACK);
+                    break;
                 }
             }
         }
@@ -6756,7 +6749,11 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
 
     // Healing taken percent
     float minval = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
-    if (minval)
+	if (minval && HasAuraWithMiscValue(SPELL_AURA_DUMMY, 8500)) //Body and Soul
+	{
+		TakenTotalMod *=  (100.0f + (GetAuraWithMiscValue(SPELL_AURA_DUMMY, 8500)->GetModifierAmount()*minval)) / 100.0f;
+	}
+	else if (minval)
         TakenTotalMod *= (100.0f + minval) / 100.0f;
 
     float maxval = float(GetMaxPositiveAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
@@ -6884,6 +6881,7 @@ int32 Unit::SpellBaseHealingBonusTaken(SpellSchoolMask schoolMask) const
 {
     int32 AdvertisedBenefit = 0;
     AuraList const& mDamageTaken = GetAurasByType(SPELL_AURA_MOD_HEALING);
+
     for (AuraList::const_iterator i = mDamageTaken.begin(); i != mDamageTaken.end(); ++i)
         if ((*i)->GetModifier()->m_miscvalue & schoolMask)
             AdvertisedBenefit += (*i)->GetModifierAmount(getLevel());
@@ -11004,6 +11002,21 @@ bool Unit::HasAuraWithMechanic(uint32 mechanic) const
 	return false;
 }
 
+bool Unit::HasAuraWithMiscValue(AuraType auraType, uint32 value) const
+{
+	AuraList const& auras = GetAurasByType(auraType);
+	for (AuraList::const_iterator i = auras.begin(); i != auras.end(); ++i)
+	{		
+		for (int32 j = 0; j < MAX_EFFECT_INDEX; ++j)
+		{
+			if ((*i)->GetSpellProto()->EffectMiscValue[j]  == value)
+				return true;
+		}
+	}
+
+	return false;
+}
+
 Aura* Unit::GetBestAuraTypeByMechanic(AuraType auraType, uint32 mechanic, bool positiveValue)
 {
 	int32 value = 0;
@@ -11086,6 +11099,21 @@ Aura* Unit::GetBestAuraTypeBySchool(AuraType auraType, SpellSchoolMask schoolMas
 	}
 
 	return aura;
+}
+
+Aura* Unit::GetAuraWithMiscValue(AuraType auraType, uint32 value)
+{
+	AuraList const& auras = GetAurasByType(auraType);
+	for (AuraList::const_iterator i = auras.begin(); i != auras.end(); ++i)
+	{
+		for (int32 j = 0; j < MAX_EFFECT_INDEX; ++j)
+		{
+			if ((*i)->GetSpellProto()->EffectMiscValue[j] == value)
+				return (*i);
+		}
+	}
+	
+	return nullptr;
 }
 
 float Unit::GetCombatRatingReduction(CombatRating cr) const
