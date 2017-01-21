@@ -964,7 +964,7 @@ enum Targets
     TARGET_AREAEFFECT_CUSTOM           = 8,
     TARGET_INNKEEPER_COORDINATES       = 9,                 // uses in teleport to innkeeper spells
     TARGET_11                          = 11,                // used by spell 4 'Word of Recall Other'
-	TARGET_ALL_FRIENDS_IN_AREA_CHANNELED = 14,
+	TARGET_ALL_FRIEND_IN_AREA_CHANNELED = 14,
     TARGET_ALL_ENEMY_IN_AREA           = 15,
     TARGET_ALL_ENEMY_IN_AREA_INSTANT   = 16,
     TARGET_TABLE_X_Y_Z_COORDINATES     = 17,                // uses in teleport spells and some other
@@ -1036,7 +1036,8 @@ enum Targets
 	TARGET_88 = 88,                // Smoke Flare(s)
 	TARGET_NONCOMBAT_PET = 90,
 	TARGET_PARTY_IN_FRONT_OF_CASTER = 91,
-	TARGET_ALL_FRIENDS_IN_AREA_INSTANT = 92,
+	TARGET_ALL_FRIEND_IN_AREA_INSTANT = 92,
+	TARGET_LOWEST_HEALTH_FRIEND = 93,
 };
 
 enum SpellMissInfo
