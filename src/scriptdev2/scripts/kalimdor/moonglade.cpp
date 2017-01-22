@@ -517,9 +517,9 @@ struct boss_eranikusAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiAcidBreathTimer         = 10000;
+        m_uiAcidBreathTimer         = Randomize(10000);
         m_uiNoxiousBreathTimer      = 3000;
-        m_uiShadowboltVolleyTimer   = 5000;
+        m_uiShadowboltVolleyTimer   = Randomize(5000);
         m_uiTyrandeMoveTimer        = 0;
 
         m_remulosGuid.Clear();
@@ -798,7 +798,7 @@ struct boss_eranikusAI : public ScriptedAI
         if (m_uiAcidBreathTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_ACID_BREATH) == CAST_OK)
-                m_uiAcidBreathTimer = 15000;
+                m_uiAcidBreathTimer = Randomize(15000);
         }
         else
             m_uiAcidBreathTimer -= uiDiff;
@@ -806,7 +806,7 @@ struct boss_eranikusAI : public ScriptedAI
         if (m_uiNoxiousBreathTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_NOXIOUS_BREATH) == CAST_OK)
-                m_uiNoxiousBreathTimer = 30000;
+                m_uiNoxiousBreathTimer = Randomize(30000);
         }
         else
             m_uiNoxiousBreathTimer -= uiDiff;
@@ -814,7 +814,7 @@ struct boss_eranikusAI : public ScriptedAI
         if (m_uiShadowboltVolleyTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOWBOLT_VOLLEY) == CAST_OK)
-                m_uiShadowboltVolleyTimer = 25000;
+                m_uiShadowboltVolleyTimer = Randomize(25000);
         }
         else
             m_uiShadowboltVolleyTimer -= uiDiff;

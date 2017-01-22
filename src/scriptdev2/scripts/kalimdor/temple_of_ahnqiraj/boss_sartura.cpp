@@ -60,10 +60,10 @@ struct boss_sarturaAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiWhirlWindTimer = 30000;
+        m_uiWhirlWindTimer = Randomize(30000);
         m_uiWhirlWindRandomTimer = urand(3000, 7000);
         m_uiWhirlWindEndTimer = 0;
-        m_uiAggroResetTimer = urand(45000, 55000);
+        m_uiAggroResetTimer = Randomize(urand(45000, 55000));
         m_uiAggroResetEndTimer = 0;
         m_uiEnrageHardTimer = 10 * 60000;
 
@@ -209,7 +209,7 @@ struct mob_sartura_royal_guardAI : public ScriptedAI
         m_uiWhirlWindEndTimer = 0;
         m_uiAggroResetTimer = urand(45000, 55000);
         m_uiAggroResetEndTimer = 0;
-        m_uiKnockBackTimer = 10000;
+        m_uiKnockBackTimer = Randomize(10000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -273,7 +273,7 @@ struct mob_sartura_royal_guardAI : public ScriptedAI
                 {
                     m_creature->FixateTarget(nullptr);
                     m_uiAggroResetEndTimer = 0;
-                    m_uiAggroResetTimer = urand(30000, 40000);
+                    m_uiAggroResetTimer = Randomize(urand(30000, 40000));
                 }
                 else
                     m_uiAggroResetEndTimer -= uiDiff;

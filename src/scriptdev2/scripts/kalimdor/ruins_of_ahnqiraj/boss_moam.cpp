@@ -54,9 +54,9 @@ struct boss_moamAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiTrampleTimer            = 9000;
+        m_uiTrampleTimer            = Randomize(9000);
         m_uiManaDrainTimer          = 3000;
-        m_uiSummonManaFiendsTimer   = 90000;
+        m_uiSummonManaFiendsTimer   = Randomize(90000);
         m_uiCheckoutManaTimer       = 1500;
         m_uiPhase                   = PHASE_ATTACKING;
         m_creature->SetPower(POWER_MANA, 0);
@@ -96,7 +96,7 @@ struct boss_moamAI : public ScriptedAI
                     DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUMMON_MANAFIEND_1, CAST_TRIGGERED);
                     DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUMMON_MANAFIEND_2, CAST_TRIGGERED);
                     DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUMMON_MANAFIEND_3, CAST_TRIGGERED);
-                    m_uiSummonManaFiendsTimer = 90000;
+                    m_uiSummonManaFiendsTimer = Randomize(90000);
                 }
                 else
                     m_uiSummonManaFiendsTimer -= uiDiff;
@@ -115,7 +115,7 @@ struct boss_moamAI : public ScriptedAI
                 if (m_uiTrampleTimer <= uiDiff)
                 {
                     DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRAMPLE);
-                    m_uiTrampleTimer = 15000;
+                    m_uiTrampleTimer = Randomize(15000);
                 }
                 else
                     m_uiTrampleTimer -= uiDiff;

@@ -63,7 +63,7 @@ struct boss_buruAI : public ScriptedAI
     void Reset() override
     {
         m_uiDismemberTimer      = 5000;
-        m_uiGatheringSpeedTimer = 9000;
+        m_uiGatheringSpeedTimer = Randomize(9000);
         m_uiCreepingPlagueTimer = 0;
         m_uiFullSpeedTimer      = 60000;
         m_uiPhase               = PHASE_EGG;
@@ -98,7 +98,7 @@ struct boss_buruAI : public ScriptedAI
             DoScriptText(EMOTE_TARGET, m_creature, pTarget);
         }
 
-        m_uiFullSpeedTimer      = 60000;
+        m_uiFullSpeedTimer      = Randomize(60000);
         m_uiGatheringSpeedTimer = 9000;
     }
 
@@ -114,7 +114,7 @@ struct boss_buruAI : public ScriptedAI
                 if (m_uiDismemberTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISMEMBER) == CAST_OK)
-                        m_uiDismemberTimer = 5000;
+                        m_uiDismemberTimer = Randomize(5000);
                 }
                 else
                     m_uiDismemberTimer -= uiDiff;
@@ -156,7 +156,7 @@ struct boss_buruAI : public ScriptedAI
                 if (m_uiCreepingPlagueTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_CREEPING_PLAGUE) == CAST_OK)
-                        m_uiCreepingPlagueTimer = 6000;
+                        m_uiCreepingPlagueTimer = Randomize(6000);
                 }
                 else
                     m_uiCreepingPlagueTimer -= uiDiff;

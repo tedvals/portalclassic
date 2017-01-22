@@ -3464,8 +3464,13 @@ void Aura::HandlePeriodicLeech(bool apply, bool /*Real*/)
 		Unit* target = GetTarget();
 		SpellEntry const* spellProto = GetSpellProto();
 		// Contagion
-		if (target && target->HasAura(54804))
+		if (target && target->HasAuraWithMiscValue(SPELL_AURA_DUMMY, 8506))
 				m_modifier.m_amount = (m_modifier.m_amount * 110/100);
+
+		//Harvest Life 
+		if (caster && caster->HasAuraWithMiscValue(SPELL_AURA_DUMMY, 8505))
+			if (caster->GetHealthPercent() >= 90.f)	 // Fel Transfusion			
+				caster->CastCustomSpell(caster, 54937, &m_modifier.m_amount, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this);
     }
 }
 

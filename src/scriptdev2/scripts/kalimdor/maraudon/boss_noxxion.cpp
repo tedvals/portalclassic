@@ -41,8 +41,8 @@ struct boss_noxxionAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiToxicVolleyTimer   = 7000;
-        m_uiUppercutTimer      = 16000;
+        m_uiToxicVolleyTimer   = Randomize(7000);
+        m_uiUppercutTimer      = Randomize(16000);
         m_uiSummonTimer         = 19000;
     }
 
@@ -60,7 +60,7 @@ struct boss_noxxionAI : public ScriptedAI
         if (m_uiToxicVolleyTimer < diff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_TOXICVOLLEY) == CAST_OK)
-                m_uiToxicVolleyTimer = 9000;
+                m_uiToxicVolleyTimer = Randomize(9000);
         }
         else
             m_uiToxicVolleyTimer -= diff;
@@ -68,7 +68,7 @@ struct boss_noxxionAI : public ScriptedAI
         if (m_uiUppercutTimer < diff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_UPPERCUT) == CAST_OK)
-                m_uiUppercutTimer = 12000;
+                m_uiUppercutTimer = Randomize(12000);
         }
         else
             m_uiUppercutTimer -= diff;
@@ -76,7 +76,7 @@ struct boss_noxxionAI : public ScriptedAI
         if (m_uiSummonTimer < diff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_NOXXION_SPAWNS_AURA) == CAST_OK)
-                m_uiSummonTimer = 40000;
+                m_uiSummonTimer = Randomize(40000);
         }
         else
             m_uiSummonTimer -= diff;

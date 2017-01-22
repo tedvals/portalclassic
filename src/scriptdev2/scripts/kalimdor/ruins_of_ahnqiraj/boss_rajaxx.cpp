@@ -96,8 +96,8 @@ struct npc_general_andorovAI : public ScriptedAI, private DialogueHelper
     void Reset() override
     {
         m_uiCommandAuraTimer = urand(1000, 3000);
-        m_uiBashTimer        = urand(8000, 11000);
-        m_uiStrikeTimer      = urand(2000, 5000);
+        m_uiBashTimer        = Randomize(urand(8000, 11000));
+        m_uiStrikeTimer      = Randomize(urand(2000, 5000));
     }
 
     void MoveInLineOfSight(Unit* pWho) override
@@ -233,7 +233,7 @@ struct npc_general_andorovAI : public ScriptedAI, private DialogueHelper
         if (m_uiBashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BASH) == CAST_OK)
-                m_uiBashTimer = urand(12000, 15000);
+                m_uiBashTimer = Randomize(urand(12000, 15000));
         }
         else
             m_uiBashTimer -= uiDiff;
@@ -241,7 +241,7 @@ struct npc_general_andorovAI : public ScriptedAI, private DialogueHelper
         if (m_uiStrikeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STRIKE) == CAST_OK)
-                m_uiStrikeTimer = urand(4000, 6000);
+                m_uiStrikeTimer = Randomize(urand(4000, 6000));
         }
         else
             m_uiStrikeTimer -= uiDiff;
@@ -249,7 +249,7 @@ struct npc_general_andorovAI : public ScriptedAI, private DialogueHelper
         if (m_uiCommandAuraTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_AURA_OF_COMMAND) == CAST_OK)
-                m_uiCommandAuraTimer = urand(30000, 45000);
+                m_uiCommandAuraTimer = Randomize(urand(30000, 45000));
         }
         else
             m_uiCommandAuraTimer -= uiDiff;

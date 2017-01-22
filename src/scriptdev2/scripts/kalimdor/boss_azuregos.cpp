@@ -52,12 +52,12 @@ struct boss_azuregosAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiManaStormTimer  = urand(5000, 17000);
-        m_uiChillTimer      = urand(10000, 30000);
-        m_uiBreathTimer     = urand(2000, 8000);
-        m_uiTeleportTimer   = 30000;
-        m_uiReflectTimer    = urand(15000, 30000);
-        m_uiCleaveTimer     = 7000;
+        m_uiManaStormTimer  = Randomize(urand(5000, 17000));
+        m_uiChillTimer      = Randomize(urand(10000, 30000));
+        m_uiBreathTimer     = Randomize(urand(2000, 8000));
+        m_uiTeleportTimer   = Randomize(30000);
+        m_uiReflectTimer    = Randomize(urand(15000, 30000));
+        m_uiCleaveTimer     = Randomize(7000);
 //        m_bEnraged          = false;
     }
 
@@ -85,7 +85,7 @@ struct boss_azuregosAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_ARCANE_VACUUM) == CAST_OK)
             {
                 DoScriptText(SAY_TELEPORT, m_creature);
-                m_uiTeleportTimer = 30000;
+                m_uiTeleportTimer = Randomize(30000);
             }
         }
         else
@@ -95,7 +95,7 @@ struct boss_azuregosAI : public ScriptedAI
         if (m_uiChillTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_CHILL) == CAST_OK)
-                m_uiChillTimer = urand(13000, 25000);
+                m_uiChillTimer = Randomize(urand(13000, 25000));
         }
         else
             m_uiChillTimer -= uiDiff;
@@ -104,7 +104,7 @@ struct boss_azuregosAI : public ScriptedAI
         if (m_uiBreathTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FROST_BREATH) == CAST_OK)
-                m_uiBreathTimer = urand(10000, 15000);
+                m_uiBreathTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiBreathTimer -= uiDiff;
@@ -115,7 +115,7 @@ struct boss_azuregosAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_MANA_STORM) == CAST_OK)
-                    m_uiManaStormTimer = urand(7500, 12500);
+                    m_uiManaStormTimer = Randomize(urand(7500, 12500));
             }
         }
         else
@@ -125,7 +125,7 @@ struct boss_azuregosAI : public ScriptedAI
         if (m_uiReflectTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_REFLECT) == CAST_OK)
-                m_uiReflectTimer = urand(20000, 35000);
+                m_uiReflectTimer = Randomize(urand(20000, 35000));
         }
         else
             m_uiReflectTimer -= uiDiff;
@@ -134,7 +134,7 @@ struct boss_azuregosAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = 7000;
+                m_uiCleaveTimer = Randomize(7000);
         }
         else
             m_uiCleaveTimer -= uiDiff;

@@ -67,9 +67,9 @@ struct boss_zumrahAI : public ScriptedAI
     void Reset() override
     {
         m_uiShadowBoltTimer         = 1000;
-        m_uiShadowBoltVolleyTimer   = urand(6000, 30000);
-        m_uiWardOfZumrahTimer       = urand(7000, 20000);
-        m_uHealingWaveTimer         = urand(10000, 15000);
+        m_uiShadowBoltVolleyTimer   = Randomize(urand(6000, 30000));
+        m_uiWardOfZumrahTimer       = Randomize(urand(7000, 20000));
+        m_uHealingWaveTimer         = Randomize(urand(10000, 15000));
         m_uiSpawnZombieTimer        = 1000;
     }
 
@@ -158,7 +158,7 @@ struct boss_zumrahAI : public ScriptedAI
                     if (roll_chance_i(30))
                         DoScriptText(SAY_SUMMON, m_creature);
 
-                    m_uiSpawnZombieTimer = 20000;
+                    m_uiSpawnZombieTimer = Randomize(20000);
                 }
                 else                                        // No Grave usable any more
                     m_uiSpawnZombieTimer = 0;
@@ -172,7 +172,7 @@ struct boss_zumrahAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_BOLT) == CAST_OK)
-                    m_uiShadowBoltTimer = urand(3500, 5000);
+                    m_uiShadowBoltTimer = Randomize(urand(3500, 5000));
             }
         }
         else
@@ -181,7 +181,7 @@ struct boss_zumrahAI : public ScriptedAI
         if (m_uiShadowBoltVolleyTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOW_BOLT_VOLLEY) == CAST_OK)
-                m_uiShadowBoltVolleyTimer = urand(10000, 18000);
+                m_uiShadowBoltVolleyTimer = Randomize(urand(10000, 18000));
         }
         else
             m_uiShadowBoltVolleyTimer -= uiDiff;
@@ -189,7 +189,7 @@ struct boss_zumrahAI : public ScriptedAI
         if (m_uiWardOfZumrahTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_WARD_OF_ZUMRAH) == CAST_OK)
-                m_uiWardOfZumrahTimer = urand(15000, 32000);
+                m_uiWardOfZumrahTimer = Randomize(urand(15000, 32000));
         }
         else
             m_uiWardOfZumrahTimer -= uiDiff;
@@ -199,7 +199,7 @@ struct boss_zumrahAI : public ScriptedAI
             if (Unit* pTarget = DoSelectLowestHpFriendly(40.0f))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_HEALING_WAVE) == CAST_OK)
-                    m_uHealingWaveTimer = urand(15000, 23000);
+                    m_uHealingWaveTimer = Randomize(urand(15000, 23000));
             }
         }
         else

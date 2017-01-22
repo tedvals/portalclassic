@@ -53,10 +53,10 @@ struct boss_kurinnaxxAI : public ScriptedAI
     {
         m_bEnraged = false;
 
-		m_uiMortalWoundTimer = urand(8000, 10000);
-		m_uiSandTrapTimer = urand(5000, 10000);
+		m_uiMortalWoundTimer = Randomize(urand(8000, 10000));
+		m_uiSandTrapTimer = Randomize(urand(5000, 10000));
 		m_uiTrashTimer = urand(1000, 5000);
-		m_uiWideSlashTimer = urand(10000, 15000);
+		m_uiWideSlashTimer = Randomize(urand(10000, 15000));
 		SUMMON_Timer = 12000;
 		m_uiTrapTriggerTimer = 0;
     }
@@ -86,7 +86,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
         if (m_uiMortalWoundTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_WOUND) == CAST_OK)
-                m_uiMortalWoundTimer = urand(8000, 10000);
+                m_uiMortalWoundTimer = Randomize(urand(8000, 10000));
         }
         else
             m_uiMortalWoundTimer -= uiDiff;
@@ -95,7 +95,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
 		{
 			Unit* pTarget1 = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
 			if (pTarget1 && DoCastSpellIfCan(pTarget1, SPELL_SUMMON_PLAYER) == CAST_OK)
-				SUMMON_Timer = urand(8000, 10000);
+				SUMMON_Timer = Randomize(urand(8000, 10000));
 		}
 		else SUMMON_Timer -= uiDiff;
         
@@ -107,7 +107,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
                 pTarget = m_creature->getVictim();
 
             pTarget->CastSpell(pTarget, SPELL_SANDTRAP, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
-            m_uiSandTrapTimer = urand(10000, 15000);
+            m_uiSandTrapTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiSandTrapTimer -= uiDiff;
@@ -133,7 +133,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
         if (m_uiWideSlashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WIDE_SLASH) == CAST_OK)
-                m_uiWideSlashTimer = urand(12000, 15000);
+                m_uiWideSlashTimer = Randomize(urand(12000, 15000));
         }
         else
             m_uiWideSlashTimer -= uiDiff;
@@ -142,7 +142,7 @@ struct boss_kurinnaxxAI : public ScriptedAI
         if (m_uiTrashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRASH) == CAST_OK)
-                m_uiTrashTimer = urand(12000, 17000);
+                m_uiTrashTimer = Randomize(urand(12000, 17000));
         }
         else
             m_uiTrashTimer -= uiDiff;

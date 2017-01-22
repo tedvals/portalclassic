@@ -72,9 +72,9 @@ struct boss_skeramAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiArcaneExplosionTimer = urand(6000, 12000);
-        m_uiFullFillmentTimer    = 15000;
-        m_uiBlinkTimer           = urand(30000, 45000);
+        m_uiArcaneExplosionTimer = Randomize(urand(6000, 12000));
+        m_uiFullFillmentTimer    = Randomize(15000);
+        m_uiBlinkTimer           = Randomize(urand(30000, 45000));
         m_uiEarthShockTimer      = 1200;
 
         m_fHpCheck               = 75.0f;
@@ -176,7 +176,7 @@ struct boss_skeramAI : public ScriptedAI
         if (m_uiArcaneExplosionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_ARCANE_EXPLOSION) == CAST_OK)
-                m_uiArcaneExplosionTimer = urand(8000, 18000);
+                m_uiArcaneExplosionTimer = Randomize(urand(8000, 18000));
         }
         else
             m_uiArcaneExplosionTimer -= uiDiff;
@@ -187,7 +187,7 @@ struct boss_skeramAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_TRUE_FULFILLMENT) == CAST_OK)
-                    m_uiFullFillmentTimer = urand(20000, 30000);
+                    m_uiFullFillmentTimer = Randomize(urand(20000, 30000));
             }
         }
         else
@@ -207,7 +207,7 @@ struct boss_skeramAI : public ScriptedAI
             if (m_creature->GetVisibility() != VISIBILITY_ON)
                 m_creature->SetVisibility(VISIBILITY_ON);
 
-            m_uiBlinkTimer = urand(10000, 30000);
+            m_uiBlinkTimer = Randomize(urand(10000, 30000));
         }
         else
             m_uiBlinkTimer -= uiDiff;

@@ -132,7 +132,7 @@ struct boss_baroness_anastariAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SILENCE) == CAST_OK)
-                    m_uiSilenceTimer = 25000);
+                    m_uiSilenceTimer = Randomize(25000);
             }
         }
         else

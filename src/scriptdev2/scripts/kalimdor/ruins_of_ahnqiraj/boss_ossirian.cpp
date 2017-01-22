@@ -89,10 +89,10 @@ struct boss_ossirianAI : public ScriptedAI
     void Reset() override
     {
         m_uiCrystalPosition = 0;
-        m_uiCycloneTimer = 20000;
-        m_uiStompTimer   = 30000;
-        m_uiSilenceTimer = 30000;
-        m_uiSupremeTimer = 45000;
+        m_uiCycloneTimer = Randomize(20000);
+        m_uiStompTimer   = Randomize(30000);
+        m_uiSilenceTimer = Randomize(30000);
+        m_uiSupremeTimer = Randomize(45000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -180,7 +180,7 @@ struct boss_ossirianAI : public ScriptedAI
                 return;
 
             m_creature->RemoveAurasDueToSpell(SPELL_SUPREME);
-            m_uiSupremeTimer = 45000;
+            m_uiSupremeTimer = Randomize(45000);
 
             ((Creature*)pCaster)->ForcedDespawn();
             DoSpawnNextCrystal();
@@ -218,7 +218,7 @@ struct boss_ossirianAI : public ScriptedAI
                     case 1: DoScriptText(SAY_SUPREME_2, m_creature); break;
                     case 2: DoScriptText(SAY_SUPREME_3, m_creature); break;
                 }
-                m_uiSupremeTimer = 45000;
+                m_uiSupremeTimer = Randomize(45000);
             }
             else
                 m_uiSupremeTimer = 5000;
@@ -230,7 +230,7 @@ struct boss_ossirianAI : public ScriptedAI
         if (m_uiStompTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_STOMP) == CAST_OK)
-                m_uiStompTimer = 30000;
+                m_uiStompTimer = Randomize(30000);
         }
         else
             m_uiStompTimer -= uiDiff;
@@ -239,7 +239,7 @@ struct boss_ossirianAI : public ScriptedAI
         if (m_uiCycloneTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CYCLONE) == CAST_OK)
-                m_uiCycloneTimer = 20000;
+                m_uiCycloneTimer = Randomize(20000);
         }
         else
             m_uiCycloneTimer -= uiDiff;
@@ -248,7 +248,7 @@ struct boss_ossirianAI : public ScriptedAI
         if (m_uiSilenceTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SILENCE) == CAST_OK)
-                m_uiSilenceTimer = urand(20000, 30000);
+                m_uiSilenceTimer = Randomize(urand(20000, 30000));
         }
         else
             m_uiSilenceTimer -= uiDiff;

@@ -371,7 +371,7 @@ struct npc_kroshiusAI : public ScriptedAI
             if (m_uiKnockBackTimer < uiDiff)
             {
                 DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCKBACK);
-                m_uiKnockBackTimer = urand(9000, 12000);
+                m_uiKnockBackTimer = Randomize(urand(9000, 12000));
             }
             else
                 m_uiKnockBackTimer -= uiDiff;
