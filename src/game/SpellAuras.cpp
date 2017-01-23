@@ -3672,17 +3672,18 @@ void Aura::HandleModPercentStat(bool apply, bool /*Real*/)
 
 void Aura::HandleModRating(bool apply, bool /*Real*/)
 {
-	if (m_modifier.m_miscvalue < ITEM_MOD_DEFENSE_SKILL_RATING || m_modifier.m_miscvalue > 23)
+	if (m_modifier.m_miscvalue < ITEM_MOD_DEFENSE_SKILL_RATING || m_modifier.m_miscvalue > MAX_COMBAT_RATING)
 	{
 		sLog.outError("WARNING: Spell %u effect %u have unsupported misc value (%i) for SPELL_AURA_MOD_STAT ", GetId(), GetEffIndex(), m_modifier.m_miscvalue);
 		return;
 	}
 
-	for (int32 i = CR_WEAPON_SKILL; i <MAX_COMBAT_RATING; ++i)
-	{
-		if (GetTarget()->GetTypeId() == TYPEID_PLAYER)
-			((Player*)GetTarget())->ApplyRatingMod(CombatRating(i), float(m_modifier.m_amount), apply);
-	}
+	if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	for (uint32 rating = 0; rating < MAX_COMBAT_RATING; ++rating)
+		if (m_modifier.m_miscvalue & (1 << rating))
+			((Player*)GetTarget())->ApplyRatingMod(CombatRating(rating), m_modifier.m_amount, apply);
 }
 
 void Aura::HandleModSpellDamagePercentFromStat(bool /*apply*/, bool /*Real*/)

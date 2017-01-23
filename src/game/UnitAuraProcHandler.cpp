@@ -1877,7 +1877,21 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 				trigger_spell_id = 31616;
 				target = this;
 			}
-			break;
+			else if (auraSpellInfo->Id == 54943)
+			// Earthquake					
+			{
+				if (!pVictim || !pVictim->isAlive() || pVictim == this || procSpell == nullptr)
+					return SPELL_AURA_PROC_FAILED;
+
+				float chance = 10;
+
+				// Roll chance
+				if (!roll_chance_f(chance))
+					return SPELL_AURA_PROC_FAILED;
+
+				trigger_spell_id = 54944;
+				break;
+			}
             break;
         }
         default:
