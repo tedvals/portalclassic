@@ -905,8 +905,14 @@ uint32 Player::EnvironmentalDamage(EnvironmentalDamageType type, uint32 damage)
     // Absorb, resist some environmental damage type
     uint32 absorb = 0;
     uint32 resist = 0;
-    if (type == DAMAGE_LAVA)
-        CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_FIRE, DIRECT_DAMAGE, damage, &absorb, &resist);
+	if (type == DAMAGE_LAVA)
+	{
+		// TODO: Find out if we should sent packet
+		if (IsImmuneToDamage(SPELL_SCHOOL_MASK_FIRE))
+			return 0;
+
+		CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_FIRE, DIRECT_DAMAGE, damage, &absorb, &resist);
+	}
     else if (type == DAMAGE_SLIME)
         CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_NATURE, DIRECT_DAMAGE, damage, &absorb, &resist);
 
@@ -5112,6 +5118,9 @@ bool Player::UpdateGatherSkill(uint32 SkillId, uint32 SkillValue, uint32 RedLeve
     DEBUG_LOG("UpdateGatherSkill(SkillId %d SkillLevel %d RedLevel %d)", SkillId, SkillValue, RedLevel);
 
     uint32 gathering_skill_gain = sWorld.getConfig(CONFIG_UINT32_SKILL_GAIN_GATHERING);
+	
+	if (RedLevel == 1) // stuff that starts at 1 should stop at 105 not 101
+		RedLevel = 5;
 
     // For skinning and Mining chance decrease with level. 1-74 - no decrease, 75-149 - 2 times, 225-299 - 8 times
     switch (SkillId)
@@ -16105,6 +16114,17 @@ void Player::RemovePet(PetSaveMode mode)
 {
     if (Pet* pet = GetPet())
         pet->Unsummon(mode, this);
+	else if (m_temporaryUnsummonedPetNumber && mode == PET_SAVE_REAGENTS)
+	{
+		// TODO: Only edit pet in DB and reward reagent if necessary
+			Pet* NewPet = new Pet;
+	if (!NewPet->LoadPetFromDB(this, 0, m_temporaryUnsummonedPetNumber, true, 0, false, true))
+		delete NewPet;
+		
+	m_temporaryUnsummonedPetNumber = 0;
+	if (NewPet)
+		NewPet->Unsummon(mode, this);
+	}
 }
 
 void Player::RemoveMiniPet()
@@ -17493,6 +17513,13 @@ void Player::SetComboPoints()
     }*/
 }
 
+bool Player::AttackStop(bool targetSwitch, bool includingCast, bool includingCombo)
+{
+	if (includingCombo)
+		ClearComboPoints();
+	return Unit::AttackStop(targetSwitch, includingCast, includingCombo);
+}
+
 void Player::AddComboPoints(Unit* target, int8 count)
 {
     if (!count)
@@ -18648,6 +18675,45 @@ Player* Player::GetNextRandomRaidMember(float radius)
 
     uint32 randTarget = urand(0, nearMembers.size() - 1);
     return nearMembers[randTarget];
+}
+
+Player* Player::GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType noAuraType)
+{
+	Group* pGroup = GetGroup();
+	if (!pGroup)
+		return nullptr;
+
+	Player* lowestPercentagePlayer = nullptr;
+	uint32 lowestPercentage = 100;
+
+	for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
+	{
+		Player* target = itr->getSource();
+
+		if (target && target != this)
+		{
+			// First not picked
+			if (!lowestPercentagePlayer)
+			{
+				lowestPercentagePlayer = target;
+				lowestPercentage = target->GetHealthPercent();
+				continue;
+			}
+
+			// IsHostileTo check duel and controlled by enemy
+			if (IsWithinDistInMap(target, radius) &&
+				!target->HasInvisibilityAura() && !IsHostileTo(target) && !target->HasAuraType(noAuraType))
+			{
+				if (target->GetHealthPercent() < lowestPercentage)
+				{
+					lowestPercentagePlayer = target;
+					lowestPercentage = target->GetHealthPercent();
+				}
+			}
+		}
+	}
+
+	return lowestPercentagePlayer;
 }
 
 PartyResult Player::CanUninviteFromGroup() const

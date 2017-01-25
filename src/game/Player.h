@@ -1332,6 +1332,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void ClearComboPoints();
         void SetComboPoints();
 
+		bool AttackStop(bool targetSwitch = false, bool includingCast = false, bool includingCombo = false) override;
+
         void SendMailResult(uint32 mailId, MailResponseType mailAction, MailResponseResult mailError, uint32 equipError = 0, uint32 item_guid = 0, uint32 item_count = 0) const;
         void SendNewMail() const;
         void UpdateNextMailTimeAndUnreads();
@@ -2075,6 +2077,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
         Player* GetNextRandomRaidMember(float radius);
+		Player* GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType noAuraType);
         PartyResult CanUninviteFromGroup() const;
         void UpdateGroupLeaderFlag(const bool remove = false);
         // BattleGround Group System

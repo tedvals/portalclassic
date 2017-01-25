@@ -295,7 +295,7 @@ pAuraProcHandler AuraProcHandler[TOTAL_AURAS] =
 		&Unit::HandleNULLProc,                                  //261 SPELL_AURA_261 some phased state (44856 spell)
 };
 
-bool Unit::IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, SpellProcEventEntry const*& spellProcEvent)
+bool Unit::IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, SpellProcEventEntry const*& spellProcEvent, bool dontTriggerSpecial)
 {
     SpellEntry const* spellProto = holder->GetSpellProto();
 
@@ -374,6 +374,12 @@ bool Unit::IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, S
     {
         modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_CHANCE_OF_SUCCESS, chance);
     }
+
+	if (procSpell && dontTriggerSpecial && procSpell->HasAttribute(SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL))
+	{
+		if (!spellProto->HasAttribute(SPELL_ATTR_EX3_CAN_PROC_FROM_TRIGGERED_SPECIAL))
+			return false;
+	}
 
 	if (!roll_chance_f(chance))
 		 {
@@ -1403,7 +1409,27 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 }
 				case 33896:                                 // Desperate Defense (Stonescythe Whelp, Stonescythe Alpha, Stonescythe Ambusher)
 					trigger_spell_id = 33898;
-					break;                
+					break;      
+					// case 34082: break;                   // Advantaged State (DND)
+					// case 34783: break:                   // Spell Reflection
+					// case 35205: break:                   // Vanish
+					// case 35321: break;                   // Gushing Wound
+				case 36096:                             // Spell Reflection
+					return SPELL_AURA_PROC_OK;          // Missing Trigger spell with no evidence to tell what to trigger, need to return to trigger consumption
+														// case 36207: break:                   // Steal Weapon
+														// case 36576: break:                   // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
+														// case 37030: break;                   // Chaotic Temperament
+														// case 38363: break;                   // Gushing Wound
+														// case 39215: break;                   // Gushing Wound
+														// case 40250: break;                   // Improved Duration
+														// case 40329: break;                   // Demo Shout Sensor
+														// case 40364: break;                   // Entangling Roots Sensor
+														// case 41054: break;                   // Copy Weapon
+														//    trigger_spell_id = 41055; break;
+														// case 41248: break;                   // Consuming Strikes
+														//    trigger_spell_id = 41249; break;
+														// case 43453: break:                   // Rune Ward
+														// case 43504: break;                   // Alterac Valley OnKill Proc Aura
             }
             break;
         case SPELLFAMILY_MAGE:
@@ -2332,7 +2358,7 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(Unit* /*pVictim*/, uint32 /*dama
 		{
 			caster->ApplySpellMod(spellProto->Id, SPELLMOD_RADIUS, radius, nullptr);
 
-			if (Player* target = ((Player*)this)->GetNextRandomRaidMember(radius))
+			if (Player* target = ((Player*)this)->GetNextRaidMemberWithLowestLifePercentage(radius, SPELL_AURA_PRAYER_OF_MENDING))
 			{
 				// aura will applied from caster, but spell casted from current aura holder
 				SpellModifier* mod = new SpellModifier(SPELLMOD_CHARGES, SPELLMOD_FLAT, jumps - 5, spellProto->Id, spellProto->SpellFamilyFlags);
@@ -2341,9 +2367,9 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(Unit* /*pVictim*/, uint32 /*dama
 				triggeredByAura->SetInUse(true);
 				RemoveAurasByCasterSpell(spellProto->Id, caster->GetObjectGuid());
 
-				caster->AddSpellMod(mod, true);
+				((Player*)this)->AddSpellMod(mod, true);
 				CastCustomSpell(target, spellProto->Id, &heal, nullptr, nullptr, true, nullptr, triggeredByAura, caster->GetObjectGuid());
-				caster->AddSpellMod(mod, false);
+				((Player*)this)->AddSpellMod(mod, false);
 				triggeredByAura->SetInUse(false);
 			}
 		}

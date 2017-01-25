@@ -77,7 +77,7 @@ int32 CalculateSpellDuration(SpellEntry const* spellInfo, Unit const* caster)
 {
 	int32 duration = GetSpellDuration(spellInfo);
 
-	if (duration != -1 && caster)
+	if (duration != -1 && caster && !spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
 	{
 		int32 maxduration = GetSpellMaxDuration(spellInfo);
 
@@ -92,7 +92,6 @@ int32 CalculateSpellDuration(SpellEntry const* spellInfo, Unit const* caster)
 				duration = 0;
 		}
 	}
-
 	return duration;
 }
 

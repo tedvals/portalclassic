@@ -400,8 +400,8 @@ class MANGOS_DLL_SPEC Aura
         void HandlePreventFleeing(bool apply, bool Real);
         void HandleManaShield(bool apply, bool Real);
         void HandleInterruptRegen(bool apply, bool Real);
-		void HandleAuraMirrorImage(bool apply, bool Real);
 		void HandleFactionOverride(bool apply, bool Real);
+		void HandlePrayerOfMending(bool apply, bool Real);
 		void HandleModRating(bool apply, bool Real);
 
 
