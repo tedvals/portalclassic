@@ -6697,6 +6697,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
     // Done total percent damage auras
     float  DoneTotalMod = 1.0f;
     int32  DoneTotal = 0;
+	float distance = 0;
 
     // Healing done percent
     AuraList const& mHealingDonePct = GetAurasByType(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
@@ -6718,8 +6719,8 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
             case 3736: // Hateful Totem of the Third Wind / Increased Lesser Healing Wave / Savage Totem of the Third Wind
                 DoneTotal += (*i)->GetModifierAmount(getLevel());
                 break;
-			case 8001: //Druid:Growing Rage
-				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * 0.80f)
+			case 8001: //Druid: Healing Hands
+				if (pVictim->GetHealth() > pVictim->GetMaxHealth() * 0.50f)
 					DoneTotal *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
 				break;
 			case 8002: //Priest Mental Strength
@@ -6730,7 +6731,18 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
 				if (GetHealth() <= GetMaxHealth() * 0.35f)
 					DoneTotal *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
 				break;
-
+			case 8022: //Healing Light Extra amount due to distance
+			{
+				distance = 1.f - (GetDistance(pVictim) / 36.f);
+				DoneTotal *= ((*i)->GetModifierAmount(getLevel()*distance) + 100.0f) / 100.0f;
+				break;
+			}
+			case 8023: //Rage of Nature
+					if (GetHealth() < GetMaxHealth() * 0.25f && 
+						(IsPeriodicRegenerateEffect(spellProto, EFFECT_INDEX_0) || IsPeriodicRegenerateEffect(spellProto, EFFECT_INDEX_1) ||
+						IsPeriodicRegenerateEffect(spellProto, EFFECT_INDEX_2)))
+					DoneTotal *= ((*i)->GetModifierAmount(getLevel()) + 100.0f) / 100.0f;
+				break;
             default:
                 break;
         }

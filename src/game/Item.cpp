@@ -977,7 +977,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 
 					uint32 itemLevel = itemProto->ItemLevel;
 					uint32 itemClass = itemProto->Class;
-					uint32 ItemSubClass = itemProto->SubClass;
+					//uint32 ItemSubClass = itemProto->SubClass;
 					uint32 ItemQuality = itemProto->Quality;
 															
 					uint32 reforgeLevel = 0;
@@ -989,13 +989,13 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > minQuality) && (itemLevel>minLevel))
 					{
 						if (!randomPropertyId)
-							randomPropertyId = itemProto->RandomProperty;
+							randomPropertyId = GetItemEnchantMod(itemProto->RandomProperty); 
 
 						if (randomPropertyId)
 						{
 							QueryResult* result;
-							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass, ItemSubClass);
-
+							//result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass, ItemSubClass);
+							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass);
 							if (result)
 							{
 								Field* fields = result->Fetch();
@@ -1015,7 +1015,8 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 
 						do
 						{
-							result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+							//result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+							result = WorldDatabase.PQuery("SELECT ench FROM item_random_enhancement WHERE minlevel <= '%u' and maxlevel >= '%u' and class = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass);
 							--reforgeLevel;
 
 							if (reforgeLevel < minLevel)
@@ -1032,7 +1033,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 							delete result;
 						}
 
-						sLog.outString("Adding random property %u to item %u", randomPropertyId, item);
+						sLog.outString("Adding enchantment %u to item %u", randomPropertyId, item);
 					}
 					
 					if (sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP))

@@ -60,6 +60,7 @@
 #include "DBCStores.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "ItemEnchantmentMgr.h"
 #include "LuaEngine.h"
 
 // Playerbot mod:
@@ -4679,8 +4680,30 @@ uint32 Player::DurabilityRepair(uint16 pos, bool cost, float discountMod)
         }
     }
 
-    item->SetUInt32Value(ITEM_FIELD_DURABILITY, maxDurability);
-    item->SetState(ITEM_CHANGED, this);
+	//Custom
+	float chanceRepair = sWorld.getConfig(CONFIG_UINT32_CUSTOM_REPAIR_FAILURE_CHANCE);
+
+	if (!chanceRepair)
+	{
+		item->SetUInt32Value(ITEM_FIELD_DURABILITY, maxDurability);
+		item->SetState(ITEM_CHANGED, this);
+	}
+	else
+	{
+		uint32 chanceCriticalRepair = sWorld.getConfig(CONFIG_UINT32_CUSTOM_REPAIR_CRITICAL_FAILURE_CHANCE);
+
+		float chance = urand(0, 99);
+
+		if (chance <  chanceRepair)
+		{ 
+			if (chance <  chanceCriticalRepair)
+			{
+				DestroyItem(item->GetBagSlot(), item->GetSlot(), true);
+				WorldSession* rPlayerSession = GetSession();
+				ChatHandler(this).SendSysMessage(LANG_REMOVEITEM);				
+			}
+		}
+	}
 
     // reapply mods for total broken and repaired item if equipped
     if (IsEquipmentPos(pos) && !curDurability)
@@ -20012,7 +20035,7 @@ bool Player::CanReforgeItem(Item* itemTarget)
 			uint32 itemClass = itemProto->Class;
 			uint32 ItemSubClass = itemProto->SubClass;
 			uint32 ItemQuality = itemProto->Quality;
-			uint32 protoRandom = itemProto->RandomProperty;
+			uint32 protoRandom = GetItemEnchantMod(itemProto->RandomProperty);
 
 			if (!itemProto || !(itemClass == 2 || itemClass == 4) || !(ItemQuality > minQuality) || !(itemLevel > minLevel))
 				return false;

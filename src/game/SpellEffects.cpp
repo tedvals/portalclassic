@@ -51,6 +51,7 @@
 #include "CellImpl.h"
 #include "G3D/Vector3.h"
 #include "LootMgr.h"
+#include "ItemEnchantmentMgr.h"
 #include "LuaEngine.h"
 
 pEffect SpellEffects[TOTAL_SPELL_EFFECTS] =
@@ -2290,6 +2291,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     int hurt = 0;
                     int heal = 0;
+					int32 amount = 0;
+					float distance = m_caster->GetDistance(unitTarget) / 36.f;
 
                     switch (m_spellInfo->Id)
                     {
@@ -2301,11 +2304,20 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             return;
                     }
 
-                    if (m_caster->IsFriendlyTo(unitTarget))
-                        m_caster->CastSpell(unitTarget, heal, TRIGGERED_OLD_TRIGGERED);
-                    else
-                        m_caster->CastSpell(unitTarget, hurt, TRIGGERED_OLD_TRIGGERED);
-
+					if (m_caster->IsFriendlyTo(unitTarget))
+					{
+						//m_caster->CastSpell(unitTarget, heal, TRIGGERED_OLD_TRIGGERED);
+						SpellEntry const* spellInfo = GetSpellTemplate(heal);
+						amount = int32(spellInfo->EffectBasePoints[0] * distance * 2.f);  //up to 100% increase due to distance
+						m_caster->CastCustomSpell(unitTarget, heal, &amount, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+					}
+					else
+					{
+						SpellEntry const* spellInfo = GetSpellTemplate(hurt);
+						amount = int32(spellInfo->EffectBasePoints[0] * distance * 2.f); //up to 100% increase due to distance
+						//m_caster->CastSpell(unitTarget, hurt, TRIGGERED_OLD_TRIGGERED);
+						m_caster->CastCustomSpell(unitTarget, hurt, &amount, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+					}
                     return;
                 }
                 case 561:                                   // Judgement of command
@@ -6915,9 +6927,9 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 
 			uint32 itemLevel = itemProto->ItemLevel;
 			uint32 itemClass = itemProto->Class;
-			uint32 ItemSubClass = itemProto->SubClass;
+			//uint32 ItemSubClass = itemProto->SubClass;
 			uint32 ItemQuality = itemProto->Quality;
-			uint32 protoRandom = itemProto->RandomProperty;
+			uint32 protoRandom = GetItemEnchantMod(itemProto->RandomProperty);
 
 			if (!itemProto || !(itemClass == 2 || itemClass == 4) || !(ItemQuality > minQuality) || !(itemLevel > minLevel))
 				return;
@@ -6929,8 +6941,8 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 			if (protoRandom)
 			{
 				QueryResult* result;
-				result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", protoRandom, itemClass, ItemSubClass);
-
+				//result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancements WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", protoRandom, itemClass, ItemSubClass);
+				result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancements WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", protoRandom, itemClass);
 				if (result)
 				{
 					Field* fields = result->Fetch();
@@ -6950,7 +6962,8 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 
 			do
 			{
-				result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+				//result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancements WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+				result = WorldDatabase.PQuery("SELECT ench FROM item_random_enhancements WHERE minlevel <= '%u' and maxlevel >= '%u' and class = '%u' order by rand() LIMIT 1", reforgeLevel, reforgeLevel, itemClass);
 				--reforgeLevel;
 
 				if (reforgeLevel < minLevel)
@@ -6975,7 +6988,7 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 				}
 
 			itemTarget->SetItemRandomProperties(randomPropertyId);
-			DEBUG_LOG("Adding random property %u to item %u", randomPropertyId, itemTarget->GetGUIDLow());
+			DEBUG_LOG("Adding random enchantment %u to item %u", randomPropertyId, itemTarget->GetGUIDLow());
 			
 		}
 	}

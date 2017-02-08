@@ -930,6 +930,16 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     triggered_spell_id = 28810;
                     break;
                 }
+				// Improved Power Word: Shield
+				case 14748:
+				case 14768:
+				case 14769:
+				{
+					if (pVictim && pVictim->HasAura(6788)) //Weakened  Soul
+						pVictim->RemoveAurasDueToSpell(6788);
+
+					break;
+				}
             }
             break;
         }
