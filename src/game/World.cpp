@@ -825,6 +825,9 @@ void World::LoadConfigSettings(bool reload)
     if (reload)
         sEluna->OnConfigLoad(reload);
 
+    setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
+    setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
+
     sLog.outString();
 }
 
