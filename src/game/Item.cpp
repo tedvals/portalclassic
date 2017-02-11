@@ -977,16 +977,77 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 
 					uint32 itemLevel = itemProto->ItemLevel;
 					uint32 itemClass = itemProto->Class;
-					//uint32 ItemSubClass = itemProto->SubClass;
+					uint32 ItemSubClass = itemProto->SubClass;
 					uint32 ItemQuality = itemProto->Quality;
+					uint32 inventoryType = itemProto->InventoryType;
 															
 					uint32 reforgeLevel = 0;
 					uint32 reforgePropertyId = 0;
 
 					uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
 					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+					bool canApply;
 
-					if (itemProto && (itemClass == 2 || itemClass == 4) && (ItemQuality > minQuality) && (itemLevel>minLevel))
+					if (itemClass == 2 || itemClass == 4)
+						canApply = true;
+					else canApply = false;
+
+					//Change Class
+					// 1 : Two Handed Weapons
+					// 2 : 1 Handed Weapons - Shields - Off Hands
+					// 3: Head - Breast - Pants - Shoulders
+					// 4: Other (including Ranged Weapons, Wands, Librams, Relics, Totems)
+
+					if (itemClass = 2)
+					{
+						switch (ItemSubClass)
+						{
+						case ITEM_SUBCLASS_WEAPON_AXE2:
+						case ITEM_SUBCLASS_WEAPON_MACE2:
+						case ITEM_SUBCLASS_WEAPON_POLEARM:
+						case ITEM_SUBCLASS_WEAPON_SWORD2:
+						case ITEM_SUBCLASS_WEAPON_STAFF:
+						case ITEM_SUBCLASS_WEAPON_SPEAR:
+							itemClass = 1;
+						case ITEM_SUBCLASS_WEAPON_BOW:
+						case ITEM_SUBCLASS_WEAPON_GUN:
+						case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+						case ITEM_SUBCLASS_WEAPON_WAND:
+							itemClass = 4;
+						case ITEM_SUBCLASS_WEAPON_MISC:
+						case ITEM_SUBCLASS_WEAPON_obsolete:
+						case ITEM_SUBCLASS_WEAPON_EXOTIC:
+						case ITEM_SUBCLASS_WEAPON_EXOTIC2:
+						case ITEM_SUBCLASS_WEAPON_FISHING_POLE:
+							canApply = false;
+						}
+					}
+
+					if (canApply)
+					{
+						switch (inventoryType)
+						{
+						case INVTYPE_HEAD:
+						case INVTYPE_CHEST:
+						case INVTYPE_LEGS:
+						case INVTYPE_SHOULDERS:
+							itemClass = 3;
+						case INVTYPE_SHIELD:
+						case INVTYPE_HOLDABLE:
+							itemClass = 1;
+						case INVTYPE_THROWN:
+						case INVTYPE_RELIC:
+						case INVTYPE_RANGEDRIGHT:
+							itemClass = 4;
+						case INVTYPE_BAG:
+						case INVTYPE_TABARD:
+						case INVTYPE_AMMO:
+						case INVTYPE_QUIVER:
+							canApply = false;
+						}
+					}
+
+					if (itemProto && canApply && (ItemQuality > minQuality) && (itemLevel>minLevel))
 					{
 						if (!randomPropertyId)
 							randomPropertyId = GetItemEnchantMod(itemProto->RandomProperty); 
@@ -995,7 +1056,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						{
 							QueryResult* result;
 							//result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass, ItemSubClass);
-							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass);
+							result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancements WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass);
 							if (result)
 							{
 								Field* fields = result->Fetch();
@@ -1016,7 +1077,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						do
 						{
 							//result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
-							result = WorldDatabase.PQuery("SELECT ench FROM item_random_enhancement WHERE minlevel <= '%u' and maxlevel >= '%u' and class = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass);
+							result = WorldDatabase.PQuery("SELECT ench FROM item_random_enhancements WHERE minlevel <= '%u' and maxlevel >= '%u' and class = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass);
 							--reforgeLevel;
 
 							if (reforgeLevel < minLevel)

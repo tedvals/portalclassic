@@ -4981,7 +4981,17 @@ SpellCastResult Spell::CheckCast(bool strict)
                 else if (m_spellInfo->SpellIconID == 1648)       // Execute
                 {
                     Unit* target = m_targets.getUnitTarget();
-                    if (!target || target->GetHealth() > target->GetMaxHealth() * 0.2)
+					if (m_caster->HasAura(58405))
+					{
+						if (!target || target->GetHealth() > target->GetMaxHealth() * 0.3)
+							return SPELL_FAILED_BAD_TARGETS;
+					}
+					else if (m_caster->HasAura(58404))
+					{
+						if (!target || target->GetHealth() > target->GetMaxHealth() * 0.25)
+							return SPELL_FAILED_BAD_TARGETS;
+					}
+                    else if (!target || target->GetHealth() > target->GetMaxHealth() * 0.2)
                         return SPELL_FAILED_BAD_TARGETS;
                 }
                 else if (m_spellInfo->SpellIconID == 156)   // Holy Shock
@@ -5020,7 +5030,18 @@ SpellCastResult Spell::CheckCast(bool strict)
                     if (!m_targets.getUnitTarget())
                         return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
 
-                    if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.2)
+					//Support for Hammer of Wrath
+					if (m_caster->HasAura(58403))
+					{
+						if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.30)
+							return SPELL_FAILED_BAD_TARGETS;
+					}
+					else if (m_caster->HasAura(58402))
+					{
+						if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.25)
+							return SPELL_FAILED_BAD_TARGETS;
+					}
+                    else if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.2)
                         return SPELL_FAILED_BAD_TARGETS;
                 }
                 // Conflagrate

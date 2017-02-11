@@ -3397,6 +3397,14 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
         {
 			case SPELLFAMILY_WARRIOR:
 			{
+				//Taste for Blood
+				if (spellProto->Mechanic == MECHANIC_BLEED)
+				{
+					Aura* tfb_aura = caster->GetAuraWithMiscValue(SPELL_AURA_PROC_TRIGGER_SPELL, 8507);  
+					if (tfb_aura && roll_chance_i(tfb_aura->GetSpellProto()->procChance))
+						m_modifier.m_amount *= 2;					
+				}
+
 				// Rend
 				if (spellProto->SpellFamilyFlags & uint64(0x0000000000000020))
 				{
@@ -3407,7 +3415,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
 				float mwb_max = caster->GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE);
 				m_modifier.m_amount += int32(((mwb_min + mwb_max) / 2 + ap * mws / 14000) * 0.00743f);
 				}
-				break;
+				break;				
 			}
             case SPELLFAMILY_DRUID:
             {
@@ -3436,6 +3444,26 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
                 }
                 break;
             }
+			case SPELLFAMILY_WARLOCK:
+			{
+				// Amplify Curse
+				if (caster->HasAura(18288))  //Amplify Curse
+				{
+					if ((spellProto->School == SPELL_SCHOOL_SHADOW) && (roll_chance_f(caster->ToCreature()->GetCritChance(SPELL_SCHOOL_MASK_SHADOW))))
+						m_modifier.m_amount *= 2;  //double  damage;
+				}
+				break;			
+			}
+			case SPELLFAMILY_MAGE:
+			{
+				// Amplify Curse
+				if ((spellProto->School == SPELL_SCHOOL_FIRE) && caster->HasAura(11129))  //Combustion
+				{
+					if (roll_chance_f(caster->ToCreature()->GetCritChance(SPELL_SCHOOL_MASK_FIRE)))
+						m_modifier.m_amount *= 2;  //double  damage;
+				}
+				break;
+			}
             case SPELLFAMILY_ROGUE:
             {
                 // Rupture

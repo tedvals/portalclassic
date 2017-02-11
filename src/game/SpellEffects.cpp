@@ -386,6 +386,17 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 // Conflagrate - consumes Immolate
                 if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000000200))
                 {
+					//Support for Conflagration
+					if (m_caster->HasAura(58244) && roll_chance_i(15))
+						break;
+					//Support for Conflagration
+					if (m_caster->HasAura(58245) && roll_chance_i(20))
+						break;
+
+					//Support for Conflagration
+					if (m_caster->HasAura(58246) && roll_chance_i(30))
+						break;
+
                     // for caster applied auras only
                     Unit::AuraList const& mPeriodic = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                     for (Unit::AuraList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)
@@ -6927,12 +6938,65 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 
 			uint32 itemLevel = itemProto->ItemLevel;
 			uint32 itemClass = itemProto->Class;
-			//uint32 ItemSubClass = itemProto->SubClass;
+			uint32 ItemSubClass = itemProto->SubClass;
 			uint32 ItemQuality = itemProto->Quality;
 			uint32 protoRandom = GetItemEnchantMod(itemProto->RandomProperty);
+			uint32 inventoryType = itemProto->InventoryType;
 
 			if (!itemProto || !(itemClass == 2 || itemClass == 4) || !(ItemQuality > minQuality) || !(itemLevel > minLevel))
 				return;
+
+			//Change Class
+			// 1 : Two Handed Weapons
+			// 2 : 1 Handed Weapons - Shields - Off Hands
+			// 3: Head - Breast - Pants - Shoulders
+			// 4: Other (including Ranged Weapons, Wands, Librams, Relics, Totems)
+			
+			if (itemClass = 2)
+			{
+				switch (ItemSubClass)
+				{
+				case ITEM_SUBCLASS_WEAPON_AXE2:
+				case ITEM_SUBCLASS_WEAPON_MACE2:
+				case ITEM_SUBCLASS_WEAPON_POLEARM:
+				case ITEM_SUBCLASS_WEAPON_SWORD2:
+				case ITEM_SUBCLASS_WEAPON_STAFF:
+				case ITEM_SUBCLASS_WEAPON_SPEAR:
+					itemClass = 1;
+				case ITEM_SUBCLASS_WEAPON_BOW:
+				case ITEM_SUBCLASS_WEAPON_GUN:
+				case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+				case ITEM_SUBCLASS_WEAPON_WAND:
+					itemClass = 4;
+				case ITEM_SUBCLASS_WEAPON_MISC:
+				case ITEM_SUBCLASS_WEAPON_obsolete:
+				case ITEM_SUBCLASS_WEAPON_EXOTIC:
+				case ITEM_SUBCLASS_WEAPON_EXOTIC2:
+				case ITEM_SUBCLASS_WEAPON_FISHING_POLE:
+					return;
+				}
+			}
+
+			switch (inventoryType)
+			{
+				case INVTYPE_HEAD:
+				case INVTYPE_CHEST:
+				case INVTYPE_LEGS: 
+				case INVTYPE_SHOULDERS:
+					itemClass = 3;
+				case INVTYPE_SHIELD:
+				case INVTYPE_HOLDABLE:
+					itemClass = 1;
+				case INVTYPE_THROWN:
+				case INVTYPE_RELIC:
+				case INVTYPE_RANGEDRIGHT:
+					itemClass = 4;				
+				case INVTYPE_BAG:
+				case INVTYPE_TABARD:
+				case INVTYPE_AMMO :
+				case INVTYPE_QUIVER:
+					return;
+			}
 
 			int32  randomPropertyId;
 			uint32 adventure_level = ((Player*)p_caster)->GetAdventureLevel();
