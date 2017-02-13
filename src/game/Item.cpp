@@ -993,9 +993,9 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 					else canApply = false;
 
 					//Change Class
-					// 1 : Two Handed Weapons
-					// 2 : 1 Handed Weapons - Shields - Off Hands
-					// 3: Head - Breast - Pants - Shoulders
+					// 1 : Two Handed Weapons - Shields 
+					// 2 : 1 Handed Weapons - Off Hands
+					// 3: Head - Chest
 					// 4: Other (including Ranged Weapons, Wands, Librams, Relics, Totems)
 
 					if (itemClass = 2)
@@ -1029,12 +1029,11 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						{
 						case INVTYPE_HEAD:
 						case INVTYPE_CHEST:
-						case INVTYPE_LEGS:
-						case INVTYPE_SHOULDERS:
 							itemClass = 3;
 						case INVTYPE_SHIELD:
-						case INVTYPE_HOLDABLE:
 							itemClass = 1;
+						case INVTYPE_HOLDABLE:
+							itemClass = 2;
 						case INVTYPE_THROWN:
 						case INVTYPE_RELIC:
 						case INVTYPE_RANGEDRIGHT:

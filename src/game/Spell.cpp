@@ -4793,6 +4793,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 Creature* targetExplicit = nullptr;            // used for cases where a target is provided (by script for example)
                 Creature* creatureScriptTarget = nullptr;
                 GameObject* goScriptTarget = nullptr;
+                bool foundButOutOfRange = false;
 
                 for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
                 {
@@ -4842,15 +4843,15 @@ SpellCastResult Spell::CheckCast(bool strict)
                             {
                                 if (pTarget->GetTypeId() == TYPEID_UNIT && pTarget->GetEntry() == i_spellST->targetEntry)
                                 {
-                                    if ((i_spellST->type == SPELL_TARGET_TYPE_DEAD && ((Creature*)pTarget)->IsCorpse())
-                                        || (i_spellST->type == SPELL_TARGET_TYPE_CREATURE && pTarget->isAlive()))
+                                    if ((i_spellST->type == SPELL_TARGET_TYPE_CREATURE && pTarget->isAlive()) ||
+                                        (i_spellST->type == SPELL_TARGET_TYPE_DEAD && ((Creature*)pTarget)->IsCorpse()))
                                     {
                                         // always use spellMaxRange, in case GetLastRange returned different in a previous pass
-                                        if(worldObject && (worldObject->GetTypeId() == TYPEID_GAMEOBJECT || worldObject->GetTypeId() == TYPEID_DYNAMICOBJECT)
-                                            && pTarget->IsWithinDistInMap(worldObject, GetSpellMaxRange(srange)))
+                                        WorldObject* searcher = (worldObject && (worldObject->GetTypeId() == TYPEID_GAMEOBJECT || worldObject->GetTypeId() == TYPEID_DYNAMICOBJECT)) ? worldObject : m_caster;
+                                        if (pTarget->IsWithinDistInMap(searcher, GetSpellMaxRange(srange)))
                                             targetExplicit = (Creature*)pTarget;
-                                        else if (pTarget->IsWithinDistInMap(m_caster, GetSpellMaxRange(srange)))
-                                            targetExplicit = (Creature*)pTarget;
+                                        else
+                                            foundButOutOfRange = true;
                                     }
                                 }
                             }
@@ -4866,6 +4867,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                                 Cell::VisitAllObjects(objectForSearch, searcher, range);
 
                                 range = u_check.GetLastRange();
+                                if (u_check.FoundOutOfRange())
+                                    foundButOutOfRange = true;
                             }
 
                             // always prefer provided target if it's valid
@@ -4932,7 +4935,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         if (m_triggeredByAuraSpell || m_IsTriggeredSpell)
                             return SPELL_FAILED_DONT_REPORT;
                         else
-                            return SPELL_FAILED_BAD_TARGETS;
+                            return foundButOutOfRange ? SPELL_FAILED_OUT_OF_RANGE : SPELL_FAILED_BAD_TARGETS;
                     }
                 }
             }
@@ -4981,7 +4984,12 @@ SpellCastResult Spell::CheckCast(bool strict)
                 else if (m_spellInfo->SpellIconID == 1648)       // Execute
                 {
                     Unit* target = m_targets.getUnitTarget();
-					if (m_caster->HasAura(58405))
+
+					if (m_caster->HasAura(58410))	//Support for Sudden Death
+					{
+						m_caster->RemoveAurasDueToSpell(58410);
+					}
+					else if (m_caster->HasAura(58405))  //Support for Executioner 
 					{
 						if (!target || target->GetHealth() > target->GetMaxHealth() * 0.3)
 							return SPELL_FAILED_BAD_TARGETS;
@@ -5030,19 +5038,22 @@ SpellCastResult Spell::CheckCast(bool strict)
                     if (!m_targets.getUnitTarget())
                         return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
 
-					//Support for Hammer of Wrath
+					//Support for Divine Favor  - Wrathful Hammer					
 					if (m_caster->HasAura(58403))
 					{
 						if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.30)
-							return SPELL_FAILED_BAD_TARGETS;
+							if (!m_caster->HasAura(20216)) //Divine Favor
+								return SPELL_FAILED_BAD_TARGETS;
 					}
 					else if (m_caster->HasAura(58402))
 					{
 						if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.25)
-							return SPELL_FAILED_BAD_TARGETS;
+							if (!m_caster->HasAura(20216)) //Divine Favor
+								return SPELL_FAILED_BAD_TARGETS;
 					}
                     else if (m_targets.getUnitTarget()->GetHealth() > m_targets.getUnitTarget()->GetMaxHealth() * 0.2)
-                        return SPELL_FAILED_BAD_TARGETS;
+						if (!m_caster->HasAura(20216)) //Divine Favor
+							return SPELL_FAILED_BAD_TARGETS;
                 }
                 // Conflagrate
                 else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->SpellFamilyFlags & uint64(0x0000000000000200))

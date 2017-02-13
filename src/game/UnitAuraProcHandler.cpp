@@ -1621,9 +1621,17 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 				basepoints[0] /= 6;
 
 				trigger_spell_id = 12721;
+				break;
+				// Feral Tenacity
+			case 58423:
+			case 58424:
+			case 58425:
+				if (HasAuraWithMiscValue(SPELL_AURA_MOD_DAMAGE_DONE, 8508))
+					trigger_spell_id = 58422;
+				break;
 			}
-            break;
-        case SPELLFAMILY_HUNTER:
+			break;
+		case SPELLFAMILY_HUNTER:
             break;
 		case SPELLFAMILY_ROGUE:
 			{

@@ -444,7 +444,14 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 {
                     // converts each extra point of energy into ($f1+$AP/630) additional damage
                     float multiple = m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 630 + m_spellInfo->DmgMultiplier[effect_idx];
-                    damage += int32(m_caster->GetPower(POWER_ENERGY) * multiple);
+					if (m_caster->HasAura(58422)) //Feral Tenacity
+					{ 
+						damage += int32(m_caster->GetMaxPower(POWER_ENERGY) * multiple);
+						m_caster->RemoveAurasDueToSpell(58422);
+					}
+					else 
+						damage += int32(m_caster->GetPower(POWER_ENERGY) * multiple);
+
                     m_caster->SetPower(POWER_ENERGY, 0);
                 }
                 break;
@@ -513,6 +520,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
 				{
 					if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
 					{
+						if (m_caster->HasAura(58418)) //Overkill
+						{
+							combo = 5;
+							m_caster->RemoveAurasDueToSpell(58418);
+						}
+
 						damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * combo * 0.03f);
 
 						// Eviscerate and Envenom Bonus Damage (item set effect)
@@ -6947,9 +6960,9 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 				return;
 
 			//Change Class
-			// 1 : Two Handed Weapons
-			// 2 : 1 Handed Weapons - Shields - Off Hands
-			// 3: Head - Breast - Pants - Shoulders
+			// 1 : Two Handed Weapons - Shields
+			// 2 : 1 Handed Weapons - Off Hands
+			// 3: Head - Chest
 			// 4: Other (including Ranged Weapons, Wands, Librams, Relics, Totems)
 			
 			if (itemClass = 2)
@@ -6981,12 +6994,11 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 			{
 				case INVTYPE_HEAD:
 				case INVTYPE_CHEST:
-				case INVTYPE_LEGS: 
-				case INVTYPE_SHOULDERS:
 					itemClass = 3;
 				case INVTYPE_SHIELD:
-				case INVTYPE_HOLDABLE:
 					itemClass = 1;
+				case INVTYPE_HOLDABLE:
+					itemClass = 2;
 				case INVTYPE_THROWN:
 				case INVTYPE_RELIC:
 				case INVTYPE_RANGEDRIGHT:

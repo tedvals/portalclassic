@@ -771,7 +771,7 @@ namespace MaNGOS
                         {
 							if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_FRIENDLY_FIRE)) //custom	friendly fire does not effect holy school and totems and NPCs
 							{
-								if (!i_originalCaster->GetObjectGuid().IsPlayer() || (itr->getSource() && !itr->getSource()->isInCombat()) || (i_spell.m_spellSchoolMask & SPELL_SCHOOL_MASK_HOLY) )
+								if (!i_originalCaster->GetObjectGuid().IsPlayer() || (itr->getSource() && !itr->getSource()->isInCombat()) || !(i_spell.m_spellSchoolMask & SPELL_SCHOOL_MASK_FF_SPELL) )
 									if (!i_originalCaster->IsHostileTo(itr->getSource()))
 										continue;						
 							}
