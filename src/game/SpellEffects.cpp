@@ -7018,7 +7018,7 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 			{
 				QueryResult* result;
 				//result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancements WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", protoRandom, itemClass, ItemSubClass);
-				result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancements WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", protoRandom, itemClass);
+				result = WorldDatabase.PQuery("SELECT maxlevel FROM item_random_enhancements WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", protoRandom, itemClass);
 				if (result)
 				{
 					Field* fields = result->Fetch();
@@ -7029,9 +7029,23 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 			}
 
 			if (!reforgeLevel)
-				reforgeLevel = urand(8 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (8 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
+			{
+				uint32 base = floor(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_SCALING)*itemProto->ItemLevel*ItemQuality);
+				reforgeLevel = urand(base, base + adventure_level*ItemQuality);
+			}
+
+			//reforgeLevel = urand(10 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (6 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
 			else
-				reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
+			{
+				//reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
+				uint32 base = floor((sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_SCALING)*itemProto->ItemLevel*ItemQuality) + reforgeLevel / 5);
+				reforgeLevel = urand(base, base + adventure_level*ItemQuality);
+			}
+
+			if (reforgeLevel > 75)
+				reforgeLevel = 75;
+			else if (reforgeLevel < 10)
+				return;
 
 			int i = 0;
 			QueryResult* result;

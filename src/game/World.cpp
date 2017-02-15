@@ -812,7 +812,7 @@ void World::LoadConfigSettings(bool reload)
 	setConfig(CONFIG_BOOL_CUSTOM_FRIENDLY_FIRE, "Custom.FriendlyFire", false);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL, "Custom.RandomizeItemMinLevel", 15);
 	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY, "Custom.RandomizeItemMinQuality", 2);
-	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF, "Custom.RandomizeItemDiff", 5);
+	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_SCALING, "Custom.RandomizeItemLevelScaling", 0.2f);
 	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 10.f);
 	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ENEMY_COOLDOWN, "AdventureEnemyCooldown", 0.1f);
 	setConfig(CONFIG_UINT32_CUSTOM_REPAIR_FAILURE_CHANCE, "RepairFailureChance", 0);
