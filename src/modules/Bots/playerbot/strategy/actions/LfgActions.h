@@ -7,9 +7,9 @@
 #include "../../PlayerbotAIConfig.h"
 #include "../ItemVisitors.h"
 #include "../../RandomPlayerbotMgr.h"
-#include "../../game/BattleGround/Battleground.h"
-#include "../../game/BattleGround/BattlegroundMgr.h"
-#include "../../game/BattleGround/BattlegroundWS.h"
+#include "../../game/BattleGround/BattleGround.h"
+#include "../../game/BattleGround/BattleGroundMgr.h"
+#include "../../game/BattleGround/BattleGroundWS.h"
 #include "ChooseTargetActions.h"
 #include "CheckMountStateAction.h"
 

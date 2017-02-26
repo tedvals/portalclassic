@@ -1667,7 +1667,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
         if ((gameObject->GetEntry() == BG_AV_OBJECTID_MINE_N || gameObject->GetEntry() == BG_AV_OBJECTID_MINE_S))
         {
             if (BattleGround* bg = player->GetBattleGround())
-                if (bg->GetTypeID() == BATTLEGROUND_AV)
+                if (bg->GetTypeID() == BattleGround_AV)
                     if (!(((BattleGroundAV*)bg)->PlayerCanDoMineQuest(gameObject->GetEntry(), player->GetTeam())))
                     {
                         return;

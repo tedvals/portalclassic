@@ -260,7 +260,7 @@ void BattleGround::Update(uint32 diff)
         // BG is empty
         // if there are no players invited, delete BG
         // this will delete arena or bg object, where any player entered
-        // [[   but if you use battleground object again (more battles possible to be played on 1 instance)
+        // [[   but if you use BattleGround object again (more battles possible to be played on 1 instance)
         //      then this condition should be removed and code:
         //      if (!GetInvitedCount(HORDE) && !GetInvitedCount(ALLIANCE))
         //          this->AddToFreeBGObjectsQueue(); // not yet implemented
@@ -289,7 +289,7 @@ void BattleGround::Update(uint32 diff)
     }
 
     /*********************************************************/
-    /***           BATTLEGROUND BALLANCE SYSTEM            ***/
+    /***           BattleGround BALLANCE SYSTEM            ***/
     /*********************************************************/
 
     // if less then minimum players are in on one side, then start premature finish timer
@@ -327,7 +327,7 @@ void BattleGround::Update(uint32 diff)
         m_PrematureCountDown = false;
 
     /*********************************************************/
-    /***           BATTLEGROUND STARTING SYSTEM            ***/
+    /***           BattleGround STARTING SYSTEM            ***/
     /*********************************************************/
 
     if (GetStatus() == STATUS_WAIT_JOIN && GetPlayersSize())
@@ -394,7 +394,7 @@ void BattleGround::Update(uint32 diff)
                 PlaySoundToAll(SOUND_BG_START);
 
                 // Announce BG starting
-                if (sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_START))
+                if (sWorld.getConfig(CONFIG_BOOL_BattleGround_QUEUE_ANNOUNCER_START))
                 {
                     sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), GetMinLevel(), GetMaxLevel());
                 }
@@ -403,12 +403,12 @@ void BattleGround::Update(uint32 diff)
     }
 
     /*********************************************************/
-    /***           BATTLEGROUND ENDING SYSTEM              ***/
+    /***           BattleGround ENDING SYSTEM              ***/
     /*********************************************************/
 
     if (GetStatus() == STATUS_WAIT_LEAVE)
     {
-        // remove all players from battleground after 2 minutes
+        // remove all players from BattleGround after 2 minutes
         m_EndTime -= diff;
         if (m_EndTime <= 0)
         {
@@ -420,7 +420,7 @@ void BattleGround::Update(uint32 diff)
                 ++next;
                 // itr is erased here!
                 RemovePlayerAtLeave(itr->first, true, true);// remove player from BG
-                // do not change any battleground's private variables
+                // do not change any BattleGround's private variables
             }
         }
     }
@@ -609,7 +609,7 @@ void BattleGround::EndBattleGround(Team winner)
     int32 winmsg_id = 0;
 
     uint32 bgScoresWinner = TEAM_INDEX_NEUTRAL;
-    uint64 battleground_id = 1;
+    uint64 BattleGround_id = 1;
 
     if (winner == ALLIANCE)
     {
@@ -628,27 +628,27 @@ void BattleGround::EndBattleGround(Team winner)
         bgScoresWinner = TEAM_INDEX_ALLIANCE;
     }
 
-    // store battleground scores
-    if (sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_SCORE_STATISTICS))
+    // store BattleGround scores
+    if (sWorld.getConfig(CONFIG_BOOL_BattleGround_SCORE_STATISTICS))
     {
-        static SqlStatementID insPvPstatsBattleground;
+        static SqlStatementID insPvPstatsBattleGround;
         QueryResult* result;
 
-        SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsBattleground, "INSERT INTO pvpstats_battlegrounds (id, winner_team, bracket_id, type, date) VALUES (?, ?, ?, ?, NOW())");
+        SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsBattleGround, "INSERT INTO pvpstats_BattleGrounds (id, winner_team, bracket_id, type, date) VALUES (?, ?, ?, ?, NOW())");
 
-        uint8 battleground_bracket = GetMinLevel() / 10;
-        uint8 battleground_type = (uint8)GetTypeID();
+        uint8 BattleGround_bracket = GetMinLevel() / 10;
+        uint8 BattleGround_type = (uint8)GetTypeID();
 
         // query next id
-        result = CharacterDatabase.Query("SELECT MAX(id) FROM pvpstats_battlegrounds");
+        result = CharacterDatabase.Query("SELECT MAX(id) FROM pvpstats_BattleGrounds");
         if (result)
         {
             Field* fields = result->Fetch();
-            battleground_id = fields[0].GetUInt64() + 1;
+            BattleGround_id = fields[0].GetUInt64() + 1;
             delete result;
         }
 
-        stmt.PExecute(battleground_id, bgScoresWinner, battleground_bracket, battleground_type);
+        stmt.PExecute(BattleGround_id, bgScoresWinner, BattleGround_bracket, BattleGround_type);
     }
 
     SetWinner(winner);
@@ -690,14 +690,14 @@ void BattleGround::EndBattleGround(Team winner)
         // this line is obsolete - team is set ALWAYS
         // if(!team) team = plr->GetTeam();
 
-        // store battleground score statistics for each player
-        if (sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_SCORE_STATISTICS))
+        // store BattleGround score statistics for each player
+        if (sWorld.getConfig(CONFIG_BOOL_BattleGround_SCORE_STATISTICS))
         {
             static SqlStatementID insPvPstatsPlayer;
             BattleGroundScoreMap::iterator score = m_PlayerScores.find(itr->first);
-            SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsPlayer, "INSERT INTO pvpstats_players (battleground_id, character_guid, score_killing_blows, score_deaths, score_honorable_kills, score_bonus_honor, score_damage_done, score_healing_done, attr_1, attr_2, attr_3, attr_4, attr_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsPlayer, "INSERT INTO pvpstats_players (BattleGround_id, character_guid, score_killing_blows, score_deaths, score_honorable_kills, score_bonus_honor, score_damage_done, score_healing_done, attr_1, attr_2, attr_3, attr_4, attr_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-            stmt.addUInt32(battleground_id);
+            stmt.addUInt32(BattleGround_id);
             stmt.addUInt32(plr->GetGUIDLow());
             stmt.addUInt32(score->second->GetKillingBlows());
             stmt.addUInt32(score->second->GetDeaths());
@@ -787,7 +787,7 @@ void BattleGround::RewardSpellCast(Player* plr, uint32 spell_id)
     SpellEntry const* spellInfo = sSpellStore.LookupEntry(spell_id);
     if (!spellInfo)
     {
-        sLog.outError("Battleground reward casting spell %u not exist.", spell_id);
+        sLog.outError("BattleGround reward casting spell %u not exist.", spell_id);
         return;
     }
 
@@ -802,7 +802,7 @@ void BattleGround::RewardItem(Player* plr, uint32 item_id, uint32 count)
 
     if (msg == EQUIP_ERR_ITEM_NOT_FOUND)
     {
-        sLog.outErrorDb("Battleground reward item (Entry %u) not exist in `item_template`.", item_id);
+        sLog.outErrorDb("BattleGround reward item (Entry %u) not exist in `item_template`.", item_id);
         return;
     }
 
@@ -872,7 +872,7 @@ void BattleGround::RewardQuestComplete(Player* plr)
 
 void BattleGround::BlockMovement(Player* plr)
 {
-    plr->SetClientControl(plr, 0);                          // movement disabled NOTE: the effect will be automatically removed by client when the player is teleported from the battleground, so no need to send with uint8(1) in RemovePlayerAtLeave()
+    plr->SetClientControl(plr, 0);                          // movement disabled NOTE: the effect will be automatically removed by client when the player is teleported from the BattleGround, so no need to send with uint8(1) in RemovePlayerAtLeave()
 }
 
 void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool SendPacket)
@@ -930,7 +930,7 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
                 plr->GetSession()->SendPacket(&data);
             }
 
-            // this call is important, because player, when joins to battleground, this method is not called, so it must be called when leaving bg
+            // this call is important, because player, when joins to BattleGround, this method is not called, so it must be called when leaving bg
             plr->RemoveBattleGroundQueueId(bgQueueTypeId);
         }
 
@@ -944,10 +944,10 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
             }
         }
         DecreaseInvitedCount(team);
-        // we should update battleground queue, but only if bg isn't ending
+        // we should update BattleGround queue, but only if bg isn't ending
         if (GetStatus() < STATUS_WAIT_LEAVE)
         {
-            // a player has left the battleground, so there are free slots -> add to queue
+            // a player has left the BattleGround, so there are free slots -> add to queue
             AddToBGFreeSlotQueue();
             sBattleGroundMgr.ScheduleQueueUpdate(bgQueueTypeId, bgTypeId, GetBracketId());
         }
@@ -960,7 +960,7 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
 
     if (plr)
     {
-        // Do next only if found in battleground
+        // Do next only if found in BattleGround
         plr->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);  // We're not in BG.
         // reset destination bg team
         plr->SetBGTeam(TEAM_NONE);
@@ -968,13 +968,13 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
         if (Transport)
             plr->TeleportToBGEntryPoint();
 
-        DETAIL_LOG("BATTLEGROUND: Removed player %s from BattleGround.", plr->GetName());
+        DETAIL_LOG("BattleGround: Removed player %s from BattleGround.", plr->GetName());
     }
 
-    // battleground object will be deleted next BattleGround::Update() call
+    // BattleGround object will be deleted next BattleGround::Update() call
 }
 
-// this method is called when no players remains in battleground
+// this method is called when no players remains in BattleGround
 void BattleGround::Reset()
 {
     SetWinner(TEAM_NONE);
@@ -1043,7 +1043,7 @@ void BattleGround::AddPlayer(Player* plr)
     AddOrSetPlayerToCorrectBgGroup(plr, guid, team);
 
     // Log
-    DETAIL_LOG("BATTLEGROUND: Player %s joined the battle.", plr->GetName());
+    DETAIL_LOG("BattleGround: Player %s joined the battle.", plr->GetName());
 }
 
 /* this method adds player to his team's bg group, or sets his correct group if player is already in bg group */
@@ -1072,7 +1072,7 @@ void BattleGround::AddOrSetPlayerToCorrectBgGroup(Player* plr, ObjectGuid plr_gu
     }
 }
 
-// This method should be called when player logs into running battleground
+// This method should be called when player logs into running BattleGround
 void BattleGround::EventPlayerLoggedIn(Player* player)
 {
     ObjectGuid playerGuid = player->GetObjectGuid();
@@ -1088,11 +1088,11 @@ void BattleGround::EventPlayerLoggedIn(Player* player)
     }
     m_Players[playerGuid].OfflineRemoveTime = 0;
     PlayerAddedToBGCheckIfBGIsRunning(player);
-    // if battleground is starting, then add preparation aura
+    // if BattleGround is starting, then add preparation aura
     // we don't have to do that, because preparation aura isn't removed when player logs out
 }
 
-// This method should be called when player logs out from running battleground
+// This method should be called when player logs out from running BattleGround
 void BattleGround::EventPlayerLoggedOut(Player* player)
 {
     // player is correct pointer, it is checked in WorldSession::LogoutPlayer()
@@ -1116,7 +1116,7 @@ void BattleGround::AddToBGFreeSlotQueue()
     }
 }
 
-/* This method removes this battleground from free queue - it must be called when deleting battleground - not used now*/
+/* This method removes this BattleGround from free queue - it must be called when deleting BattleGround - not used now*/
 void BattleGround::RemoveFromBGFreeSlotQueue()
 {
     // set to be able to re-add if needed
@@ -1133,7 +1133,7 @@ void BattleGround::RemoveFromBGFreeSlotQueue()
 }
 
 // get the number of free slots for team
-// returns the number how many players can join battleground to MaxPlayersPerTeam
+// returns the number how many players can join BattleGround to MaxPlayersPerTeam
 uint32 BattleGround::GetFreeSlotsForTeam(Team team) const
 {
     // return free slot count to MaxPlayerPerTeam
@@ -1324,7 +1324,7 @@ void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
         return;
     if (respawntime == 0)
     {
-        // we need to change state from GO_JUST_DEACTIVATED to GO_READY in case battleground is starting again
+        // we need to change state from GO_JUST_DEACTIVATED to GO_READY in case BattleGround is starting again
         if (obj->getLootState() == GO_JUST_DEACTIVATED)
             obj->SetLootState(GO_READY);
         obj->SetRespawnTime(0);
@@ -1415,7 +1415,7 @@ void BattleGround::EndNow()
 /*
 important notice:
 buffs aren't spawned/despawned when players captures anything
-buffs are in their positions when battleground starts
+buffs are in their positions when BattleGround starts
 */
 void BattleGround::HandleTriggerBuff(ObjectGuid go_guid)
 {
@@ -1453,7 +1453,7 @@ void BattleGround::HandleKillPlayer(Player* player, Player* killer)
     player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
 }
 
-// return the player's team based on battlegroundplayer info
+// return the player's team based on BattleGroundplayer info
 // used in same faction arena matches mainly
 Team BattleGround::GetPlayerTeam(ObjectGuid guid)
 {
@@ -1508,10 +1508,10 @@ void BattleGround::SetBgRaid(Team team, Group* bg_raid)
     Group*& old_raid = m_BgRaids[GetTeamIndexByTeamId(team)];
 
     if (old_raid)
-        old_raid->SetBattlegroundGroup(nullptr);
+        old_raid->SetBattleGroundGroup(nullptr);
 
     if (bg_raid)
-        bg_raid->SetBattlegroundGroup(this);
+        bg_raid->SetBattleGroundGroup(this);
 
     old_raid = bg_raid;
 }

@@ -3981,7 +3981,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (strict && !m_IsTriggeredSpell && HasGlobalCooldown())
         return SPELL_FAILED_NOT_READY;
 
-    // only allow triggered spells if at an ended battleground
+    // only allow triggered spells if at an ended BattleGround
     if (!m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER)
         if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
             if (bg->GetStatus() == STATUS_WAIT_LEAVE)
@@ -4974,7 +4974,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     if (((Player*)m_caster)->HasMovementFlag(MOVEFLAG_ONTRANSPORT))
                         return SPELL_FAILED_NOT_ON_TRANSPORT;
 
-                    // not allow use this effect at battleground until battleground start
+                    // not allow use this effect at BattleGround until BattleGround start
                     if (BattleGround const* bg = ((Player*)m_caster)->GetBattleGround())
                         if (bg->GetStatus() != STATUS_IN_PROGRESS)
                             return SPELL_FAILED_TRY_AGAIN;

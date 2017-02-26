@@ -134,8 +134,8 @@ void PlayerbotAI::UpdateAI(uint32 elapsed)
         return;
 
 	//DEBUG
-	/*	engines[BOT_STATE_COMBAT]->testMode = bot->InBattleground();
-	 	engines[BOT_STATE_NON_COMBAT]->testMode = bot->InBattleground();
+	/*	engines[BOT_STATE_COMBAT]->testMode = bot->InBattleGround();
+	 	engines[BOT_STATE_NON_COMBAT]->testMode = bot->InBattleGround();
 	 	engines[BOT_STATE_COMBAT]->testPrefix = bot->GetName();
 	 	engines[BOT_STATE_NON_COMBAT]->testPrefix = bot->GetName();*/
 	 
@@ -161,7 +161,7 @@ void PlayerbotAI::UpdateAI(uint32 elapsed)
     }
 
     Pet* pet = bot->GetPet();
-    if (pet && pet->getPetType() == HUNTER_PET)
+	if (pet && pet->getPetType() == HUNTER_PET && pet->GetHappinessState() != HAPPY)
     {
          pet->SetPower(POWER_HAPPINESS, HAPPINESS_LEVEL_SIZE * 2);
     }
@@ -1265,10 +1265,6 @@ bool PlayerbotAI::HasAura(string name, Unit* unit, BotAuraType auratype)
 {
     if (!unit)
         return false;
-
-    uint32 spellId = aiObjectContext->GetValue<uint32>("spell id", name)->Get();
-    if (spellId)
-        return HasAura(spellId, unit);
 
     wstring wnamepart;
     if (!Utf8toWStr(name, wnamepart))

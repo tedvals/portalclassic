@@ -3,248 +3,7 @@
 #include "LfgActions.h"
 
 using namespace ai;
-using namespace lfg;
 
-bool LfgJoinAction::Execute(Event event)
-{
-	if (bot->InBattleground())
-		return false;
-
-    if (!sPlayerbotAIConfig.randomBotJoinLfg)
-        return false;
-
-    if (bot->isDead())
-        return false;
-
-    if (!sRandomPlayerbotMgr.IsRandomBot(bot))
-        return false;
-
-    if (sLFGMgr->GetState(bot->GetGUID()) != LFG_STATE_NONE)
-        return false;
-
-    if (bot->IsBeingTeleported())
-        return false;
-
-    Map* map = bot->GetMap();
-    if (map && map->Instanceable())
-        return false;
-
-    return JoinProposal();
-}
-
-uint8 LfgJoinAction::GetRoles()
-{
-    if (!sRandomPlayerbotMgr.IsRandomBot(bot))
-    {
-        if (ai->IsTank(bot))
-            return PLAYER_ROLE_TANK;
-        if (ai->IsHeal(bot))
-            return PLAYER_ROLE_HEALER;
-        else return PLAYER_ROLE_DAMAGE;
-    }
-
-    int spec = AiFactory::GetPlayerSpecTab(bot);
-    switch (bot->getClass())
-    {
-    case CLASS_DRUID:
-        if (spec == 2)
-            return PLAYER_ROLE_HEALER;
-        else if (spec == 1 && bot->getLevel() >= 40)
-            return PLAYER_ROLE_TANK;
-        else
-            return PLAYER_ROLE_DAMAGE;
-        break;
-    case CLASS_PALADIN:
-        if (spec == 1)
-            return PLAYER_ROLE_TANK;
-        else if (spec == 0)
-            return PLAYER_ROLE_HEALER;
-        else
-            return PLAYER_ROLE_DAMAGE;
-        break;
-    case CLASS_PRIEST:
-        if (spec != 2)
-            return PLAYER_ROLE_HEALER;
-        else
-            return PLAYER_ROLE_DAMAGE;
-        break;
-    case CLASS_SHAMAN:
-        if (spec == 2)
-            return PLAYER_ROLE_HEALER;
-        else
-            return PLAYER_ROLE_DAMAGE;
-        break;
-    case CLASS_WARRIOR:
-        if (spec == 2)
-            return PLAYER_ROLE_TANK;
-        else
-            return PLAYER_ROLE_DAMAGE;
-        break;
-    default:
-        return PLAYER_ROLE_DAMAGE;
-        break;
-    }
-
-    return PLAYER_ROLE_DAMAGE;
-}
-
-bool LfgJoinAction::SetRoles()
-{
-    sLFGMgr->SetRoles(bot->GetGUID(), GetRoles());
-	return true;
-}
-
-bool LfgJoinAction::JoinProposal()
-{
-    ItemCountByQuality visitor;
-    IterateItems(&visitor, ITERATE_ITEMS_IN_EQUIP);
-	bool heroic = urand(0, 100) < 50 && (visitor.count[ITEM_QUALITY_EPIC] >= 3 || visitor.count[ITEM_QUALITY_RARE] >= 10) && bot->getLevel() >= 70;
-    bool random = urand(0, 100) < 25;
-    bool raid = !heroic && (urand(0, 100) < 50 && visitor.count[ITEM_QUALITY_EPIC] >= 5 && (bot->getLevel() == 60 || bot->getLevel() == 70 || bot->getLevel() == 80));
-
-    LfgDungeonSet list;
-    vector<uint32> idx;
-    for (uint32 i = 0; i < sLFGDungeonStore.GetNumRows(); ++i)
-    {
-        LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(i);
-        if (!dungeon || (dungeon->type != LFG_TYPE_RANDOM && dungeon->type != LFG_TYPE_DUNGEON && dungeon->type != LFG_TYPE_HEROIC &&
-                dungeon->type != LFG_TYPE_RAID))
-            continue;
-
-        int botLevel = (int)bot->getLevel();
-        if (dungeon->minlevel && botLevel < (int)dungeon->minlevel)
-            continue;
-
-        if (dungeon->minlevel && botLevel > (int)dungeon->minlevel + 10)
-            continue;
-
-        if (dungeon->maxlevel && botLevel > (int)dungeon->maxlevel)
-            continue;
-
-        if (heroic && !dungeon->difficulty)
-            continue;
-
-        if (raid && dungeon->type != LFG_TYPE_RAID)
-            continue;
-
-        if (random && dungeon->type != LFG_TYPE_RANDOM)
-            continue;
-
-        if (!random && !raid && !heroic && dungeon->type != LFG_TYPE_DUNGEON)
-            continue;
-
-        if (!random)
-            list.insert(dungeon->ID);
-        else
-            idx.push_back(dungeon->ID);
-    }
-
-    if (list.empty())
-        return false;
-
-    uint8 roles = GetRoles();
-    if (random)
-	{
-        list.insert(idx[urand(0, idx.size() - 1)]);
-        sLFGMgr->JoinLfg(bot, roles, list, "bot");
-
-        sLog.outDebug( "Bot %s joined to LFG_TYPE_RANDOM as %d", bot->GetName(), (uint32)roles);
-		return true;
-	}
-    else if (heroic)
-	{
-		sLog.outDebug( "Bot %s joined to LFG_TYPE_HEROIC_DUNGEON as %d", bot->GetName(), (uint32)roles);
-	}
-    else if (raid)
-	{
-		sLog.outDebug( "Bot %s joined to LFG_TYPE_RAID as %d", bot->GetName(), (uint32)roles);
-	}
-    else
-	{
-		sLog.outDebug( "Bot %s joined to LFG_TYPE_DUNGEON as %d", bot->GetName(), (uint32)roles);
-	}
-
-    sLFGMgr->JoinLfg(bot, roles, list, "bot");
-    return true;
-}
-
-bool LfgRoleCheckAction::Execute(Event event)
-{
-    Group* group = bot->GetGroup();
-    if (group)
-    {
-        uint8 currentRoles = sLFGMgr->GetRoles(bot->GetGUID());
-        uint8 newRoles = GetRoles();
-        if (currentRoles == newRoles) return false;
-
-        sLFGMgr->UpdateRoleCheck(group->GetGUID(), bot->GetGUID(), newRoles);
-        return true;
-    }
-
-    return false;
-}
-
-bool LfgAcceptAction::Execute(Event event)
-{
-    uint32 id = AI_VALUE(uint32, "lfg proposal");
-    if (id)
-    {
-        //if (urand(0, 1 + 10 / sPlayerbotAIConfig.randomChangeMultiplier))
-        //    return false;
-
-        if (bot->isInCombat() || bot->isDead())
-        {
-            sLFGMgr->UpdateProposal(id, bot->GetGUID(), false);
-            return true;
-        }
-
-        ai->ChangeStrategy("-grind", BOT_STATE_NON_COMBAT);
-
-     //   if (sRandomPlayerbotMgr.IsRandomBot(bot) && !bot->GetGroup())
-     //       ai->ChangeStrategy("-grind", BOT_STATE_NON_COMBAT);
-
-        sLog.outDebug( "Bot %s updated proposal %d", bot->GetName(), id);
-        ai->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(0);
-        bot->ClearUnitState(UNIT_STATE_ALL_STATE_SUPPORTED);
-        sLFGMgr->UpdateProposal(id, bot->GetGUID(), true);
-
-        return true;
-    }
-
-    WorldPacket p(event.getPacket());
-
-    uint32 dungeon;
-    uint8 state;
-    p >> dungeon >> state >> id;
-
-    ai->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(id);
-    return true;
-}
-
-bool LfgLeaveAction::Execute(Event event)
-{
-    if (sLFGMgr->GetState(bot->GetGUID()) != LFG_STATE_QUEUED)
-        return false;
-
-    sLFGMgr->LeaveLfg(bot->GetGUID());
-	return true;
-}
-
-bool LfgTeleportAction::Execute(Event event)
-{
-    bool out = false;
-
-    WorldPacket p(event.getPacket());
-    if (!p.empty())
-    {
-        p.rpos(0);
-        p >> out;
-    }
-
-    bot->ClearUnitState(UNIT_STATE_ALL_STATE_SUPPORTED);
-    sLFGMgr->TeleportPlayer(bot, out);
-	return true;
-}
 
 bool BGJoinAction::Execute(Event event)
 {
@@ -260,7 +19,7 @@ bool BGJoinAction::Execute(Event event)
 	if (!sRandomPlayerbotMgr.IsRandomBot(bot))
 		return false;
 
-	if (bot->InBattlegroundQueue())
+	if (bot->InBattleGroundQueue())
 		return false;
 
 	if (bot->IsBeingTeleported())
@@ -279,47 +38,41 @@ bool BGJoinAction::JoinProposal()
 {
 	ai->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(1);
 
-	if (bot->isUsingLfg())
-	{
-		// player is using dungeon finder or raid finder
-		return false;
-	}
-
-	// warsong only at start
+		// warsong only at start
 	// nyi: cycle based on time frame through AB and WS
-	BattlegroundTypeId bgTypeId = BattlegroundTypeId::BATTLEGROUND_WS;
+	BattleGroundTypeId bgTypeId = BattleGroundTypeId::BattleGround_WS;
 
-	// can do this, since it's battleground, not arena
-	BattlegroundQueueTypeId bgQueueTypeId = BattlegroundMgr::BGQueueTypeId(bgTypeId, 0);
+	// can do this, since it's BattleGround, not arena
+	BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId, 0);
 
 	// ignore if player is already in BG
-	if (bot->InBattleground())
+	if (bot->InBattleGround())
 		return false;
 
-	Battleground* bg = sBattlegroundMgr->GetBattlegroundTemplate(bgTypeId);
+	BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
 	if (!bg)
 		return false;
 
 	// expected bracket entry
-	PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(bg->GetMapId(), bot->getLevel());
+	PvPDifficultyEntry const* bracketEntry = GetBattleGroundBracketByLevel(bg->GetMapId(), bot->getLevel());
 	if (!bracketEntry)
 		return false;
 
-	GroupJoinBattlegroundResult err;
+	GroupJoinBattleGroundResult err;
 
 	// check Deserter debuff
-	if (!bot->CanJoinToBattleground(bg))
+	if (!bot->CanJoinToBattleGround(bg))
 	{
 		return false;
 	}
 
 	// check if already in queue
-	if (bot->GetBattlegroundQueueIndex(bgQueueTypeId) < PLAYER_MAX_BATTLEGROUND_QUEUES)
+	if (bot->GetBattleGroundQueueIndex(bgQueueTypeId) < PLAYER_MAX_BATTLEGROUND_QUEUES)
 		// player is already in this queue
 		return false;
 
 	// check if has free queue slots
-	if (!bot->HasFreeBattlegroundQueueId())
+	if (!bot->HasFreeBattleGroundQueueId())
 	{
 		return false;
 	}
@@ -328,15 +81,15 @@ bool BGJoinAction::JoinProposal()
 	if (bot->HasAura(9454))
 		return false;
 
-	BattlegroundQueue& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
+	BattleGroundQueue& bgQueue = sBattleGroundMgr.GetBattleGroundQueue(bgQueueTypeId);
 	if (bgQueue.m_QueuedPlayers.size()>0)
 	{
 		GroupQueueInfo* ginfo = bgQueue.AddGroup(bot, NULL, bgTypeId, bracketEntry, 0, false, false, 0, 0);
 		uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
 		// already checked if queueSlot is valid, now just get it
-		uint32 queueSlot = bot->AddBattlegroundQueueId(bgQueueTypeId);
+		uint32 queueSlot = bot->AddBattleGroundQueueId(bgQueueTypeId);
 
-		sLog->outMessage("bg.battleground", LogLevel::LOG_LEVEL_DEBUG, "Battleground: player joined queue for bg queue type %u bg type %u: GUID %u, NAME %s",
+		sLog->outMessage("bg.BattleGround", LogLevel::LOG_LEVEL_DEBUG, "BattleGround: player joined queue for bg queue type %u bg type %u: GUID %u, NAME %s",
 			bgQueueTypeId, bgTypeId, bot->GetGUID().GetCounter(), bot->GetName());
 		return true;
 	}
@@ -365,25 +118,25 @@ bool BGStatusAction::Execute(Event event)
 	if (x1f90 != 0)
 		p >> minlevel >> maxlevel >> instanceId >> isRated >> statusid;
 
-	if (statusid == STATUS_WAIT_LEAVE) //battleground is over, bot needs to leave
+	if (statusid == STATUS_WAIT_LEAVE) //BattleGround is over, bot needs to leave
 	{
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is going to leave battleground (%u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId);
-		bot->LeaveBattleground(true);
+		TC_LOG_DEBUG("bg.BattleGround", "BattleGround: player (bot) %s (%u) is going to leave BattleGround (%u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId);
+		bot->LeaveBattleGround(true);
 		ai->ResetStrategies();
 	}
 	if (statusid == STATUS_WAIT_QUEUE) //bot is in queue
 	{
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is still in queue (%u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId);
+		TC_LOG_DEBUG("bg.BattleGround", "BattleGround: player (bot) %s (%u) is still in queue (%u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId);
 	}
 	if (statusid == STATUS_WAIT_JOIN) //bot may join
 	{
-		if (bot->InBattleground())
+		if (bot->InBattleGround())
 		{
-			TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) is in battleground already. (%u, %u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId, instanceId);
+			TC_LOG_DEBUG("bg.BattleGround", "BattleGround: player (bot) %s (%u) is in BattleGround already. (%u, %u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId, instanceId);
 			return false;
 		}
 
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) received a invite to a battleground (%u, %u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId, instanceId);
+		TC_LOG_DEBUG("bg.BattleGround", "BattleGround: player (bot) %s (%u) received a invite to a BattleGround (%u, %u).", bot->GetName(), bot->GetGUID().GetCounter(), battleId, instanceId);
 
 		bot->CombatStop(true);
 
@@ -391,11 +144,11 @@ bool BGStatusAction::Execute(Event event)
 
 		bot->ClearUnitState(UNIT_STATE_ALL_STATE_SUPPORTED);
 
-		//get GroupQueueInfo from BattlegroundQueue
-		BattlegroundTypeId bgTypeId = BattlegroundTypeId(battleId);
-		BattlegroundQueueTypeId bgQueueTypeId = BattlegroundMgr::BGQueueTypeId(bgTypeId, 0);
-		BattlegroundQueue& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
-		//we must use temporary variable, because GroupQueueInfo pointer can be deleted in BattlegroundQueue::RemovePlayer() function
+		//get GroupQueueInfo from BattleGroundQueue
+		BattleGroundTypeId bgTypeId = BattleGroundTypeId(battleId);
+		BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId, 0);
+		BattleGroundQueue& bgQueue = sBattleGroundMgr->GetBattleGroundQueue(bgQueueTypeId);
+		//we must use temporary variable, because GroupQueueInfo pointer can be deleted in BattleGroundQueue::RemovePlayer() function
 		GroupQueueInfo ginfo;
 		if (!bgQueue.GetPlayerGroupInfoData(bot->GetGUID(), &ginfo))
 		{
@@ -409,19 +162,19 @@ bool BGStatusAction::Execute(Event event)
 			return false;
 		}
 
-		Battleground* bg = sBattlegroundMgr->GetBattleground(ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
+		BattleGround* bg = sBattleGroundMgr->GetBattleGround(ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
 		if (!bg)
 		{
-			bg = sBattlegroundMgr->GetBattlegroundTemplate(bgTypeId);
+			bg = sBattleGroundMgr->GetBattleGroundTemplate(bgTypeId);
 			if (!bg)
 			{
-				sLog.outDebug( "Bot %s could find no template for Battleground %d", bot->GetName(), battleId);
+				sLog.outDebug( "Bot %s could find no template for BattleGround %d", bot->GetName(), battleId);
 				return false;
 			}
 		}
 
 		// expected bracket entry
-		PvPDifficultyEntry const* bracketEntry = GetBattlegroundBracketByLevel(bg->GetMapId(), bot->getLevel());
+		PvPDifficultyEntry const* bracketEntry = GetBattleGroundBracketByLevel(bg->GetMapId(), bot->getLevel());
 		if (!bracketEntry)
 		{
 			sLog.outDebug( "Bot %s has no bracket (%d) available to join BG %d", bot->GetName(), bot->getLevel(), battleId);
@@ -431,20 +184,20 @@ bool BGStatusAction::Execute(Event event)
 		//some checks if player isn't cheating - it is not exactly cheating, but we cannot allow it
 		if (ginfo.ArenaType == 0)
 		{
-			//if player is trying to enter battleground (not arena!) and he has deserter debuff, we must just remove him from queue
-			if (!bot->CanJoinToBattleground(bg))
+			//if player is trying to enter BattleGround (not arena!) and he has deserter debuff, we must just remove him from queue
+			if (!bot->CanJoinToBattleGround(bg))
 			{
 				sLog.outDebug( "Bot %s cant join BG %d because it has the deserter debuf", bot->GetName(), battleId);
 				return false;
 			}
-			//if player don't match battleground max level, then do not allow him to enter! (this might happen when player leveled up during his waiting in queue
+			//if player don't match BattleGround max level, then do not allow him to enter! (this might happen when player leveled up during his waiting in queue
 			if (bot->getLevel() > bg->GetMaxLevel())
 			{
 				sLog.outDebug( "Bot %s cant join BG %d because its level does not fit", bot->GetName(), battleId);
 				return false;
 			}
 		}
-		uint32 queueSlot = bot->GetBattlegroundQueueIndex(bgQueueTypeId);
+		uint32 queueSlot = bot->GetBattleGroundQueueIndex(bgQueueTypeId);
 		// check Freeze debuff
 		if (bot->HasAura(9454))
 		{
@@ -452,14 +205,14 @@ bool BGStatusAction::Execute(Event event)
 			return false;
 		}
 
-		if (!bot->IsInvitedForBattlegroundQueueType(bgQueueTypeId))
+		if (!bot->IsInvitedForBattleGroundQueueType(bgQueueTypeId))
 		{
 			sLog.outDebug( "Bot %s cant join BG %d because it was not invited to join", bot->GetName(), battleId);
 			return false;                                 // cheating? No, bots dont cheat. They just try very hard.
 		}
 
-		if (!bot->InBattleground())
-			bot->SetBattlegroundEntryPoint();
+		if (!bot->InBattleGround())
+			bot->SetBattleGroundEntryPoint();
 
 		// resurrect the player
 		if (!bot->IsAlive())
@@ -474,24 +227,24 @@ bool BGStatusAction::Execute(Event event)
 			bot->CleanupAfterTaxiFlight();
 		}
 
-		// remove battleground queue status from BGmgr
+		// remove BattleGround queue status from BGmgr
 		bgQueue.RemovePlayer(bot->GetGUID(), false);
-		// this is still needed here if battleground "jumping" shouldn't add deserter debuff
-		// also this is required to prevent stuck at old battleground after SetBattlegroundId set to new
-		if (Battleground* currentBg = bot->GetBattleground())
+		// this is still needed here if BattleGround "jumping" shouldn't add deserter debuff
+		// also this is required to prevent stuck at old BattleGround after SetBattleGroundId set to new
+		if (BattleGround* currentBg = bot->GetBattleGround())
 			currentBg->RemovePlayerAtLeave(bot->GetGUID(), false, true);
 
 		// set the destination instance id
-		bot->SetBattlegroundId(bg->GetInstanceID(), bgTypeId);
+		bot->SetBattleGroundId(bg->GetInstanceID(), bgTypeId);
 		// set the destination team
 		bot->SetBGTeam(ginfo.Team);
 
-		// bg->HandleBeforeTeleportToBattleground(_player);
-		sBattlegroundMgr->SendToBattleground(bot, ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
+		// bg->HandleBeforeTeleportToBattleGround(_player);
+		sBattleGroundMgr->SendToBattleGround(bot, ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
 		ai->ResetStrategies();
 		// add only in HandleMoveWorldPortAck()
 		// bg->AddPlayer(_player, team);
-		TC_LOG_DEBUG("bg.battleground", "Battleground: player (bot) %s (%u) joined battle for bg %u, bgtype %u, queue type %u.", bot->GetName(), bot->GetGUID().GetCounter(), bg->GetInstanceID(), bg->GetTypeID(), bgQueueTypeId);
+		TC_LOG_DEBUG("bg.BattleGround", "BattleGround: player (bot) %s (%u) joined battle for bg %u, bgtype %u, queue type %u.", bot->GetName(), bot->GetGUID().GetCounter(), bg->GetInstanceID(), bg->GetTypeID(), bgQueueTypeId);
 		sLog.outDebug( "Bot %s joined BG %d", bot->GetName(), battleId);
 	}
 	return true;
@@ -499,7 +252,7 @@ bool BGStatusAction::Execute(Event event)
 
 
 //consume healthy, if low on health
-bool BGTacticsWS::consumeHealthy(Battleground *bg)
+bool BGTacticsWS::consumeHealthy(BattleGround *bg)
 {
 
 	//alliance healthy
@@ -511,11 +264,11 @@ bool BGTacticsWS::consumeHealthy(Battleground *bg)
 
 		if (bot->GetDistance(posH1)<40)
 		{
-			return MoveTo(bg->GetMapId(), posH1.m_positionX, posH1.m_positionY, posH1.m_positionZ);
+			return MoveTo(bg->GetMapId(), posH1.GetPositionX(), posH1.GetPositionY(), posH1.GetPositionZ());
 		}
 		if (bot->GetDistance(posA1)<40)
 		{
-			return MoveTo(bg->GetMapId(), posH1.m_positionX, posH1.m_positionY, posH1.m_positionZ);
+			return MoveTo(bg->GetMapId(), posH1.GetPositionX(), posH1.GetPositionY(), posH1.GetPositionZ());
 		}
 	}
 	return false;
@@ -523,7 +276,7 @@ bool BGTacticsWS::consumeHealthy(Battleground *bg)
 }
 
 //run to enemy flag if not taken yet
-bool BGTacticsWS::moveTowardsEnemyFlag(BattlegroundWS *bg)
+bool BGTacticsWS::moveTowardsEnemyFlag(BattleGroundWS *bg)
 {
 	//If no flag is spawned, do something else
 	if (!(bg->GetFlagState(bg->GetOtherTeam(bot->GetTeam())) == BG_WS_FLAG_STATE_ON_BASE ||
@@ -557,7 +310,7 @@ bool BGTacticsWS::moveTowardsEnemyFlag(BattlegroundWS *bg)
 }
 
 //if we have the flag, run home
-bool BGTacticsWS::homerun(BattlegroundWS *bg)
+bool BGTacticsWS::homerun(BattleGroundWS *bg)
 {
 	if (!(bg->GetFlagState(bg->GetOtherTeam(bot->GetTeam())) == BG_WS_FLAG_STATE_ON_PLAYER))
 		return false;
@@ -624,88 +377,88 @@ bool BGTacticsWS::homerun(BattlegroundWS *bg)
 
 //get back to alliance base
 
-//cross the battleground to get to flags or flag carriers
-bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
+//cross the BattleGround to get to flags or flag carriers
+bool BGTacticsWS::runPathTo(WorldObject *unit, BattleGround *bg)
 {
 	if (unit == NULL)
 		return false;
 	if (unit->IsWithinDist(bot, 40))
 		return ChaseTo(unit);
-	if (unit->m_positionX > bot->m_positionX) //He's somewhere at the alliance side
+	if (unit->GetPositionX() > bot->GetPositionX()) //He's somewhere at the alliance side
 	{
 		if (bot->Preference < 4) //preference < 4 = move through tunnel
 		{
-			if (bot->m_positionX < 1006) //to the fasty
+			if (bot->GetPositionX() < 1006) //to the fasty
 			{
 				MoveTo(bg->GetMapId(), 1006.590210f, 1450.435059f, 335.721283f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1125) //to the horde entrance
+			else if (bot->GetPositionX() < 1125) //to the horde entrance
 			{
-				if (bot->m_positionY < 1400)
-					MoveTo(bg->GetMapId(), 1125.778076f, bot->m_positionY, 316.567047f);
+				if (bot->GetPositionY() < 1400)
+					MoveTo(bg->GetMapId(), 1125.778076f, bot->GetPositionY(), 316.567047f);
 				else
 					MoveTo(bg->GetMapId(), 1125.778076f, 1452.059937f, 315.698883f);
 				return  true;
 			}
 		}
 		else if (bot->Preference<7) { // preference < 7 = move through graveyard
-			if (bot->m_positionX < 985) //to the gate at the upper tunnel
+			if (bot->GetPositionX() < 985) //to the gate at the upper tunnel
 			{
 				MoveTo(bg->GetMapId(), 985.940125f, 1423.260254f, 345.418121f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1054.5) //to the gate at the upper tunnel
+			else if (bot->GetPositionX() < 1054.5) //to the gate at the upper tunnel
 			{
 				MoveTo(bg->GetMapId(), 1055.182251f, 1396.967529f, 339.361511f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1125) //to the horde entrance
+			else if (bot->GetPositionX() < 1125) //to the horde entrance
 			{
-				MoveTo(bg->GetMapId(), 1125.778076f, bot->m_positionY, 316.567047f);
+				MoveTo(bg->GetMapId(), 1125.778076f, bot->GetPositionY(), 316.567047f);
 				return  true;
 			}
 		}
 		else { //all other preference: run down the ramp 
-			if (bot->m_positionX < 985) //to the gate at the upper tunnel
+			if (bot->GetPositionX() < 985) //to the gate at the upper tunnel
 			{
 				MoveTo(bg->GetMapId(), 985.940125f, 1423.260254f, 345.418121f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1031) //to the first step of the ramp from the tunnel
+			else if (bot->GetPositionX() < 1031) //to the first step of the ramp from the tunnel
 			{
 				MoveTo(bg->GetMapId(), 1031.764282f, 1454.516235f, 343.337860f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1051 && bot->m_positionY < 1494) //to the second step of the ramp from the tunnel
+			else if (bot->GetPositionX() < 1051 && bot->GetPositionY() < 1494) //to the second step of the ramp from the tunnel
 			{
 				MoveTo(bg->GetMapId(), 1051.304810f, 1494.917725f, 342.043518f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1050 && bot->m_positionY < 1538) //down the ramp
+			else if (bot->GetPositionX() < 1050 && bot->GetPositionY() < 1538) //down the ramp
 			{
 				MoveTo(bg->GetMapId(), 1050.089478f, 1538.054443f, 332.460388f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1050 && bot->m_positionY < 1560) //down the ramp
+			else if (bot->GetPositionX() < 1050 && bot->GetPositionY() < 1560) //down the ramp
 			{
 				MoveTo(bg->GetMapId(), 1050.089478f, 1560.054443f, 332.460388f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1098) //at the ground now
+			else if (bot->GetPositionX() < 1098) //at the ground now
 			{
 				MoveTo(bg->GetMapId(), 1098.716797f, 1535.618652f, 315.727539f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1239)
+			else if (bot->GetPositionX() < 1239)
 			{
 				MoveTo(bg->GetMapId(), 1239.085693f, 1541.408569f + frand(-2, +2), 306.491791f);
 				return  true;
 			}
 		}
-		if (bot->m_positionX < 1227) //move to a more random location in the middle part
+		if (bot->GetPositionX() < 1227) //move to a more random location in the middle part
 		{
-			if (bot->m_positionY < 1400)
+			if (bot->GetPositionY() < 1400)
 				MoveTo(bg->GetMapId(), 1269.962158f, 1382.655640f + frand(-2, +2), 308.545288f);
 			else
 				MoveTo(bg->GetMapId(), 1227.446289f, 1476.235718f + frand(-2, +2), 307.484589f);
@@ -713,12 +466,12 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 		}
 		if (bot->Preference < 5) //through the tunnel
 		{
-			if (bot->m_positionX < 1351) //move to the alliance entrance
+			if (bot->GetPositionX() < 1351) //move to the alliance entrance
 			{
 				MoveTo(bg->GetMapId(), 1351.759155f + frand(0, 2), 1462.368042f + frand(-2, +2), 323.673737f);
 				return  true;
 			}
-			else if (bot->m_positionX < 1449) //move to the alliance fasty
+			else if (bot->GetPositionX() < 1449) //move to the alliance fasty
 			{
 				MoveTo(bg->GetMapId(), 1449.574219f, 1470.698608f, 342.675476f);
 				return  true;
@@ -729,22 +482,22 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 			}
 		}
 		else { //up the ramp
-			if (bot->m_positionX < 1360) //gate at the ramp
+			if (bot->GetPositionX() < 1360) //gate at the ramp
 			{
 				MoveTo(bg->GetMapId(), 1360.088501f, 1393.451660f + frand(-2, +2), 326.183624f);
 				return  true;
 			}
-			if (bot->m_positionX < 1399) //half way up
+			if (bot->GetPositionX() < 1399) //half way up
 			{
 				MoveTo(bg->GetMapId(), 1399.362061f, 1405.105347f + frand(-2, +2), 341.481476f);
 				return  true;
 			}
-			if (bot->m_positionX < 1417) //first halway
+			if (bot->GetPositionX() < 1417) //first halway
 			{
 				MoveTo(bg->GetMapId(), 1417.096191f, 1459.552368f + frand(-2, +2), 349.591827f);
 				return  true;
 			}
-			if (bot->m_positionX < 1505.2) //gate to the flag room
+			if (bot->GetPositionX() < 1505.2) //gate to the flag room
 			{
 				MoveTo(bg->GetMapId(), 1505.045654f, 1493.787231f, 352.017670f);
 				return  true;
@@ -760,28 +513,28 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 	{
 		if (bot->Preference < 4) //through the tunnel
 		{
-			if (bot->m_positionX > 1449.7) //to the fasty
+			if (bot->GetPositionX() > 1449.7) //to the fasty
 			{
 				MoveTo(bg->GetMapId(), 1449.574219f, 1470.698608f, 342.675476f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1443.9) { // moving from the fasty to the gate directly is bugged.. moving back to the tunnel first
+			else if (bot->GetPositionX() > 1443.9) { // moving from the fasty to the gate directly is bugged.. moving back to the tunnel first
 				MoveTo(bg->GetMapId(), 1443.761963f, 1459.581909f, 342.115417f);
 			}
-			else if (bot->m_positionX > 1380.9) { // move into the tunnel
+			else if (bot->GetPositionX() > 1380.9) { // move into the tunnel
 				MoveTo(bg->GetMapId(), 1380.761963f, 1457.581909f, 329.115417f);
 			}
-			else if (bot->m_positionX > 1351.9) //to the alliance entrance
+			else if (bot->GetPositionX() > 1351.9) //to the alliance entrance
 			{
-				if (bot->m_positionY > 1500)
-					MoveTo(bg->GetMapId(), 1125.778076f, bot->m_positionY, 315.698883f);
+				if (bot->GetPositionY() > 1500)
+					MoveTo(bg->GetMapId(), 1125.778076f, bot->GetPositionY(), 315.698883f);
 				else
 					MoveTo(bg->GetMapId(), 1125.778076f, 1452.059937f, 315.698883f);
 				return  true;
 			}
-			if (bot->m_positionX > 1240) //move to a more random location in the middle part
+			if (bot->GetPositionX() > 1240) //move to a more random location in the middle part
 			{
-				if (bot->m_positionY > 1500)
+				if (bot->GetPositionY() > 1500)
 					MoveTo(bg->GetMapId(), 1239.085693f, 1541.408569f + frand(-2, +2), 306.491791f);
 				else
 					MoveTo(bg->GetMapId(), 1227.446289f, 1476.235718f + frand(-2, +2), 307.484589f);
@@ -790,22 +543,22 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 		}
 		else if (bot->Preference < 7) // through the graveyard
 		{
-			if (bot->m_positionX > 1505.2) //To the first gate
+			if (bot->GetPositionX() > 1505.2) //To the first gate
 			{
 				MoveTo(bg->GetMapId(), 1505.045654f, 1493.787231f, 352.017670f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1460) //to the second gate
+			else if (bot->GetPositionX() > 1460) //to the second gate
 			{
 				MoveTo(bg->GetMapId(), 1459.490234f, 1494.175072f, 351.565155f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1424) //to the graveyard
+			else if (bot->GetPositionX() > 1424) //to the graveyard
 			{
 				MoveTo(bg->GetMapId(), 1423.106201f + frand(-2, +2), 1532.851196f, 342.152100f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1345) // to the field
+			else if (bot->GetPositionX() > 1345) // to the field
 			{
 				MoveTo(bg->GetMapId(), 1344.334595f + frand(-2, +2), 1514.917236f, 319.081726f);
 				return  true;
@@ -813,32 +566,32 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 		}
 		else
 		{
-			if (bot->m_positionX > 1505.2) //To the first gate
+			if (bot->GetPositionX() > 1505.2) //To the first gate
 			{
 				MoveTo(bg->GetMapId(), 1505.045654f, 1493.787231f, 352.017670f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1460) //to the second gate
+			else if (bot->GetPositionX() > 1460) //to the second gate
 			{
 				MoveTo(bg->GetMapId(), 1459.490234f, 1494.175072f, 351.565155f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1418) //half on the upper ramp
+			else if (bot->GetPositionX() > 1418) //half on the upper ramp
 			{
 				MoveTo(bg->GetMapId(), 1417.096191f, 1459.552368f, 349.591827f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1400) //middle down the ramp
+			else if (bot->GetPositionX() > 1400) //middle down the ramp
 			{
 				MoveTo(bg->GetMapId(), 1399.362061f, 1405.105347f, 341.481476f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1357) //at the gate
+			else if (bot->GetPositionX() > 1357) //at the gate
 			{
 				MoveTo(bg->GetMapId(), 1356.088501f, 1393.451660f, 326.183624f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1270) // run the gate side way to the middle field
+			else if (bot->GetPositionX() > 1270) // run the gate side way to the middle field
 			{
 				MoveTo(bg->GetMapId(), 1269.962158f, 1382.655640f + frand(-2, +2), 308.545288f);
 				return true;
@@ -846,27 +599,27 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 		}
 		if (bot->Preference < 5) //horde ramp
 		{
-			if (bot->m_positionX > 1099) //move to the horde ramp gate
+			if (bot->GetPositionX() > 1099) //move to the horde ramp gate
 			{
 				MoveTo(bg->GetMapId(), 1096.716797f, 1535.618652f, 315.727539f);
 				return  true;
 			}
-			if (bot->m_positionX > 1071) //move the ramp up a piece
+			if (bot->GetPositionX() > 1071) //move the ramp up a piece
 			{
 				MoveTo(bg->GetMapId(), 1070.089478f, 1538.054443f, 332.460388f);
 				return  true;
 			}
-			if (bot->m_positionX > 1050.2) //move the ramp up a piece
+			if (bot->GetPositionX() > 1050.2) //move the ramp up a piece
 			{
 				MoveTo(bg->GetMapId(), 1050.089478f, 1538.054443f, 332.460388f);
 				return  true;
 			}
-			if (bot->m_positionX > 1032) //up in front of first entrance
+			if (bot->GetPositionX() > 1032) //up in front of first entrance
 			{
 				MoveTo(bg->GetMapId(), 1031.764282f, 1454.516235f, 343.337860f);
 				return  true;
 			}
-			if (bot->m_positionX > 986) //up in front of first entrance
+			if (bot->GetPositionX() > 986) //up in front of first entrance
 			{
 				MoveTo(bg->GetMapId(), 985.940125f, 1423.260254f, 345.418121f);
 				return  true;
@@ -876,12 +629,12 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 		}
 		else { //horde tunnel
 
-			if (bot->m_positionX > 1125.9f) //move to the horde entrance
+			if (bot->GetPositionX() > 1125.9f) //move to the horde entrance
 			{
 				MoveTo(bg->GetMapId(), 1125.778076f, 1452.059937f, 315.698883f);
 				return  true;
 			}
-			else if (bot->m_positionX > 1006.7f) //move to the horde fasty
+			else if (bot->GetPositionX() > 1006.7f) //move to the horde fasty
 			{
 				MoveTo(bg->GetMapId(), 1006.590210f, 1450.435059f, 335.721283f);
 				return  true;
@@ -899,14 +652,14 @@ bool BGTacticsWS::runPathTo(WorldObject *unit, Battleground *bg)
 //is being called, when flag "+warsong" is set
 bool BGTacticsWS::Execute(Event event)
 {
-	if (!bot->InBattleground())
+	if (!bot->InBattleGround())
 		return false;
 	if (bot->isDead())
 	{
 		bot->GetMotionMaster()->MovementExpired();
 	}
 	//Check for Warsong.
-	if (bot->GetBattleground()->GetTypeID() == BattlegroundTypeId::BATTLEGROUND_WS)
+	if (bot->GetBattleGround()->GetTypeID() == BattleGroundTypeId::BATTLEGROUND_WS)
 	{
 		ai->SetMaster(NULL);
 		if (bot->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
@@ -919,7 +672,7 @@ bool BGTacticsWS::Execute(Event event)
 		wasInCombat = bot->();
 		//In Warsong, the bots run to the other flag and take it, try to get back and protect each other.
 		//If our flag was taken, pures will try to get it back
-		BattlegroundWS* bg = (BattlegroundWS *)bot->GetBattleground();
+		BattleGroundWS* bg = (BattleGroundWS *)bot->GetBattleGround();
 		if (bg != NULL && !bot->isDead())
 		{
 			//If flag is close, always click it.
@@ -949,28 +702,28 @@ bool BGTacticsWS::Execute(Event event)
 			{
 				if (bot->GetTeam() == ALLIANCE) //you.. may... NOT.. PASS!
 				{
-					if (bot->m_positionX <1507)
+					if (bot->GetPositionX() <1507)
 					{
 						bot->GetMotionMaster()->MovementExpired();
-						MoveTo(bg->GetMapId(), 1510, bot->m_positionY, bot->m_positionZ);
+						MoveTo(bg->GetMapId(), 1510, bot->GetPositionY(), bot->GetPositionZ());
 						return false;
 					}
 				}
 				else {
-					if (bot->m_positionX > 947)
+					if (bot->GetPositionX() > 947)
 					{
 						bot->GetMotionMaster()->MovementExpired();
-						MoveTo(bg->GetMapId(), 950, bot->m_positionY, bot->m_positionZ);
+						MoveTo(bg->GetMapId(), 950, bot->GetPositionY(), bot->GetPositionZ());
 						return false;
 					}
 				}
 				if (!bot->isInCombat())
 				{
-					Position const* pos = bg->GetTeamStartPosition(Battleground::GetTeamIndexByTeamId(bot->GetTeam()));
-					for (std::map<ObjectGuid, BattlegroundPlayer>::const_iterator itr = bg->GetPlayers().begin(); itr != bg->GetPlayers().end(); ++itr)
+					Position const* pos = bg->GetTeamStartPosition(BattleGround::GetTeamIndexByTeamId(bot->GetTeam()));
+					for (std::map<ObjectGuid, BattleGroundPlayer>::const_iterator itr = bg->GetPlayers().begin(); itr != bg->GetPlayers().end(); ++itr)
 					{
 						if (urand(0, 100) < 2)
-							return MoveNear(bg->GetMapId(), pos->m_positionX, pos->m_positionY, pos->m_positionZ, frand(1.0, 5.0));
+							return MoveNear(bg->GetMapId(), pos->x, pos->y, pos->z, frand(1.0, 5.0));
 					}
 				}
 				return true;

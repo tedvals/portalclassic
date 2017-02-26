@@ -571,57 +571,46 @@ bool RunAwayAction::Execute(Event event)
 
 bool MoveRandomAction::Execute(Event event)
 {
-    WorldObject* target = NULL;
-
-    if (!(rand() % 3))
+	vector<WorldLocation> locs;
+	list<ObjectGuid> npcs = AI_VALUE(list<ObjectGuid>, "nearest npcs");
+	for (list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
     {
-        list<ObjectGuid> npcs = AI_VALUE(list<ObjectGuid>, "near npcs");
-        for (list<ObjectGuid>::iterator i = npcs.begin(); i != npcs.end(); i++)
+		WorldObject* target = ai->GetUnit(*i);
+		if (target && bot->GetDistance(target) > sPlayerbotAIConfig.tooCloseDistance)
         {
-            target = ai->GetUnit(*i);
-//go a little further
- //   if (target && bot->GetDistance(target) > sPlayerbotAIConfig.sightDistance/3)
-           if (target && bot->GetDistance(target) > sPlayerbotAIConfig.sightDistance/3 && ai->ObjectNotVisited(*i))
-            {
-                ai->VisitObject(*i);
-                break;
-            }
-
+			WorldLocation loc;
+			target->GetPosition(loc);
+			locs.push_back(loc);
         }
     }
 
-    if (!target || !(rand() % 3))
+	list<ObjectGuid> players = AI_VALUE(list<ObjectGuid>, "nearest friendly players");
+	for (list<ObjectGuid>::iterator i = players.begin(); i != players.end(); i++)
     {
-        list<ObjectGuid> gos = AI_VALUE(list<ObjectGuid>, "near game objects");
-        for (list<ObjectGuid>::iterator i = gos.begin(); i != gos.end(); i++)
-        {
-            target = ai->GetGameObject(*i);
-
-//            if (target && bot->GetDistance(target) > sPlayerbotAIConfig.sightDistance/3)
-            if (target && bot->GetDistance(target) > sPlayerbotAIConfig.sightDistance/3 && ai->ObjectNotVisited(*i))
-             {
-                ai->VisitObject(*i);
-                break;
-            }
-        }
+		WorldObject* target = ai->GetUnit(*i);
+		if (target && bot->GetDistance(target) > sPlayerbotAIConfig.tooCloseDistance)
+		{
+			WorldLocation loc;
+			target->GetPosition(loc);
+			locs.push_back(loc);
+		}
     }
 
-    float distance = sPlayerbotAIConfig.tooCloseDistance + sPlayerbotAIConfig.grindDistance * urand(5, 10) / 10.0f;
+	list<ObjectGuid> gos = AI_VALUE(list<ObjectGuid>, "nearest game objects");
+	for (list<ObjectGuid>::iterator i = gos.begin(); i != gos.end(); i++)
+	{
+		WorldObject* target = ai->GetGameObject(*i);
 
-    Map* map = bot->GetMap();
-	if (!map->GetTerrain())
-		return false;
+		if (target && bot->GetDistance(target) > sPlayerbotAIConfig.tooCloseDistance)
+		{
+			WorldLocation loc;
+			target->GetPosition(loc);
+			locs.push_back(loc);
+		}
+	}
 
-    if (target)
-    {
-        float x = target->GetPositionX();
-        float y = target->GetPositionY();
-        float z = target->GetPositionZ();
-        if (!map->GetTerrain()->IsInWater(x, y, z))
-        {
-            return MoveNear(target);
-        }
-    }
+	float distance = sPlayerbotAIConfig.grindDistance;
+	Map* map = bot->GetMap();
 
     for (int i = 0; i < 10; ++i)
     {
@@ -632,15 +621,25 @@ bool MoveRandomAction::Execute(Event event)
         y += urand(0, distance) - distance / 2;
         bot->UpdateAllowedPositionZ(x, y, z);
 
-        if (map->GetTerrain()->IsInWater(x, y, z))
-            continue;
+		const TerrainInfo* terrain = map->GetTerrain();
+		if (terrain->IsUnderWater(x, y, z) ||
+			terrain->IsInWater(x, y, z))
+			continue;
 
-        bool moved = MoveNear(bot->GetMapId(), x, y, z);
-        if (moved)
-            return true;
+		float ground = map->GetHeight(x, y, z + 0.5f);
+		if (ground <= INVALID_HEIGHT)
+			continue;
+		
+			z = 0.05f + ground;
+		WorldLocation loc(bot->GetMapId(), x, y, z);
+		locs.push_back(loc);
     }
 
-    return false;
+	if (locs.empty())
+		return false;
+	
+		WorldLocation target = locs[urand(0, locs.size() - 1)];
+	return MoveNear(target.mapid, target.coord_x, target.coord_y, target.coord_z);
 }
 
 bool MoveToLootAction::Execute(Event event)

@@ -55,11 +55,14 @@
 #include "AttackerWithoutAuraTargetValue.h"
 #include "LastSpellCastTimeValue.h"
 #include "ManaSaveLevelValue.h"
-#include "LfgValues.h"
 #include "EnemyHealerTargetValue.h"
 #include "Formations.h"
 #include "ItemUsageValue.h"
 #include "LastSaidValue.h"
+#include "OutfitListValue.h"
+#include "NearestFriendlyPlayersValue.h"
+#include "NearestNonBotPlayersValue.h"
+#include "RandomBotUpdateValue.h"
 
 namespace ai
 {
@@ -75,6 +78,7 @@ namespace ai
             creators["nearest adds"] = &ValueContext::nearest_adds;
             creators["near game objects"] = &ValueContext::near_game_objects;
             creators["near npcs"] = &ValueContext::near_npcs;
+			creators["nearest friendly players"] = &ValueContext::nearest_friendly_players;
             creators["nearest corpses"] = &ValueContext::nearest_corpses;
             creators["log level"] = &ValueContext::log_level;
             creators["party member without aura"] = &ValueContext::party_member_without_aura;
@@ -191,7 +195,6 @@ namespace ai
             creators["invalid target"] = &ValueContext::invalid_target;
             creators["mana save level"] = &ValueContext::mana_save_level;
             creators["combat"] = &ValueContext::combat;
-            creators["lfg proposal"] = &ValueContext::lfg_proposal;
             creators["bag space"] = &ValueContext::bag_space;
             creators["enemy healer target"] = &ValueContext::enemy_healer_target;
             creators["formation"] = &ValueContext::formation;
@@ -202,6 +205,9 @@ namespace ai
 
 			creators["aoe count"] = &ValueContext::aoe_count;
 			creators["aoe position"] = &ValueContext::aoe_position;
+			creators["outfit list"] = &ValueContext::outfit_list_value;
+			creators["random bot update"] = &ValueContext::random_bot_update_value;
+			creators["nearest non bot players"] = &ValueContext::nearest_non_bot_players;
         }
 
     private:
@@ -279,6 +285,7 @@ namespace ai
         static UntypedValue* party_member_near(PlayerbotAI* ai) { return new NearestGroupMemberValue(ai,sPlayerbotAIConfig.disperseDistance); }
         static UntypedValue* log_level(PlayerbotAI* ai) { return new LogLevelValue(ai); }
         static UntypedValue* nearest_npcs(PlayerbotAI* ai) { return new NearestNpcsValue(ai); }
+		static UntypedValue* nearest_friendly_players(PlayerbotAI* ai) { return new NearestFriendlyPlayersValue(ai); }
         static UntypedValue* near_npcs(PlayerbotAI* ai) { return new NearestNpcsValue(ai,sPlayerbotAIConfig.grindDistance); }
         static UntypedValue* nearest_corpses(PlayerbotAI* ai) { return new NearestCorpsesValue(ai); }
         static UntypedValue* possible_targets(PlayerbotAI* ai) { return new PossibleTargetsValue(ai); }
@@ -326,7 +333,6 @@ namespace ai
         static UntypedValue* has_any_own_totem(PlayerbotAI* ai) { return new HasAnyOwnTotemValue(ai); }
         static UntypedValue* threat(PlayerbotAI* ai) { return new ThreatValue(ai); }
         static UntypedValue* combat(PlayerbotAI* ai) { return new IsInCombatValue(ai); }
-        static UntypedValue* lfg_proposal(PlayerbotAI* ai) { return new LfgProposalValue(ai); }
         static UntypedValue* bag_space(PlayerbotAI* ai) { return new BagSpaceValue(ai); }
         static UntypedValue* enemy_healer_target(PlayerbotAI* ai) { return new EnemyHealerTargetValue(ai); }
         static UntypedValue* speed(PlayerbotAI* ai) { return new SpeedValue(ai); }
@@ -334,5 +340,8 @@ namespace ai
         static UntypedValue* last_emote(PlayerbotAI* ai) { return new LastEmoteValue(ai); }
 		static UntypedValue* aoe_count(PlayerbotAI* ai) { return new AoeCountValue(ai); }
 		static UntypedValue* aoe_position(PlayerbotAI* ai) { return new AoePositionValue(ai); }
+		static UntypedValue* outfit_list_value(PlayerbotAI* ai) { return new OutfitListValue(ai); }
+		static UntypedValue* random_bot_update_value(PlayerbotAI* ai) { return new RandomBotUpdateValue(ai); }
+		static UntypedValue* nearest_non_bot_players(PlayerbotAI* ai) { return new NearestNonBotPlayersValue(ai); }
     };
 };

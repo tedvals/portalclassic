@@ -82,6 +82,8 @@ namespace ai
             creators["boost"] = &ChatTriggerContext::boost_now;
             creators["burst"] = &ChatTriggerContext::burst_now;
             creators["reposition"] = &ChatTriggerContext::reposition;
+			creators["sendmail"] = &ChatTriggerContext::sendmail;
+			creators["outfit"] = &ChatTriggerContext::outfit;
         }
         ~ChatTriggerContext()
         {
@@ -158,9 +160,13 @@ namespace ai
             creators.erase("reposition");
             creators.erase("burst");
             creators.erase("boost");
+			creators.erase("sendmail");
+			creators.erase("outfit");
         }
 
     private:
+		static Trigger* outfit(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "outfit"); }
+		static Trigger* sendmail(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "sendmail"); }
         static Trigger* formation(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "formation"); }
         static Trigger* attackers(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "attackers"); }
         static Trigger* max_dps(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "max dps"); }

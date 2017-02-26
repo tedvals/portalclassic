@@ -1297,6 +1297,15 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeValues.cpp">
       <Filter>Bots\Strategy\values</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\OutfitAction.cpp">
+      <Filter>Bots\Strategy\actions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestFriendlyPlayersValue.cpp">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestNonBotPlayersValue.cpp">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -2691,6 +2700,21 @@
       <Filter>Bots</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\AoeValues.h">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\OutfitAction.h">
+      <Filter>Bots\Strategy\actions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\OutfitListValue.h">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RandomBotUpdateAction.h">
+      <Filter>Bots\Strategy\actions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestFriendlyPlayersValue.h">
+      <Filter>Bots\Strategy\values</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestNonBotPlayersValue.h">
       <Filter>Bots\Strategy\values</Filter>
     </ClInclude>
   </ItemGroup>

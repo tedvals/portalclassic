@@ -1952,6 +1952,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         CombatData* m_combatData;
 
+		uint8 Preference = urand(0, 9); //Random preference
+
     protected:
         explicit Unit();
 

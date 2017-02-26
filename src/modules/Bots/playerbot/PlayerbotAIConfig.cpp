@@ -50,19 +50,19 @@ bool PlayerbotAIConfig::Initialize()
 
     sightDistance = config.GetFloatDefault("AiPlayerbot.SightDistance", 60.0f);
     spellDistance = config.GetFloatDefault("AiPlayerbot.SpellDistance", 25.0f);
-	shootDistance = config.GetFloatDefault("AiPlayerbot.ShootDistance", 20.0f);
+	shootDistance = config.GetFloatDefault("AiPlayerbot.ShootDistance", 11.0f);
     reactDistance = config.GetFloatDefault("AiPlayerbot.ReactDistance", 150.0f);
     grindDistance = config.GetFloatDefault("AiPlayerbot.GrindDistance", 100.0f);
     lootDistance = config.GetFloatDefault("AiPlayerbot.LootDistance", 20.0f);
     disperseDistance = config.GetFloatDefault("AiPlayerbot.DisperseDistance", 6.0f);
     aggroDistance = config.GetFloatDefault("AiPlayerbot.AggroDistance", 12.0f);
-    fleeDistance = config.GetFloatDefault("AiPlayerbot.FleeDistance", 20.0f);
+    fleeDistance = config.GetFloatDefault("AiPlayerbot.FleeDistance", 8.0f);
     tooCloseDistance = config.GetFloatDefault("AiPlayerbot.TooCloseDistance", 7.0f);
     meleeDistance = config.GetFloatDefault("AiPlayerbot.MeleeDistance", 0.5f);
     followDistance = config.GetFloatDefault("AiPlayerbot.FollowDistance", 1.5f);
     whisperDistance = config.GetFloatDefault("AiPlayerbot.WhisperDistance", 6000.0f);
     contactDistance = config.GetFloatDefault("AiPlayerbot.ContactDistance", 0.5f);
-	aoeRadius = config.GetFloatDefault("AiPlayerbot.AoeRadius", 10.0f);
+	aoeRadius = config.GetFloatDefault("AiPlayerbot.AoeRadius", 7.0f);
 
     closeDistance = config.GetFloatDefault("AiPlayerbot.CloseDistance", 8.0f);
     mediumDistance = config.GetFloatDefault("AiPlayerbot.MediumDistance", 15.0f);
@@ -81,7 +81,7 @@ bool PlayerbotAIConfig::Initialize()
     almostFullMana = config.GetIntDefault("AiPlayerbot.AlmostFullMana", 85);
 
     randomGearLoweringChance = config.GetFloatDefault("AiPlayerbot.RandomGearLoweringChance", 0.15);
-    randomBotMaxLevelChance = config.GetFloatDefault("AiPlayerbot.RandomBotMaxLevelChance", 0.4);
+	randomBotMaxLevelChance = config.GetFloatDefault("AiPlayerbot.RandomBotMaxLevelChance", 0.15);
 
 	iterationsPerTick = config.GetIntDefault("AiPlayerbot.IterationsPerTick", 100);
 
@@ -95,7 +95,7 @@ bool PlayerbotAIConfig::Initialize()
     randomBotAutologin = config.GetBoolDefault("AiPlayerbot.RandomBotAutologin", true);
     minRandomBots = config.GetIntDefault("AiPlayerbot.MinRandomBots", 50);
     maxRandomBots = config.GetIntDefault("AiPlayerbot.MaxRandomBots", 200);
-    randomBotUpdateInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateInterval", 60);
+	randomBotUpdateInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateInterval", 60);
     randomBotCountChangeMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMinInterval", 24 * 3600);
     randomBotCountChangeMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMaxInterval", 3 * 24 * 3600);
     minRandomBotInWorldTime = config.GetIntDefault("AiPlayerbot.MinRandomBotInWorldTime", 2 * 3600);
@@ -104,7 +104,7 @@ bool PlayerbotAIConfig::Initialize()
     maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 14 * 24 * 3600);
     minRandomBotReviveTime = config.GetIntDefault("AiPlayerbot.MinRandomBotReviveTime", 100);
     maxRandomBotReviveTime = config.GetIntDefault("AiPlayerbot.MaxRandomReviveTime", 300);
-    randomBotTeleportDistance = config.GetIntDefault("AiPlayerbot.RandomBotTeleportDistance", 1000);
+	randomBotTeleportDistance = config.GetIntDefault("AiPlayerbot.RandomBotTeleportDistance", 133);
     minRandomBotsPerInterval = config.GetIntDefault("AiPlayerbot.MinRandomBotsPerInterval", 50);
     maxRandomBotsPerInterval = config.GetIntDefault("AiPlayerbot.MaxRandomBotsPerInterval", 100);
     minRandomBotsPriceChangeInterval = config.GetIntDefault("AiPlayerbot.MinRandomBotsPriceChangeInterval", 2 * 3600);

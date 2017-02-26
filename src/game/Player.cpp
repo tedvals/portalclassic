@@ -480,9 +480,9 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
 
     m_DetectInvTimer = 1 * IN_MILLISECONDS;
 
-    for (int j = 0; j < PLAYER_MAX_BATTLEGROUND_QUEUES; ++j)
+    for (int j = 0; j < PLAYER_MAX_BattleGround_QUEUES; ++j)
     {
-        m_bgBattleGroundQueueID[j].bgQueueTypeId  = BATTLEGROUND_QUEUE_NONE;
+        m_bgBattleGroundQueueID[j].bgQueueTypeId  = BattleGround_QUEUE_NONE;
         m_bgBattleGroundQueueID[j].invitedToInstance = 0;
     }
 
@@ -1595,9 +1595,9 @@ void Player::ToggleAFK()
 {
     ToggleFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK);
 
-    // afk player not allowed in battleground
+    // afk player not allowed in BattleGround
     if (isAFK() && InBattleGround())
-        LeaveBattleground();
+        LeaveBattleGround();
 }
 
 void Player::ToggleDND()
@@ -1631,7 +1631,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     // preparing unsummon pet if lost (we must get pet before teleportation or will not find it later)
     Pet* pet = GetPet();
 
-    // don't let enter battlegrounds without assigned battleground id (for example through areatrigger)...
+    // don't let enter BattleGrounds without assigned BattleGround id (for example through areatrigger)...
     // don't let gm level > 1 either
     if (!InBattleGround() && mEntry->IsBattleGround())
         return false;
@@ -1748,14 +1748,14 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
             ResetContestedPvP();
 
-            // remove player from battleground on far teleport (when changing maps)
+            // remove player from BattleGround on far teleport (when changing maps)
             if (BattleGround const* bg = GetBattleGround())
             {
-                // Note: at battleground join battleground id set before teleport
-                // and we already will found "current" battleground
+                // Note: at BattleGround join BattleGround id set before teleport
+                // and we already will found "current" BattleGround
                 // just need check that this is targeted map or leave
                 if (bg->GetMapId() != mapid)
-                    LeaveBattleground(false);               // don't teleport to entry point
+                    LeaveBattleGround(false);               // don't teleport to entry point
             }
 
             // remove pet on map change
@@ -4038,7 +4038,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             CharacterDatabase.PExecute("DELETE FROM characters WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_action WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_aura WHERE guid = '%u'", lowguid);
-            CharacterDatabase.PExecute("DELETE FROM character_battleground_data WHERE guid = '%u'", lowguid);
+            CharacterDatabase.PExecute("DELETE FROM character_BattleGround_data WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_gifts WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_homebind WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_instance WHERE guid = '%u'", lowguid);
@@ -4598,7 +4598,7 @@ void Player::RepopAtGraveyard()
 
     WorldSafeLocsEntry const* ClosestGrave = nullptr;
 
-    // Special handle for battleground maps
+    // Special handle for BattleGround maps
     if (BattleGround* bg = GetBattleGround())
         ClosestGrave = bg->GetClosestGraveYard(this);
     else
@@ -6466,7 +6466,7 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
             pvpInfo.inHostileArea = GetTeam() != HORDE && (sWorld.IsPvPRealm() || zone->flags & AREA_FLAG_CAPITAL);
             break;
         case AREATEAM_NONE:
-            // overwrite for battlegrounds, maybe batter some zone flags but current known not 100% fit to this
+            // overwrite for BattleGrounds, maybe batter some zone flags but current known not 100% fit to this
             pvpInfo.inHostileArea = sWorld.IsPvPRealm() || InBattleGround();
             break;
         default:                                            // 6 in fact
@@ -7252,7 +7252,7 @@ bool Player::CheckAmmoCompatibility(const ItemPrototype* ammo_proto) const
     return true;
 }
 
-/*  If in a battleground a player dies, and an enemy removes the insignia, the player's bones is lootable
+/*  If in a BattleGround a player dies, and an enemy removes the insignia, the player's bones is lootable
     Called by remove insignia spell effect    */
 void Player::RemovedInsignia(Player* looterPlr)
 {
@@ -11330,9 +11330,9 @@ void Player::OnGossipSelect(WorldObject* pSource, uint32 gossipListId)
         {
             BattleGroundTypeId bgTypeId = sBattleGroundMgr.GetBattleMasterBG(pSource->GetEntry());
 
-            if (bgTypeId == BATTLEGROUND_TYPE_NONE)
+            if (bgTypeId == BattleGround_TYPE_NONE)
             {
-                sLog.outError("a user (guid %u) requested battlegroundlist from a npc who is no battlemaster", GetGUIDLow());
+                sLog.outError("a user (guid %u) requested BattleGroundlist from a npc who is no battlemaster", GetGUIDLow());
                 return;
             }
 
@@ -13462,7 +13462,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     if (m_bgData.bgInstanceID)                              // saved in BattleGround
     {
-        BattleGround* currentBg = sBattleGroundMgr.GetBattleGround(m_bgData.bgInstanceID, BATTLEGROUND_TYPE_NONE);
+        BattleGround* currentBg = sBattleGroundMgr.GetBattleGround(m_bgData.bgInstanceID, BattleGround_TYPE_NONE);
 
         bool player_at_bg = currentBg && currentBg->IsPlayerInBattleGround(GetObjectGuid());
 
@@ -13473,7 +13473,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
             m_bgData.bgTypeID = currentBg->GetTypeID();     // bg data not marked as modified
 
-            // join player to battleground group
+            // join player to BattleGround group
             currentBg->EventPlayerLoggedIn(this);
             currentBg->AddOrSetPlayerToCorrectBgGroup(this, GetObjectGuid(), m_bgData.bgTeam);
 
@@ -13491,7 +13491,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
             Relocate(_loc.coord_x, _loc.coord_y, _loc.coord_z, _loc.orientation);
 
             // We are not in BG anymore
-            SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);
+            SetBattleGroundId(0, BattleGround_TYPE_NONE);
             // remove outdated DB data in DB
             _SaveBGData();
         }
@@ -13508,7 +13508,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
             Relocate(_loc.coord_x, _loc.coord_y, _loc.coord_z, _loc.orientation);
 
             // We are not in BG anymore
-            SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);
+            SetBattleGroundId(0, BattleGround_TYPE_NONE);
             // remove outdated DB data in DB
             _SaveBGData();
         }
@@ -16929,14 +16929,14 @@ void Player::SetBattleGroundEntryPoint(Player* leader /*= nullptr*/)
     m_bgData.m_needSave = true;
 }
 
-void Player::LeaveBattleground(bool teleportToEntryPoint)
+void Player::LeaveBattleGround(bool teleportToEntryPoint)
 {
     if (BattleGround* bg = GetBattleGround())
     {
         bg->RemovePlayerAtLeave(GetObjectGuid(), teleportToEntryPoint, true);
 
         // call after remove to be sure that player resurrected for correct cast
-        if (!isGameMaster() && sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_CAST_DESERTER))
+        if (!isGameMaster() && sWorld.getConfig(CONFIG_BOOL_BattleGround_CAST_DESERTER))
         {
             if (bg->GetStatus() == STATUS_IN_PROGRESS || bg->GetStatus() == STATUS_WAIT_JOIN)
             {
@@ -16953,7 +16953,7 @@ void Player::LeaveBattleground(bool teleportToEntryPoint)
     }
 }
 
-bool Player::CanJoinToBattleground() const
+bool Player::CanJoinToBattleGround() const
 {
     // check Deserter debuff
     if (GetDummyAura(26013))
@@ -17590,7 +17590,7 @@ BattleGroundBracketId Player::GetBattleGroundBracketIdFromLevel(BattleGroundType
         return BG_BRACKET_ID_FIRST;
 
     uint32 bracket_id = (getLevel() - bg->GetMinLevel()) / 10;
-    if (bracket_id > MAX_BATTLEGROUND_BRACKETS)
+    if (bracket_id > MAX_BattleGround_BRACKETS)
         return BG_BRACKET_ID_LAST;
 
     return BattleGroundBracketId(bracket_id);
@@ -18877,13 +18877,13 @@ void Player::_SaveBGData()
     static SqlStatementID delBGData ;
     static SqlStatementID insBGData ;
 
-    SqlStatement stmt =  CharacterDatabase.CreateStatement(delBGData, "DELETE FROM character_battleground_data WHERE guid = ?");
+    SqlStatement stmt =  CharacterDatabase.CreateStatement(delBGData, "DELETE FROM character_BattleGround_data WHERE guid = ?");
 
     stmt.PExecute(GetGUIDLow());
 
     if (m_bgData.bgInstanceID)
     {
-        stmt = CharacterDatabase.CreateStatement(insBGData, "INSERT INTO character_battleground_data VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        stmt = CharacterDatabase.CreateStatement(insBGData, "INSERT INTO character_BattleGround_data VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         /* guid, bgInstanceID, bgTeam, x, y, z, o, map */
         stmt.addUInt32(GetGUIDLow());
         stmt.addUInt32(m_bgData.bgInstanceID);

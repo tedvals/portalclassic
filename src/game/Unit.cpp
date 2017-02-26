@@ -875,7 +875,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
                 playerVictim->GetSession()->SendPacket(&data);
             }
 
-            if (!spiritOfRedemtionTalentReady)              // Before informing Battleground
+            if (!spiritOfRedemtionTalentReady)              // Before informing BattleGround
             {
                 DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "SET JUST_DIED");
                 pVictim->SetDeathState(JUST_DIED);
@@ -7387,7 +7387,7 @@ void Unit::SetDeathState(DeathState s)
     }
     else if (s == JUST_ALIVED)
     {
-        RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);  // clear skinnable for creature and player (at battleground)
+        RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);  // clear skinnable for creature and player (at BattleGround)
     }
 
     if (s != ALIVE && s != JUST_ALIVED)

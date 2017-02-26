@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __BATTLEGROUND_H
-#define __BATTLEGROUND_H
+#ifndef __BattleGround_H
+#define __BattleGround_H
 
 #include "Common.h"
 #include "SharedDefines.h"
@@ -136,10 +136,10 @@ struct BattleGroundObjectInfo
 // handle the queue types and bg types separately to enable joining queue for different sized arenas at the same time
 enum BattleGroundQueueTypeId
 {
-    BATTLEGROUND_QUEUE_NONE     = 0,
-    BATTLEGROUND_QUEUE_AV       = 1,
-    BATTLEGROUND_QUEUE_WS       = 2,
-    BATTLEGROUND_QUEUE_AB       = 3,
+	BATTLEGROUND_QUEUE_NONE     = 0,
+	BATTLEGROUND_QUEUE_AV       = 1,
+	BATTLEGROUND_QUEUE_WS       = 2,
+	BATTLEGROUND_QUEUE_AB       = 3,
 };
 #define MAX_BATTLEGROUND_QUEUE_TYPES 4
 
@@ -234,10 +234,10 @@ class BattleGroundScore
 
 /*
 This class is used to:
-1. Add player to battleground
-2. Remove player from battleground
-3. some certain cases, same for all battlegrounds
-4. It has properties same for all battlegrounds
+1. Add player to BattleGround
+2. Remove player from BattleGround
+3. some certain cases, same for all BattleGrounds
+4. It has properties same for all BattleGrounds
 */
 class BattleGround
 {
@@ -249,11 +249,11 @@ class BattleGround
         /*BattleGround(const BattleGround& bg);*/
         virtual ~BattleGround();
         virtual void Update(uint32 diff);                   // must be implemented in BG subclass of BG specific update code, but must in begginning call parent version
-        virtual void Reset();                               // resets all common properties for battlegrounds, must be implemented and called in BG subclass
+        virtual void Reset();                               // resets all common properties for BattleGrounds, must be implemented and called in BG subclass
         virtual void StartingEventCloseDoors() {}
         virtual void StartingEventOpenDoors() {}
 
-        /* Battleground */
+        /* BattleGround */
         // Get methods:
         char const* GetName() const         { return m_Name; }
         BattleGroundTypeId GetTypeID() const { return m_TypeID; }
@@ -298,7 +298,7 @@ class BattleGround
         void SetMaxPlayersPerTeam(uint32 MaxPlayers) { m_MaxPlayersPerTeam = MaxPlayers; }
         void SetMinPlayersPerTeam(uint32 MinPlayers) { m_MinPlayersPerTeam = MinPlayers; }
 
-        void AddToBGFreeSlotQueue();                        // this queue will be useful when more battlegrounds instances will be available
+        void AddToBGFreeSlotQueue();                        // this queue will be useful when more BattleGrounds instances will be available
         void RemoveFromBGFreeSlotQueue();                   // this method could delete whole BG instance, if another free is available
 
         void DecreaseInvitedCount(Team team)      { (team == ALLIANCE) ? --m_InvitedAlliance : --m_InvitedHorde; }
@@ -350,7 +350,7 @@ class BattleGround
         float GetStartMaxDist() const { return m_startMaxDist; }
 
         /* Packet Transfer */
-        // method that should fill worldpacket with actual world states (not yet implemented for all battlegrounds!)
+        // method that should fill worldpacket with actual world states (not yet implemented for all BattleGrounds!)
         virtual void FillInitialWorldStates(WorldPacket& /*data*/, uint32& /*count*/) {}
         void SendPacketToTeam(Team team, WorldPacket* packet, Player* sender = nullptr, bool self = true);
         void SendPacketToAll(WorldPacket* packet);
@@ -411,7 +411,7 @@ class BattleGround
         // Called when a gameobject is created
         virtual void HandleGameObjectCreate(GameObject* /*go*/) {}
 
-        /* Battleground events */
+        /* BattleGround events */
         virtual void EventPlayerDroppedFlag(Player* /*player*/) {}
         virtual void EventPlayerClickedOnFlag(Player* /*player*/, GameObject* /*target_obj*/) {}
         virtual void EventPlayerCapturedFlag(Player* /*player*/) {}
@@ -508,7 +508,7 @@ class BattleGround
         bool   m_BuffChange;
 
     private:
-        /* Battleground */
+        /* BattleGround */
         BattleGroundTypeId m_TypeID;
         BattleGroundStatus m_Status;
         uint32 m_ClientInstanceID;                          // the instance-id which is sent to the client and without any other internal use
@@ -528,7 +528,7 @@ class BattleGround
         OfflineQueue m_OfflineQueue;                        // Player GUID
 
         /* Invited counters are useful for player invitation to BG - do not allow, if BG is started to one faction to have 2 more players than another faction */
-        /* Invited counters will be changed only when removing already invited player from queue, removing player from battleground and inviting player to BG */
+        /* Invited counters will be changed only when removing already invited player from queue, removing player from BattleGround and inviting player to BG */
         /* Invited players counters*/
         uint32 m_InvitedAlliance;
         uint32 m_InvitedHorde;

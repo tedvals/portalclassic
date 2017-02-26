@@ -34,7 +34,7 @@ Unit* GrindTargetValue::FindTargetForGrinding(int assistCount)
     for (list<ObjectGuid>::iterator i = attackers.begin(); i != attackers.end(); i++)
     {
         Unit* unit = ai->GetUnit(*i);
-        if (!unit || !unit->IsAlive())
+        if (!unit || !unit->isAlive())
             continue;
 
         return unit;
@@ -71,7 +71,7 @@ Unit* GrindTargetValue::FindTargetForGrinding(int assistCount)
 		    continue;
 
 		Creature* creature = dynamic_cast<Creature*>(unit);
-		if (creature && creature->GetCreatureTemplate() && creature->GetCreatureTemplate()->rank > CREATURE_ELITE_NORMAL)
+		if (creature && creature->GetCreatureInfo() && creature->GetCreatureInfo()->Rank > CREATURE_ELITE_NORMAL)
 		    continue;
 
         if (group)
@@ -80,7 +80,7 @@ Unit* GrindTargetValue::FindTargetForGrinding(int assistCount)
             for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
             {
                 Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-                if( !member || !member->IsAlive())
+                if( !member || !member->isAlive())
                     continue;
 
                 float d = member->GetDistance(unit);
@@ -117,7 +117,7 @@ int GrindTargetValue::GetTargetingPlayerCount( Unit* unit )
     for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
     {
         Player *member = sObjectMgr.GetPlayerByLowGUID(itr->guid);
-        if( !member || !member->IsAlive() || member == bot)
+        if( !member || !member->isAlive() || member == bot)
             continue;
 
         PlayerbotAI* ai = member->GetPlayerbotAI();

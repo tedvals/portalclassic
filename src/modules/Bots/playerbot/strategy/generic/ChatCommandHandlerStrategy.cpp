@@ -214,4 +214,5 @@ ChatCommandHandlerStrategy::ChatCommandHandlerStrategy(PlayerbotAI* ai) : PassTr
     supported.push_back("formation");
     supported.push_back("move to point");
 	supported.push_back("sendmail");
+	supported.push_back("outfit");
 }

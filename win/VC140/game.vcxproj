@@ -545,6 +545,7 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\LootStrategyAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\MovementActions.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\NonCombatActions.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\OutfitAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\PositionAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\QueryItemUsageAction.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\actions\QueryQuestAction.cpp" />
@@ -714,7 +715,9 @@
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\LootStrategyValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestAdsValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestCorpsesValue.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestFriendlyPlayersValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestGameObjects.cpp" />
+    <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestNonBotPlayersValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestNpcsValue.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\PartyMemberToDispel.cpp" />
     <ClCompile Include="..\..\src\modules\Bots\playerbot\strategy\values\PartyMemberToHeal.cpp" />
@@ -962,11 +965,13 @@
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\LootStrategyAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\MovementActions.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\NonCombatActions.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\OutfitAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\PassLeadershipToMasterAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\PositionAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\QueryItemUsageAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\QueryQuestAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\QuestAction.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\RandomBotUpdateAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\ReachTargetActions.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\ReadyCheckAction.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\actions\ReleaseSpiritAction.h" />
@@ -1177,9 +1182,12 @@
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\MasterTargetValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestAdsValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestCorpsesValue.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestFriendlyPlayersValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestGameObjects.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestNonBotPlayersValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestNpcsValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\NearestUnitsValue.h" />
+    <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\OutfitListValue.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\PartyMemberToDispel.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\PartyMemberToHeal.h" />
     <ClInclude Include="..\..\src\modules\Bots\playerbot\strategy\values\PartyMemberToResurrect.h" />

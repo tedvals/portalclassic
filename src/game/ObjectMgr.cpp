@@ -4824,7 +4824,7 @@ WorldSafeLocsEntry const* ObjectMgr::GetClosestGraveYard(float x, float y, float
     // Simulate std. algorithm:
     //   found some graveyard associated to (ghost_zone,ghost_map)
     //
-    //   if mapId == graveyard.mapId (ghost in plain zone or city or battleground) and search graveyard at same map
+    //   if mapId == graveyard.mapId (ghost in plain zone or city or BattleGround) and search graveyard at same map
     //     then check faction
     //   if mapId != graveyard.mapId (ghost in instance) and search any graveyard associated
     //     then check faction

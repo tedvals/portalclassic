@@ -160,11 +160,12 @@ namespace ai
             creators["medium aoe heal"] = &TriggerContext::medium_aoe_heal;
             creators["almost full aoe heal"] = &TriggerContext::almost_full_aoe_heal;
             creators["invalid target"] = &TriggerContext::invalid_target;
-            creators["lfg proposal active"] = &TriggerContext::lfg_proposal_active;
+			creators["random bot update"] = &TriggerContext::random_bot_update_trigger;
+			creators["no non bot players around"] = &TriggerContext::no_non_bot_players_around;
 
 			creators["has no flag"] = &TriggerContext::player_has_no_flag;
-			creators["in battleground"] = &TriggerContext::player_is_in_battleground;
-			creators["in battleground without flag"] = &TriggerContext::player_is_in_battleground_no_flag;
+			creators["in BattleGround"] = &TriggerContext::player_is_in_BattleGround;
+			creators["in BattleGround without flag"] = &TriggerContext::player_is_in_BattleGround_no_flag;
         }
         ~TriggerContext()
         {
@@ -314,15 +315,17 @@ namespace ai
             creators.erase("medium aoe heal");
             creators.erase("almost full aoe heal");
             creators.erase("invalid target");
-            creators.erase("lfg proposal active");
+            creators.erase("random bot update");
+			creators.erase("no non bot players around");
 
 			creators.erase("has no flag");
-			creators.erase("in battleground");
-			creators.erase("in battleground without flag");			
+			creators.erase("in BattleGround");
+			creators.erase("in BattleGround without flag");			
         }
 
     private:
-        static Trigger* lfg_proposal_active(PlayerbotAI* ai) { return new LfgProposalActiveTrigger(ai); }
+		static Trigger* random_bot_update_trigger(PlayerbotAI* ai) { return new RandomBotUpdateTrigger(ai); }
+		static Trigger* no_non_bot_players_around(PlayerbotAI* ai) { return new NoNonBotPlayersAroundTrigger(ai); }
         static Trigger* invalid_target(PlayerbotAI* ai) { return new InvalidTargetTrigger(ai); }
         static Trigger* critical_aoe_heal(PlayerbotAI* ai) { return new AoeHealTrigger(ai, "critical aoe heal", "critical", 2); }
         static Trigger* low_aoe_heal(PlayerbotAI* ai) { return new AoeHealTrigger(ai, "low aoe heal", "low", 2); }
@@ -449,8 +452,8 @@ namespace ai
         static Trigger* no_pet(PlayerbotAI* ai) { return new NoPetTrigger(ai); }
         static Trigger* has_attackers(PlayerbotAI* ai) { return new HasAttackersTrigger(ai); }
 		static Trigger* player_has_no_flag(PlayerbotAI* ai) { return new PlayerHasNoFlag(ai); }
-		static Trigger* player_is_in_battleground(PlayerbotAI *ai) { return new PlayerIsInBattleground(ai); }
-		static Trigger* player_is_in_battleground_no_flag(PlayerbotAI *ai) { return new PlayerIsInBattlegroundWithoutFlag(ai); }
+		static Trigger* player_is_in_BattleGround(PlayerbotAI *ai) { return new PlayerIsInBattleGround(ai); }
+		static Trigger* player_is_in_BattleGround_no_flag(PlayerbotAI *ai) { return new PlayerIsInBattleGroundWithoutFlag(ai); }
 
     };
 };

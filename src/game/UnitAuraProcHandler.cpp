@@ -1448,7 +1448,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
 		}
 		case 5010:
 		{
-			triggered_spell_id = 34312;                     // Vampiric Touch (Priest)
+			triggered_spell_id = 15271;                     // Vampiric Touch (Priest)
 			break;
 		}
 		case 5011:

@@ -191,7 +191,7 @@ class MANGOS_DLL_SPEC Group
         // some additional raid methods
         void ConvertToRaid();
 
-        void SetBattlegroundGroup(BattleGround* bg) { m_bgGroup = bg; }
+        void SetBattleGroundGroup(BattleGround* bg) { m_bgGroup = bg; }
         uint32 CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGroundQueueTypeId bgQueueTypeId, uint32 MinPlayerCount, uint32 MaxPlayerCount);
 
         void ChangeMembersGroup(ObjectGuid guid, uint8 group);

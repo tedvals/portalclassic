@@ -220,7 +220,6 @@ string PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admi
         else if (cmd == "random")
         {
             sRandomPlayerbotMgr.Randomize(bot);
-			sRandomPlayerbotMgr1.Randomize(bot);
             return "ok";
         }
         else if (cmd == "distance=none")
@@ -679,39 +678,55 @@ string PlayerbotHolder::ListBots(Player* master)
 	classNames[CLASS_SHAMAN] = "Shaman";
 	classNames[CLASS_WARLOCK] = "Warlock";
 	classNames[CLASS_WARRIOR] = "Warrior";
-	ostringstream out;
-	bool first = true;
-	out << "Bot roster: ";
+
+	map<string, string> online;
+	list<string> names;
+	map<string, string> classes;
+
 	for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
 	{
 		Player* const bot = it->second;
 		string name = bot->GetName();
 		bots.insert(name);
 
-		if (first) first = false; else out << ", ";
-		out << "+" << name << " " << classNames[bot->getClass()];
+		names.push_back(name);
+		online[name] = "+";
+		classes[name] = classNames[bot->getClass()];
 	}
 
-    if (master)
-    {
-        QueryResult* results = CharacterDatabase.PQuery("SELECT class,name FROM characters where account = '%u'",
-                master->GetSession()->GetAccountId());
-        if (results != NULL)
-        {
-            do
-            {
-                Field* fields = results->Fetch();
-                uint8 cls = fields[0].GetUInt8();
-                string name = fields[1].GetString();
-                if (bots.find(name) == bots.end() && name != master->GetSession()->GetPlayerName())
-                {
-                    if (first) first = false; else out << ", ";
-                    out << "-" << name << " " << classNames[cls];
-                }
-            } while (results->NextRow());
+	if (master)
+	{
+		QueryResult* results = CharacterDatabase.PQuery("SELECT class,name FROM characters where account = '%u'",
+			master->GetSession()->GetAccountId());
+		if (results != NULL)
+		{
+			do
+			{
+				Field* fields = results->Fetch();
+				uint8 cls = fields[0].GetUInt8();
+				string name = fields[1].GetString();
+				if (bots.find(name) == bots.end() && name != master->GetSession()->GetPlayerName())
+				{
+					names.push_back(name);
+					online[name] = "-";
+					classes[name] = classNames[cls];
+				}
+			} while (results->NextRow());
 			delete results;
-        }
-    }
+		}
+	}
+
+	names.sort();
+
+	ostringstream out;
+	bool first = true;
+	out << "Bot roster: ";
+	for (list<string>::iterator i = names.begin(); i != names.end(); ++i)
+	{
+		if (first) first = false; else out << ", ";
+		string name = *i;
+		out << online[name] << name << " " << classes[name];
+	}
 
 	return out.str();
 }

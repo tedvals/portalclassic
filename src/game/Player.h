@@ -760,11 +760,11 @@ std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
 /// Holder for BattleGround data
 struct BGData
 {
-    BGData() : bgInstanceID(0), bgTypeID(BATTLEGROUND_TYPE_NONE), bgAfkReportedCount(0), bgAfkReportedTimer(0),
+    BGData() : bgInstanceID(0), bgTypeID(BattleGround_TYPE_NONE), bgAfkReportedCount(0), bgAfkReportedTimer(0),
         bgTeam(TEAM_NONE), m_needSave(false) {}
 
     uint32 bgInstanceID;                                    ///< This variable is set to bg->m_InstanceID, saved
-    ///  when player is teleported to BG - (it is battleground's GUID)
+    ///  when player is teleported to BG - (it is BattleGround's GUID)
     BattleGroundTypeId bgTypeID;
 
     std::set<uint32>   bgAfkReporter;
@@ -1849,7 +1849,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         std::vector<ItemSetEffect*> ItemSetEff;
 
         /*********************************************************/
-        /***               BATTLEGROUND SYSTEM                 ***/
+        /***               BattleGround SYSTEM                 ***/
         /*********************************************************/
 
         bool InBattleGround()       const                { return m_bgData.bgInstanceID != 0; }
@@ -1947,8 +1947,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetBGTeam(Team team) { m_bgData.bgTeam = team; m_bgData.m_needSave = true; }
         Team GetBGTeam() const { return m_bgData.bgTeam ? m_bgData.bgTeam : GetTeam(); }
 
-        void LeaveBattleground(bool teleportToEntryPoint = true);
-        bool CanJoinToBattleground() const;
+        void LeaveBattleGround(bool teleportToEntryPoint = true);
+        bool CanJoinToBattleGround() const;
 
         bool GetBGAccessByLevel(BattleGroundTypeId bgTypeId) const;
         bool CanUseBattleGroundObject();
@@ -2147,7 +2147,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_contestedPvPTimer;
 
         /*********************************************************/
-        /***               BATTLEGROUND SYSTEM                 ***/
+        /***               BattleGround SYSTEM                 ***/
         /*********************************************************/
 
         /*

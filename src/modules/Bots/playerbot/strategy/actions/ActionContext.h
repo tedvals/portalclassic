@@ -14,9 +14,13 @@
 #include "PositionAction.h"
 #include "AttackAction.h"
 #include "CheckMailAction.h"
+#include "DelayAction.h"
+#include "OutfitAction.h"
 #include "SayAction.h"
 #include "CheckMountStateAction.h"
 #include "RevealGatheringItemAction.h"
+#include "OutfitAction.h"
+#include "RandomBotUpdateAction.h"
 
 namespace ai
 {
@@ -88,6 +92,9 @@ namespace ai
 			creators["move to quest"] = &ActionContext::move_quest;
 			creators["mount"] = &ActionContext::mount;
 			creators["reveal gathering item"] = &ActionContext::reveal_gathering_item;
+			creators["outfit"] = &ActionContext::outfit;
+			creators["random bot update"] = &ActionContext::random_bot_update;
+			creators["delay"] = &ActionContext::delay;
         }
 		~ActionContext()
 		{			
@@ -154,6 +161,9 @@ namespace ai
 			creators.erase("move to quest");
 			creators.erase("mount");
 			creators.erase("reveal gathering item");
+			creators.erase("outfit");
+			creators.erase("random bot update");
+			creators.erase("delay");
 		}
 
     private:
@@ -219,6 +229,9 @@ namespace ai
 		static Action* move_quest(PlayerbotAI* ai) { return new MoveQuestPositionAction(ai); }
 		static Action* mount(PlayerbotAI *ai) { return new CastSpellAction(ai, "mount"); }
 		static Action* reveal_gathering_item(PlayerbotAI* ai) { return new RevealGatheringItemAction(ai); }
+		static Action* outfit(PlayerbotAI* ai) { return new OutfitAction(ai); }
+		static Action* random_bot_update(PlayerbotAI* ai) { return new RandomBotUpdateAction(ai); }
+		static Action* delay(PlayerbotAI* ai) { return new DelayAction(ai); }
     };
 
 };

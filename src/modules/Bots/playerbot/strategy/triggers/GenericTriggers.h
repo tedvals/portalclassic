@@ -1,9 +1,9 @@
 #pragma once
 #include "../Trigger.h"
 
-#include "../../game/BattleGround/Battleground.h"
-#include "../../game/BattleGround/BattlegroundMgr.h"
-#include "../../game/BattleGround/BattlegroundWS.h"
+#include "../../game/BattleGround/BattleGround.h"
+#include "../../game/BattleGround/BattleGroundMgr.h"
+#include "../../game/BattleGround/BattleGroundWS.h"
 #include "../../PlayerbotAIConfig.h"
 
 #define BUFF_TRIGGER(clazz, spell, action) \
@@ -303,7 +303,7 @@ namespace ai
     class BuffTrigger : public SpellTrigger
     {
     public:
-        BuffTrigger(PlayerbotAI* ai, string spell) : SpellTrigger(ai, spell, 5) {}
+		BuffTrigger(PlayerbotAI* ai, string spell, int checkInterval = 5) : SpellTrigger(ai, spell, checkInterval) {}
     public:
 		virtual string GetTargetName() { return "self target"; }
         virtual bool IsActive();
@@ -343,7 +343,7 @@ namespace ai
     class DebuffTrigger : public BuffTrigger
     {
     public:
-        DebuffTrigger(PlayerbotAI* ai, string spell) : BuffTrigger(ai, spell) {
+		DebuffTrigger(PlayerbotAI* ai, string spell, int checkInterval = 5) : BuffTrigger(ai, spell, checkInterval) {
 			checkInterval = 1;
 		}
     public:
@@ -392,7 +392,7 @@ namespace ai
 	class BoostTrigger : public BuffTrigger
 	{
 	public:
-		BoostTrigger(PlayerbotAI* ai, string spell, float balance = 50) : BuffTrigger(ai, spell)
+		BoostTrigger(PlayerbotAI* ai, string spell, float balance = 50) : BuffTrigger(ai, spell, 1)
 		{
 			this->balance = balance;
 		}
@@ -1043,24 +1043,48 @@ namespace ai
 		virtual bool IsActive();
 	};
 
-	class PlayerIsInBattleground : public Trigger
+	class PlayerIsInBattleGround : public Trigger
 	{
 	public:
-		PlayerIsInBattleground(PlayerbotAI* ai) : Trigger(ai, "in battleground") {}
+		PlayerIsInBattleGround(PlayerbotAI* ai) : Trigger(ai, "in BattleGround") {}
 
 	public:
 		virtual bool IsActive();
 	};
 
-	class PlayerIsInBattlegroundWithoutFlag : public Trigger
+	class PlayerIsInBattleGroundWithoutFlag : public Trigger
 	{
 	public:
-		PlayerIsInBattlegroundWithoutFlag(PlayerbotAI* ai) : Trigger(ai, "in battleground without flag") {}
+		PlayerIsInBattleGroundWithoutFlag(PlayerbotAI* ai) : Trigger(ai, "in BattleGround without flag") {}
 
 	public:
 		virtual bool IsActive();
 	};
 }
+
+class RandomBotUpdateTrigger : public RandomTrigger
+{
+	public:
+		RandomBotUpdateTrigger(PlayerbotAI* ai) : RandomTrigger(ai, "random bot update", 30) {}
+		
+	public:
+		virtual bool IsActive()
+		{
+			return RandomTrigger::IsActive() && AI_VALUE(bool, "random bot update");
+			}
+};
+
+class NoNonBotPlayersAroundTrigger : public Trigger
+{
+	public:
+		NoNonBotPlayersAroundTrigger(PlayerbotAI* ai) : Trigger(ai, "no non bot players around", 5) {}
+		
+			public:
+				virtual bool IsActive()
+				{
+					return AI_VALUE(list<ObjectGuid>, "nearest non bot players").empty();
+					}
+};
 
 #include "RangeTriggers.h"
 #include "HealthTriggers.h"

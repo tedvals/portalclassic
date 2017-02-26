@@ -137,9 +137,6 @@ void PlayerbotFactory::Randomize(bool incremental)
     sLog.outString("Initializing inventory...");
     InitInventory();
 
-    sLog.outString("Initializing glyphs...");
-    InitGlyphs();
-
     sLog.outString("Initializing guilds...");
     InitGuild();
 
@@ -896,7 +893,7 @@ void PlayerbotFactory::EnchantItem(Item* item)
 				continue;
 
 			const SpellEntry *enchantSpell = sSpellStore.LookupEntry(enchant->spellid[0]);
-			if (enchantSpell->spellLevel && enchantSpell->spellLevel > level)
+			if (!enchantSpell || (enchantSpell->spellLevel && enchantSpell->spellLevel > level))
 				continue;
 
 			uint8 sp = 0, ap = 0, tank = 0;
@@ -1598,7 +1595,8 @@ void PlayerbotFactory::InitInventoryTrade()
     {
     case ITEM_QUALITY_NORMAL:
         count = proto->GetMaxStackSize();
-        stacks = urand(1, 7) / auctionbot.GetRarityPriceMultiplier(proto);
+        //stacks = urand(1, 7) / auctionbot.GetRarityPriceMultiplier(proto);
+		stacks = urand(1, 7);
         break;
     case ITEM_QUALITY_UNCOMMON:
         stacks = 1;
