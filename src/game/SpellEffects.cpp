@@ -1186,6 +1186,30 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
 					return;
 				}
+				case 54947:                                 // Arcane Torrent (Rage)
+				{
+					Aura* dummy = m_caster->GetDummyAura(54632);
+					if (dummy)
+					{
+						int32 bp = damage * dummy->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 54948, &bp, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+						m_caster->RemoveAurasDueToSpell(54632);
+					}
+
+					return;
+				}
+				case 54949:                                 // Arcane Torrent (Energy)
+				{
+					Aura* dummy = m_caster->GetDummyAura(54633);
+					if (dummy)
+					{
+						int32 bp = damage * dummy->GetStackAmount();
+						m_caster->CastCustomSpell(m_caster, 54950, &bp, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+						m_caster->RemoveAurasDueToSpell(54633);
+					}
+
+					return;
+				}
 				case 29200:                                 // Purify Helboar Meat
 				{
 					if (m_caster->GetTypeId() != TYPEID_PLAYER)
