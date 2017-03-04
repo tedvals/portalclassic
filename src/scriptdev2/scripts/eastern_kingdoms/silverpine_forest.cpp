@@ -29,6 +29,57 @@ EndContentData */
 #include "precompiled.h"
 #include "escort_ai.h"
 
+struct npc_astor_hadrenAI : public ScriptedAI
+{
+    npc_astor_hadrenAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    void Reset()
+    {
+        m_creature->setFaction(68);
+    }
+
+    void JustDied(Unit *who)
+    {
+        m_creature->setFaction(68);
+    }
+};
+
+CreatureAI* GetAI_npc_astor_hadren(Creature *_creature)
+{
+    return new npc_astor_hadrenAI(_creature);
+}
+
+bool GossipHello_npc_astor_hadren(Player* pPlayer, Creature* pCreature)
+{
+    if (pPlayer->GetQuestStatus(1886) == QUEST_STATUS_INCOMPLETE)
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "You're Astor Hadren, right?", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+
+    pPlayer->SEND_GOSSIP_MENU(623, pCreature->GetGUID());
+
+    return true;
+}
+
+bool GossipSelect_npc_astor_hadren(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+{
+    switch (uiAction)
+    {
+        case GOSSIP_ACTION_INFO_DEF + 1:
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "You've got something I need, Astor. And I'll be taking it now.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+            pPlayer->SEND_GOSSIP_MENU(624, pCreature->GetGUID());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 2:
+            pPlayer->CLOSE_GOSSIP_MENU();
+            pCreature->setFaction(21);
+            ((npc_astor_hadrenAI*)pCreature->AI())->AttackStart(pPlayer);
+            break;
+    }
+    return true;
+}
+
+
 /*#####
 ## npc_deathstalker_erland
 #####*/
@@ -302,6 +353,347 @@ CreatureAI* GetAI_npc_deathstalker_faerleia(Creature* pCreature)
     return new npc_deathstalker_faerleiaAI(pCreature);
 }
 
+/*
+ * Pyrewood Council support
+ */
+
+enum
+{
+    NPC_FAERLEIA        = 2058
+};
+
+struct npc_councilmanAI : ScriptedAI
+{
+    explicit npc_councilmanAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        npc_councilmanAI::Reset();
+    }
+
+    void Reset() override
+    {
+
+    }
+
+    void MovementInform(uint32 uiType, uint32 uiPointId) override
+    {
+        if (uiType != POINT_MOTION_TYPE) return;
+
+        if (uiPointId == 99)
+        {
+            if (auto pFaerleia = m_creature->FindNearestCreature(NPC_FAERLEIA, 30.0f))
+                m_creature->AddThreat(pFaerleia);
+        }
+    }
+
+    void EnterEvadeMode() override
+    {
+        // should happen only if all players and questgiver are dead
+        // thus nothing to do in world any longer
+        m_creature->ForcedDespawn();
+    }
+};
+
+CreatureAI* GetAI_npc_councilman(Creature* pCreature)
+{
+    return new npc_councilmanAI(pCreature);
+}
+
+/*
+ *
+ */
+
+enum
+{
+    PYREWOOD_WATCHER       = 1891,
+    MOONRAGE_WATCHER       = 1892,
+    PYREWOOD_SENTRY        = 1894,
+    MOONRAGE_SENTRY        = 1893,
+    PYREWOOD_ELDER         = 1895,
+    MOONRAGE_ELDER         = 1896,
+    PYREWOOD_ARMORER       = 3528,
+    MOONRAGE_ARMORER       = 3529,
+    PYREWOOD_TAILOR        = 3530,
+    MOONRAGE_TAILER        = 3531,
+    PYREWOOD_LEATHERWORKER = 3532,
+    MOONRAGE_LEATHERWORKER = 3533,
+
+    SPELL_DEFENSIVE_STANCE = 7164,
+    SPELL_SHIELD_BLOCK     = 12169,
+    SPELL_BACKSTAB         = 15657,
+    SPELL_DISARM           = 6713,
+    SPELL_EXPOSE_WEAKNESS  = 7140,
+    SPELL_SHOOT_PYREWOOD   = 6660,
+    SPELL_LESSER_HEAL      = 2053,
+};
+
+//#define DEBUG_WORGEN_TRANSFO
+
+struct npc_human_worgenAI : public ScriptedAI
+{
+    npc_human_worgenAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_uiTransformAnimTimer = 0;
+        Reset();
+        m_uiOriginalEntry = m_creature->GetEntry();
+        switch (m_creature->GetEntry())
+        {
+            case PYREWOOD_WATCHER:
+                m_uiWorgenEntry = MOONRAGE_WATCHER;
+                break;
+            case PYREWOOD_SENTRY:
+                m_uiWorgenEntry = MOONRAGE_SENTRY;
+                break;
+            case PYREWOOD_ELDER:
+                m_uiWorgenEntry = MOONRAGE_ELDER;
+                break;
+            case PYREWOOD_ARMORER:
+                m_uiWorgenEntry = MOONRAGE_ARMORER;
+                break;
+            case PYREWOOD_TAILOR:
+                m_uiWorgenEntry = MOONRAGE_TAILER;
+                break;
+            case PYREWOOD_LEATHERWORKER:
+                m_uiWorgenEntry = MOONRAGE_LEATHERWORKER;
+                break;
+            default:
+                return;
+        }
+    }
+
+    uint32 m_uiOriginalEntry;
+    uint32 m_uiWorgenEntry;
+    uint32 m_bIsInDefenseStance;
+    uint32 m_uiShieldBlock_Timer;
+    uint32 m_uiBackstab_Timer;
+    uint32 m_uiDisarm_Timer;
+    uint32 m_uiExposeWeakness_Timer;
+    uint32 m_uiShoot_Timer;
+    uint32 m_uiWolfSound_Timer;
+    uint32 m_uiHeal_Timer;
+    uint32 m_uiTransformAnimTimer;
+#ifdef DEBUG_WORGEN_TRANSFO
+    uint32 m_uiDebugTransfoTimer;
+#endif
+
+    bool IsWorgen() const
+    {
+        return m_creature->GetEntry() == m_uiWorgenEntry;
+    }
+    void Reset()
+    {
+        m_bIsInDefenseStance     = false;
+        m_uiShieldBlock_Timer    = 3000;
+        m_uiShoot_Timer          = 3000;
+        m_uiExposeWeakness_Timer = 3800;
+        m_uiDisarm_Timer         = 9200;
+        m_uiBackstab_Timer       = 7000;
+        m_uiHeal_Timer           = 8800;
+        m_uiWolfSound_Timer      = urand(60000, 600000);
+#ifdef DEBUG_WORGEN_TRANSFO
+        m_uiDebugTransfoTimer    = 20000;
+#endif
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        time_t rawtime;
+        time(&rawtime);
+        struct tm * timeinfo = localtime(&rawtime);
+        bool worgenTime = ((timeinfo->tm_hour >= 21) || (timeinfo->tm_hour >= 0 && timeinfo->tm_hour < 9));
+#ifdef DEBUG_WORGEN_TRANSFO
+        worgenTime = IsWorgen();
+        if (m_uiDebugTransfoTimer < uiDiff)
+        {
+            worgenTime = !IsWorgen();
+            m_uiDebugTransfoTimer = 15000;
+        }
+        else
+            m_uiDebugTransfoTimer -= uiDiff;
+#endif
+        if (m_uiTransformAnimTimer)
+        {
+            if (m_uiTransformAnimTimer <= uiDiff)
+            {
+                m_uiTransformAnimTimer = 0;
+                m_creature->CastSpell(m_creature, 24085, true);
+            }
+            else
+                m_uiTransformAnimTimer -= uiDiff;
+        }
+        if (worgenTime && !IsWorgen())
+        {
+            m_creature->UpdateEntry(m_uiWorgenEntry);
+            m_creature->PlayDirectSound(6017);
+            m_creature->SetTempPacified(1000);
+            m_uiTransformAnimTimer = 100;
+            Reset();
+        }
+        else if (!worgenTime && IsWorgen())
+        {
+            m_creature->UpdateEntry(m_uiOriginalEntry);
+            m_creature->PlayDirectSound(6017);
+            m_creature->SetTempPacified(1000);
+            m_uiTransformAnimTimer = 100;
+            Reset();
+        }
+
+        if (IsWorgen())
+        {
+            if (m_uiWolfSound_Timer < uiDiff)
+            {
+                m_creature->PlayDirectSound(6017);
+                m_uiWolfSound_Timer = urand(60000, 600000);
+            }
+            else
+                m_uiWolfSound_Timer -= uiDiff;
+        }
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        switch (m_creature->GetEntry())
+        {
+            case PYREWOOD_WATCHER:
+                break;
+            case PYREWOOD_SENTRY:
+                if (!m_bIsInDefenseStance)
+                {
+                    DoCastSpellIfCan(m_creature, SPELL_DEFENSIVE_STANCE, true);
+                    m_bIsInDefenseStance = true;
+                }
+
+                if (m_creature->GetHealthPercent() <= 15.0f)
+                    m_creature->DoFleeToGetAssistance();
+
+                if (m_uiShieldBlock_Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature, SPELL_SHIELD_BLOCK, true) == CAST_OK)
+                        m_uiShieldBlock_Timer = 8100;
+                }
+                else
+                    m_uiShieldBlock_Timer -= uiDiff;
+
+                break;
+            case PYREWOOD_ELDER:
+
+                if (m_uiHeal_Timer < uiDiff)
+                {
+                    if (m_creature->GetHealthPercent() < 80.0f)
+                    {
+                        if (DoCastSpellIfCan(m_creature, SPELL_LESSER_HEAL, true) == CAST_OK)
+                            m_uiHeal_Timer = 8800;
+                    }
+                }
+                else
+                    m_uiHeal_Timer -= uiDiff;
+
+                break;
+            case PYREWOOD_ARMORER:
+                break;
+            case PYREWOOD_TAILOR:
+                if (m_uiBackstab_Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BACKSTAB) == CAST_OK)
+                        m_uiBackstab_Timer = 8100;
+                }
+                else
+                    m_uiBackstab_Timer -= uiDiff;
+
+                if (m_uiDisarm_Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISARM) == CAST_OK)
+                        m_uiDisarm_Timer = 7100;
+                }
+                else
+                    m_uiDisarm_Timer -= uiDiff;
+
+                if (m_uiExposeWeakness_Timer < uiDiff)
+                {
+                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EXPOSE_WEAKNESS) == CAST_OK)
+                        m_uiExposeWeakness_Timer = 9100;
+                }
+                else
+                    m_uiExposeWeakness_Timer -= uiDiff;
+
+                break;
+            case PYREWOOD_LEATHERWORKER:
+                break;
+        }
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_human_worgen(Creature *_creature)
+{
+    return new npc_human_worgenAI(_creature);
+}
+
+/*
+ * Dusty Spellbooks
+ */
+
+enum
+{
+    NPC_MOONRAGE_DARKRUNNER     = 1770,
+
+    QUEST_ARUGAL_FOLLY          = 422,
+};
+
+#define DARKRUNNER_SAY "The Sons of Arugal will rise against all who challenge the power of the Moonrage!"
+
+struct go_dusty_spellbooksAI : GameObjectAI
+{
+    explicit go_dusty_spellbooksAI(GameObject* pGo) : GameObjectAI(pGo)
+    {
+        m_bJustUsed = false;
+        m_uiJustUsedTimer = 0;
+    }
+
+    bool m_bJustUsed;
+    uint32 m_uiJustUsedTimer;
+
+    bool OnUse(Unit* pCaster) override
+    {
+        auto pPlayer = pCaster->ToPlayer();
+
+        if (!pPlayer) return true;
+
+        if (!(pPlayer->GetQuestStatus(QUEST_ARUGAL_FOLLY) == QUEST_STATUS_INCOMPLETE)) return true;
+
+        if (!m_bJustUsed)
+        {
+            if (auto pCreature = me->SummonCreature(NPC_MOONRAGE_DARKRUNNER, 875.38f, 1232.43f, 52.6f, 3.16f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 90000))
+            {
+                pCreature->MonsterSay(DARKRUNNER_SAY);
+                pCreature->AddThreat(pCaster);
+                m_bJustUsed = true;
+                m_uiJustUsedTimer = 1000;
+            }            
+        }
+
+        return true;
+    }
+
+    void UpdateAI(uint32 const uiDiff) override
+    {
+        if (!m_bJustUsed) return;
+
+        if (m_uiJustUsedTimer < uiDiff)
+        {
+            m_bJustUsed = false;
+        }
+        else
+            m_uiJustUsedTimer -= uiDiff;
+    }
+};
+
+GameObjectAI* GetAI_go_dusty_spellbooks(GameObject* pGo)
+{
+    return new go_dusty_spellbooksAI(pGo);
+}
+
+
 void AddSC_silverpine_forest()
 {
     Script* pNewScript;
@@ -317,4 +709,39 @@ void AddSC_silverpine_forest()
     pNewScript->GetAI = &GetAI_npc_deathstalker_faerleia;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_deathstalker_faerleia;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_human_worgen";
+    pNewScript->GetAI = &GetAI_npc_human_worgen;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_astor_hadren";
+    pNewScript->pGossipHello =  &GossipHello_npc_astor_hadren;
+    pNewScript->pGossipSelect = &GossipSelect_npc_astor_hadren;
+    pNewScript->GetAI = &GetAI_npc_astor_hadren;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_deathstalker_erland";
+    pNewScript->GetAI = &GetAI_npc_deathstalker_erland;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_npc_deathstalker_erland;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_deathstalker_faerleia";
+    pNewScript->GetAI = &GetAI_npc_deathstalker_faerleia;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_npc_deathstalker_faerleia;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_councilman";
+    pNewScript->GetAI = &GetAI_npc_councilman;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_dusty_spellbooks";
+    pNewScript->GOGetAI = &GetAI_go_dusty_spellbooks;
+    pNewScript->RegisterSelf();
+
 }

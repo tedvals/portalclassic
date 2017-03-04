@@ -340,6 +340,74 @@ CreatureAI* GetAI_npc_rinji(Creature* pCreature)
     return new npc_rinjiAI(pCreature);
 }
 
+/*######
+## go_lards_picnic_basket
+######*/
+
+enum
+{
+    NPC_KIDNAPPEUR_VILEBRANCH     = 14748,
+};
+struct go_lards_picnic_basketAI: public GameObjectAI
+{
+    go_lards_picnic_basketAI(GameObject* pGo) : GameObjectAI(pGo)
+    {
+        timer = 0;
+        state = 0;
+    }
+    uint32 timer;
+    bool state;//0 = usual, can launch. //1 = in use, cannot launch
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (state)
+        {
+            if (timer < uiDiff)
+            {
+                state = 0;
+                me->SetGoState(GO_STATE_READY);
+                me->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+            }
+            else
+                timer -= uiDiff;
+        }
+    }
+    bool CheckCanStartEvent()
+    {
+        if (!state)
+            return true;
+        return false;
+    }
+
+    void SetInUse()
+    {
+        me->SetGoState(GO_STATE_ACTIVE);
+        me->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+        state = 1;
+        timer = 300000;
+    }
+};
+GameObjectAI* GetAIgo_lards_picnic_basket(GameObject *pGo)
+{
+    return new go_lards_picnic_basketAI(pGo);
+}
+bool GOHello_go_lards_picnic_basket(Player* pPlayer, GameObject* pGO)
+{
+    if (pGO->GetGoType() == GAMEOBJECT_TYPE_GOOBER)
+    {
+        if (go_lards_picnic_basketAI* pMarkAI = dynamic_cast<go_lards_picnic_basketAI*>(pGO->AI()))
+        {
+            if (pMarkAI->CheckCanStartEvent())
+            {
+                pMarkAI->SetInUse();
+                for (int i = 0; i < 3; ++i)
+                    pPlayer->SummonCreature(NPC_KIDNAPPEUR_VILEBRANCH, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 30000);
+            }
+        }
+    }
+    return false;
+}
+
 void AddSC_hinterlands()
 {
     Script* pNewScript;
@@ -355,4 +423,11 @@ void AddSC_hinterlands()
     pNewScript->GetAI = &GetAI_npc_rinji;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_rinji;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_lards_picnic_basket";
+    pNewScript->GOGetAI = &GetAIgo_lards_picnic_basket;
+    pNewScript->pGOHello = &GOHello_go_lards_picnic_basket;
+    pNewScript->RegisterSelf();
+
 }

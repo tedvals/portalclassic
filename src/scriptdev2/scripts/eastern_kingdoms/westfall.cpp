@@ -236,7 +236,10 @@ bool QuestAccept_npc_defias_traitor(Player* pPlayer, Creature* pCreature, const 
         DoScriptText(SAY_START, pCreature, pPlayer);
 
         if (npc_defias_traitorAI* pEscortAI = dynamic_cast<npc_defias_traitorAI*>(pCreature->AI()))
+        {
+	    pEscortAI->SetMaxAssistDistance(15.0f);
             pEscortAI->Start(true, pPlayer, pQuest);
+             }
     }
 
     return true;

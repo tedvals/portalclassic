@@ -29,6 +29,82 @@ EndContentData */
 #include "escort_ai.h"
 
 /*######
+## npc_itharius
+######*/
+
+enum
+{
+    QUEST_THE_ESSENCE_OF_ERANIKUS                   = 3374,
+
+    ITEM_CHAINED_ESSENCE_OF_ERANIKUS                = 10455,
+    ITEM_OATHSTONE_OF_YSERAS_DRAGONFLIGHT           = 10589,
+
+    SPELL_CREATE_OATHSTONE_OF_YSERAS_DRAGONFLIGHT   = 12578,
+
+    GOSSIP_MENU_1                                   = 1995,
+    GOSSIP_MENU_2                                   = 1997,
+    GOSSIP_MENU_3                                   = 1998,
+    GOSSIP_MENU_4                                   = 1999,
+    GOSSIP_MENU_5                                   = 2000
+};
+
+#define GOSSIP_ITHARIUS_1   "Do you know someone... or something, rather, by the name of Eranikus?"
+#define GOSSIP_ITHARIUS_2   "What happened to him in the first place? When I... encountered him, he was rather malicious."
+#define GOSSIP_ITHARIUS_3   "I possess part of Eranikus' essence. What do you want with it... or with me?"
+#define GOSSIP_ITHARIUS_4   "I will consider what you have told me."
+
+bool GossipHello_npc_itharius(Player* pPlayer, Creature * pCreature)
+{
+    if (pCreature->isQuestGiver())
+        pPlayer->PrepareQuestMenu(pCreature->GetObjectGuid());
+    
+    if (!pPlayer->HasItemCount(ITEM_OATHSTONE_OF_YSERAS_DRAGONFLIGHT, true) &&
+        !(pPlayer->GetQuestRewardStatus(QUEST_THE_ESSENCE_OF_ERANIKUS)))
+    {
+        if (pPlayer->HasItemCount(ITEM_CHAINED_ESSENCE_OF_ERANIKUS, true))
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITHARIUS_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+
+        pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_1, pCreature->GetObjectGuid());
+
+        return true;
+    }
+    else
+    {
+        pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_5, pCreature->GetObjectGuid());
+        return true;
+    }
+
+    return false;
+} 
+
+bool GossipSelect_npc_itharius(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+{
+	pPlayer->PlayerTalkClass->ClearMenus();
+
+    switch (uiAction)
+    {
+        case GOSSIP_ACTION_INFO_DEF + 1:
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITHARIUS_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+            pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_2, pCreature->GetObjectGuid());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 2:
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITHARIUS_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+            pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_3, pCreature->GetObjectGuid());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 3:
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITHARIUS_4, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
+            pPlayer->SEND_GOSSIP_MENU(GOSSIP_MENU_4, pCreature->GetObjectGuid());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 4:
+		    pPlayer->CastSpell(pPlayer, SPELL_CREATE_OATHSTONE_OF_YSERAS_DRAGONFLIGHT, true);
+            pPlayer->CLOSE_GOSSIP_MENU();
+            break;
+    }
+
+	return true;
+}
+
+/*######
 ## npc_galen_goodward
 ######*/
 
@@ -159,4 +235,11 @@ void AddSC_swamp_of_sorrows()
     pNewScript->GetAI = &GetAI_npc_galen_goodward;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_galen_goodward;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_itharius";
+    pNewScript->pGossipHello =  &GossipHello_npc_itharius;    
+    pNewScript->pGossipSelect = &GossipSelect_npc_itharius;
+    pNewScript->RegisterSelf();
+
 }

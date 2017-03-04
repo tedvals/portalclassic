@@ -247,6 +247,119 @@ bool QuestAccept_npc_kinelory(Player* pPlayer, Creature* pCreature, const Quest*
     return true;
 }
 
+bool QuestAccept_npc_shakes_o_breen(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+{
+    if (pQuest->GetQuestId() == QUEST_DEATH_FROM_BELOW)
+    {
+        if (auto pEscortAI = dynamic_cast<npc_shakes_o_breenAI*>(pCreature->AI()))
+        {
+            pCreature->MonsterYell(BREEN_YELL_1);
+            pEscortAI->Start(false, pPlayer->GetGUID(), pQuest);
+            pEscortAI->SetEscortPaused(true);
+            pCreature->SetOrientation(2.67f);
+        }
+    }
+
+    return true;
+}
+
+CreatureAI* GetAI_npc_shakes_o_breen(Creature* pCreature)
+{
+    return new npc_shakes_o_breenAI(pCreature);
+}
+
+enum
+{
+    SPELL_BOLT_CHARGE_BRAMBLE       = 9056,
+
+    GO_WITHERBARK_TOTEM_BUNDLE      = 174764
+};
+
+struct npc_items_of_power_watcherAI : public ScriptedAI
+{
+    npc_items_of_power_watcherAI(Creature* pCreature) : ScriptedAI(pCreature) { npc_items_of_power_watcherAI::Reset(); }
+
+    void Reset() override
+    {
+        m_uiCastTimer = 8000;
+        m_uiDeathTimer = 12000;
+
+        m_uiStarted = false;
+        m_uiCastDone = false;
+        m_uiDeleted = false;
+    }
+
+    ObjectGuid playerGUID;
+
+    uint32 m_uiCastTimer;
+    uint32 m_uiDeathTimer;
+
+    bool m_uiStarted;
+    bool m_uiCastDone;
+    bool m_uiDeleted;
+
+    void StartEvent(Player* pPlayer)
+    {
+        m_uiStarted = true;
+        if (pPlayer)
+            playerGUID = pPlayer->GetObjectGuid();
+    }
+    
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (!m_uiStarted)
+            return;
+
+        if (!m_uiCastDone && m_uiCastTimer < uiDiff)
+        {
+            if (!m_uiDeleted)
+                if (GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_WITHERBARK_TOTEM_BUNDLE, 10.0f))
+                {
+                    pGo->Delete();
+                    m_uiDeleted = true;
+                    m_uiCastTimer = 400;
+                    return;
+                }
+
+            if (Player* player = m_creature->GetMap()->GetPlayer(playerGUID))
+                player->CastSpell(player, SPELL_BOLT_CHARGE_BRAMBLE, true);
+            else
+                DoCastSpellIfCan(m_creature, SPELL_BOLT_CHARGE_BRAMBLE, CAST_TRIGGERED);
+            m_uiCastDone = true;
+        }
+        else
+            m_uiCastTimer -= uiDiff;
+
+        if (m_uiDeathTimer < uiDiff)
+            m_creature->ForcedDespawn();
+        else
+            m_uiDeathTimer -= uiDiff;
+    }
+};
+
+CreatureAI* GetAI_npc_items_of_power_watcher(Creature* pCreature)
+{
+    return new npc_items_of_power_watcherAI(pCreature);
+}
+
+enum
+{
+    NPC_ITEMS_OF_POWER_WATCHER      = 5002
+};
+
+bool item_witherbark_totem_stick(Player* pPlayer, Item* pItem, SpellCastTargets const& pCastTargets)
+{
+    if (pPlayer)
+    {
+        if (Creature* pWatcher = pPlayer->SummonCreature(NPC_ITEMS_OF_POWER_WATCHER, -1350.81f, -2740.07f, 59.1623f, 0, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 30*IN_MILLISECONDS))
+            if (npc_items_of_power_watcherAI* pWatcherAI = static_cast<npc_items_of_power_watcherAI*>(pWatcher->AI()))
+                pWatcherAI->StartEvent(pPlayer);
+    }
+
+    return false;
+}
+
+
 void AddSC_arathi_highlands()
 {
     Script* pNewScript;
@@ -258,8 +371,25 @@ void AddSC_arathi_highlands()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
+    pNewScript->Name = "npc_shakes_o_breen";
+    pNewScript->GetAI = &GetAI_npc_shakes_o_breen;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_npc_shakes_o_breen;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
     pNewScript->Name = "npc_kinelory";
     pNewScript->GetAI = &GetAI_npc_kinelory;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_kinelory;
     pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
+    pNewScript->Name = "npc_items_of_power_watcher";
+    pNewScript->GetAI = &GetAI_npc_items_of_power_watcher;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "item_witherbark_totem_stick";
+    pNewScript->pItemUse = &item_witherbark_totem_stick;
+    pNewScript->RegisterSelf();
+
 }

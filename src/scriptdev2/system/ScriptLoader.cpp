@@ -420,11 +420,12 @@ void AddScripts()
 	
     AddSC_alterac_mountains();
     AddSC_arathi_highlands();
-	AddSC_eversong_woods();
-	AddSC_ghostlands();
+    AddSC_eversong_woods();
+    AddSC_ghostlands();
     AddSC_blasted_lands();
     AddSC_boss_kazzakAI();
     AddSC_burning_steppes();
+    AddSC_deeprun_tram()
     AddSC_dun_morogh();
     AddSC_eastern_plaguelands();
     AddSC_elwynn_forest();
