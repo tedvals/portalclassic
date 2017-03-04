@@ -20,8 +20,20 @@ struct TSpellSummary
 }* SpellSummary;
 
 ScriptedAI::ScriptedAI(Creature* pCreature) : CreatureAI(pCreature),
-    m_uiEvadeCheckCooldown(2500)
-{}
+    me(pCreature),
+	m_bCombatMovement(true),
+    m_uiEvadeCheckCooldown(2500),
+	m_uiHomeArea(m_creature->GetAreaId())
+{
+	m_bEvadeOutOfHomeArea = false;
+
+	if (auto cData = m_creature->GetCreatureInfo())
+	{
+		if (cData->spawnFlags & SPAWN_FLAG_EVADE_OUT_HOME_AREA)
+			m_bEvadeOutOfHomeArea = true;
+	}
+}
+
 
 /// This function shows if combat movement is enabled, overwrite for more info
 void ScriptedAI::GetAIInformation(ChatHandler& reader)

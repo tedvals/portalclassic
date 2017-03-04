@@ -470,6 +470,17 @@ struct GameObjectInfo
             default: return 0;
         }
     }
+
+    uint32 GetEventScriptId() const
+    {
+        switch(type)
+        {
+            case GAMEOBJECT_TYPE_GOOBER:        return goober.eventId;
+            case GAMEOBJECT_TYPE_CHEST:         return chest.eventId;
+            case GAMEOBJECT_TYPE_CAMERA:        return camera.eventID;
+            default: return 0;
+        }
+    }
 };
 
 // GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some platform
@@ -510,6 +521,10 @@ struct GameObjectData
     int32  spawntimesecs;
     uint32 animprogress;
     GOState go_state;
+    uint32 spawnFlags;
+
+    uint32 instanciatedContinentInstanceId;
+    uint32 ComputeRespawnDelay(uint32 baseDelay) const;
 };
 
 // For containers:  [GO_NOT_READY]->GO_READY (close)->GO_ACTIVATED (open) ->GO_JUST_DEACTIVATED->GO_READY        -> ...
@@ -548,7 +563,10 @@ enum GameobjectExtraFlags
 };
 
 class Unit;
+class GameObjectAI;
 class GameObjectModel;
+class Transport;
+
 struct GameObjectDisplayInfoEntry;
 
 // 5 sec for bobber catch
@@ -611,10 +629,16 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
                 return now;
         }
 
+        void Despawn();
+        void JustDespawnedWaitingRespawn();
         void SetRespawnTime(time_t respawn)
         {
             m_respawnTime = respawn > 0 ? time(nullptr) + respawn : 0;
             m_respawnDelayTime = respawn > 0 ? uint32(respawn) : 0;
+        }
+        void SetRespawnDelay(time_t respawn)
+        {
+        	m_respawnDelayTime = respawn;
         }
         void Respawn();
         bool isSpawned() const
@@ -633,6 +657,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         static void AddToRemoveListInMaps(uint32 db_guid, GameObjectData const* data);
         static void SpawnInMaps(uint32 db_guid, GameObjectData const* data);
 
+        void getFishLoot(Loot *loot, Player* loot_owner);
         GameobjectTypes GetGoType() const { return GameobjectTypes(GetUInt32Value(GAMEOBJECT_TYPE_ID)); }
         void SetGoType(GameobjectTypes type) { SetUInt32Value(GAMEOBJECT_TYPE_ID, type); }
         GOState GetGoState() const { return GOState(GetUInt32Value(GAMEOBJECT_STATE)); }
@@ -704,13 +729,31 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void SetCapturePointSlider(float value, bool isLocked);
         float GetCapturePointSliderValue() const { return m_captureSlider; }
 
-        float GetInteractionDistance() const;
+        // Nostalrius
+        bool IsUseRequirementMet() const;
+        bool PlayerCanUse(Player* pl);
+        void SetOwnerGroupId(uint32 groupId) { m_playerGroupId = groupId; }
 
-        GridReference<GameObject>& GetGridRef() { return m_gridRef; }
+        // Gestion des GameObjectAI
+        void AIM_Initialize();
+        GameObjectAI* AI() { return i_AI; }
 
+        // NOSTALRIUS: GOCollision
+        void UpdateCollisionState();
+        void UpdateModel();                                 // updates model in case displayId were changed
         GameObjectModel* m_model;
+        void UpdateModelPosition();
+        GameObjectData const * GetGOData() const;
 
+        // Transports system
+        uint64 GetRotation() const { return m_rotation; }
+        Transport* ToTransport() { if (GetGOInfo()->type == GAMEOBJECT_TYPE_MO_TRANSPORT) return reinterpret_cast<Transport*>(this); else return NULL; }
+        Transport const* ToTransport() const { if (GetGOInfo()->type == GAMEOBJECT_TYPE_MO_TRANSPORT) return reinterpret_cast<Transport const*>(this); else return NULL; }
+
+        bool IsVisible() const { return m_visible; }
+        void SetVisible(bool b);
     protected:
+        bool        m_visible;
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
         uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer
@@ -731,6 +774,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         ObjectGuid m_firstUser;                             // first GO user, in most used cases owner, but in some cases no, for example non-summoned multi-use GAMEOBJECT_TYPE_SUMMONING_RITUAL
         GuidSet m_UniqueUsers;                              // all players who use item, some items activated after specific amount unique uses
 
+        uint64 m_rotation;
         GameObjectInfo const* m_goInfo;
 
         // Loot System
@@ -742,6 +786,9 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         time_t m_reStockTimer;                              // timer to refill the chest
         time_t m_despawnTimer;                              // timer to despawn the chest if something changed in it
 
+		GameObjectAI *i_AI;
+
+        uint32 m_playerGroupId;
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);
         void TickCapturePoint();

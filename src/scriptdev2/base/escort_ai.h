@@ -8,6 +8,26 @@
 // Remove this include, when EscortAI stores uint32 quest-id instead of Quest*
 #include "ObjectMgr.h"
 
+struct Escort_Waypoint
+{
+	Escort_Waypoint(uint32 _id, float _x, float _y, float _z, uint32 _w)
+	{
+		id = _id;
+		x = _x;
+		y = _y;
+		z = _z;
+		WaitTimeMs = _w;
+	}
+
+	uint32 id;
+	float x;
+	float y;
+	float z;
+	uint32 WaitTimeMs;
+};
+
+class ChatHandler;
+
 enum EscortState
 {
     STATE_ESCORT_NONE       = 0x000,                        // nothing in progress

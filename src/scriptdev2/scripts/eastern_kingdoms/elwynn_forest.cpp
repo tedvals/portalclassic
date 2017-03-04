@@ -24,7 +24,7 @@ EndScriptData */
 /* ContentData
 EndContentData */
 
-#include "scriptPCH.h"
+#include "precompiled.h"
 
 enum
 {

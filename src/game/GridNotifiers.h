@@ -1170,6 +1170,231 @@ namespace MaNGOS
             // 0 = default, i => i-1 locale index
     };
 
+	class AllFriendlyCreaturesInGrid
+	{
+	public:
+		AllFriendlyCreaturesInGrid(Unit const* obj) : pUnit(obj) {}
+		bool operator() (Unit* u)
+		{
+			if (u->isAlive() && u->GetVisibility() == VISIBILITY_ON && u->IsFriendlyTo(pUnit))
+				return true;
+
+			return false;
+			}
+
+	private:
+		Unit const* pUnit;
+	};
+
+	class AllGameObjectsWithEntryInRange
+	{
+	public:
+		AllGameObjectsWithEntryInRange(const WorldObject* pObject, uint32 uiEntry, float fMaxRange) : m_pObject(pObject), m_uiEntry(uiEntry), m_fRange(fMaxRange) {}
+		bool operator() (GameObject* pGo)
+		{
+			if (pGo->GetEntry() == m_uiEntry && m_pObject->IsWithinDist(pGo, m_fRange, false))
+				return true;
+
+			return false;
+		}
+
+	private:
+		const WorldObject* m_pObject;
+		uint32 m_uiEntry;
+		float m_fRange;
+	};
+
+	class AllCreaturesOfEntryInRange
+	{
+	public:
+		AllCreaturesOfEntryInRange(const WorldObject* pObject, uint32 uiEntry, float fMaxRange) : m_pObject(pObject), m_uiEntry(uiEntry), m_fRange(fMaxRange) {}
+		bool operator() (Unit* pUnit)
+		{
+			if (pUnit->GetEntry() == m_uiEntry && m_pObject->IsWithinDist(pUnit, m_fRange, false))
+				return true;
+
+			return false;
+		}
+
+	private:
+		const WorldObject* m_pObject;
+		uint32 m_uiEntry;
+		float m_fRange;
+	};
+
+	class PlayerAtMinimumRangeAway
+	{
+	public:
+		PlayerAtMinimumRangeAway(Unit const* unit, float fMinRange) : pUnit(unit), fRange(fMinRange) {}
+		bool operator() (Player* pPlayer)
+		{
+			//No threat list check, must be done explicit if expected to be in combat with creature
+			if (!pPlayer->isGameMaster() && pPlayer->isAlive() && !pUnit->IsWithinDist(pPlayer, fRange, false))
+				return true;
+
+			return false;
+		}
+
+	private:
+		Unit const* pUnit;
+		float fRange;
+	};
+
+	// TrinityCore (Creature::SelectNearestTargetInAttackDistance et Creature::SelectNearestTarget)
+	class NearestHostileUnitCheck
+	{
+	public:
+		explicit NearestHostileUnitCheck(Unit const* creature, float dist = 0) : me(creature)
+		{
+			m_range = (dist == 0 ? 9999 : dist);
+		}
+		bool operator()(Unit* u)
+		{
+			if (!me->IsWithinDistInMap(u, m_range))
+				return false;
+
+			if (!me->canAttack(u))
+				return false;
+
+			m_range = me->GetDistance(u);   // use found unit range as new range limit for next check
+			return true;
+		}
+
+	private:
+		Unit const *me;
+		float m_range;
+		NearestHostileUnitCheck(NearestHostileUnitCheck const&);
+	};
+
+	class NearestHostileUnitInAggroRangeCheck
+	{
+	public:
+		explicit NearestHostileUnitInAggroRangeCheck(Creature const* creature, bool useLOS = false) : _me(creature), _useLOS(useLOS)
+		{
+		}
+		bool operator()(Unit* u)
+		{
+			if (!u->IsHostileTo(_me))
+				return false;
+
+			if (!u->isVisibleForOrDetect(_me, _me, false))
+				return false;
+
+			if (!u->IsWithinDistInMap(_me, _me->GetAttackDistance(u)))
+				return false;
+
+			if (!u->isTargetableForAttack())
+				return false;
+
+			if (_useLOS && !u->IsWithinLOSInMap(_me))
+				return false;
+
+			return true;
+		}
+
+	private:
+		Creature const* _me;
+		bool _useLOS;
+		NearestHostileUnitInAggroRangeCheck(NearestHostileUnitInAggroRangeCheck const&);
+	};
+
+	class NearestHostileUnitInAttackDistanceCheck
+	{
+	public:
+		explicit NearestHostileUnitInAttackDistanceCheck(Creature const* creature, float dist = 0) : me(creature)
+		{
+			m_range = (dist == 0 ? 9999 : dist);
+			m_force = (dist == 0 ? false : true);
+		}
+		bool operator()(Unit* u)
+		{
+			if (!me->IsWithinDistInMap(u, m_range))
+				return false;
+
+			if (m_force)
+			{
+				if (!me->canAttack(u))
+					return false;
+			}
+			else
+			{
+				if (!me->canStartAttack(u, false))
+					return false;
+			}
+
+			m_range = me->GetDistance(u);   // use found unit range as new range limit for next check
+			return true;
+		}
+		float GetLastRange() const { return m_range; }
+	private:
+		Creature const *me;
+		float m_range;
+		bool m_force;
+		NearestHostileUnitInAttackDistanceCheck(NearestHostileUnitInAttackDistanceCheck const&);
+	};
+
+	class GameObjectWithDbGUIDCheck
+	{
+	public:
+		GameObjectWithDbGUIDCheck(WorldObject const& obj, uint32 db_guid) : i_obj(obj), i_db_guid(db_guid) {}
+		bool operator()(GameObject const* go) const
+		{
+			return go->GetDBTableGUIDLow() == i_db_guid;
+		}
+	private:
+		WorldObject const& i_obj;
+		uint32 i_db_guid;
+	};
+	class CreatureWithDbGUIDCheck
+	{
+	public:
+		CreatureWithDbGUIDCheck(WorldObject const* obj, uint32 lowguid) : i_obj(obj), i_lowguid(lowguid) {}
+		bool operator()(Creature* u)
+		{
+			return u->GetDBTableGUIDLow() == i_lowguid;
+		}
+	private:
+		WorldObject const* i_obj;
+		uint32 i_lowguid;
+	};
+	class AllWorldObjectsInRange
+	{
+	public:
+		AllWorldObjectsInRange(const WorldObject* pObject, float fMaxRange) : m_pObject(pObject), m_fRange(fMaxRange) {}
+		bool operator() (WorldObject* go)
+		{
+			return m_pObject->IsWithinDist(go, m_fRange, false);
+		}
+	private:
+		const WorldObject* m_pObject;
+		float m_fRange;
+	};
+	class ObjectTypeIdCheck
+	{
+	public:
+		ObjectTypeIdCheck(TypeID typeId, bool equals) : _typeId(typeId), _equals(equals) {}
+		bool operator()(WorldObject* object)
+		{
+			return (object->GetTypeId() == _typeId) == _equals;
+		}
+
+	private:
+		TypeID _typeId;
+		bool _equals;
+	};
+	class ObjectGUIDCheck
+	{
+	public:
+		ObjectGUIDCheck(uint64 GUID) : _GUID(GUID) {}
+		bool operator()(WorldObject* object)
+		{
+			return object->GetGUID() == _GUID;
+		}
+
+	private:
+		uint64 _GUID;
+	};
+
 #ifndef WIN32
     template<> void PlayerRelocationNotifier::Visit<Creature>(CreatureMapType&);
     template<> void CreatureRelocationNotifier::Visit<Player>(PlayerMapType&);

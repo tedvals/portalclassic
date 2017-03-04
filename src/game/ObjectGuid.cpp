@@ -63,12 +63,32 @@ std::string ObjectGuid::GetString() const
 template<HighGuid high>
 uint32 ObjectGuidGenerator<high>::Generate()
 {
-    if (m_nextGuid >= ObjectGuid::GetMaxCounter(high) - 1)
-    {
-        sLog.outError("%s guid overflow!! Can't continue, shutting down server. ", ObjectGuid::GetTypeName(high));
-        World::StopNow(ERROR_EXIT_CODE);
-    }
-    return m_nextGuid++;
+	if (!m_freedGuids.empty())
+	{
+		uint32 g = m_freedGuids.front();
+		m_freedGuids.pop();
+		return g;
+	}
+	if (m_nextGuid >= ObjectGuid::GetMaxCounter(high) - 1)
+	{
+		sLog.outError("%s guid overflow!! Can't continue, shutting down server. ", ObjectGuid::GetTypeName(high));
+		World::StopNow(ERROR_EXIT_CODE);
+	}
+	return m_nextGuid++;
+}
+
+template<HighGuid high>
+void ObjectGuidGenerator<high>::GenerateRange(uint32& first, uint32& last)
+{
+	const static int GENERATE_RANGE_SIZE = 100;
+	if (m_nextGuid >= ObjectGuid::GetMaxCounter(high) - GENERATE_RANGE_SIZE)
+	{
+		sLog.outError("%s guid overflow!! Can't continue, shutting down server. ", ObjectGuid::GetTypeName(high));
+		World::StopNow(ERROR_EXIT_CODE);
+	}
+	first = m_nextGuid;
+	m_nextGuid += GENERATE_RANGE_SIZE;
+	last = m_nextGuid;
 }
 
 ByteBuffer& operator<< (ByteBuffer& buf, ObjectGuid const& guid)

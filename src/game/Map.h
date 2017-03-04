@@ -53,6 +53,11 @@ class GridMap;
 class GameObjectModel;
 class WeatherSystem;
 
+namespace VMAP
+{
+	class ModelInstance;
+}
+
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
 #if defined( __GNUC__ )
 #pragma pack(1)

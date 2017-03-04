@@ -69,6 +69,38 @@ enum HighGuid
     HIGHGUID_MO_TRANSPORT   = 0x1FC0,                       // blizz 1FC0 (for GAMEOBJECT_TYPE_MO_TRANSPORT)
 };
 
+#define GUID_HIPART(x)   (uint32)((uint64(x) >> 48) & 0x0000FFFF)
+// We have different low and middle part size for different guid types
+#define _GUID_LOPART_2(x) (uint32)(uint64(x)         & UI64LIT(0x00000000FFFFFFFF))
+#define _GUID_LOPART_3(x) (uint32)(uint64(x)         & UI64LIT(0x0000000000FFFFFF))
+
+// Pour les codes TrinityCore
+#define IS_EMPTY_GUID(g)       (g == 0)
+#define IS_CREATURE_GUID(g)    (GUID_HIPART(g) == HIGHGUID_UNIT)
+#define IS_PET_GUID(g)         (GUID_HIPART(g) == HIGHGUID_PET)
+#define IS_PLAYER_GUID(g)      (GUID_HIPART(g) == HIGHGUID_PLAYER && g != 0)
+#define IS_UNIT_GUID(g)        (IS_CREATURE_GUID(g) || IS_PLAYER_GUID(g))
+
+inline bool IsGuidHaveEnPart(uint64 const& guid)
+{
+	switch (GUID_HIPART(guid))
+	{
+	case HIGHGUID_ITEM:
+	case HIGHGUID_PLAYER:
+	case HIGHGUID_DYNAMICOBJECT:
+	case HIGHGUID_CORPSE:
+	case HIGHGUID_MO_TRANSPORT:
+		return false;
+	case HIGHGUID_GAMEOBJECT:
+	case HIGHGUID_TRANSPORT:
+	case HIGHGUID_UNIT:
+	case HIGHGUID_PET:
+	default:
+		return true;
+	}
+}
+#define GUID_LOPART(x) (IsGuidHaveEnPart(x) ? _GUID_LOPART_3(x) : _GUID_LOPART_2(x))
+
 class ObjectGuid;
 class PackedGuid;
 
@@ -226,12 +258,40 @@ class ObjectGuidGenerator
     public:                                                 // modifiers
         void Set(uint32 val) { m_nextGuid = val; }
         uint32 Generate();
+		void GenerateRange(uint32& first, uint32& last);
 
     public:                                                 // accessors
         uint32 GetNextAfterMaxUsed() const { return m_nextGuid; }
+		void FreeGuid(uint32 guid) { m_freedGuids.push(guid); }
 
     private:                                                // fields
         uint32 m_nextGuid;
+		std::queue<uint32> m_freedGuids;
+};
+
+template<HighGuid high>
+class ObjectSafeGuidGenerator : public ObjectGuidGenerator<high>
+{
+public:
+	uint32 Generate()
+	{
+		Guard _g(lock);
+		return ObjectGuidGenerator<high>::Generate();
+	}
+	void FreeGuid(uint32 g)
+	{
+		Guard _g(lock);
+		ObjectGuidGenerator<high>::FreeGuid(g);
+	}
+	void GenerateRange(uint32& first, uint32& last)
+	{
+		Guard _g(lock);
+		ObjectGuidGenerator<high>::GenerateRange(first, last);
+	}
+protected:
+	typedef std::mutex LockType;
+	typedef MaNGOS::GeneralLock<LockType > Guard;
+	LockType lock;
 };
 
 ByteBuffer& operator<< (ByteBuffer& buf, ObjectGuid const& guid);
@@ -255,4 +315,20 @@ namespace std {
     };
 }
 
+#if COMPILER == COMPILER_GNU
+HASH_NAMESPACE_START
+
+template<>
+class hash<ObjectGuid>
+{
+public:
+
+	size_t operator() (ObjectGuid const& key) const
+	{
+		return hash<uint64>()(key.GetRawValue());
+	}
+};
+
+HASH_NAMESPACE_END
+#endif
 #endif

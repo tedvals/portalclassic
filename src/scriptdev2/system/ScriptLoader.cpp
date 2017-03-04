@@ -425,7 +425,7 @@ void AddScripts()
     AddSC_blasted_lands();
     AddSC_boss_kazzakAI();
     AddSC_burning_steppes();
-    AddSC_deeprun_tram()
+	AddSC_deeprun_tram();
     AddSC_dun_morogh();
     AddSC_eastern_plaguelands();
     AddSC_elwynn_forest();

@@ -520,6 +520,9 @@ enum PvpTeamIndex
 
 #define PVP_TEAM_COUNT    2
 
+// TrinityCore
+#define MAKE_NEW_GUID(l, e, h)   uint64(uint64(l) | (uint64(e) << 24) | (uint64(h) << 48))
+
 enum SpellEffects
 {
     SPELL_EFFECT_NONE                      = 0,
@@ -2666,5 +2669,24 @@ enum LootType
     LOOT_MAIL           = 23,
     LOOT_SPELL          = 24,
 };
+
+// Cf GMTicketCategory.dbc
+enum TicketType
+{
+	GMTICKET_STUCK = 1,
+	GMTICKET_BEHAVIOR_HARASSMENT = 2,
+	GMTICKET_GUILD = 3,
+	GMTICKET_ITEM = 4,
+	GMTICKET_ENVIRONMENTAL = 5,
+	GMTICKET_NONQUEST_CREEP = 6,
+	GMTICKET_QUEST_QUESTNPC = 7,
+	GMTICKET_TECHNICAL = 8,
+	GMTICKET_ACCOUNT_BILLING = 9,
+	GMTICKET_CHARACTER = 10,
+	GMTICKET_MAX
+};
+
+// Used for some dynamic scaling systems, depending on total population
+#define BLIZZLIKE_REALM_POPULATION 2500
 
 #endif

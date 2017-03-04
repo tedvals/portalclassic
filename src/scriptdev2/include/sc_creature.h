@@ -8,6 +8,12 @@
 #include "Chat.h"
 #include "DBCStores.h"                                      // Mostly only used the Lookup acces, but a few cases really do use the DBC-Stores
 
+#define CAST_PLR(a)     (dynamic_cast<Player*>(a))
+#define CAST_CRE(a)     (dynamic_cast<Creature*>(a))
+#define CAST_SUM(a)     (dynamic_cast<TempSummon*>(a))
+#define CAST_PET(a)     (dynamic_cast<Pet*>(a))
+#define CAST_AI(a,b)    (dynamic_cast<a*>(b))
+
 // Spell targets used by SelectSpell
 enum SelectTarget
 {
@@ -157,6 +163,9 @@ struct ScriptedAI : public CreatureAI
          */
         virtual void Reset() = 0;
 
+		// Called at creature death only
+		virtual void ResetCreature() {}
+
         /// Called at creature EnterCombat with an enemy
         /**
          * This is a SD2 internal function
@@ -185,6 +194,8 @@ struct ScriptedAI : public CreatureAI
 
         // Plays a sound to all nearby players
         void DoPlaySoundToSet(WorldObject* pSource, uint32 uiSoundId);
+
+		void SendMonsterMoveWithSpeed(float x, float y, float z, uint32 MovementFlags, uint32 transitTime = 0, Player* player = nullptr);
 
         // Drops all threat to 0%. Does not remove enemies from the threat list
         void DoResetThreat();
@@ -217,10 +228,30 @@ struct ScriptedAI : public CreatureAI
 
         bool EnterEvadeIfOutOfCombatArea(const uint32 uiDiff);
 
+		//Generally used to control if MoveChase() is to be used or not in AttackStart(). Some creatures does not chase victims
+		void SetCombatMovement(bool bCombatMove);
+		bool IsCombatMovement() const { return m_bCombatMovement; }
+
+		bool EnterEvadeIfOutOfCombatArea(const uint32 uiDiff);
+
+		void DoGoHome();
+
+		float DoGetThreat(Unit* pUnit);
+		void DoModifyThreatPercent(Unit* pUnit, int32 pct);
+		void DoTeleportTo(float fX, float fY, float fZ, uint32 uiTime);
+		void DoTeleportTo(const float fPos[4]);
+		void DoTeleportAll(float fX, float fY, float fZ, float fO);
+		Creature* me;
+
 		uint32 Randomize(uint32 interval);
 
     private:
+		bool   m_bCombatMovement;
+
         uint32 m_uiEvadeCheckCooldown;
+
+		bool m_bEvadeOutOfHomeArea;
+		uint32 m_uiHomeArea;
 };
 
 struct Scripted_NoMovementAI : public ScriptedAI

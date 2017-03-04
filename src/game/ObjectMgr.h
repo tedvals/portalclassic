@@ -36,6 +36,7 @@
 
 #include <map>
 #include <climits>
+#include <mutex>
 
 class Group;
 class Item;
@@ -79,6 +80,17 @@ struct AreaTrigger
         return requiredLevel <= l->requiredLevel && requiredItem <= l->requiredItem && requiredItem2 <= l->requiredItem2
                && requiredQuest <= l->requiredQuest;
     }
+};
+
+struct BattlegroundEntranceTrigger
+{
+	Team   team;
+	BattleGroundTypeId  bgTypeId;
+	uint32 exit_mapId;
+	float  exit_X;
+	float  exit_Y;
+	float  exit_Z;
+	float  exit_Orientation;
 };
 
 typedef std::map < uint32/*player guid*/, uint32/*instance*/ > CellCorpseSet;
@@ -168,6 +180,7 @@ typedef std::unordered_map<uint32, PageTextLocale> PageTextLocaleMap;
 typedef std::unordered_map<int32, MangosStringLocale> MangosStringLocaleMap;
 typedef std::unordered_map<uint32, GossipMenuItemsLocale> GossipMenuItemsLocaleMap;
 typedef std::unordered_map<uint32, PointOfInterestLocale> PointOfInterestLocaleMap;
+typedef std::unordered_map<uint32, AreaLocale> AreaLocaleMap;
 
 typedef std::multimap<int32, uint32> ExclusiveQuestGroupsMap;
 typedef std::multimap<uint32, ItemRequiredTarget> ItemRequiredTargetMap;
@@ -272,6 +285,19 @@ struct DungeonEncounter
 
 typedef std::multimap<uint32, DungeonEncounter const*> DungeonEncounterMap;
 typedef std::pair<DungeonEncounterMap::const_iterator, DungeonEncounterMap::const_iterator> DungeonEncounterMapBounds;
+
+#define WEATHER_SEASONS 4
+struct WeatherSeasonChances
+{
+	uint32 rainChance;
+	uint32 snowChance;
+	uint32 stormChance;
+};
+
+struct WeatherZoneChances
+{
+	WeatherSeasonChances data[WEATHER_SEASONS];
+};
 
 struct GraveYardData
 {
@@ -457,6 +483,115 @@ class IdGenerator
         T m_nextGuid;
 };
 
+struct SavedVariable
+{
+	uint32 uiIndex;
+	uint32 uiValue;
+	bool bSavedInDb;
+};
+typedef std::vector<SavedVariable> SavedVariablesVector;
+
+struct PlayerCacheData
+{
+	uint32 uiGuid;
+	uint32 uiLevel;
+	uint32 uiAccount;
+	uint32 uiRace;
+	uint32 uiClass;
+	uint32 uiGender;
+	uint32 uiZoneId;
+	std::string sName;
+};
+typedef std::map<uint32 /*guid*/, PlayerCacheData*> PlayerCacheDataMap;
+
+struct FactionChangeMountData
+{
+	Races RaceId;
+	uint8 MountNum;
+	uint32 ItemEntry;
+};
+typedef std::vector<FactionChangeMountData> FactionChangeMountsData;
+
+enum PermVariables
+{
+	VARIABLE_NAXX_ATTACK_ZONE1 = 10,
+	VARIABLE_NAXX_ATTACK_ZONE2 = 11,
+	VARIABLE_NAXX_ATTACK_TIME1 = 12,
+	VARIABLE_NAXX_ATTACK_TIME2 = 13,
+	VARIABLE_NAXX_ATTACK_COUNT = 14,
+	VARIABLE_NAXX_ELITE_ID = 15,
+	VARIABLE_NAXX_ELITE_PYLON = 16,
+	VARIABLE_NAXX_ELITE_SPAWNTIME = 17,
+
+	// ITEM ID RANGES ARE USED FOR AQ WAR EFFORT
+
+	// Dragons of Nightmare support
+	VAR_ALIVE_COUNT = 30000,    // how many dragons should be alive atm (updated once dragon is killed)
+	VAR_REQ_UPDATE = 30001,    // should keep >=1 if the last alive dragon was killed and the repawn time is not saved yet, 0 otherwise
+	VAR_RESP_TIME = 30002,    // next event time; should be set in here once last dragon is killed
+	VAR_REQ_PERM = 30003,    // permutation required
+	VAR_PERM_1 = 30004,    // saved permutation result
+	VAR_PERM_2 = 30005,
+	VAR_PERM_3 = 30006,
+	VAR_PERM_4 = 30007,
+
+	DEF_ALIVE_COUNT = 4,        // default alive dragons count for VAR_ALIVE_COUNT
+	DEF_REQ_UPDATE = 0,        // default update requirement for VAR_REQ_UPDATE
+	DEF_STOP_DELAY = 5,        // default times event check will not stop the event
+
+	NPC_YSONDRE = 14887,
+	NPC_LETHON = 14888,
+	NPC_EMERISS = 14889,
+	NPC_TAERAR = 14890,
+
+	GUID_YSONDRE = 52350,
+	GUID_LETHON = 52359,
+	GUID_EMERISS = 52364,
+	GUID_TAERAR = 52357,
+
+	// Elemental Invasion support
+	VAR_FIRE = 30008,    // indicates sub events status through server restarts
+	VAR_WATER = 30009,
+	VAR_EARTH = 30010,
+	VAR_AIR = 30011,
+	VAR_FIRE_KILLS = 30012,    // keeps killed invaders per stage count
+	VAR_WATER_KILLS = 30013,
+	VAR_EARTH_KILLS = 30014,
+	VAR_AIR_KILLS = 30015,
+	VAR_INVAS_TIMER = 30016,    // next invasion time
+	VAR_DELAY_FIRE = 30017,    // event update cycles to delay before event stop
+	VAR_DELAY_WATER = 30018,
+	VAR_DELAY_EARTH = 30019,
+	VAR_DELAY_AIR = 30020,
+
+	STAGE_BOSS = 5,
+	STAGE_BOSS_DOWN = 6,
+
+	EVENT_IND_FIRE = 0,
+	EVENT_IND_AIR = 1,
+	EVENT_IND_EARTH = 2,
+	EVENT_IND_WATER = 3,
+
+	// Stranglethorn Fishing Extravaganza support
+	VAR_TOURNAMENT = 30021,    // last quest completion time
+	VAR_TOURN_GOES = 30022,    // tournament was started already
+	VAR_TOURN_OVER = 30023,    // tournament is over
+};
+
+class GameObjectUseRequirement
+{
+public:
+	enum GameObjectUseRequireType
+	{
+		GOBJ_REQUIRE_DEAD_CREATURE = 0,
+		GOBJ_REQUIRE_ACTIVE_OBJECT = 1,
+	};
+	GameObjectUseRequireType reqType;
+	ObjectGuid guid;
+};
+
+class PvPMaintenanceMaker;
+
 class ObjectMgr
 {
         friend class PlayerDumpReader;
@@ -472,27 +607,50 @@ class ObjectMgr
         typedef std::unordered_map<uint32, Quest*> QuestMap;
 
         typedef std::unordered_map<uint32, AreaTrigger> AreaTriggerMap;
+		typedef std::unordered_map<uint32, BattlegroundEntranceTrigger> BGEntranceTriggerMap;
 
         typedef std::unordered_map<uint32, RepRewardRate > RepRewardRateMap;
         typedef std::unordered_map<uint32, ReputationOnKillEntry> RepOnKillMap;
         typedef std::unordered_map<uint32, RepSpilloverTemplate> RepSpilloverTemplateMap;
 
-        typedef std::unordered_map<uint32, PointOfInterest> PointOfInterestMap;
+		typedef std::unordered_map<uint32, PointOfInterest> PointOfInterestMap;
 
+        typedef std::unordered_map<uint32, WeatherZoneChances> WeatherZoneMap;
+
+		static Player* GetPlayer(const char* name) { return ObjectAccessor::FindPlayerByName(name); }
+		static Player* GetPlayer(ObjectGuid guid) { return ObjectAccessor::FindPlayer(guid); }
+
+		static GameObjectInfo const *GetGameObjectInfo(uint32 id) { return sGOStorage.LookupEntry<GameObjectInfo>(id); }
 
         typedef std::unordered_map<uint32, PetCreateSpellEntry> PetCreateSpellMap;
 
         void LoadGameobjectInfo();
+		void CheckGameObjectInfos();
+
+		void LoadGameobjectsRequirements();
+		GameObjectUseRequirement const* GetGameObjectUseRequirement(ObjectGuid guid) const;
+		std::map<uint32, GameObjectUseRequirement> _gobjRequirements;
 
         void PackGroupIds();
+		Group* GetGroupByMember(ObjectGuid memberGuid);
         Group* GetGroupById(uint32 id) const;
         void AddGroup(Group* group);
         void RemoveGroup(Group* group);
         GroupMap::iterator GetGroupMapBegin() { return mGroupMap.begin(); }
         GroupMap::iterator GetGroupMapEnd() { return mGroupMap.end(); }
-
-        CreatureModelInfo const* GetCreatureModelRandomGender(uint32 display_id) const;
+		CreatureModelInfo const* GetCreatureModelRandomGender(uint32 display_id) const;
         uint32 GetCreatureModelOtherTeamModel(uint32 modelId) const;
+
+		EquipmentInfoRaw const *GetEquipmentInfoRaw(uint32 entry);
+		static CreatureDataAddon const *GetCreatureAddon(uint32 lowguid)
+		{
+			return sCreatureDataAddonStorage.LookupEntry<CreatureDataAddon>(lowguid);
+		}
+
+		static CreatureDataAddon const *GetCreatureTemplateAddon(uint32 entry)
+		{
+			return sCreatureInfoAddonStorage.LookupEntry<CreatureDataAddon>(entry);
+		}
 
         PetLevelInfo const* GetPetLevelInfo(uint32 creature_id, uint32 level) const;
 
@@ -565,6 +723,14 @@ class ObjectMgr
 
         AreaTrigger const* GetGoBackTrigger(uint32 Map) const;
         AreaTrigger const* GetMapEntranceTrigger(uint32 Map) const;
+
+		BattlegroundEntranceTrigger const* GetBattlegroundEntranceTrigger(uint32 trigger) const
+		{
+			auto itr = mBGEntranceTriggers.find(trigger);
+			if (itr != mBGEntranceTriggers.end())
+				return &itr->second;
+			return nullptr;
+		}
 
         RepRewardRate const* GetRepRewardRate(uint32 factionId) const
         {
@@ -659,6 +825,8 @@ class ObjectMgr
         void LoadInstanceTemplate();
         void LoadWorldTemplate();
         void LoadConditions();
+		void LoadAreaTemplate();
+		void LoadAreaLocales();
 
         void LoadGossipText();
 
@@ -666,6 +834,7 @@ class ObjectMgr
         void LoadQuestAreaTriggers();
         void LoadTavernAreaTriggers();
         void LoadGameObjectForQuests();
+		void LoadBattlegroundEntranceTriggers();
 
         void LoadItemTexts();
         void LoadPageTexts();
@@ -685,10 +854,12 @@ class ObjectMgr
         void LoadPointsOfInterest();
 
         void LoadCreatureTemplateSpells();
+		void LoadWeatherZoneChances();
 
         void LoadGameTele();
 
         void LoadNpcGossips();
+		void LoadGossipMenuItems();
 
         void LoadGossipMenus();
 
@@ -739,8 +910,10 @@ class ObjectMgr
         uint32 GeneratePlayerLowGuid() { return m_CharGuids.Generate(); }
         uint32 GenerateItemLowGuid() { return m_ItemGuids.Generate(); }
         uint32 GenerateCorpseLowGuid() { return m_CorpseGuids.Generate(); }
+		void FreeItemLowGuid(uint32 g) { return m_ItemGuids.FreeGuid(g); }
 
-        uint32 GenerateAuctionID() { return m_AuctionIds.Generate(); }
+        uint32 GenerateAuctionID() { return m_AuctionIds.Generate();
+		void FreeAuctionID(uint32 id);}
         uint32 GenerateGuildId() { return m_GuildIds.Generate(); }
         uint32 GenerateGroupId() { return m_GroupIds.Generate(); }
         uint32 GenerateItemTextID() { return m_ItemGuids.Generate(); }
@@ -758,6 +931,13 @@ class ObjectMgr
                 return "There is no info for this item";
         }
 
+		WeatherZoneChances const* GetWeatherChances(uint32 zone_id) const
+		{
+			auto itr = mWeatherZoneMap.find(zone_id);
+			if (itr != mWeatherZoneMap.end())
+				return &itr->second;
+			return nullptr;
+		}
         CreatureDataPair const* GetCreatureDataPair(uint32 guid) const
         {
             CreatureDataMap::const_iterator itr = mCreatureDataMap.find(guid);
@@ -770,6 +950,15 @@ class ObjectMgr
             CreatureDataPair const* dataPair = GetCreatureDataPair(guid);
             return dataPair ? &dataPair->second : nullptr;
         }
+
+		ObjectGuid GetOneCreatureByEntry(uint32 entry) const
+		{
+			auto itr = mCreatureDataMap.begin();
+			for (; itr != mCreatureDataMap.end(); ++itr)
+				if (itr->second.id == entry)
+					return ObjectGuid(HIGHGUID_UNIT, itr->second.id, itr->first);
+			return ObjectGuid();
+		}
 
         CreatureData& NewOrExistCreatureData(uint32 guid) { return mCreatureDataMap[guid]; }
         void DeleteCreatureData(uint32 guid);
@@ -894,7 +1083,10 @@ class ObjectMgr
         // global grid objects state (static DB spawns, global spawn mods from gameevent system)
         CellObjectGuids const& GetCellObjectGuids(uint16 mapid, uint32 cell_id)
         {
-            return mMapObjectGuids[mapid][cell_id];
+			mMapObjectGuids_lock.acquire();
+			CellObjectGuids const& guids = mMapObjectGuids[mapid][cell_id];
+			mMapObjectGuids_lock.release();
+			return guids;
         }
 
         // modifiers for global grid objects state (static DB spawns, global spawn mods from gameevent system)
@@ -1016,6 +1208,72 @@ class ObjectMgr
             return m_ExclusiveQuestGroups.equal_range(groupId);
         }
 
+
+		// Deactivated Spells
+		std::set<uint32>    m_DisabledSpells;
+		void LoadSpellDisabledEntrys();
+		bool IsSpellDisabled(uint32 spellid) const { return m_DisabledSpells.count(spellid) != 0; }
+		// map_loot_disabled
+		std::set<uint32>    m_DisabledMapLoots;
+		void LoadMapLootDisabled();
+		bool IsMapLootDisabled(uint32 mapId) const { return m_DisabledMapLoots.count(mapId) != 0; }
+		// Cinematics
+		void LoadCinematicsWaypoints();
+		Position const* GetCinematicPosition(uint32 cinematicId, uint32 elapsed_time);
+		Position const* GetCinematicInitialPosition(uint32 cinematicId);
+		std::vector<CinematicWaypointEntry> m_CinematicWaypoints;
+		// Phasing
+		void LoadPlayerPhaseFromDb();
+		uint32 GetPlayerWorldMaskByGUID(const uint64 guid);
+		void SetPlayerWorldMask(const uint64 guid, uint32 newWorldMask);
+		std::map<uint32, uint32> m_PlayerPhases;
+
+		// Saving Variables
+		SavedVariable& _InsertVariable(uint32 index, uint32 value, bool saved);
+		void _SaveVariable(const SavedVariable& toSave);
+
+		void InitSavedVariable(uint32 index, uint32 value);
+		uint32 GetSavedVariable(uint32 index, uint32 defaultValue = 0, bool *exist = nullptr);
+		void SetSavedVariable(uint32 index, uint32 value, bool SaveToDb = false);
+		void LoadVariable(uint32 index, uint32* variable, uint32 defaultValue, uint32 maxValue = 0, uint32 minValue = 0);
+
+		void LoadSavedVariable();
+		void SaveVariables();
+		SavedVariablesVector m_SavedVariables;
+
+		// Caching Player Data
+		void LoadPlayerCacheData();
+		PlayerCacheData* GetPlayerDataByGUID(uint32 lowGuid);
+		PlayerCacheData* GetPlayerDataByName(const std::string& name);
+		void InsertPlayerInCache(Player *pPlayer);
+		void InsertPlayerInCache(uint32 lowGuid, uint32 race, uint32 _class, uint32 uiGender, uint32 account, const std::string& name, uint32 level, uint32 zoneId);
+		void DeletePlayerFromCache(uint32 lowGuid);
+		void ChangePlayerNameInCache(uint32 lowGuid, const std::string& oldName, const std::string& newName);
+
+		PlayerCacheDataMap m_playerCacheData;
+		std::map<std::string, uint32> m_playerNameToGuid;
+
+		uint32 AddCreData(uint32 entry, uint32 team, uint32 map, float, float, float, float, uint32 spawnDelay);
+		uint32 AddGOData(uint32 entry, uint32 map, float, float, float, float, uint32 spawnTimeDelay, float, float, float, float);
+		bool MoveCreData(uint32 guid, uint32 mapId, const Position& pos);
+
+		// Changes of faction
+		typedef std::map<uint32, uint32> CharacterConversionMap;
+		CharacterConversionMap factionchange_reputations;
+		CharacterConversionMap factionchange_spells;
+		CharacterConversionMap factionchange_items;
+		CharacterConversionMap factionchange_quests;
+		FactionChangeMountsData factionchange_mounts;
+		void LoadFactionChangeReputations();
+		void LoadFactionChangeSpells();
+		void LoadFactionChangeItems();
+		void LoadFactionChangeQuests();
+		void LoadFactionChangeMounts();
+		bool GetMountDataByEntry(uint32 itemEntry, Races& race, uint8& mountNum) const;
+		uint32 GetMountItemEntry(Races race, uint8 num) const;
+		uint32 GetRandomMountForRace(Races race) const;
+		Races GetOppositeRace(Races origRace) const;
+
         QuestRelationsMapBounds GetCreatureQuestRelationsMapBounds(uint32 entry) const
         {
             return m_CreatureQuestRelations.equal_range(entry);
@@ -1058,6 +1316,9 @@ class ObjectMgr
         IdGenerator<uint32> m_ItemTextIds;
         IdGenerator<uint32> m_MailIds;
         IdGenerator<uint32> m_PetNumbers;
+		uint32              m_NextPetNumber;
+		std::set<uint32>    m_AuctionsIds;
+		uint32              m_NextAuctionId;
         IdGenerator<uint32> m_GroupIds;
 
         // initial free low guid for selected guid type for map local guids
@@ -1090,6 +1351,7 @@ class ObjectMgr
         GameObjectForQuestSet mGameObjectForQuestSet;
         GossipTextMap       mGossipText;
         AreaTriggerMap      mAreaTriggers;
+		BGEntranceTriggerMap mBGEntranceTriggers;
 
         RepRewardRateMap    m_RepRewardRateMap;
         RepOnKillMap        mRepOnKill;
@@ -1098,6 +1360,8 @@ class ObjectMgr
         GossipMenusMap      m_mGossipMenusMap;
         GossipMenuItemsMap  m_mGossipMenuItemsMap;
         PointOfInterestMap  mPointsOfInterest;
+
+		WeatherZoneMap      mWeatherZoneMap;
 
         PetCreateSpellMap   mPetCreateSpell;
 
@@ -1166,6 +1430,9 @@ class ObjectMgr
 
         MapObjectGuids mMapObjectGuids;
         ActiveCreatureGuidsOnMap m_activeCreatures;
+
+		std::mutex mMapObjectGuids_lock;
+
         CreatureDataMap mCreatureDataMap;
         CreatureLocaleMap mCreatureLocaleMap;
         GameObjectDataMap mGameObjectDataMap;
@@ -1178,7 +1445,12 @@ class ObjectMgr
         std::map<int32 /*minEntryOfBracket*/, uint32 /*count*/> m_loadedStringCount;
         GossipMenuItemsLocaleMap mGossipMenuItemsLocaleMap;
         PointOfInterestLocaleMap mPointOfInterestLocaleMap;
+		AreaLocaleMap mAreaLocaleMap;
         DungeonEncounterMap m_DungeonEncounters;
+
+		// Storage for Conditions. First element (index 0) is reserved for zero-condition (nothing required)
+		typedef std::vector<PlayerCondition> ConditionStore;
+		ConditionStore mConditions;
 
         CacheNpcTextIdMap m_mCacheNpcTextIdMap;
         CacheVendorItemMap m_mCacheVendorTemplateItemMap;
