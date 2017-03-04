@@ -476,12 +476,6 @@ struct MapEntry
     bool IsRaid() const { return map_type == MAP_RAID; }
     bool IsBattleGround() const { return map_type == MAP_BATTLEGROUND; }
 
-    bool IsMountAllowed() const
-    {
-        return !IsDungeon() ||
-               MapID == 309 || MapID == 209 || MapID == 509 || MapID == 269;
-    }
-
     bool IsContinent() const
     {
         return MapID == 0 || MapID == 1;

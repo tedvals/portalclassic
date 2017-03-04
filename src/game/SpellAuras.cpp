@@ -2895,6 +2895,26 @@ void Aura::HandleAuraModSilence(bool apply, bool Real)
                 if (spell->m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
                     // Stop spells on prepare or casting state
                     target->InterruptSpell(CurrentSpellTypes(i), false);
+
+		switch (GetId())
+		{
+			// Arcane Torrent (Energy)
+		case 25046:
+		{
+			Unit* caster = GetCaster();
+			if (!caster)
+				return;
+
+			// Search Mana Tap auras on caster
+			Aura* dummy = caster->GetDummyAura(54633);
+			if (dummy)
+			{
+				int32 bp = dummy->GetStackAmount() * 10;
+				caster->CastCustomSpell(caster, 25048, &bp, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+				caster->RemoveAurasDueToSpell(54633);
+			}
+		}
+		}
     }
     else
     {

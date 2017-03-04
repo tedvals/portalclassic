@@ -572,7 +572,7 @@ uint32 Item::GetSkill() const
     const static uint32 item_weapon_skills[MAX_ITEM_SUBCLASS_WEAPON] =
     {
         SKILL_AXES,     SKILL_2H_AXES,  SKILL_BOWS,          SKILL_GUNS,      SKILL_MACES,
-        SKILL_2H_MACES, SKILL_POLEARMS, SKILL_SWORDS,        SKILL_2H_SWORDS, 0,
+        SKILL_2H_MACES, SKILL_POLEARMS, SKILL_SWORDS,        SKILL_2H_SWORDS, SKILL_TORCH,
         SKILL_STAVES,   0,              0,                   SKILL_UNARMED,   0,
         SKILL_DAGGERS,  SKILL_THROWN,   SKILL_ASSASSINATION, SKILL_CROSSBOWS, SKILL_WANDS,
         SKILL_FISHING
@@ -1015,7 +1015,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 						case ITEM_SUBCLASS_WEAPON_WAND:
 							itemClass = 4;
 						case ITEM_SUBCLASS_WEAPON_MISC:
-						case ITEM_SUBCLASS_WEAPON_obsolete:
+						case ITEM_SUBCLASS_WEAPON_TORCH:
 						case ITEM_SUBCLASS_WEAPON_EXOTIC:
 						case ITEM_SUBCLASS_WEAPON_EXOTIC2:
 						case ITEM_SUBCLASS_WEAPON_FISHING_POLE:
