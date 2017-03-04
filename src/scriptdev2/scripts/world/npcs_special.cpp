@@ -29,6 +29,7 @@ EndScriptData
 
 /* ContentData
 npc_chicken_cluck       100%    support for quest 3861 (Cluck!)
+npc_dancing_flames      100%    midsummer event NPC
 npc_guardian            100%    guardianAI used to prevent players from accessing off-limits areas. Not in use by SD2
 npc_garments_of_quests   80%    NPC's related to all Garments of-quests 5621, 5624, 5625, 5648, 5650
 npc_injured_patient     100%    patients for triage-quests (6622 and 6624)
@@ -141,6 +142,50 @@ bool QuestRewarded_npc_chicken_cluck(Player* /*pPlayer*/, Creature* pCreature, c
     }
 
     return true;
+}
+
+/*######
+## npc_dancing_flames
+######*/
+
+enum
+{
+	SPELL_FIERY_SEDUCTION = 47057
+};
+
+struct npc_dancing_flamesAI : public ScriptedAI
+{
+	npc_dancing_flamesAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+	void Reset() override {}
+
+	void ReceiveEmote(Player* pPlayer, uint32 uiEmote) override
+	{
+		m_creature->SetFacingToObject(pPlayer);
+
+		if (pPlayer->HasAura(SPELL_FIERY_SEDUCTION))
+			pPlayer->RemoveAurasDueToSpell(SPELL_FIERY_SEDUCTION);
+
+		if (pPlayer->IsMounted())
+		{
+			pPlayer->Unmount();                             // doesnt remove mount aura
+			pPlayer->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
+		}
+
+		switch (uiEmote)
+		{
+		case TEXTEMOTE_DANCE: DoCastSpellIfCan(pPlayer, SPELL_FIERY_SEDUCTION); break;// dance -> cast SPELL_FIERY_SEDUCTION
+		case TEXTEMOTE_WAVE:  m_creature->HandleEmote(EMOTE_ONESHOT_WAVE);      break;// wave -> wave
+		case TEXTEMOTE_JOKE:  m_creature->HandleEmote(EMOTE_STATE_LAUGH);       break;// silly -> laugh(with sound)
+		case TEXTEMOTE_BOW:   m_creature->HandleEmote(EMOTE_ONESHOT_BOW);       break;// bow -> bow
+		case TEXTEMOTE_KISS:  m_creature->HandleEmote(TEXTEMOTE_CURTSEY);       break;// kiss -> curtsey
+		}
+	}
+};
+
+CreatureAI* GetAI_npc_dancing_flames(Creature* pCreature)
+{
+	return new npc_dancing_flamesAI(pCreature);
 }
 
 /*######
@@ -929,6 +974,230 @@ bool EffectDummyCreature_npc_redemption_target(Unit* pCaster, uint32 uiSpellId, 
     return false;
 }
 
+/*######
+## npc_burster_worm
+######*/
+
+enum
+{
+	// visual and idle spells
+	SPELL_TUNNEL_BORE_PASSIVE = 29147,                // added by c_t_a
+	SPELL_TUNNEL_BORE = 29148,
+	SPELL_TUNNEL_BORE_BONE_PASSIVE = 37989,                // added by c_t_a
+	SPELL_BONE_BORE = 37990,
+	SPELL_SANDWORM_SUBMERGE_VISUAL = 33928,
+	SPELL_BIRTH = 26586,
+
+	// combat spells
+	SPELL_POISON = 31747,
+	SPELL_BORE = 32738,
+	SPELL_ENRAGE = 32714,
+
+	// npcs that get enrage
+	NPC_TUNNELER = 16968,
+	NPC_NETHERMINE_BURSTER = 23285,
+
+	// npcs that don't use bore spell
+	NPC_MARAUDING_BURSTER = 16857,
+	NPC_GREATER_CRUST_BURSTER = 21380,
+
+	// npcs that use bone bore
+	NPC_BONE_CRAWLER = 21849,
+	NPC_HAISHULUD = 22038,
+	NPC_BONE_SIFTER = 22466,
+	NPC_MATURE_BONE_SIFTER = 22482,
+
+	// combat phases
+	PHASE_COMBAT = 1,
+	PHASE_CHASE = 2,
+};
+
+struct npc_burster_wormAI : public ScriptedAI
+{
+	npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+	uint8 m_uiPhase;
+
+	uint32 m_uiChaseTimer;
+	uint32 m_uiBirthDelayTimer;
+	uint32 m_uiBoreTimer;
+	uint32 m_uiEnrageTimer;
+
+	void Reset() override
+	{
+		m_uiPhase = PHASE_COMBAT;
+		m_uiChaseTimer = 0;
+		m_uiBoreTimer = 0;
+		m_uiBirthDelayTimer = 0;
+		m_uiEnrageTimer = 0;
+
+		SetCombatMovement(false);
+
+		// only spawned creatures have the submerge visual
+		if (!m_creature->IsTemporarySummon())
+			DoCastSpellIfCan(m_creature, SPELL_SANDWORM_SUBMERGE_VISUAL, CAST_AURA_NOT_PRESENT);
+	}
+
+	void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
+	{
+		if ((pSpell->Id == SPELL_TUNNEL_BORE || pSpell->Id == SPELL_BONE_BORE) && pTarget->GetTypeId() == TYPEID_PLAYER)
+		{
+			// remove auras straight on spell hit
+			m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			m_creature->RemoveAurasDueToSpell(pSpell->Id == SPELL_TUNNEL_BORE ? SPELL_TUNNEL_BORE_PASSIVE : SPELL_TUNNEL_BORE_BONE_PASSIVE);
+			m_creature->RemoveAurasDueToSpell(SPELL_SANDWORM_SUBMERGE_VISUAL);
+
+			AttackStart(pTarget);
+		}
+	}
+
+	void Aggro(Unit* /*pWho*/) override
+	{
+		// remove the bore bone aura again, for summoned creatures
+		m_creature->RemoveAurasDueToSpell(SPELL_TUNNEL_BORE_BONE_PASSIVE);
+
+		if (DoCastSpellIfCan(m_creature, SPELL_BIRTH) == CAST_OK)
+			m_uiBirthDelayTimer = 2000;
+	}
+
+	void EnterEvadeMode() override
+	{
+		m_creature->RemoveAllAurasOnEvade();
+		m_creature->DeleteThreatList();
+		m_creature->CombatStop(true);
+		m_creature->LoadCreatureAddon(true);
+		m_creature->SetLootRecipient(NULL);
+
+		// add submerge aura
+		if (DoCastSpellIfCan(m_creature, SPELL_SANDWORM_SUBMERGE_VISUAL, CAST_FORCE_CAST | CAST_AURA_NOT_PRESENT) == CAST_OK)
+		{
+			m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			m_creature->GetMotionMaster()->MoveTargetedHome();
+		}
+
+		Reset();
+	}
+
+	// function to check for bone worms
+	bool IsBoneWorm()
+	{
+		if (m_creature->GetEntry() == NPC_BONE_CRAWLER || m_creature->GetEntry() == NPC_HAISHULUD || m_creature->GetEntry() == NPC_BONE_SIFTER
+			|| m_creature->GetEntry() == NPC_MATURE_BONE_SIFTER)
+			return true;
+
+		return false;
+	}
+
+	void UpdateAI(const uint32 uiDiff) override
+	{
+		if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+			return;
+
+		// animation delay
+		if (m_uiBirthDelayTimer)
+		{
+			if (m_uiBirthDelayTimer <= uiDiff)
+				m_uiBirthDelayTimer = 0;
+			else
+				m_uiBirthDelayTimer -= uiDiff;
+
+			// no action during birth animaiton
+			return;
+		}
+
+		// combat phase
+		if (m_uiPhase == PHASE_COMBAT)
+		{
+			if (m_uiChaseTimer)
+			{
+				if (m_uiChaseTimer <= uiDiff)
+				{
+					// sone creatures have bone bore spell
+					if (IsBoneWorm())
+						DoCastSpellIfCan(m_creature, SPELL_TUNNEL_BORE_BONE_PASSIVE, CAST_TRIGGERED);
+					else
+						DoCastSpellIfCan(m_creature, SPELL_TUNNEL_BORE_PASSIVE, CAST_TRIGGERED);
+
+					m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+					m_uiPhase = PHASE_CHASE;
+					SetCombatMovement(true);
+					m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+					m_uiChaseTimer = 0;
+				}
+				else
+					m_uiChaseTimer -= uiDiff;
+
+				// return when doing phase change
+				return;
+			}
+
+			// If we are within range melee the target
+			if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+				DoMeleeAttackIfReady();
+			else
+			{
+				if (!m_creature->IsNonMeleeSpellCasted(false))
+					DoCastSpellIfCan(m_creature->getVictim(), SPELL_POISON);
+
+				// if target not in range, submerge and chase
+				if (!m_creature->IsInRange(m_creature->getVictim(), 0, 50.0f))
+				{
+					if (DoCastSpellIfCan(m_creature, SPELL_SANDWORM_SUBMERGE_VISUAL, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+						m_uiChaseTimer = 1500;
+				}
+			}
+
+			// bore spell
+			if (m_creature->GetEntry() != NPC_MARAUDING_BURSTER && m_creature->GetEntry() != NPC_GREATER_CRUST_BURSTER)
+			{
+				if (m_uiBoreTimer < uiDiff)
+				{
+					if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BORE) == CAST_OK)
+						m_uiBoreTimer = 45000;
+				}
+				else
+					m_uiBoreTimer -= uiDiff;
+			}
+
+			// enrage spell
+			if ((m_creature->GetEntry() == NPC_TUNNELER || m_creature->GetEntry() == NPC_NETHERMINE_BURSTER) && m_creature->GetHealthPercent() < 30.0f)
+			{
+				if (m_uiEnrageTimer < uiDiff)
+				{
+					if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
+						m_uiEnrageTimer = urand(12000, 17000);
+				}
+				else
+					m_uiEnrageTimer -= uiDiff;
+			}
+		}
+		// chase target
+		else if (m_uiPhase == PHASE_CHASE)
+		{
+			if (m_creature->IsInRange(m_creature->getVictim(), 0, 5.0f))
+			{
+				m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+				m_creature->RemoveAurasDueToSpell(SPELL_TUNNEL_BORE_PASSIVE);
+				m_creature->RemoveAurasDueToSpell(SPELL_TUNNEL_BORE_BONE_PASSIVE);
+				m_creature->RemoveAurasDueToSpell(SPELL_SANDWORM_SUBMERGE_VISUAL);
+
+				if (DoCastSpellIfCan(m_creature, SPELL_BIRTH) == CAST_OK)
+				{
+					m_creature->GetMotionMaster()->MoveIdle();
+					SetCombatMovement(false);
+					m_uiPhase = PHASE_COMBAT;
+					m_uiBirthDelayTimer = 2000;
+				}
+			}
+		}
+	}
+};
+
+CreatureAI* GetAI_npc_burster_worm(Creature* pCreature)
+{
+	return new npc_burster_wormAI(pCreature);
+}
+
 void AddSC_npcs_special()
 {
     Script* pNewScript;
@@ -944,6 +1213,11 @@ void AddSC_npcs_special()
     pNewScript->Name = "npc_injured_patient";
     pNewScript->GetAI = &GetAI_npc_injured_patient;
     pNewScript->RegisterSelf();
+
+	pNewScript = new Script;
+	pNewScript->Name = "npc_dancing_flames";
+	pNewScript->GetAI = &GetAI_npc_dancing_flames;
+	pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_doctor";
@@ -972,4 +1246,9 @@ void AddSC_npcs_special()
     pNewScript->GetAI = &GetAI_npc_redemption_target;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_redemption_target;
     pNewScript->RegisterSelf();
+
+	pNewScript = new Script;
+	pNewScript->Name = "npc_burster_worm";
+	pNewScript->GetAI = &GetAI_npc_burster_worm;
+	pNewScript->RegisterSelf();
 }
