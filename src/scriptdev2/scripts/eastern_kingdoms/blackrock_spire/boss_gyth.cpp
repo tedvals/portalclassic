@@ -58,10 +58,10 @@ struct boss_gythAI : public ScriptedAI
 
     void Reset() override
     {
-        uiCorrosiveAcidTimer = 8000;
-        uiFreezeTimer        = 11000;
-        uiFlamebreathTimer   = 4000;
-        uiKnockAwayTimer     = 23000;
+        uiCorrosiveAcidTimer = Randomize(8000);
+        uiFreezeTimer        = Randomize(11000);
+        uiFlamebreathTimer   = Randomize(4000);
+        uiKnockAwayTimer     = Randomize(23000);
         m_bSummonedRend      = false;
         m_bHasChromaticChaos = false;
 
@@ -97,7 +97,7 @@ struct boss_gythAI : public ScriptedAI
         if (uiCorrosiveAcidTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_CORROSIVE_ACID) == CAST_OK)
-                uiCorrosiveAcidTimer = 7000;
+                uiCorrosiveAcidTimer = Randomize(7000);
         }
         else
             uiCorrosiveAcidTimer -= uiDiff;
@@ -106,7 +106,7 @@ struct boss_gythAI : public ScriptedAI
         if (uiFreezeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FREEZE) == CAST_OK)
-                uiFreezeTimer = 16000;
+                uiFreezeTimer = Randomize(16000);
         }
         else
             uiFreezeTimer -= uiDiff;
@@ -115,7 +115,7 @@ struct boss_gythAI : public ScriptedAI
         if (uiFlamebreathTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FLAME_BREATH) == CAST_OK)
-                uiFlamebreathTimer = 10500;
+                uiFlamebreathTimer = Randomize(10500);
         }
         else
             uiFlamebreathTimer -= uiDiff;
@@ -123,7 +123,7 @@ struct boss_gythAI : public ScriptedAI
         if (uiKnockAwayTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
-                uiKnockAwayTimer = 23000;
+                uiKnockAwayTimer = Randomize(23000);
         }
         else
             uiKnockAwayTimer -= uiDiff;

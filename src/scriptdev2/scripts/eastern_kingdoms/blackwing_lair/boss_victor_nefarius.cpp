@@ -265,7 +265,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_SHADOWBOLT) == CAST_OK)
-                        m_uiShadowBoltTimer = urand(2000, 4000);
+                        m_uiShadowBoltTimer = Randomize(urand(2000, 4000));
                 }
             }
             else
@@ -277,7 +277,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_FEAR) == CAST_OK)
-                        m_uiFearTimer = urand(10000, 20000);
+                        m_uiFearTimer = Randomize(urand(10000, 20000));
                 }
             }
             else
@@ -287,7 +287,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
             if (m_uiShadowboltVolleyTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SHADOWBOLT_VOLLEY) == CAST_OK)
-                    m_uiShadowboltVolleyTimer = urand(19000, 28000);
+                    m_uiShadowboltVolleyTimer = Randomize(urand(19000, 28000));
             }
             else
                 m_uiShadowboltVolleyTimer -= uiDiff;
@@ -298,7 +298,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_SILENCE) == CAST_OK)
-                        m_uiSilenceTimer = urand(14000, 23000);
+                        m_uiSilenceTimer = Randomize(urand(14000, 23000));
                 }
             }
             else
@@ -310,7 +310,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_COMMAND) == CAST_OK)
-                        m_uiShadowCommandTimer = urand(24000, 30000);
+                        m_uiShadowCommandTimer = Randomize(urand(24000, 30000));
                 }
             }
             else
@@ -320,7 +320,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
             if (m_uiShadowBlinkTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SHADOWBLINK) == CAST_OK)
-                    m_uiShadowBlinkTimer = urand(30000, 40000);
+                    m_uiShadowBlinkTimer = Randomize(urand(30000, 40000));
             }
             else
                 m_uiShadowBlinkTimer -= uiDiff;
@@ -354,7 +354,7 @@ struct boss_victor_nefariusAI : public ScriptedAI, private DialogueHelper
                     m_creature->SummonCreature(NPC_NEFARIAN, aNefarianLocs[2].m_fX, aNefarianLocs[2].m_fY, aNefarianLocs[2].m_fZ, 0, TEMPSUMMON_DEAD_DESPAWN, 0, true);
                 }
 
-                m_uiAddSpawnTimer = 4000;
+                m_uiAddSpawnTimer = Randomize(4000);
             }
             else
                 m_uiAddSpawnTimer -= uiDiff;

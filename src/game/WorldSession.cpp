@@ -39,14 +39,14 @@
 #include "LootMgr.h"
 #include "LuaEngine.h"
 
-#include <mutex>
-#include <deque>
-#include <memory>
-#include <cstdarg>
 
 // Playerbot mod
 #include "playerbot/PlayerbotMgr.h"
 #include "playerbot/PlayerbotAI.h"
+#include <mutex>
+#include <deque>
+#include <memory>
+#include <cstdarg>
 
 // select opcodes appropriate for processing in Map::Update context for current session state
 static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
@@ -123,15 +123,26 @@ char const* WorldSession::GetPlayerName() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const& packet) const
 {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
     // Playerbot mod: send packet to bot AI
     if (GetPlayer()) {
         if (GetPlayer()->GetPlayerbotAI())
-            GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(*packet);
+            GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(packet);
         else if (GetPlayer()->GetPlayerbotMgr())
-            GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(*packet);
+            GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(packet);
     }
 
+<<<<<<< HEAD
     if (!m_Socket)
+=======
+	if (!m_Socket)
+		 return;
+    if (m_Socket->IsClosed())
+
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
         return;
 
 #ifdef MANGOS_DEBUG
@@ -304,9 +315,13 @@ bool WorldSession::Update(PacketFilter& updater)
                 KickPlayer();
             }
         }
+<<<<<<< HEAD
 
         delete packet;
+=======
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
     }
+
 
     // Playerbot mod - Process player bot packets
     // The PlayerbotAI class adds to the packet queue to simulate a real player
@@ -322,17 +337,19 @@ bool WorldSession::Update(PacketFilter& updater)
                 botPlayer->GetPlayerbotAI()->HandleTeleportAck();
             else if (botPlayer->IsInWorld())
             {
-                WorldPacket* packet;
-                while (pBotWorldSession->_recvQueue.next(packet))
+				/**/
+				std::for_each(pBotWorldSession->m_recvQueue.begin(), pBotWorldSession->m_recvQueue.end(), [&pBotWorldSession](std::unique_ptr<WorldPacket> &packet)
                 {
                     OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
                     (pBotWorldSession->*opHandle.handler)(*packet);
-                    delete packet;
-                }
+                    //delete packet;
+				});
+				pBotWorldSession->m_recvQueue.clear();
             }
         }
     }
 
+<<<<<<< HEAD
     ///- Cleanup socket pointer if need
     if (m_Socket && m_Socket->IsClosed())
     {
@@ -340,6 +357,9 @@ bool WorldSession::Update(PacketFilter& updater)
         m_Socket = NULL;
     }
 
+=======
+    
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
     // check if we are safe to proceed with logout
     // logout procedure should happen only in World::UpdateSessions() method!!!
     if (updater.ProcessLogout())
@@ -502,7 +522,7 @@ void WorldSession::LogoutPlayer(bool save)
 
         // remove player from the group if he is:
         // a) in group; b) not in raid group; c) logging out normally (not being kicked or disconnected)
-        if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && !m_Socket->IsClosed())
+		if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && m_Socket && !m_Socket->IsClosed())
             _player->RemoveFromGroup();
 
         ///- Send update to group
@@ -514,12 +534,19 @@ void WorldSession::LogoutPlayer(bool save)
         sSocialMgr.RemovePlayerSocial(_player->GetGUIDLow());
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Playerbot - remember player GUID for update SQL below
         uint32 guid = _player->GetGUIDLow();
 =======
         ///- used by eluna
         sEluna->OnLogout(_player);
 >>>>>>> cd816aed92e9a68461dee8fc6a2319f46f9cf1a5
+=======
+        // Playerbot - remember player GUID for update SQL below
+        uint32 guid = _player->GetGUIDLow();
+        ///- used by eluna
+        sEluna->OnLogout(_player);
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
 
         ///- Remove the player from the world
         // the player may not be in the world when logging out
@@ -564,8 +591,10 @@ void WorldSession::LogoutPlayer(bool save)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-    if (!m_Socket->IsClosed())
-        m_Socket->Close();
+
+	if (m_Socket && !m_Socket->IsClosed())
+
+		m_Socket->Close();
 }
 
 /// Cancel channeling handler

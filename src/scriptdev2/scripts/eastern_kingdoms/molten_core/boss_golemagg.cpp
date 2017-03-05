@@ -59,9 +59,9 @@ struct boss_golemaggAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiPyroblastTimer  = 7 * IN_MILLISECONDS;
-        m_uiEarthquakeTimer = 3 * IN_MILLISECONDS;
-        m_uiBuffTimer       = 1.5 * IN_MILLISECONDS;
+        m_uiPyroblastTimer  = Randomize(7 * IN_MILLISECONDS);
+        m_uiEarthquakeTimer = Randomize(3 * IN_MILLISECONDS);
+        m_uiBuffTimer       = Randomize(1.5 * IN_MILLISECONDS);
         m_bEnraged = false;
     }
 
@@ -97,7 +97,7 @@ struct boss_golemaggAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_PYROBLAST) == CAST_OK)
-                    m_uiPyroblastTimer = 7 * IN_MILLISECONDS;
+                    m_uiPyroblastTimer = Randomize(7 * IN_MILLISECONDS);
             }
         }
         else
@@ -116,7 +116,7 @@ struct boss_golemaggAI : public ScriptedAI
             if (m_uiEarthquakeTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_EARTHQUAKE) == CAST_OK)
-                    m_uiEarthquakeTimer = 3 * IN_MILLISECONDS;
+                    m_uiEarthquakeTimer = Randomize(3 * IN_MILLISECONDS);
             }
             else
                 m_uiEarthquakeTimer -= uiDiff;
@@ -126,7 +126,7 @@ struct boss_golemaggAI : public ScriptedAI
         if (m_uiBuffTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature, SPELL_GOLEMAGG_TRUST);
-            m_uiBuffTimer = 1.5 * IN_MILLISECONDS;
+            m_uiBuffTimer = Randomize(1.5 * IN_MILLISECONDS);
         }
         else
             m_uiBuffTimer -= uiDiff;
@@ -150,7 +150,7 @@ struct mob_core_ragerAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMangleTimer = 7 * IN_MILLISECONDS;              // These times are probably wrong
+        m_uiMangleTimer = Randomize(7 * IN_MILLISECONDS);              // These times are probably wrong
     }
 
     void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
@@ -180,7 +180,7 @@ struct mob_core_ragerAI : public ScriptedAI
         if (m_uiMangleTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MANGLE) == CAST_OK)
-                m_uiMangleTimer = 10 * IN_MILLISECONDS;
+                m_uiMangleTimer = Randomize(10 * IN_MILLISECONDS);
         }
         else
             m_uiMangleTimer -= uiDiff;

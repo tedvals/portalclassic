@@ -33,7 +33,7 @@ enum
 
     // Add spells
     SPELL_THRASH                = 8876,
-    SPELL_IMMOLATE              = 15733,
+	SPELL_IMMOLATE              = 20294,
     SPELL_ERUPTION              = 19497,
     SPELL_MASSIVE_ERUPTION      = 20483,                    // TODO possible on death
     SPELL_SEPARATION_ANXIETY    = 23492,                    // Used if separated too far from Garr
@@ -54,8 +54,8 @@ struct boss_garrAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiAntiMagicPulseTimer = 25000;
-        m_uiMagmaShacklesTimer = 15000;
+        m_uiAntiMagicPulseTimer = Randomize(25000);
+        m_uiMagmaShacklesTimer = Randomize(15000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -85,7 +85,7 @@ struct boss_garrAI : public ScriptedAI
         if (m_uiAntiMagicPulseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_ANTIMAGICPULSE) == CAST_OK)
-                m_uiAntiMagicPulseTimer = urand(10000, 15000);
+                m_uiAntiMagicPulseTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiAntiMagicPulseTimer -= uiDiff;
@@ -94,7 +94,7 @@ struct boss_garrAI : public ScriptedAI
         if (m_uiMagmaShacklesTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_MAGMASHACKLES) == CAST_OK)
-                m_uiMagmaShacklesTimer = urand(8000, 12000);
+                m_uiMagmaShacklesTimer = Randomize(urand(8000, 12000));
         }
         else
             m_uiMagmaShacklesTimer -= uiDiff;
@@ -111,15 +111,16 @@ struct mob_fireswornAI : public ScriptedAI
         Reset();
 
         DoCastSpellIfCan(m_creature, SPELL_THRASH, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
-        DoCastSpellIfCan(m_creature, SPELL_IMMOLATE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        //DoCastSpellIfCan(m_creature, SPELL_IMMOLATE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     ScriptedInstance* m_pInstance;
-
+	uint32 immolateTimer;
     uint32 m_uiSeparationCheckTimer;
 
     void Reset() override
     {
+		immolateTimer = Randomize(urand(4000, 8000));
         m_uiSeparationCheckTimer = 5000;
     }
 
@@ -134,13 +135,24 @@ struct mob_fireswornAI : public ScriptedAI
     void JustReachedHome() override
     {
         DoCastSpellIfCan(m_creature, SPELL_THRASH, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
-        DoCastSpellIfCan(m_creature, SPELL_IMMOLATE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        //DoCastSpellIfCan(m_creature, SPELL_IMMOLATE, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
+		
+		//immolateTimer
+		if (immolateTimer <= uiDiff)
+		{
+			if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+			{
+				if (DoCastSpellIfCan(pTarget, SPELL_IMMOLATE) == CAST_OK)
+					immolateTimer = Randomize(urand(5000, 10000));
+			}
+		}
+			else immolateTimer -= uiDiff;
 
         if (m_uiSeparationCheckTimer < uiDiff)
         {

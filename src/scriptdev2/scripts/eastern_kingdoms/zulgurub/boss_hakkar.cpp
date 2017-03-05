@@ -67,10 +67,10 @@ struct boss_hakkarAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiBloodSiphonTimer       = 90000;
-        m_uiCorruptedBloodTimer    = 25000;
-        m_uiCauseInsanityTimer     = 17000;
-        m_uiWillOfHakkarTimer      = 17000;
+        m_uiBloodSiphonTimer       = Randomize(90000);
+        m_uiCorruptedBloodTimer    = Randomize(25000);
+        m_uiCauseInsanityTimer     = Randomize(17000);
+        m_uiWillOfHakkarTimer      = Randomize(17000);
         m_uiEnrageTimer            = 10 * MINUTE * IN_MILLISECONDS;
 
         m_uiAspectOfJeklikTimer    = 4000;
@@ -108,7 +108,7 @@ struct boss_hakkarAI : public ScriptedAI
         if (m_uiBloodSiphonTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BLOOD_SIPHON) == CAST_OK)
-                m_uiBloodSiphonTimer = 90000;
+                m_uiBloodSiphonTimer = Randomize(90000);
         }
         else
             m_uiBloodSiphonTimer -= uiDiff;
@@ -119,7 +119,7 @@ struct boss_hakkarAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_CORRUPTED_BLOOD) == CAST_OK)
-                    m_uiCorruptedBloodTimer = urand(30000, 45000);
+                    m_uiCorruptedBloodTimer = Randomize(urand(30000, 45000));
             }
         }
         else
@@ -131,10 +131,10 @@ struct boss_hakkarAI : public ScriptedAI
             if (m_creature->getThreatManager().getThreatList().size() > 1)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CAUSE_INSANITY) == CAST_OK)
-                    m_uiCauseInsanityTimer = urand(10000, 15000);
+                    m_uiCauseInsanityTimer = Randomize(urand(10000, 15000));
             }
             else // Solo case, check again later
-                m_uiCauseInsanityTimer = urand(35000, 43000);
+                m_uiCauseInsanityTimer = Randomize(urand(35000, 43000));
         }
         else
             m_uiCauseInsanityTimer -= uiDiff;
@@ -145,10 +145,10 @@ struct boss_hakkarAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_WILL_OF_HAKKAR) == CAST_OK)
-                    m_uiWillOfHakkarTimer = urand(25000, 35000);
+                    m_uiWillOfHakkarTimer = Randomize(urand(25000, 35000));
             }
             else // solo attempt, try again later
-                m_uiWillOfHakkarTimer = 25000;
+                m_uiWillOfHakkarTimer = Randomize(25000);
         }
         else
             m_uiWillOfHakkarTimer -= uiDiff;
@@ -167,7 +167,7 @@ struct boss_hakkarAI : public ScriptedAI
             if (m_uiAspectOfJeklikTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_ASPECT_OF_JEKLIK) == CAST_OK)
-                    m_uiAspectOfJeklikTimer = urand(10000, 14000);
+                    m_uiAspectOfJeklikTimer = Randomize(urand(10000, 14000));
             }
             else
                 m_uiAspectOfJeklikTimer -= uiDiff;
@@ -179,7 +179,7 @@ struct boss_hakkarAI : public ScriptedAI
             if (m_uiAspectOfVenoxisTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_ASPECT_OF_VENOXIS) == CAST_OK)
-                    m_uiAspectOfVenoxisTimer = 8000;
+                    m_uiAspectOfVenoxisTimer = Randomize(8000);
             }
             else
                 m_uiAspectOfVenoxisTimer -= uiDiff;
@@ -191,7 +191,7 @@ struct boss_hakkarAI : public ScriptedAI
             if (m_uiAspectOfMarliTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ASPECT_OF_MARLI) == CAST_OK)
-                    m_uiAspectOfMarliTimer = 10000;
+                    m_uiAspectOfMarliTimer = Randomize(10000);
             }
             else
                 m_uiAspectOfMarliTimer -= uiDiff;
@@ -203,7 +203,7 @@ struct boss_hakkarAI : public ScriptedAI
             if (m_uiAspectOfThekalTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_ASPECT_OF_THEKAL) == CAST_OK)
-                    m_uiAspectOfThekalTimer = 15000;
+                    m_uiAspectOfThekalTimer = Randomize(15000);
             }
             else
                 m_uiAspectOfThekalTimer -= uiDiff;
@@ -217,7 +217,7 @@ struct boss_hakkarAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ASPECT_OF_ARLOKK) == CAST_OK)
                 {
                     DoResetThreat();
-                    m_uiAspectOfArlokkTimer = urand(10000, 15000);
+                    m_uiAspectOfArlokkTimer = Randomize(urand(10000, 15000));
                 }
             }
             else

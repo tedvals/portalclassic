@@ -26,7 +26,7 @@
 #include "ObjectGuid.h"
 #include "Unit.h"
 #include "Player.h"
-#include "SQLStorages.h"
+#include "World.h"
 
 class WorldSession;
 class WorldPacket;
@@ -41,14 +41,14 @@ enum SpellCastFlags
 {
     CAST_FLAG_NONE              = 0x00000000,
     CAST_FLAG_HIDDEN_COMBATLOG  = 0x00000001,               // hide in combat log?
-    CAST_FLAG_UNKNOWN2          = 0x00000002,
+    CAST_FLAG_UNKNOWN2          = 0x00000002,               // Sent on SMSG_SPELL_START
     CAST_FLAG_UNKNOWN3          = 0x00000004,
     CAST_FLAG_UNKNOWN4          = 0x00000008,
-    CAST_FLAG_UNKNOWN5          = 0x00000010,
+	CAST_FLAG_PERSISTENT_AA     = 0x00000010,               // Spell has Persistent AA effect
     CAST_FLAG_AMMO              = 0x00000020,               // Projectiles visual
-    CAST_FLAG_UNKNOWN7          = 0x00000040,               // !0x41 mask used to call CGTradeSkillInfo::DoRecast
+    CAST_FLAG_UNKNOWN7          = 0x00000040,               //  Item related?
     CAST_FLAG_UNKNOWN8          = 0x00000080,
-    CAST_FLAG_UNKNOWN9          = 0x00000100,
+    CAST_FLAG_UNKNOWN9          = 0x00000100,               // Sent on SMSG_SPELL_GO
 };
 
 enum SpellNotifyPushType
@@ -281,6 +281,7 @@ class Spell
         void EffectParry(SpellEffectIndex eff_idx);
         void EffectBlock(SpellEffectIndex eff_idx);
         void EffectLeapForward(SpellEffectIndex eff_idx);
+		void EffectLeapBack(SpellEffectIndex eff_idx);
         void EffectTransmitted(SpellEffectIndex eff_idx);
         void EffectDisEnchant(SpellEffectIndex eff_idx);
         void EffectInebriate(SpellEffectIndex eff_idx);
@@ -290,6 +291,9 @@ class Spell
         void EffectSelfResurrect(SpellEffectIndex eff_idx);
         void EffectSkinning(SpellEffectIndex eff_idx);
         void EffectCharge(SpellEffectIndex eff_idx);
+		void EffectCharge2(SpellEffectIndex eff_idx);
+		void EffectProspecting(SpellEffectIndex eff_idx);
+		void EffectRedirectThreat(SpellEffectIndex eff_idx);
         void EffectSendTaxi(SpellEffectIndex eff_idx);
         void EffectSummonCritter(SpellEffectIndex eff_idx);
         void EffectKnockBack(SpellEffectIndex eff_idx);
@@ -307,6 +311,19 @@ class Spell
         void EffectSpiritHeal(SpellEffectIndex eff_idx);
         void EffectSkinPlayerCorpse(SpellEffectIndex eff_idx);
         void EffectSummonDemon(SpellEffectIndex eff_idx);
+	    void EffectReforgeItem(SpellEffectIndex eff_idx);
+        void EffectStealBeneficialBuff(SpellEffectIndex eff_idx);
+        void EffectUnlearnSpecialization(SpellEffectIndex eff_idx);
+        void EffectHealPct(SpellEffectIndex eff_idx);
+        void EffectEnergisePct(SpellEffectIndex eff_idx);
+		void EffectForceCast(SpellEffectIndex eff_idx);
+        void EffectTriggerSpellWithValue(SpellEffectIndex eff_idx);
+        void EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx);
+        void EffectKillCreditGroup(SpellEffectIndex eff_idx);
+        void EffectQuestFail(SpellEffectIndex eff_idx);
+        void EffectPlaySound(SpellEffectIndex eff_idx);
+        void EffectPlayMusic(SpellEffectIndex eff_idx);
+        void EffectKnockBackFromPosition(SpellEffectIndex eff_idx);
 
         Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         ~Spell();
@@ -383,6 +400,7 @@ class Spell
         
         // Trigger flag system
         bool m_ignoreHitResult;
+		bool m_ignoreCastTime;
         bool m_ignoreUnselectableTarget;
 
         int32 GetCastTime() const { return m_casttime; }
@@ -470,7 +488,7 @@ class Spell
         int32 m_duration;
         bool m_reflectable;                                  // can reflect this spell?
         bool m_autoRepeat;
-
+		
         uint8 m_delayAtDamageCount;
         int32 GetNextDelayAtDamageMsTime() { return m_delayAtDamageCount < 5 ? 1000 - (m_delayAtDamageCount++) * 200 : 200; }
 
@@ -519,7 +537,7 @@ class Spell
         //*****************************************
         void FillTargetMap();
         void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList& targetUnitMap);
-        void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> &bounds, UnitList &tempTargetUnitMap, UnitList &targetUnitMap, SpellEffectIndex effIndex);
+		static void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> &bounds, UnitList &tempTargetUnitMap, UnitList &targetUnitMap, SpellEffectIndex effIndex);
 
         void FillAreaTargets(UnitList& targetUnitMap, float radius, SpellNotifyPushType pushType, SpellTargets spellTargets, WorldObject* originalCaster = nullptr);
         void FillRaidOrPartyTargets(UnitList& targetUnitMap, Unit* member, float radius, bool raid, bool withPets, bool withcaster) const;
@@ -751,7 +769,13 @@ namespace MaNGOS
                         }
                         else
                         {
-                            if (!i_originalCaster->IsHostileTo(itr->getSource()))
+							if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_FRIENDLY_FIRE)) //custom	friendly fire does not effect holy school and totems and NPCs
+							{
+								if (!i_originalCaster->GetObjectGuid().IsPlayer() || (itr->getSource() && !itr->getSource()->isInCombat()) || !(i_spell.m_spellSchoolMask & SPELL_SCHOOL_MASK_FF_SPELL) )
+									if (!i_originalCaster->IsHostileTo(itr->getSource()))
+										continue;						
+							}
+                            else if (!i_originalCaster->IsHostileTo(itr->getSource()))
                                 continue;
                         }
                     }

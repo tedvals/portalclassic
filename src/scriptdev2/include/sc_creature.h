@@ -217,6 +217,8 @@ struct ScriptedAI : public CreatureAI
 
         bool EnterEvadeIfOutOfCombatArea(const uint32 uiDiff);
 
+		uint32 Randomize(uint32 interval);
+
     private:
         uint32 m_uiEvadeCheckCooldown;
 };

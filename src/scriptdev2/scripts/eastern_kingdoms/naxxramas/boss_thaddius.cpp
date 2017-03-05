@@ -101,8 +101,8 @@ struct boss_thaddiusAI : public Scripted_NoMovementAI
 
     void Reset() override
     {
-        m_uiPolarityShiftTimer = 15 * IN_MILLISECONDS;
-        m_uiChainLightningTimer = 8 * IN_MILLISECONDS;
+        m_uiPolarityShiftTimer = Randomize(15 * IN_MILLISECONDS);
+        m_uiChainLightningTimer = Randomize(8 * IN_MILLISECONDS);
         m_uiBallLightningTimer = 1 * IN_MILLISECONDS;
         m_uiBerserkTimer = 6 * MINUTE * IN_MILLISECONDS;
 
@@ -195,7 +195,7 @@ struct boss_thaddiusAI : public Scripted_NoMovementAI
             {
                 DoScriptText(SAY_ELECT, m_creature);
                 DoScriptText(EMOTE_POLARITY_SHIFT, m_creature);
-                m_uiPolarityShiftTimer = 30 * IN_MILLISECONDS;
+                m_uiPolarityShiftTimer = Randomize(30 * IN_MILLISECONDS);
             }
         }
         else
@@ -206,7 +206,7 @@ struct boss_thaddiusAI : public Scripted_NoMovementAI
         {
             Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
             if (pTarget && DoCastSpellIfCan(pTarget, SPELL_CHAIN_LIGHTNING) == CAST_OK)
-                m_uiChainLightningTimer = 15 * IN_MILLISECONDS;
+                m_uiChainLightningTimer = Randomize(15 * IN_MILLISECONDS);
         }
         else
             m_uiChainLightningTimer -= uiDiff;
@@ -422,7 +422,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
 
         m_uiReviveTimer = 5 * IN_MILLISECONDS;
         m_uiHoldTimer = 2 * IN_MILLISECONDS;
-        m_uiWarStompTimer = urand(8 * IN_MILLISECONDS, 10 * IN_MILLISECONDS);
+        m_uiWarStompTimer = Randomize(urand(8 * IN_MILLISECONDS, 10 * IN_MILLISECONDS));
 
         // We might Reset while faking death, so undo this
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -578,7 +578,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         if (m_uiWarStompTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_WARSTOMP) == CAST_OK)
-                m_uiWarStompTimer = urand(8 * IN_MILLISECONDS, 10 * IN_MILLISECONDS);
+                m_uiWarStompTimer = Randomize(urand(8 * IN_MILLISECONDS, 10 * IN_MILLISECONDS));
         }
         else
             m_uiWarStompTimer -= uiDiff;
@@ -635,7 +635,7 @@ struct boss_stalaggAI : public boss_thaddiusAddsAI
     void Reset() override
     {
         boss_thaddiusAddsAI::Reset();
-        m_uiPowerSurgeTimer = urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
+        m_uiPowerSurgeTimer = Randomize(urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
     }
 
     void Aggro(Unit* pWho) override
@@ -660,7 +660,7 @@ struct boss_stalaggAI : public boss_thaddiusAddsAI
         if (m_uiPowerSurgeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_POWERSURGE) == CAST_OK)
-                m_uiPowerSurgeTimer = urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
+                m_uiPowerSurgeTimer = Randomize(urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
         }
         else
             m_uiPowerSurgeTimer -= uiDiff;
@@ -688,8 +688,8 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
     void Reset() override
     {
         boss_thaddiusAddsAI::Reset();
-        m_uiStaticFieldTimer = urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
-        m_uiMagneticPullTimer = 20 * IN_MILLISECONDS;
+        m_uiStaticFieldTimer = Randomize(urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
+        m_uiMagneticPullTimer = Randomize(20 * IN_MILLISECONDS);
     }
 
     void Aggro(Unit* pWho) override
@@ -714,7 +714,7 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
         if (m_uiStaticFieldTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_STATIC_FIELD) == CAST_OK)
-                m_uiStaticFieldTimer = urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS);
+                m_uiStaticFieldTimer = Randomize(urand(10 * IN_MILLISECONDS, 15 * IN_MILLISECONDS));
         }
         else
             m_uiStaticFieldTimer -= uiDiff;

@@ -131,7 +131,8 @@ enum SpellModOp
     SPELLMOD_HASTE                  = 23,
     SPELLMOD_SPELL_BONUS_DAMAGE     = 24,
     SPELLMOD_MULTIPLE_VALUE         = 27,
-    SPELLMOD_RESIST_DISPEL_CHANCE   = 28
+    SPELLMOD_RESIST_DISPEL_CHANCE   = 28,
+	SPELLMOD_SPELL_COST_REFUND_ON_FAIL = 29
 };
 
 #define MAX_SPELLMOD 32
@@ -315,6 +316,7 @@ enum TriggerCastFlags : uint32
     TRIGGERED_OLD_TRIGGERED                     = 0x00000001,   // Legacy bool support TODO: Restrict usage as much as possible.
     TRIGGERED_IGNORE_HIT_CALCULATION            = 0x00000002,   // Will ignore calculating hit in SpellHitResult
     TRIGGERED_IGNORE_UNSELECTABLE_FLAG          = 0x00000004,   // Ignores UNIT_FLAG_NOT_SELECTABLE in CheckTarget
+	TRIGGERED_INSTANT_CAST                      = 0x00000008,   // Will ignore any cast time set in spell entry
     TRIGGERED_FULL_MASK                         = 0xFFFFFFFF
 };
 
@@ -407,6 +409,8 @@ enum UnitState
     UNIT_STAT_FOLLOW_MOVE     = 0x00010000,
     UNIT_STAT_FLEEING         = 0x00020000,                 // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
     UNIT_STAT_FLEEING_MOVE    = 0x00040000,
+	UNIT_STAT_SEEKING_ASSISTANCE = 0x00080000,
+	UNIT_STAT_DONT_TURN = 0x00100000,                 // Creature will not turn and acquire new target
     // More room for other MMGens
 
     // High-Level states (usually only with Creatures)
@@ -462,6 +466,62 @@ enum UnitMoveType
 };
 
 #define MAX_MOVE_TYPE     6
+
+
+enum CombatRating
+{
+	CR_WEAPON_SKILL = 0,
+	CR_DEFENSE_SKILL = 1,
+	CR_DODGE = 2,
+	CR_PARRY = 3,
+	CR_BLOCK = 4,
+	CR_HIT_MELEE = 5,
+	CR_HIT_RANGED = 6,
+	CR_HIT_SPELL = 7,
+	CR_CRIT_MELEE = 8,
+	CR_CRIT_RANGED = 9,
+	CR_CRIT_SPELL = 10,
+	CR_HIT_TAKEN_MELEE = 11,
+	CR_HIT_TAKEN_RANGED = 12,
+	CR_HIT_TAKEN_SPELL = 13,
+	CR_CRIT_TAKEN_MELEE = 14,
+	CR_CRIT_TAKEN_RANGED = 15,
+	CR_CRIT_TAKEN_SPELL = 16,
+	CR_HASTE_MELEE = 17,
+	CR_HASTE_RANGED = 18,
+	CR_HASTE_SPELL = 19,
+	CR_WEAPON_SKILL_MAINHAND = 20,
+	CR_WEAPON_SKILL_OFFHAND = 21,
+	CR_WEAPON_SKILL_RANGED = 22,
+	CR_EXPERTISE = 23
+};
+
+#define MAX_COMBAT_RATING         24
+
+enum RatingMask
+{
+	RATING_MASK_NONE = 0x00,
+	RATING_MASK_WEAPON_SKILL = (1 << CR_WEAPON_SKILL),
+	RATING_MASK_DEFENSE_SKILL = (1 << CR_DEFENSE_SKILL),
+	RATING_MASK_DODGE_RATING = (1 << CR_DODGE),
+	RATING_MASK_PARRY_RATING = (1 << CR_PARRY),
+	RATING_MASK_BLOCK_RATING = (1 << CR_BLOCK),
+	RATING_MASK_HIT_MELEE_RATING = (1 << CR_HIT_MELEE),
+	RATING_MASK_HIT_RANGED_RATING = (1 << CR_HIT_RANGED),
+	RATING_MASK_HIT_SPELL_RATING = (1 << CR_HIT_SPELL),
+	RATING_MASK_CRIT_MELEE_RATING = (1 << CR_CRIT_MELEE),
+	RATING_MASK_CRIT_RANGED_RATING = (1 << CR_CRIT_RANGED),
+	RATING_MASK_CRIT_SPELL_RATING = (1 << CR_CRIT_SPELL),
+	RATING_MASK_HIT_TAKEN_MELEE_RATING = (1 << CR_HIT_TAKEN_MELEE),
+	RATING_MASK_HIT_TAKEN_RANGED_RATING = (1 << CR_HIT_TAKEN_RANGED),
+	RATING_MASK_HIT_TAKEN_SPELL_RATING = (1 << CR_HIT_TAKEN_SPELL),
+	RATING_MASK_CRIT_TAKEN_MELEE_RATING = (1 << CR_CRIT_TAKEN_MELEE),
+	RATING_MASK_CRIT_TAKEN_RANGED_RATING = (1 << CR_CRIT_TAKEN_RANGED),
+	RATING_MASK_CRIT_TAKEN_SPELL_RATING = (1 << CR_CRIT_TAKEN_SPELL),
+	RATING_MASK_HASTE_MELEE_RATING = (1 << CR_HASTE_MELEE),
+	RATING_MASK_HASTE_RANGED_RATING = (1 << CR_HASTE_RANGED),
+	RATING_MASK_HASTE_SPELL_RATING = (1 << CR_HASTE_SPELL),
+};
 
 /// internal used flags for marking special auras - for example some dummy-auras
 enum UnitAuraFlags
@@ -1082,8 +1142,8 @@ enum ReactiveType
 {
     REACTIVE_DEFENSE      = 1,
     REACTIVE_HUNTER_PARRY = 2,
-    // REACTIVE_CRIT         = 3,
-    // REACTIVE_HUNTER_CRIT  = 4,
+    REACTIVE_CRIT         = 3,
+    REACTIVE_HUNTER_CRIT  = 4,
     REACTIVE_OVERPOWER    = 5
 };
 
@@ -1304,7 +1364,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
          * @return false if we weren't attacking already, true otherwise
          * \see Unit::m_attacking
          */
-        bool AttackStop(bool targetSwitch = false, bool includingCast = false);
+		virtual bool AttackStop(bool targetSwitch = false, bool includingCast = false, bool includingCombo = false);
         /**
          * Removes all attackers from the Unit::m_attackers set and logs it if someone that
          * wasn't attacking it was in the list. Does this check by checking if Unit::AttackStop()
@@ -1319,7 +1379,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool isAttackingPlayer() const;                     //< Returns if this unit is attacking a player (or this unit's minions/pets are attacking a player)
 
         Unit* getVictim() const { return m_attacking; }     //< Returns the victim that this unit is currently attacking
-        void CombatStop(bool includingCast = false);        //< Stop this unit from combat, if includingCast==true, also interrupt casting
+		void CombatStop(bool includingCast = false, bool includingCombo = true);         //< Stop this unit from combat, if includingCast==true, also interrupt casting
         void CombatStopWithPets(bool includingCast = false);
         void StopAttackFaction(uint32 faction_id);
         Unit* SelectRandomUnfriendlyTarget(Unit* except = nullptr, float radius = ATTACK_DISTANCE) const;
@@ -1355,6 +1415,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         uint32 GetHealth()    const { return GetUInt32Value(UNIT_FIELD_HEALTH); }
         uint32 GetMaxHealth() const { return GetUInt32Value(UNIT_FIELD_MAXHEALTH); }
+		//uint8 GetHealthPercent() const { return (static_cast<float> (GetHealth()) / GetMaxHealth()) * 100; }
 
         bool IsFullHealth() const { return GetHealth() == GetMaxHealth(); }
         bool HealthBelowPct(int32 pct) const { return GetHealth() < CountPctFromMaxHealth(pct); }
@@ -1392,6 +1453,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 getFaction() const { return GetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE); }
         void setFaction(uint32 faction) { SetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE, faction); }
         FactionTemplateEntry const* getFactionTemplateEntry() const;
+		void RestoreOriginalFaction();
         bool IsHostileTo(Unit const* unit) const override;
         bool IsHostileToPlayers() const;
         bool IsFriendlyTo(Unit const* unit) const override;
@@ -1429,8 +1491,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void PetOwnerKilledUnit(Unit* pVictim);
 
-        void ProcDamageAndSpell(Unit* pVictim, uint32 procAttacker, uint32 procVictim, uint32 procEx, uint32 amount, WeaponAttackType attType = BASE_ATTACK, SpellEntry const* procSpell = nullptr);
-        void ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellEntry const* procSpell, uint32 damage);
+		void ProcDamageAndSpell(Unit* pVictim, uint32 procAttacker, uint32 procVictim, uint32 procEx, uint32 amount, WeaponAttackType attType = BASE_ATTACK, SpellEntry const* procSpell = nullptr, bool dontTriggerSpecial = true);
+		void ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellEntry const* procSpell, uint32 damage, bool dontTriggerSpecial);
 
         void HandleEmote(uint32 emote_id);                  // auto-select command/state
         void HandleEmoteCommand(uint32 emote_id);
@@ -1439,6 +1501,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         void CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, WeaponAttackType attackType = BASE_ATTACK);
         void DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss);
+
+		int32 CalculateAuraDuration(SpellEntry const* spellProto, uint32 effectMask, int32 duration, Unit const* caster);
 
         void CalculateSpellDamage(SpellNonMeleeDamage* damageInfo, int32 damage, SpellEntry const* spellInfo, WeaponAttackType attackType = BASE_ATTACK);
         void DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss);
@@ -1587,6 +1651,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         }
 
         bool HasAuraType(AuraType auraType) const;
+		bool HasAuraWithMechanic(uint32 mechanic) const;
+		bool HasAuraWithMiscValue(AuraType auraType, uint32 value) const;
         bool HasAffectedAura(AuraType auraType, SpellEntry const* spellProto) const;
         bool HasAura(uint32 spellId, SpellEffectIndex effIndex) const;
         bool HasAura(uint32 spellId) const
@@ -1601,8 +1667,19 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool isFeared()  const { return HasAuraType(SPELL_AURA_MOD_FEAR); }
         bool isInRoots() const { return HasAuraType(SPELL_AURA_MOD_ROOT); }
         bool IsPolymorphed() const;
+		bool isPossessed() const { return hasUnitState(UNIT_STAT_CONTROLLED); }
+		bool isConfused() { return hasUnitState(UNIT_STAT_CONFUSED); }
+		bool isBleeding() { return HasAuraWithMechanic(MECHANIC_BLEED); }
+		bool hasReducedArmor() { return (GetTotalAuraModifierByMiscValue(SPELL_AURA_MOD_RESISTANCE, 1) < 0); }		
 
         bool isFrozen() const;
+		bool IsCharmed() const { return !(GetCharmer() == nullptr); }
+		bool isSnared() const { return HasAuraType(SPELL_AURA_MOD_DECREASE_SPEED); }
+
+		bool isAsleep() const { return HasAuraWithMechanic(MECHANIC_SLEEP); }
+		bool isSilenced()  const { return HasAuraWithMechanic(MECHANIC_SILENCE); }
+
+		bool UnderCc() { return isConfused() || IsIncapacitated() || IsPolymorphed() || isPossessed() || isFeared() || isInRoots(); }
 
         bool isTargetableForAttack(bool inversAlive = false) const;
         bool isPassiveToHostile() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE); }
@@ -1682,10 +1759,17 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SetFacingTo(float ori);
         void SetFacingToObject(WorldObject* pObject);
 
+<<<<<<< HEAD
         bool isAlive() const { return (m_deathState == ALIVE); };
         bool isDying() const { return (m_deathState == JUST_DIED); }
         bool isDead() const { return (m_deathState == DEAD || m_deathState == CORPSE); };
         DeathState getDeathState() const { return m_deathState; };
+=======
+        bool isAlive() const { return (m_deathState == ALIVE); }
+        bool isDead() const { return (m_deathState == DEAD || m_deathState == CORPSE); }
+		bool isDying() const { return (m_deathState == JUST_DIED); }
+        DeathState getDeathState() const { return m_deathState; }
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
         virtual void SetDeathState(DeathState s);           // overwritten in Creature/Player/Pet
 
         bool IsTargetUnderControl(Unit const& target) const;
@@ -1930,6 +2014,10 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);
         Aura* GetAura(AuraType type, SpellFamily family, uint64 familyFlag, ObjectGuid casterGuid = ObjectGuid());
+		Aura* GetBestAuraTypeByMechanic(AuraType auraType, uint32 mechanic, bool positiveValue = true);
+		Aura* GetBestAuraType(AuraType auraType, bool positiveValue = true);
+		Aura* GetBestAuraTypeBySchool(AuraType auraType, SpellSchoolMask schoolMask, bool positiveValue);
+		Aura* GetAuraWithMiscValue(AuraType auraType, uint32 value);
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid) const;
         SpellAuraHolder* GetSpellAuraHolder(uint32 spellid, ObjectGuid casterGUID) const;
 
@@ -2001,13 +2089,14 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 MeleeDamageBonusDone(Unit* pVictim, uint32 damage, WeaponAttackType attType, SpellEntry const* spellProto = nullptr, DamageEffectType damagetype = DIRECT_DAMAGE, uint32 stack = 1, bool flat = true);
         uint32 MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackType attType, SpellEntry const* spellProto = nullptr, DamageEffectType damagetype = DIRECT_DAMAGE, uint32 stack = 1, bool flat = true);
 
-        bool IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, SpellProcEventEntry const*& spellProcEvent);
+		bool IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, SpellProcEventEntry const*& spellProcEvent, bool dontTriggerSpecial);
         // Aura proc handlers
         SpellAuraProcResult HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleHasteAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleProcTriggerDamageAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleOverrideClassScriptAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
+		SpellAuraProcResult HandleMendingAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleModCastingSpeedNotStackAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleReflectSpellsSchoolAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
         SpellAuraProcResult HandleModPowerCostSchoolAuraProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown);
@@ -2050,6 +2139,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void SetSpeedRate(UnitMoveType mtype, float rate, bool forced = false);
 
         bool isHover() const { return HasAuraType(SPELL_AURA_HOVER); }
+
+		void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
+        void KnockBackWithAngle(float angle, float horizontalSpeed, float verticalSpeed);
 
         void _RemoveAllAuraMods();
         void _ApplyAllAuraMods();
@@ -2141,6 +2233,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         // Take charm of an unit
         bool TakeCharmOf(Unit* charmed);
 
+		void SetTurningOff(bool apply);
+
         // Reset control to player
         void ResetControlState(bool attackCharmer = true);
 
@@ -2213,6 +2307,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
     private:
         void CleanupDeletedAuras();
         void UpdateSplineMovement(uint32 t_diff);
+
+		float GetCombatRatingReduction(CombatRating cr) const;
+		uint32 GetCombatRatingDamageReduction(CombatRating cr, float rate, float cap, uint32 damage) const;
 
         Unit* _GetTotem(TotemSlot slot) const;              // for templated function without include need
         Pet* _GetPet(ObjectGuid guid) const;                // for templated function without include need

@@ -374,6 +374,11 @@ struct GameObjectDisplayInfoEntry
 // All Gt* DBC store data for 100 levels, some by 100 per class/race
 #define GT_MAX_LEVEL    100
 
+struct CombatRatingsEntry
+{
+	float    ratio;
+};
+
 struct ItemBagFamilyEntry
 {
     uint32   ID;                                            // 0        m_ID
@@ -625,7 +630,7 @@ struct SpellEntry
         uint32    manaPerSecondPerLevel;                    // 35
         uint32    rangeIndex;                               // 36
         float     speed;                                    // 37
-        //uint32    modalNextSpell;                           // 38 not used
+        uint32    modalNextSpell;                           // 38 not used
         uint32    StackAmount;                              // 39
         uint32    Totem[MAX_SPELL_TOTEMS];                  // 40-41
         int32     Reagent[MAX_SPELL_REAGENTS];              // 42-49
@@ -678,7 +683,6 @@ struct SpellEntry
         // uint32    MinFactionId;                          // 170 not used, and 0 in 2.4.2
         // uint32    MinReputation;                         // 171 not used, and 0 in 2.4.2
         // uint32    RequiredAuraVision;                    // 172 not used
-        uint32    IsServerSide;
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }

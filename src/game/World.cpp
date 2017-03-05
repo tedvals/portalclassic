@@ -23,7 +23,6 @@
 #include "World.h"
 #include "Database/DatabaseEnv.h"
 #include "Config/Config.h"
-#include "playerbot/config.h"
 #include "Platform/Define.h"
 #include "SystemConfig.h"
 #include "Log.h"
@@ -86,7 +85,6 @@ float World::m_MaxVisibleDistanceInFlight     = DEFAULT_VISIBILITY_DISTANCE;
 float World::m_VisibleUnitGreyDistance        = 0;
 float World::m_VisibleObjectGreyDistance      = 0;
 
-extern Config botConfig;
 float  World::m_relocation_lower_limit_sq     = 10.f * 10.f;
 uint32 World::m_relocation_ai_notify_delay    = 1000u;
 
@@ -382,7 +380,9 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS,                      "Rate.Rage.Loss",                            1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_FOCUS,                          "Rate.Focus",                                1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_LOYALTY,                              "Rate.Loyalty",                              1.0f);
+	setConfigPos(CONFIG_FLOAT_RATE_PET_HAPPINESS_GAIN,                   "Rate.Happiness",                            1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_ENERGY,                         "Rate.Energy",                               1.0f);
+	setConfigPos(CONFIG_FLOAT_RATE_PLAYER_MISS_CHANCE,					 "Rate.Player.Miss",						  5.0f);
     setConfigPos(CONFIG_FLOAT_RATE_SKILL_DISCOVERY,                      "Rate.Skill.Discovery",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_POOR,                       "Rate.Drop.Item.Poor",                       1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_NORMAL,                     "Rate.Drop.Item.Normal",                     1.0f);
@@ -587,6 +587,8 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_SKILL_CHANCE_MINING_STEPS,   "SkillChance.MiningSteps",   75);
     setConfig(CONFIG_UINT32_SKILL_CHANCE_SKINNING_STEPS, "SkillChance.SkinningSteps", 75);
+
+	setConfig(CONFIG_BOOL_SKILL_PROSPECTING, "SkillChance.Prospecting", false);
 
     setConfig(CONFIG_UINT32_SKILL_GAIN_CRAFTING,  "SkillGain.Crafting",  1);
     setConfig(CONFIG_UINT32_SKILL_GAIN_DEFENSE,   "SkillGain.Defense",   1);
@@ -795,12 +797,45 @@ void World::LoadConfigSettings(bool reload)
     std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: MMap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
+<<<<<<< HEAD
 
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
     setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", true);
     if (reload)
         sEluna->OnConfigLoad(reload);
+=======
+	// Custom Features
+	setConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE, "Custom.AdventureMode", false);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_MAX_LEVEL, "Custom.AdventureMaxLevel", 0);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP, "Custom.AdventureKillXP", 1);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP, "Custom.AdventurePVPXP", 100);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_DEATHXP, "Custom.AdventureDeathXP", 1000);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP, "Custom.AdventureItemXP", 10);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_LEVELXP, "Custom.AdventureLevelXP", 25);
+	setConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP, "Custom.AdventureBossOnlyXP", 5);
+
+	setConfig(CONFIG_BOOL_CUSTOM_RULES, "Custom.CustomRules", false);
+	setConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM, "Custom.RandomizeItem", false);
+	setConfig(CONFIG_BOOL_CUSTOM_FRIENDLY_FIRE, "Custom.FriendlyFire", false);
+	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL, "Custom.RandomizeItemMinLevel", 15);
+	setConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY, "Custom.RandomizeItemMinQuality", 2);
+	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_SCALING, "Custom.RandomizeItemLevelScaling", 0.2f);
+	setConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE, "Custom.RandomizeItemChance", 10.f);
+	setConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ENEMY_COOLDOWN, "AdventureEnemyCooldown", 0.1f);
+	setConfig(CONFIG_UINT32_CUSTOM_REPAIR_FAILURE_CHANCE, "RepairFailureChance", 0);
+	setConfig(CONFIG_UINT32_CUSTOM_REPAIR_CRITICAL_FAILURE_CHANCE, "RepairCriticalFailureChance", 0);
+	//Resistance Penaty
+	setConfig(CONFIG_BOOL_RESISTANCE_PENALTY, "Custom.ResistancePenalty", false);
+
+	
+    setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", true);
+    if (reload)
+        sEluna->OnConfigLoad(reload);
+
+    setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
+    setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
 
     sLog.outString();
 }
@@ -826,7 +861,9 @@ void World::SetInitialWorldSettings()
             !MapManager::ExistMapAndVMap(1, -618.518f, -4251.67f) ||                // Orc
             !MapManager::ExistMapAndVMap(0, 1676.35f, 1677.45f) ||                  // Scourge
             !MapManager::ExistMapAndVMap(1, 10311.3f, 832.463f) ||                  // NightElf
-            !MapManager::ExistMapAndVMap(1, -2917.58f, -257.98f))                   // Tauren
+            !MapManager::ExistMapAndVMap(1, -2917.58f, -257.98f) ||                   // Tauren
+		    !MapManager::ExistMapAndVMap(530, 10349.6f, -6357.29f) ||                    //Blood Elf - Draenei
+			!MapManager::ExistMapAndVMap(530, -3961.64f, -13931.2f))
     {
         sLog.outError("Correct *.map files not found in path '%smaps' or *.vmtree/*.vmtile files in '%svmaps'. Please place *.map and vmap files in appropriate directories or correct the DataDir value in the mangosd.conf file.", m_dataPath.c_str(), m_dataPath.c_str());
         Log::WaitBeforeContinueIfNeed();
@@ -1286,6 +1323,7 @@ void World::SetInitialWorldSettings()
     sAuctionBot.Initialize();
     sLog.outString();
 
+<<<<<<< HEAD
     //Get playerbot configuration file
     if (!botConfig.SetSource(_PLAYERBOT_CONFIG))
         sLog.outError("Playerbot: Unable to open configuration file. Database will be unaccessible. Configuration values will use default.");
@@ -1295,6 +1333,10 @@ void World::SetInitialWorldSettings()
     //Check playerbot config file version
     if (botConfig.GetIntDefault("ConfVersion", 0) != PLAYERBOT_CONF_VERSION)
         sLog.outError("Playerbot: Configuration file version doesn't match expected version. Some config variables may be wrong or missing.");
+=======
+    PlayerbotMgr::SetInitialWorldSettings();
+    //Get playerbot configuration file
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
     ///- Run eluna scripts.
     // in multithread foreach: run scripts
     sEluna->RunScripts();

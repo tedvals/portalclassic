@@ -169,6 +169,9 @@ bool EquippedOk(Player* pPlayer, uint32 spellId)
 {
     SpellEntry const* spell = GetSpellStore()->LookupEntry<SpellEntry>(spellId);
 
+	if (!spell)
+		spell = GetDBCSpellStore()->LookupEntry(spellId);
+
     if (!spell)
         return false;
 

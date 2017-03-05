@@ -87,12 +87,12 @@ struct boss_ouroAI : public Scripted_NoMovementAI
 
     void Reset() override
     {
-        m_uiSweepTimer        = urand(35000, 40000);
-        m_uiSandBlastTimer    = urand(30000, 45000);
-        m_uiSubmergeTimer     = 90000;
+        m_uiSweepTimer        = Randomize(urand(35000, 40000));
+        m_uiSandBlastTimer    = Randomize(urand(30000, 45000));
+        m_uiSubmergeTimer     = Randomize(90000);
         m_uiSummonBaseTimer   = 2000;
 
-        m_uiSummonMoundTimer  = 10000;
+        m_uiSummonMoundTimer  = Randomize(10000);
 
         m_bEnraged            = false;
         m_bSubmerged          = false;
@@ -156,7 +156,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
             if (m_uiSweepTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SWEEP) == CAST_OK)
-                    m_uiSweepTimer = 20000;
+                    m_uiSweepTimer = Randomize(20000);
             }
             else
                 m_uiSweepTimer -= uiDiff;
@@ -165,7 +165,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
             if (m_uiSandBlastTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SANDBLAST) == CAST_OK)
-                    m_uiSandBlastTimer = 22000;
+                    m_uiSandBlastTimer = Randomize(22000);
             }
             else
                 m_uiSandBlastTimer -= uiDiff;
@@ -193,7 +193,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
                         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
                         m_bSubmerged      = true;
-                        m_uiSubmergeTimer = 30000;
+                        m_uiSubmergeTimer = Randomize(30000);
                     }
                 }
                 else
@@ -205,7 +205,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
                 if (m_uiSummonMoundTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_OURO_MOUND) == CAST_OK)
-                        m_uiSummonMoundTimer = 10000;
+                        m_uiSummonMoundTimer = Randomize(10000);
                 }
                 else
                     m_uiSummonMoundTimer -= uiDiff;
@@ -240,7 +240,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
 
                     m_bSubmerged        = false;
                     m_uiSummonBaseTimer = 2000;
-                    m_uiSubmergeTimer   = 90000;
+                    m_uiSubmergeTimer   = Randomize(90000);
                 }
             }
             else

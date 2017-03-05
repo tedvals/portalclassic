@@ -30,8 +30,8 @@ enum
     SAY_FEAST_PANTHER           = -1309012,
     SAY_DEATH                   = -1309013,
 
-    SPELL_SHADOW_WORD_PAIN      = 23952,
-    SPELL_GOUGE                 = 24698,
+	SPELL_SHADOW_WORD_PAIN      = 24212,
+    SPELL_GOUGE                 = 12540,
     SPELL_MARK_ARLOKK           = 24210,
     SPELL_RAVAGE                = 24213,
     SPELL_TRASH                 = 3391,
@@ -66,13 +66,13 @@ struct boss_arlokkAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiShadowWordPainTimer = 8000;
-        m_uiGougeTimer      = 14000;
+        m_uiShadowWordPainTimer = Randomize(8000);
+        m_uiGougeTimer      = Randomize(14000);
         m_uiMarkTimer       = 5000;
-        m_uiRavageTimer     = 12000;
-        m_uiTrashTimer      = 20000;
-        m_uiWhirlwindTimer  = 15000;
-        m_uiTransformTimer  = 30000;
+        m_uiRavageTimer     = Randomize(12000);
+        m_uiTrashTimer      = Randomize(20000);
+        m_uiWhirlwindTimer  = Randomize(15000);
+        m_uiTransformTimer  = Randomize(30000);
         m_uiVanishTimer     = 5000;
         m_uiVisibleTimer    = 0;
         m_uiSummonTimer     = 5000;
@@ -164,7 +164,7 @@ struct boss_arlokkAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_SHADOW_WORD_PAIN) == CAST_OK)
-                        m_uiShadowWordPainTimer = 15000;
+                        m_uiShadowWordPainTimer = Randomize(15000);
                 }
             }
             else
@@ -177,7 +177,7 @@ struct boss_arlokkAI : public ScriptedAI
                     if (DoCastSpellIfCan(pTarget, SPELL_MARK_ARLOKK) == CAST_OK)
                     {
                         DoScriptText(SAY_FEAST_PANTHER, m_creature, pTarget);
-                        m_uiMarkTimer = 30000;
+                        m_uiMarkTimer = Randomize(30000);
                     }
                 }
             }
@@ -188,10 +188,12 @@ struct boss_arlokkAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_GOUGE) == CAST_OK)
                 {
-                    if (m_creature->getThreatManager().getThreat(m_creature->getVictim()))
-                        m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -80);
-
-                    m_uiGougeTimer = urand(17000, 27000);
+					if (Unit* pTarget = m_creature->getVictim())
+						{
+						if (m_creature->getThreatManager().getThreat(pTarget))
+							 m_creature->getThreatManager().modifyThreatPercent(pTarget, -80);
+						}
+                    m_uiGougeTimer = Randomize(urand(17000, 27000));
                 }
             }
             else
@@ -202,7 +204,7 @@ struct boss_arlokkAI : public ScriptedAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_PANTHER_TRANSFORM) == CAST_OK)
                 {
-                    m_uiTransformTimer = 80000;
+                    m_uiTransformTimer = Randomize(80000);
                     m_bIsPhaseTwo = true;
                 }
             }
@@ -215,7 +217,7 @@ struct boss_arlokkAI : public ScriptedAI
             if (m_uiRavageTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_RAVAGE) == CAST_OK)
-                    m_uiRavageTimer = urand(10000, 15000);
+                    m_uiRavageTimer = Randomize(urand(10000, 15000));
             }
             else
                 m_uiRavageTimer -= uiDiff;
@@ -223,7 +225,7 @@ struct boss_arlokkAI : public ScriptedAI
             if (m_uiTrashTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRASH) == CAST_OK)
-                    m_uiTrashTimer = urand(13000, 15000);
+                    m_uiTrashTimer = Randomize(urand(13000, 15000));
             }
             else
                 m_uiTrashTimer -= uiDiff;
@@ -231,7 +233,7 @@ struct boss_arlokkAI : public ScriptedAI
             if (m_uiWhirlwindTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_WHIRLWIND) == CAST_OK)
-                    m_uiWhirlwindTimer = 15000;
+                    m_uiWhirlwindTimer = Randomize(15000);
             }
             else
                 m_uiWhirlwindTimer -= uiDiff;
@@ -242,8 +244,8 @@ struct boss_arlokkAI : public ScriptedAI
                 m_creature->SetVisibility(VISIBILITY_OFF);
                 DoResetThreat();
 
-                m_uiVanishTimer = 85000;
-                m_uiVisibleTimer = 45000;
+                m_uiVanishTimer = Randomize(85000);
+                m_uiVisibleTimer = Randomize(45000);
             }
             else
                 m_uiVanishTimer -= uiDiff;
@@ -252,7 +254,7 @@ struct boss_arlokkAI : public ScriptedAI
             if (m_uiTransformTimer < uiDiff)
             {
                 m_creature->RemoveAurasDueToSpell(SPELL_PANTHER_TRANSFORM);
-                m_uiTransformTimer = 30000;
+                m_uiTransformTimer = Randomize(30000);
                 m_bIsPhaseTwo = false;
             }
             else

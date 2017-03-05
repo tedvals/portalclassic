@@ -162,7 +162,7 @@ void PetAI::UpdateAI(const uint32 diff)
                 m_unit->SendCreateUpdateToPlayer((Player*)owner);
 
             uint32 spell_id = charminfo->GetSpellOpener();
-            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+            SpellEntry const* spellInfo = GetSpellTemplate(spell_id);
 
             Spell* spell = new Spell(m_unit, spellInfo, false);
 
@@ -195,7 +195,7 @@ void PetAI::UpdateAI(const uint32 diff)
                 if (!spellID)
                     continue;
 
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellID);
+                SpellEntry const* spellInfo = GetSpellTemplate(spellID);
                 if (!spellInfo)
                     continue;
 

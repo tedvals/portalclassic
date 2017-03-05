@@ -184,7 +184,7 @@ void ReputationMgr::SendInitialReputations()
         data << uint32(0x00000000);
     }
 
-    m_player->SendDirectMessage(data);
+    m_player->SendDirectMessage(data);	
 }
 
 void ReputationMgr::SendVisible(FactionState const* faction) const

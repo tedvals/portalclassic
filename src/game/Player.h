@@ -39,6 +39,7 @@
 #include "Chat.h"
 #include "SQLStorages.h"
 
+
 #include<vector>
 
 struct Mail;
@@ -662,6 +663,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADSKILLS,
     PLAYER_LOGIN_QUERY_LOADMAILS,
     PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,
+	PLAYER_LOGIN_QUERY_CUSTOM_ADVENTURE_MODE,
 
     MAX_PLAYER_LOGIN_QUERY
 };
@@ -684,6 +686,9 @@ enum ReputationSource
 // Player summoning auto-decline time (in secs)
 #define MAX_PLAYER_SUMMON_DELAY (2*MINUTE)
 #define MAX_MONEY_AMOUNT        (0x7FFFFFFF-1)
+
+#define ADVENTURE_AURA           55000
+#define GROUP_ADVENTURE_AURA     55001
 
 struct InstancePlayerBind
 {
@@ -1049,7 +1054,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool HasItemTotemCategory(uint32 TotemCategory) const;
         InventoryResult CanUseItem(ItemPrototype const* pItem, bool direct_action = true) const;
         InventoryResult CanUseAmmo(uint32 item) const;
-        Item* StoreNewItem(ItemPosCountVec const& pos, uint32 item, bool update, int32 randomPropertyId = 0);
+		Item* StoreNewItem(ItemPosCountVec const& pos, uint32 item, bool update, int32 randomPropertyId = 0, bool randomize = false);
         Item* StoreItem(ItemPosCountVec const& pos, Item* pItem, bool update);
         Item* EquipNewItem(uint16 pos, uint32 item, bool update);
         Item* EquipItem(uint16 pos, Item* pItem, bool update);
@@ -1265,6 +1270,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool getNextQuestId(const std::string& pString, unsigned int& pStartPos, unsigned int& pId);
         void skill(std::list<uint32>& m_spellsToLearn);
         bool requiredQuests(const char* pQuestIdString);
+        uint32 GetSpec();
 
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
@@ -1326,6 +1332,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void ClearComboPoints();
         void SetComboPoints();
 
+		bool AttackStop(bool targetSwitch = false, bool includingCast = false, bool includingCombo = false) override;
+
         void SendMailResult(uint32 mailId, MailResponseType mailAction, MailResponseResult mailError, uint32 equipError = 0, uint32 item_guid = 0, uint32 item_count = 0) const;
         void SendNewMail() const;
         void UpdateNextMailTimeAndUnreads();
@@ -1381,7 +1389,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsNeedCastPassiveLikeSpellAtLearn(SpellEntry const* spellInfo) const;
         bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index, bool castOnSelf) const override;
 
-        void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
+        //void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
 
         void SendProficiency(ItemClass itemClass, uint32 itemSubclassMask) const;
         void SendInitialSpells() const;
@@ -1540,6 +1548,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
         void UpdateDamagePhysical(WeaponAttackType attType) override;
         void UpdateSpellDamageAndHealingBonus();
+		void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
+		void UpdateRating(CombatRating cr);
+		void UpdateAllRatings();
 
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, float& min_damage, float& max_damage, uint8 index = 0);
 
@@ -1549,13 +1560,17 @@ class MANGOS_DLL_SPEC Player : public Unit
         float GetSpellCritFromIntellect() const;
         float OCTRegenHPPerSpirit() const;
         float OCTRegenMPPerSpirit() const;
-
+		float GetRatingMultiplier(CombatRating cr) const;
+		float GetRatingBonusValue(CombatRating cr) const;
+		
         void UpdateBlockPercentage();
         void UpdateCritPercentage(WeaponAttackType attType);
         void UpdateAllCritPercentages();
         void UpdateParryPercentage();
         void UpdateDodgePercentage();
-
+		void UpdateMeleeHitChances();
+		void UpdateRangedHitChances();
+		void UpdateSpellHitChances();
         void UpdateAllSpellCritChances();
         void UpdateSpellCritChance(uint32 school);
         void UpdateManaRegen();
@@ -2062,6 +2077,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
         Player* GetNextRandomRaidMember(float radius);
+		Player* GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType noAuraType);
         PartyResult CanUninviteFromGroup() const;
         void UpdateGroupLeaderFlag(const bool remove = false);
         // BattleGround Group System
@@ -2075,11 +2091,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         GridReference<Player>& GetGridRef() { return m_gridRef; }
         MapReference& GetMapRef() { return m_mapRef; }
 
-        virtual CreatureAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
-        virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
-        void ForceHealAndPowerUpdateInZone();
-
-
         // Playerbot mod:
         // A Player can either have a playerbotMgr (to manage its bots), or have playerbotAI (if it is a bot), or
         // neither. Code that enables bots must create the playerbotMgr and set it using SetPlayerbotMgr.
@@ -2088,7 +2099,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetPlayerbotMgr(PlayerbotMgr* mgr) { assert(!m_playerbotAI && !m_playerbotMgr); m_playerbotMgr=mgr; }
         PlayerbotMgr* GetPlayerbotMgr() { return m_playerbotMgr; }
         void SetBotDeathTimer() { m_deathTimer = 0; }
-        bool IsInDuel(Player const* player) const { return duel && (duel->opponent == player || duel->initiator == player) && duel->startTime != 0; }
+        bool IsInDuel() const { return duel && duel->startTime != 0; }
+
+        virtual CreatureAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
+        virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
+        void ForceHealAndPowerUpdateInZone();
 
     protected:
 
@@ -2140,7 +2155,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool _LoadHomeBind(QueryResult* result);
         void _LoadBGData(QueryResult* result);
         void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
-
+		//Custom
+		void _LoadAdventureLevel(QueryResult* result);
+		
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
         /*********************************************************/
@@ -2263,6 +2280,42 @@ class MANGOS_DLL_SPEC Player : public Unit
         RestType rest_type;
         //////////////////// Rest System/////////////////////
 
+		//////////////////// Adventure Mode/////////////////////
+
+		uint32 adventure_level;
+		uint32 adventure_group_level;
+		uint32 adventure_xp;
+//custom 
+		uint8 m_AccumChance;
+		int16 m_baseRatingValue[MAX_COMBAT_RATING];
+		
+		public:
+		void AddAdventureXP(int32 xp);
+		bool SubstractAdventureXP(int32 xp);
+		uint32 GetAdventureLevelGroup();
+		uint32 GetAdventureLevel();
+
+		bool CanReforgeItem(Item* itemTarget);
+
+		void AddAccumChance(uint8 chance) { m_AccumChance += chance; }
+		void ResetAccumChance()	{ m_AccumChance = 0; }
+		bool RollAccumChance() 
+		{ 
+			if (urand(0, 100) < m_AccumChance) 
+			{
+				ResetAccumChance();
+				return true;
+			} 
+			else return false; 
+		}  
+
+
+		protected:		
+		void ResetAdventureLevel();
+		void StoreAdventureLevel();		
+		void SetAdventureLevel(uint32 level);
+		void _CreateCustomAura(uint32 spellid, uint32 stackcount = 0, int32 remaincharges = 0);
+
         // Transports
         Transport* m_transport;
 
@@ -2374,6 +2427,10 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+
+	if (!spellInfo)
+		spellInfo = sSpellStore.LookupEntry(spellId);
+
     if (!spellInfo) return 0;
     int32 totalpct = 0;
     int32 totalflat = 0;

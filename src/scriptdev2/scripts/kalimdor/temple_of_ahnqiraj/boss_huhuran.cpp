@@ -55,10 +55,10 @@ struct boss_huhuranAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiFrenzyTimer         = urand(25000, 35000);
-        m_uiWyvernTimer         = urand(18000, 28000);
-        m_uiSpitTimer           = 8000;
-        m_uiNoxiousPoisonTimer  = urand(10000, 20000);
+        m_uiFrenzyTimer         = Randomize(urand(25000, 35000));
+        m_uiWyvernTimer         = Randomize(urand(18000, 28000));
+        m_uiSpitTimer           = Randomize(8000);
+        m_uiNoxiousPoisonTimer  = Randomize(urand(10000, 20000));
         m_bIsBerserk            = false;
     }
 
@@ -94,7 +94,7 @@ struct boss_huhuranAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
                 {
                     DoScriptText(EMOTE_GENERIC_FRENZY_KILL, m_creature);
-                    m_uiFrenzyTimer = urand(25000, 35000);
+                    m_uiFrenzyTimer = Randomize(urand(25000, 35000));
                 }
             }
             else
@@ -107,7 +107,7 @@ struct boss_huhuranAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_WYVERN_STING) == CAST_OK)
-                    m_uiWyvernTimer = urand(15000, 32000);
+                    m_uiWyvernTimer = Randomize(urand(15000, 32000));
             }
         }
         else
@@ -117,7 +117,7 @@ struct boss_huhuranAI : public ScriptedAI
         if (m_uiSpitTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ACID_SPIT) == CAST_OK)
-                m_uiSpitTimer = urand(5000, 10000);
+                m_uiSpitTimer = Randomize(urand(5000, 10000));
         }
         else
             m_uiSpitTimer -= uiDiff;
@@ -126,7 +126,7 @@ struct boss_huhuranAI : public ScriptedAI
         if (m_uiNoxiousPoisonTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_NOXIOUS_POISON) == CAST_OK)
-                m_uiNoxiousPoisonTimer = urand(12000, 24000);
+                m_uiNoxiousPoisonTimer = Randomize(urand(12000, 24000));
         }
         else
             m_uiNoxiousPoisonTimer -= uiDiff;

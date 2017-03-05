@@ -22,6 +22,7 @@
 #include "ProgressBar.h"
 #include "SharedDefines.h"
 #include "SQLStorages.h"
+#include "SpellMgr.h"
 
 #include "DBCfmt.h"
 
@@ -82,6 +83,8 @@ DBCStorage <FactionTemplateEntry> sFactionTemplateStore(FactionTemplateEntryfmt)
 
 DBCStorage <GameObjectDisplayInfoEntry> sGameObjectDisplayInfoStore(GameObjectDisplayInfofmt);
 
+DBCStorage <CombatRatingsEntry>         sCombatRatingsStore(CombatRatingsfmt);
+
 DBCStorage <ItemBagFamilyEntry>           sItemBagFamilyStore(ItemBagFamilyfmt);
 DBCStorage <ItemClassEntry>               sItemClassStore(ItemClassfmt);
 // DBCStorage <ItemDisplayInfoEntry> sItemDisplayInfoStore(ItemDisplayTemplateEntryfmt); -- not used currently
@@ -100,7 +103,7 @@ DBCStorage <SkillLineAbilityEntry> sSkillLineAbilityStore(SkillLineAbilityfmt);
 DBCStorage <SkillRaceClassInfoEntry> sSkillRaceClassInfoStore(SkillRaceClassInfofmt);
 
 DBCStorage <SoundEntriesEntry> sSoundEntriesStore(SoundEntriesfmt);
-
+DBCStorage <SpellEntry> sSpellStore(SpellEntryfmt);
 DBCStorage <SpellItemEnchantmentEntry> sSpellItemEnchantmentStore(SpellItemEnchantmentfmt);
 SpellCategoryStore sSpellCategoryStore;
 ItemSpellCategoryStore sItemSpellCategoryStore;
@@ -282,6 +285,20 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSkillRaceClassInfoStore,  dbcPath, "SkillRaceClassInfo.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSoundEntriesStore,        dbcPath, "SoundEntries.dbc");
 
+	LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSpellStore, dbcPath, "Spell.dbc");
+	for (uint32 i = 1; i < sSpellStore.GetNumRows(); ++i)
+	{
+		SpellEntry const* spell = sSpellStore.LookupEntry(i);
+		if (spell && spell->Category)
+			sSpellCategoryStore[spell->Category].insert(i);
+		
+			// DBC not support uint64 fields but SpellEntry have SpellFamilyFlags mapped at 2 uint32 fields
+			// uint32 field already converted to bigendian if need, but must be swapped for correct uint64 bigendian view
+			#if MANGOS_ENDIAN == MANGOS_BIGENDIAN
+				std::swap(*((uint32*)(&spell->SpellFamilyFlags)), *(((uint32*)(&spell->SpellFamilyFlags)) + 1));
+			#endif
+			}
+
     for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
     {
         SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
@@ -289,7 +306,7 @@ void LoadDBCStores(const std::string& dataPath)
         if (!skillLine)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
+        SpellEntry const* spellInfo = GetSpellTemplate(skillLine->spellId);
         if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
         {
             for (unsigned int i = 1; i < sCreatureFamilyStore.GetNumRows(); ++i)
@@ -426,7 +443,7 @@ void LoadDBCStores(const std::string& dataPath)
     {
         std::set<uint32> spellPaths;
         for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
-            if (SpellEntry const* sInfo = sSpellTemplate.LookupEntry<SpellEntry>(i))
+            if (SpellEntry const* sInfo = GetSpellTemplate(i))
                 for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
                     if (sInfo->Effect[j] == 123 /*SPELL_EFFECT_SEND_TAXI*/)
                         spellPaths.insert(sInfo->EffectMiscValue[j]);
@@ -779,3 +796,4 @@ MANGOS_DLL_SPEC DBCStorage <FactionEntry>       const* GetFactionStore()        
 MANGOS_DLL_SPEC DBCStorage <CreatureDisplayInfoEntry> const* GetCreatureDisplayStore() { return &sCreatureDisplayInfoStore; }
 MANGOS_DLL_SPEC DBCStorage <EmotesEntry>        const* GetEmotesStore()         { return &sEmotesStore;         }
 MANGOS_DLL_SPEC DBCStorage <EmotesTextEntry>    const* GetEmotesTextStore()     { return &sEmotesTextStore;     }
+MANGOS_DLL_SPEC DBCStorage <SpellEntry>         const* GetDBCSpellStore() { return &sSpellStore; }

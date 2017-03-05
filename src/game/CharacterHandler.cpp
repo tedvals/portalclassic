@@ -55,13 +55,17 @@ enum CinematicsSkipMode
 class LoginQueryHolder : public SqlQueryHolder
 {
     private:
+		uint32 m_masterAccountId;
         uint32 m_accountId;
         ObjectGuid m_guid;
     public:
         LoginQueryHolder(uint32 accountId, ObjectGuid guid)
-            : m_accountId(accountId), m_guid(guid) { }
+			: m_accountId(accountId), m_guid(guid), m_masterAccountId(0) { }
+		LoginQueryHolder(uint32 accountId, uint32 masterAccountId, ObjectGuid guid)
+			 : m_accountId(accountId), m_guid(guid), m_masterAccountId(masterAccountId) { }
         ObjectGuid GetGuid() const { return m_guid; }
         uint32 GetAccountId() const { return m_accountId; }
+		uint32 GetMasterAccountId() const { return m_masterAccountId; }
         bool Initialize();
 };
 
@@ -97,6 +101,7 @@ bool LoginQueryHolder::Initialize()
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADSKILLS,          "SELECT skill, value, max FROM character_skills WHERE guid = '%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADMAILS,           "SELECT id,messageType,sender,receiver,subject,itemTextId,expire_time,deliver_time,money,cod,checked,stationery,mailTemplateId,has_items FROM mail WHERE receiver = '%u' ORDER BY id DESC", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,     "SELECT data, mail_id, item_guid, item_template FROM mail_items JOIN item_instance ON item_guid = guid WHERE receiver = '%u'", m_guid.GetCounter());
+	res &= SetPQuery(PLAYER_LOGIN_QUERY_CUSTOM_ADVENTURE_MODE,"SELECT adventurelevel,adventurexp FROM character_custom_data WHERE guid = '%u'", m_guid.GetCounter());
 
     return res;
 }
@@ -130,7 +135,7 @@ class CharacterHandler
 
             LoginQueryHolder* lqh = (LoginQueryHolder*) holder;
 
-            WorldSession* masterSession = sWorld.FindSession(lqh->GetAccountId());
+			WorldSession* masterSession = sWorld.FindSession(lqh->GetMasterAccountId());
 
             if (! masterSession || sObjectMgr.GetPlayer(lqh->GetGuid()))
             {
@@ -141,7 +146,7 @@ class CharacterHandler
             // The bot's WorldSession is owned by the bot's Player object
             // The bot's WorldSession is deleted by PlayerbotMgr::LogoutPlayerBot
             WorldSession *botSession = new WorldSession(lqh->GetAccountId(), NULL, SEC_PLAYER, 0, LOCALE_enUS);
-            botSession->m_Address = "bot";
+            
             botSession->HandlePlayerLogin(lqh); // will delete lqh
             masterSession->GetPlayer()->GetPlayerbotMgr()->OnBotLogin(botSession->GetPlayer());
         }
@@ -487,6 +492,25 @@ void PlayerbotMgr::LoginPlayerBot(ObjectGuid playerGuid)
     }
     CharacterDatabase.DelayQueryHolder(&chrHandler, &CharacterHandler::HandlePlayerBotLoginCallback, holder);
 }
+// Added this method to allow bots to be added from a different account other than the masters. Accomodates 40 man raid teams of bots
+void PlayerbotMgr::LoginPlayerBot(ObjectGuid playerGuid, uint32 masterAccountId)
+ {
+		// has bot already been added?
+		if (sObjectMgr.GetPlayer(playerGuid))
+		 return;
+	
+		uint32 accountId = sObjectMgr.GetPlayerAccountIdByGUID(playerGuid);
+	if (accountId == 0)
+		 return;
+	
+		LoginQueryHolder *holder = new LoginQueryHolder(accountId, masterAccountId, playerGuid);
+	if (!holder->Initialize())
+		 {
+		delete holder;                                      // delete all unprocessed queries
+		return;
+		}
+	CharacterDatabase.DelayQueryHolder(&chrHandler, &CharacterHandler::HandlePlayerBotLoginCallback, holder);
+	}
 
 void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 {
@@ -562,10 +586,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         pCurrChar->SetInGuild(0);
         pCurrChar->SetRank(0);
     }
-
+	Guild* guild = NULL;;
     if (pCurrChar->GetGuildId() != 0)
     {
-        Guild* guild = sGuildMgr.GetGuildById(pCurrChar->GetGuildId());
+		guild = sGuildMgr.GetGuildById(pCurrChar->GetGuildId());
         if (guild)
         {
             data.Initialize(SMSG_GUILD_EVENT, (1 + 1 + guild->GetMOTD().size() + 1));
@@ -704,7 +728,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->isGMVisible())
     {
         SendNotification(LANG_INVISIBLE_INVISIBLE);
-        SpellEntry const* invisibleAuraInfo = sSpellTemplate.LookupEntry<SpellEntry>(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
+        SpellEntry const* invisibleAuraInfo = GetSpellTemplate(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
         if (invisibleAuraInfo && IsSpellAppliesAura(invisibleAuraInfo))
             pCurrChar->CastSpell(pCurrChar, invisibleAuraInfo, TRIGGERED_OLD_TRIGGERED);
     }
@@ -715,7 +739,48 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     if (!pCurrChar->IsStandState() && !pCurrChar->hasUnitState(UNIT_STAT_STUNNED))
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
-
+	// If we are in a guild, load all guild members as bots. No need to give a command to load them then! Yay!
+	if (pCurrChar->GetGuildId() != 0 && guild)
+		{
+		PlayerbotMgr* mgr = pCurrChar->GetPlayerbotMgr();
+		if (!mgr)
+			 {
+			mgr = new PlayerbotMgr(pCurrChar);
+			pCurrChar->SetPlayerbotMgr(mgr);
+			}
+		
+			QueryResult* guildMembersResult = CharacterDatabase.Query("SELECT guildid,guild_member.guid,rank,pnote,offnote,"
+																				//   5                6                 7                 8                9                       10
+			"characters.name, characters.level, characters.class, characters.zone, characters.logout_time, characters.account "
+			 "FROM guild_member LEFT JOIN characters ON characters.guid = guild_member.guid");
+		
+			if (guildMembersResult)                                             // wrong data found
+			{
+			do
+				 {
+				Field* fields = guildMembersResult->Fetch();
+				
+					uint32 guildid = fields[0].GetUInt32();
+				std::string name = fields[5].GetCppString();
+				
+									// Do if same guild
+					if (guildid == guild->GetId())
+					 {
+										// Do if not same character that is logging in
+						if (name != pCurrChar->GetName())
+						 {
+						ObjectGuid guid = sObjectMgr.GetPlayerGuidByName(name.c_str());
+						CharacterDatabase.DirectPExecute("UPDATE characters SET online = 1 WHERE guid = '%u'", guid.GetCounter());
+												// Modified to allow bot to originate from an account not on the masters account
+							mgr->LoginPlayerBot(guid, mgr->GetMaster()->GetSession()->GetAccountId());
+												//ChatHandler(pCurrChar).PSendSysMessage("Bot '%s' added successfully.", name);
+							}
+					}
+				} while (guildMembersResult->NextRow());
+				
+					delete guildMembersResult;
+				}
+		}
     m_playerLoading = false;
 
     // used by eluna

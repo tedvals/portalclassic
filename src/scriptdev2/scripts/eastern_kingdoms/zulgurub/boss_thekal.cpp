@@ -30,25 +30,25 @@ enum
     SAY_DEATH               = -1309010,
 
     SPELL_MORTAL_CLEAVE     = 22859,
-    SPELL_SILENCE           = 23207,
+    SPELL_SILENCE           = 22666,
     SPELL_FRENZY            = 23128,
     SPELL_FORCE_PUNCH       = 24189,
-    SPELL_CHARGE            = 24408,
-    SPELL_ENRAGE            = 23537,
+	SPELL_CHARGE            = 24193,
+    SPELL_ENRAGE            = 8269,
     SPELL_SUMMON_TIGERS     = 24183,
     SPELL_TIGER_FORM        = 24169,
     SPELL_RESURRECT         = 24173,
 
     // Zealot Lor'Khan Spells
-    SPELL_SHIELD            = 25020,
+    SPELL_SHIELD            = 20545,
     SPELL_BLOODLUST         = 24185,
     SPELL_GREATER_HEAL      = 24208,
-    SPELL_DISARM            = 22691,
+    SPELL_DISARM            = 6713,
 
     // Zealot Lor'Khan Spells
     SPELL_SWEEPING_STRIKES  = 18765,
-    SPELL_SINISTER_STRIKE   = 15667,
-    SPELL_GOUGE             = 24698,
+    SPELL_SINISTER_STRIKE   = 15581,
+    SPELL_GOUGE             = 15240,
     SPELL_KICK              = 15614,
     SPELL_BLIND             = 21060,
 
@@ -160,12 +160,12 @@ struct boss_thekalAI : public boss_thekalBaseAI
     void Reset() override
     {
         m_uiMortalCleaveTimer   = 4000;
-        m_uiSilenceTimer        = 9000;
-        m_uiFrenzyTimer         = 30000;
+        m_uiSilenceTimer        = Randomize(9000);
+        m_uiFrenzyTimer         = Randomize(30000);
         m_uiForcePunchTimer     = 4000;
-        m_uiChargeTimer         = 12000;
-        m_uiEnrageTimer         = 32000;
-        m_uiSummonTigersTimer   = 25000;
+        m_uiChargeTimer         = Randomize(12000);
+        m_uiEnrageTimer         = Randomize(32000);
+        m_uiSummonTigersTimer   = Randomize(25000);
         m_uiResurrectTimer      = 10000;
         m_uiPhase               = PHASE_NORMAL;
 
@@ -282,7 +282,7 @@ struct boss_thekalAI : public boss_thekalBaseAI
                 if (m_uiMortalCleaveTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_CLEAVE) == CAST_OK)
-                        m_uiMortalCleaveTimer = urand(15000, 20000);
+                        m_uiMortalCleaveTimer = Randomize(urand(15000, 20000));
                 }
                 else
                     m_uiMortalCleaveTimer -= uiDiff;
@@ -292,7 +292,7 @@ struct boss_thekalAI : public boss_thekalBaseAI
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_SILENCE) == CAST_OK)
-                            m_uiSilenceTimer = urand(20000, 25000);
+                            m_uiSilenceTimer = Randomize(urand(20000, 25000));
                     }
                 }
                 else
@@ -308,7 +308,7 @@ struct boss_thekalAI : public boss_thekalBaseAI
                         {
                             DoResetThreat();
                             AttackStart(pTarget);
-                            m_uiChargeTimer = urand(15000, 22000);
+                            m_uiChargeTimer = Randomize(urand(15000, 22000));
                         }
                     }
                 }
@@ -318,7 +318,7 @@ struct boss_thekalAI : public boss_thekalBaseAI
                 if (m_uiFrenzyTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_FRENZY) == CAST_OK)
-                        m_uiFrenzyTimer = 30000;
+                        m_uiFrenzyTimer = Randomize(30000);
                 }
                 else
                     m_uiFrenzyTimer -= uiDiff;
@@ -326,7 +326,7 @@ struct boss_thekalAI : public boss_thekalBaseAI
                 if (m_uiForcePunchTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_FORCE_PUNCH) == CAST_OK)
-                        m_uiForcePunchTimer = urand(16000, 21000);
+                        m_uiForcePunchTimer = Randomize(urand(16000, 21000));
                 }
                 else
                     m_uiForcePunchTimer -= uiDiff;
@@ -334,7 +334,7 @@ struct boss_thekalAI : public boss_thekalBaseAI
                 if (m_uiSummonTigersTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_TIGERS) == CAST_OK)
-                        m_uiSummonTigersTimer = 50000;
+                        m_uiSummonTigersTimer = Randomize(50000);
                 }
                 else
                     m_uiSummonTigersTimer -= uiDiff;
@@ -375,9 +375,9 @@ struct mob_zealot_lorkhanAI : public boss_thekalBaseAI
     void Reset() override
     {
         m_uiShieldTimer         = 1000;
-        m_uiBloodLustTimer      = 16000;
-        m_uiGreaterHealTimer    = 32000;
-        m_uiDisarmTimer         = 6000;
+        m_uiBloodLustTimer      = Randomize(16000);
+        m_uiGreaterHealTimer    = Randomize(32000);
+        m_uiDisarmTimer         = Randomize(6000);
         m_uiPhase               = PHASE_NORMAL;
 
         if (m_pInstance)
@@ -433,7 +433,7 @@ struct mob_zealot_lorkhanAI : public boss_thekalBaseAI
                 if (m_uiShieldTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SHIELD) == CAST_OK)
-                        m_uiShieldTimer = 61000;
+                        m_uiShieldTimer = Randomize(61000);
                 }
                 else
                     m_uiShieldTimer -= uiDiff;
@@ -443,7 +443,7 @@ struct mob_zealot_lorkhanAI : public boss_thekalBaseAI
                 {
                     // ToDo: research if this should be cast on Thekal or Zath
                     if (DoCastSpellIfCan(m_creature, SPELL_BLOODLUST) == CAST_OK)
-                        m_uiBloodLustTimer = urand(20000, 28000);
+                        m_uiBloodLustTimer = Randomize(urand(20000, 28000));
                 }
                 else
                     m_uiBloodLustTimer -= uiDiff;
@@ -470,7 +470,7 @@ struct mob_zealot_lorkhanAI : public boss_thekalBaseAI
                         }
                     }
 
-                    m_uiGreaterHealTimer = urand(15000, 20000);
+                    m_uiGreaterHealTimer = Randomize(urand(15000, 20000));
                 }
                 else
                     m_uiGreaterHealTimer -= uiDiff;
@@ -479,7 +479,7 @@ struct mob_zealot_lorkhanAI : public boss_thekalBaseAI
                 if (m_uiDisarmTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISARM) == CAST_OK)
-                        m_uiDisarmTimer = urand(15000, 25000);
+                        m_uiDisarmTimer = Randomize(urand(15000, 25000));
                 }
                 else
                     m_uiDisarmTimer -= uiDiff;
@@ -514,10 +514,10 @@ struct mob_zealot_zathAI : public boss_thekalBaseAI
 
     void Reset() override
     {
-        m_uiSweepingStrikesTimer    = 13000;
-        m_uiSinisterStrikeTimer     = 8000;
-        m_uiGougeTimer              = 25000;
-        m_uiKickTimer               = 18000;
+        m_uiSweepingStrikesTimer    = Randomize(13000);
+        m_uiSinisterStrikeTimer     = Randomize(8000);
+        m_uiGougeTimer              = Randomize(25000);
+        m_uiKickTimer               = Randomize(18000);
         m_uiBlindTimer              = 5000;
         m_uiPhase                   = PHASE_NORMAL;
 
@@ -574,7 +574,7 @@ struct mob_zealot_zathAI : public boss_thekalBaseAI
                 if (m_uiSweepingStrikesTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SWEEPING_STRIKES) == CAST_OK)
-                        m_uiSweepingStrikesTimer = urand(22000, 26000);
+                        m_uiSweepingStrikesTimer = Randomize(urand(22000, 26000));
                 }
                 else
                     m_uiSweepingStrikesTimer -= uiDiff;
@@ -583,7 +583,7 @@ struct mob_zealot_zathAI : public boss_thekalBaseAI
                 if (m_uiSinisterStrikeTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SINISTER_STRIKE) == CAST_OK)
-                        m_uiSinisterStrikeTimer = urand(8000, 16000);
+                        m_uiSinisterStrikeTimer = Randomize(urand(8000, 16000));
                 }
                 else
                     m_uiSinisterStrikeTimer -= uiDiff;
@@ -593,10 +593,13 @@ struct mob_zealot_zathAI : public boss_thekalBaseAI
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GOUGE) == CAST_OK)
                     {
-                        if (m_creature->getThreatManager().getThreat(m_creature->getVictim()))
-                            m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -100);
+						if (Unit* pTarget = m_creature->getVictim())
+							{
+							if (m_creature->getThreatManager().getThreat(pTarget))
+								 m_creature->getThreatManager().modifyThreatPercent(pTarget, -100);
+							}
 
-                        m_uiGougeTimer = urand(17000, 27000);
+                        m_uiGougeTimer = Randomize(urand(17000, 27000));
                     }
                 }
                 else
@@ -606,7 +609,7 @@ struct mob_zealot_zathAI : public boss_thekalBaseAI
                 if (m_uiKickTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KICK) == CAST_OK)
-                        m_uiKickTimer = urand(15000, 25000);
+                        m_uiKickTimer = Randomize(urand(15000, 25000));
                 }
                 else
                     m_uiKickTimer -= uiDiff;
@@ -615,7 +618,7 @@ struct mob_zealot_zathAI : public boss_thekalBaseAI
                 if (m_uiBlindTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BLIND) == CAST_OK)
-                        m_uiBlindTimer = urand(10000, 20000);
+                        m_uiBlindTimer = Randomize(urand(10000, 20000));
                 }
                 else
                     m_uiBlindTimer -= uiDiff;

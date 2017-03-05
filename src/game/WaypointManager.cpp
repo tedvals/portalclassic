@@ -24,6 +24,7 @@
 #include "MapManager.h"
 #include "ObjectMgr.h"
 #include "ScriptMgr.h"
+#include "SpellMgr.h"
 
 INSTANTIATE_SINGLETON_1(WaypointManager);
 
@@ -184,7 +185,7 @@ void WaypointManager::Load()
                 }
             }
 
-            if (be.spell && ! sSpellTemplate.LookupEntry<SpellEntry>(be.spell))
+            if (be.spell && ! GetSpellTemplate(be.spell))
             {
                 sLog.outErrorDb("Table creature_movement references unknown spellid %u. Skipping id %u with point %u.", be.spell, id, point);
                 be.spell = 0;
@@ -337,7 +338,7 @@ void WaypointManager::Load()
                 }
             }
 
-            if (be.spell && ! sSpellTemplate.LookupEntry<SpellEntry>(be.spell))
+            if (be.spell && ! GetSpellTemplate(be.spell))
             {
                 sLog.outErrorDb("Table creature_movement_template references unknown spellid %u. Skipping id %u with point %u.", be.spell, entry, point);
                 be.spell = 0;

@@ -87,8 +87,8 @@ struct boss_anubrekhanAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiImpaleTimer      = 15000;
-        m_uiLocustSwarmTimer = 90000;
+        m_uiImpaleTimer      = Randomize(15000);
+        m_uiLocustSwarmTimer = Randomize(90000);
         m_uiSummonTimer      = 0;
     }
 
@@ -177,7 +177,7 @@ struct boss_anubrekhanAI : public ScriptedAI
                     DoCastSpellIfCan(pTarget, SPELL_IMPALE);
             }
 
-            m_uiImpaleTimer = 15000;
+            m_uiImpaleTimer = Randomize(15000);
         }
         else
             m_uiImpaleTimer -= uiDiff;
@@ -191,7 +191,7 @@ struct boss_anubrekhanAI : public ScriptedAI
 
                 // Summon a crypt guard
                 m_uiSummonTimer = 3000;
-                m_uiLocustSwarmTimer = 100000;
+                m_uiLocustSwarmTimer = Randomize(100000);
             }
         }
         else

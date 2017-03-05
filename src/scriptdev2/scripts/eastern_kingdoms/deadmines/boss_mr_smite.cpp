@@ -60,7 +60,7 @@ struct boss_mr_smiteAI : public ScriptedAI
     {
         m_uiPhase = PHASE_1;
         m_uiEquipTimer = 0;
-        m_uiSlamTimer = 9000;
+        m_uiSlamTimer = Randomize(Randomize(9000));
 
         DoCastSpellIfCan(m_creature, SPELL_NIBLE_REFLEXES, CAST_TRIGGERED);
 
@@ -107,7 +107,7 @@ struct boss_mr_smiteAI : public ScriptedAI
         m_creature->SetSheath(SHEATH_STATE_UNARMED);
         m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
 
-        m_uiEquipTimer = 3000;
+        m_uiEquipTimer = Randomize(3000);
         m_uiPhase = PHASE_EQUIP_PROCESS;
     }
 
@@ -246,7 +246,7 @@ struct boss_mr_smiteAI : public ScriptedAI
                 if (m_uiSlamTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SMITE_SLAM) == CAST_OK)
-                        m_uiSlamTimer = 11000;
+                        m_uiSlamTimer = Randomize(11000);
                 }
                 else
                     m_uiSlamTimer -= uiDiff;

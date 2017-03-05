@@ -82,12 +82,12 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
 
     void Reset() override
     {
-        m_uiWrathOfRagnarosTimer = 30000;                   // TODO Research more, according to wowwiki 25s, but timers up to 34s confirmed
-        m_uiHammerTimer = 11000;                            // TODO wowwiki states 20-30s timer, but ~11s confirmed
-        m_uiMagmaBlastTimer = 2000;
-        m_uiElementalFireTimer = 3000;
-        m_uiSubmergeTimer = 3 * MINUTE * IN_MILLISECONDS;
-        m_uiAttackTimer = 90 * IN_MILLISECONDS;
+        m_uiWrathOfRagnarosTimer = Randomize(30000);                   // TODO Research more, according to wowwiki 25s, but timers up to 34s confirmed
+        m_uiHammerTimer = Randomize(11000);                            // TODO wowwiki states 20-30s timer, but ~11s confirmed
+        m_uiMagmaBlastTimer = Randomize(2000);
+        m_uiElementalFireTimer = Randomize(3000);
+        m_uiSubmergeTimer = Randomize(3 * MINUTE * IN_MILLISECONDS);
+        m_uiAttackTimer = Randomize(90 * IN_MILLISECONDS);
         m_uiAddCount = 0;
 
         m_bHasYelledMagmaBurst = false;
@@ -144,7 +144,7 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
 
             // If last add killed then emerge soonish
             if (m_uiAddCount == 0)
-                m_uiAttackTimer = std::min(m_uiAttackTimer, (uint32)1000);
+                m_uiAttackTimer = std::min(Randomize(m_uiAttackTimer), (uint32)1000);
         }
     }
 
@@ -210,8 +210,8 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
                 // Become emerged again
                 DoCastSpellIfCan(m_creature, SPELL_RAGNA_EMERGE);
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                m_uiSubmergeTimer = 3 * MINUTE * IN_MILLISECONDS;
-                m_uiMagmaBlastTimer = 3000;                 // Delay the magma blast after emerge
+                m_uiSubmergeTimer = Randomize(3 * MINUTE * IN_MILLISECONDS);
+                m_uiMagmaBlastTimer = Randomize(3000);                 // Delay the magma blast after emerge
                 m_bIsSubmerged = false;
             }
             else
@@ -227,7 +227,7 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
             if (DoCastSpellIfCan(m_creature, SPELL_WRATH_OF_RAGNAROS) == CAST_OK)
             {
                 DoScriptText(SAY_WRATH, m_creature);
-                m_uiWrathOfRagnarosTimer = 30000;
+                m_uiWrathOfRagnarosTimer = Randomize(30000);
             }
         }
         else
@@ -237,7 +237,7 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
         if (m_uiElementalFireTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ELEMENTAL_FIRE) == CAST_OK)
-                m_uiElementalFireTimer = urand(10000, 14000);
+                m_uiElementalFireTimer = Randomize(urand(10000, 14000));
         }
         else
             m_uiElementalFireTimer -= uiDiff;
@@ -250,11 +250,11 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
                 if (DoCastSpellIfCan(pTarget, SPELL_MIGHT_OF_RAGNAROS) == CAST_OK)
                 {
                     DoScriptText(SAY_HAMMER, m_creature);
-                    m_uiHammerTimer = 11000;
+                    m_uiHammerTimer = Randomize(11000);
                 }
             }
             else
-                m_uiHammerTimer = 11000;
+                m_uiHammerTimer = Randomize(11000);
         }
         else
             m_uiHammerTimer -= uiDiff;
@@ -317,7 +317,7 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
                             DoScriptText(SAY_MAGMABURST, m_creature);
                             m_bHasYelledMagmaBurst = true;
                         }
-                        m_uiMagmaBlastTimer = 1000;         // Spamm this!
+                        m_uiMagmaBlastTimer = Randomize(1000);         // Spamm this!
                     }
                 }
             }

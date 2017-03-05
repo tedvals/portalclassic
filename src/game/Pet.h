@@ -169,8 +169,8 @@ class MANGOS_DLL_SPEC Pet : public Creature
 
         bool Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, uint32 pet_number);
         bool CreateBaseAtCreature(Creature* creature);
-        bool LoadPetFromDB(Player* owner, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0, bool permanentOnly = false);
-        void SavePetToDB(PetSaveMode mode);
+        void SavePetToDB(PetSaveMode mode, Unit* owner = nullptr);
+		bool LoadPetFromDB(Player* owner, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0, bool permanentOnly = false, bool forced = false);
         void Unsummon(PetSaveMode mode, Unit* owner = nullptr);
         static void DeleteFromDB(uint32 guidlow, bool separate_transaction = true);
         static void DeleteFromDB(Unit* owner, PetSaveMode slot);

@@ -231,7 +231,7 @@ bool ItemCanGoIntoBag(ItemPrototype const* proto, ItemPrototype const* pBagProto
 class MANGOS_DLL_SPEC Item : public Object
 {
     public:
-        static Item* CreateItem(uint32 item, uint32 count, Player const* player = nullptr, uint32 randomPropertyId = 0);
+		static Item* CreateItem(uint32 item, uint32 count, Player const* player = nullptr, uint32 randomPropertyId = 0, bool randomize = false);
         Item* CloneItem(uint32 count, Player const* player = nullptr) const;
 
         Item();

@@ -33,6 +33,7 @@
 #include "Formulas.h"
 #include "GridNotifiersImpl.h"
 #include "Chat.h"
+#include "SpellMgr.h"
 #include "LuaEngine.h"
 
 #include <cstdarg>
@@ -786,7 +787,7 @@ void BattleGround::RewardMark(Player* plr, uint32 count)
 
 void BattleGround::RewardSpellCast(Player* plr, uint32 spell_id) const
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell_id);
     if (!spellInfo)
     {
         sLog.outError("Battleground reward casting spell %u not exist.", spell_id);

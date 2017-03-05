@@ -29,13 +29,14 @@
 #include "Chat.h"
 #include "Language.h"
 #include "../TemporarySummon.h"
+#include "SpellMgr.h"
 
 bool CreatureEventAIHolder::UpdateRepeatTimer(Creature* creature, uint32 repeatMin, uint32 repeatMax)
 {
     if (repeatMin == repeatMax)
         Time = repeatMin;
     else if (repeatMax > repeatMin)
-        Time = urand(repeatMin, repeatMax);
+        Time = creature->RandomizeCooldown(urand(repeatMin, repeatMax));
     else
     {
         sLog.outErrorEventAI("Creature %u using Event %u (Type = %u) has RandomMax < RandomMin. Event repeating disabled.", creature->GetEntry(), Event.event_id, Event.event_type);
@@ -637,7 +638,7 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 {
                     if (m_DynamicMovement)
                     {
-                        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                        SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
                         if (spellInfo && !(spellInfo->rangeIndex == SPELL_RANGE_IDX_COMBAT || spellInfo->rangeIndex == SPELL_RANGE_IDX_SELF_ONLY) && target != m_creature)
                         {
@@ -1466,7 +1467,7 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 Target, Unit* pActionInvoke
             if (!pAIEventSender)
                 isError = true;
             return pAIEventSender;
-        case TARGET_T_SUMMONER:
+		case TARGET_T_SUMMONER:
         {
             if (TemporarySummon* summon = dynamic_cast<TemporarySummon*>(m_creature))
                 return summon->GetSummoner();

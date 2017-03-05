@@ -1197,5 +1197,6 @@ MANGOS_DLL_SPEC bool LoadMangosStrings(DatabaseType& db, char const* table, int3
 MANGOS_DLL_SPEC CreatureInfo const* GetCreatureTemplateStore(uint32 entry);
 MANGOS_DLL_SPEC Quest const* GetQuestTemplateStore(uint32 entry);
 MANGOS_DLL_SPEC MangosStringLocale const* GetMangosStringData(int32 entry);
+MANGOS_DLL_SPEC float GetAdventureCooldownMultiplier(ObjectGuid entry);
 
 #endif

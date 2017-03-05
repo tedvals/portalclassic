@@ -258,7 +258,7 @@ struct npc_belnistraszAI : public npc_escortAI
         if (m_uiFrostNovaTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_FROST_NOVA);
-            m_uiFrostNovaTimer = urand(10000, 15000);
+            m_uiFrostNovaTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiFrostNovaTimer -= uiDiff;

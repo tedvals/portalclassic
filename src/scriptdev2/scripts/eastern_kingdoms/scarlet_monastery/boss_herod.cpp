@@ -57,8 +57,8 @@ struct boss_herodAI : public ScriptedAI
         m_bTraineeSay = false;
         m_bEnrage     = false;
 
-        m_uiCleaveTimer    = 7500;
-        m_uiWhirlwindTimer = 14500;
+        m_uiCleaveTimer    = Randomize(7500);
+        m_uiWhirlwindTimer = Randomize(14500);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -108,7 +108,7 @@ struct boss_herodAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE);
-            m_uiCleaveTimer = urand(7500, 17500);
+            m_uiCleaveTimer = Randomize(urand(7500, 17500));
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -118,7 +118,7 @@ struct boss_herodAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WHIRLWIND) == CAST_OK)
             {
                 DoScriptText(SAY_WHIRLWIND, m_creature);
-                m_uiWhirlwindTimer = urand(15000, 25000);
+                m_uiWhirlwindTimer = Randomize(urand(15000, 25000));
             }
         }
         else

@@ -76,9 +76,9 @@ struct mob_anubisath_guardianAI : public ScriptedAI
         m_uiSpell4 = urand(0, 1) ? SPELL_ENRAGE : SPELL_EXPLODE;
         m_uiSpell5 = urand(0, 1) ? SPELL_SUMMON_ANUB_SWARMGUARD : SPELL_SUMMON_ANUB_WARRIOR;
 
-        m_uiSpell1Timer = 10000;
-        m_uiSpell2Timer = 20000;
-        m_uiSpell5Timer = 10000;
+        m_uiSpell1Timer = Randomize(10000);
+        m_uiSpell2Timer = Randomize(20000);
+        m_uiSpell5Timer = Randomize(10000);
         m_uiSummonCount = 0;
         m_bIsEnraged    = false;
     }
@@ -125,7 +125,7 @@ struct mob_anubisath_guardianAI : public ScriptedAI
         if (m_uiSpell1Timer < uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), m_uiSpell1);
-            m_uiSpell1Timer = 15000;
+            m_uiSpell1Timer = Randomize(15000);
         }
         else
             m_uiSpell1Timer -= uiDiff;
@@ -134,7 +134,7 @@ struct mob_anubisath_guardianAI : public ScriptedAI
         if (m_uiSpell2Timer < uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), m_uiSpell2);
-            m_uiSpell2Timer = 15000;
+            m_uiSpell2Timer = Randomize(15000);
         }
         else
             m_uiSpell2Timer -= uiDiff;
@@ -146,7 +146,7 @@ struct mob_anubisath_guardianAI : public ScriptedAI
             if (m_uiSummonCount < 4)
                 DoCastSpellIfCan(m_creature->getVictim(), m_uiSpell5);
 
-            m_uiSpell5Timer = 15000;
+            m_uiSpell5Timer = Randomize(15000);
         }
         else
             m_uiSpell5Timer -= uiDiff;

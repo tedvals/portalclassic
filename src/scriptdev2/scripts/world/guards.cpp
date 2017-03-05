@@ -22,15 +22,19 @@ SDCategory: Guards
 EndScriptData */
 
 /* ContentData
+guard_azuremyst
 guard_bluffwatcher
 guard_contested
 guard_darnassus
 guard_dunmorogh
 guard_durotar
 guard_elwynnforest
+guard_eversong
+guard_exodar
 guard_ironforge
 guard_mulgore
 guard_orgrimmar
+guard_silvermoon
 guard_stormwind
 guard_teldrassil
 guard_tirisfal
@@ -39,6 +43,11 @@ EndContentData */
 
 #include "precompiled.h"
 #include "guard_ai.h"
+
+CreatureAI* GetAI_guard_azuremyst(Creature* pCreature)
+{
+	return new guardAI(pCreature);
+}
 
 CreatureAI* GetAI_guard_bluffwatcher(Creature* pCreature)
 {
@@ -70,6 +79,16 @@ CreatureAI* GetAI_guard_elwynnforest(Creature* pCreature)
     return new guardAI(pCreature);
 }
 
+CreatureAI* GetAI_guard_eversong(Creature* pCreature)
+{
+	return new guardAI(pCreature);
+}
+
+CreatureAI* GetAI_guard_exodar(Creature* pCreature)
+{
+	return new guardAI(pCreature);
+}
+
 CreatureAI* GetAI_guard_ironforge(Creature* pCreature)
 {
     return new guardAI(pCreature);
@@ -83,6 +102,11 @@ CreatureAI* GetAI_guard_mulgore(Creature* pCreature)
 CreatureAI* GetAI_guard_orgrimmar(Creature* pCreature)
 {
     return new guardAI_orgrimmar(pCreature);
+}
+
+CreatureAI* GetAI_guard_silvermoon(Creature* pCreature)
+{
+	return new guardAI(pCreature);
 }
 
 CreatureAI* GetAI_guard_stormwind(Creature* pCreature)
@@ -108,6 +132,11 @@ CreatureAI* GetAI_guard_undercity(Creature* pCreature)
 void AddSC_guards()
 {
     Script* pNewScript;
+
+	pNewScript = new Script;
+	pNewScript->Name = "guard_azuremyst";
+	pNewScript->GetAI = &GetAI_guard_azuremyst;
+	pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "guard_bluffwatcher";
@@ -139,6 +168,16 @@ void AddSC_guards()
     pNewScript->GetAI = &GetAI_guard_elwynnforest;
     pNewScript->RegisterSelf();
 
+	pNewScript = new Script;
+	pNewScript->Name = "guard_eversong";
+	pNewScript->GetAI = &GetAI_guard_eversong;
+	pNewScript->RegisterSelf();
+
+	pNewScript = new Script;
+	pNewScript->Name = "guard_exodar";
+	pNewScript->GetAI = &GetAI_guard_exodar;
+	pNewScript->RegisterSelf();
+
     pNewScript = new Script;
     pNewScript->Name = "guard_ironforge";
     pNewScript->GetAI = &GetAI_guard_ironforge;
@@ -153,6 +192,11 @@ void AddSC_guards()
     pNewScript->Name = "guard_orgrimmar";
     pNewScript->GetAI = &GetAI_guard_orgrimmar;
     pNewScript->RegisterSelf();
+
+	pNewScript = new Script;
+	pNewScript->Name = "guard_silvermoon";
+	pNewScript->GetAI = &GetAI_guard_silvermoon;
+	pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "guard_stormwind";

@@ -123,11 +123,11 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
     {
         m_Phase                 = PHASE_EYE_NORMAL;
 
-        m_uiDarkGlareTimer      = 45000;
-        m_uiDarkGlareEndTimer   = 40000;
+        m_uiDarkGlareTimer      = Randomize(45000);
+        m_uiDarkGlareEndTimer   = Randomize(40000);
         m_uiClawTentacleTimer   = urand(10000, 15000);
         m_uiBeamTimer           = 0;
-        m_uiEyeTentacleTimer    = 45000;
+        m_uiEyeTentacleTimer    = Randomize(45000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -264,7 +264,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
                         m_creature->SetFacingToObject(m_creature->getVictim());
 
                         // Switch to Dark Glare phase
-                        m_uiDarkGlareTimer    = 45000;
+                        m_uiDarkGlareTimer    = Randomize(45000);
                         m_Phase               = PHASE_EYE_DARK_GLARE;
                     }
                 }
@@ -281,7 +281,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
                     m_creature->RemoveAurasDueToSpell(SPELL_ROTATE_360_RIGHT);
 
                     // Switch to Eye Beam
-                    m_uiDarkGlareEndTimer = 40000;
+                    m_uiDarkGlareEndTimer = Randomize(40000);
                     m_uiBeamTimer         = 1000;
                     m_Phase               = PHASE_EYE_NORMAL;
                 }
@@ -318,7 +318,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
                 m_creature->SummonCreature(NPC_EYE_TENTACLE, fX, fY, fZ, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
             }
 
-            m_uiEyeTentacleTimer = 45000;
+            m_uiEyeTentacleTimer = Randomize(45000);
         }
         else
             m_uiEyeTentacleTimer -= uiDiff;
@@ -367,9 +367,9 @@ struct boss_cthunAI : public Scripted_NoMovementAI
 
         m_uiPhaseTimer              = 5000;
         m_uiFleshTentaclesKilled    = 0;
-        m_uiEyeTentacleTimer        = 35000;
-        m_uiGiantClawTentacleTimer  = 20000;
-        m_uiGiantEyeTentacleTimer   = 50000;
+        m_uiEyeTentacleTimer        = Randomize(35000);
+        m_uiGiantClawTentacleTimer  = Randomize(20000);
+        m_uiGiantEyeTentacleTimer   = Randomize(50000);
         m_uiDigestiveAcidTimer      = 4000;
 
         // Body Phase
@@ -624,7 +624,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_IN_LOS))
                 m_creature->SummonCreature(NPC_GIANT_CLAW_TENTACLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 0);
 
-            m_uiGiantClawTentacleTimer = 60000;
+            m_uiGiantClawTentacleTimer = Randomize(60000);
         }
         else
             m_uiGiantClawTentacleTimer -= uiDiff;
@@ -635,7 +635,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_IN_LOS))
                 m_creature->SummonCreature(NPC_GIANT_EYE_TENTACLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_DEAD_DESPAWN, 0);
 
-            m_uiGiantEyeTentacleTimer = 60000;
+            m_uiGiantEyeTentacleTimer = Randomize(60000);
         }
         else
             m_uiGiantEyeTentacleTimer -= uiDiff;
@@ -652,7 +652,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
                 m_creature->SummonCreature(NPC_EYE_TENTACLE, fX, fY, fZ, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
             }
 
-            m_uiEyeTentacleTimer = 30000;
+            m_uiEyeTentacleTimer = Randomize(30000);
         }
         else
             m_uiEyeTentacleTimer -= uiDiff;
@@ -731,8 +731,8 @@ struct npc_giant_claw_tentacleAI : public Scripted_NoMovementAI
 
         if (m_uiThrashTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_THRASH) == CAST_OK)
-                m_uiThrashTimer = 10000;
+			if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_THRASH) == CAST_OK)
+				m_uiThrashTimer = Randomize(10000);
         }
         else
             m_uiThrashTimer -= uiDiff;
@@ -740,7 +740,7 @@ struct npc_giant_claw_tentacleAI : public Scripted_NoMovementAI
         if (m_uiHamstringTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMSTRING) == CAST_OK)
-                m_uiHamstringTimer = 10000;
+                m_uiHamstringTimer = Randomize(10000);
         }
         else
             m_uiHamstringTimer -= uiDiff;

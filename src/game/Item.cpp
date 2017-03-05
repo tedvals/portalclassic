@@ -24,6 +24,9 @@
 #include "ItemEnchantmentMgr.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "World.h"
+#include "Util.h"
+#include "SpellMgr.h"
 #include "LuaEngine.h"
 
 void AddItemsSetItem(Player* player, Item* item)
@@ -93,7 +96,7 @@ void AddItemsSetItem(Player* player, Item* item)
         {
             if (!eff->spells[y])                            // free slot
             {
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(set->spells[x]);
+                SpellEntry const* spellInfo = GetSpellTemplate(set->spells[x]);
                 if (!spellInfo)
                 {
                     sLog.outError("WORLD: unknown spell id %u in items set %u effects", set->spells[x], setid);
@@ -234,8 +237,13 @@ Item::Item()
 
 Item::~Item()
 {
-    if(m_enchantEffectModifier)
-        GetOwner()->AddSpellMod(m_enchantEffectModifier, false);
+	if (m_enchantEffectModifier)
+	{
+		if (Player * owner = GetOwner())
+			owner->AddSpellMod(m_enchantEffectModifier, false);
+		else
+			delete m_enchantEffectModifier; // on logout/DC player is mid deletion and will be nullptr
+		}
 }
 
 bool Item::Create(uint32 guidlow, uint32 itemid, Player const* owner)
@@ -564,7 +572,7 @@ uint32 Item::GetSkill() const
     const static uint32 item_weapon_skills[MAX_ITEM_SUBCLASS_WEAPON] =
     {
         SKILL_AXES,     SKILL_2H_AXES,  SKILL_BOWS,          SKILL_GUNS,      SKILL_MACES,
-        SKILL_2H_MACES, SKILL_POLEARMS, SKILL_SWORDS,        SKILL_2H_SWORDS, 0,
+        SKILL_2H_MACES, SKILL_POLEARMS, SKILL_SWORDS,        SKILL_2H_SWORDS, SKILL_TORCH,
         SKILL_STAVES,   0,              0,                   SKILL_UNARMED,   0,
         SKILL_DAGGERS,  SKILL_THROWN,   SKILL_ASSASSINATION, SKILL_CROSSBOWS, SKILL_WANDS,
         SKILL_FISHING
@@ -938,7 +946,7 @@ void Item::SendTimeUpdate(Player* owner) const
     owner->GetSession()->SendPacket(data);
 }
 
-Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 randomPropertyId)
+Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 randomPropertyId, bool randomize)
 {
     if (count < 1)
         return nullptr;                                        // don't create item at zero count
@@ -954,6 +962,170 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
         if (pItem->Create(sObjectMgr.GenerateItemLowGuid(), item, player))
         {
             pItem->SetCount(count);
+			
+			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_BOOL_CUSTOM_RANDOMIZE_ITEM) && randomize)
+			{
+				uint32 adventure_level;
+				if (((Player*)player)->GetGroup())
+					adventure_level = ((Player*)player)->GetAdventureLevelGroup();
+				else
+					adventure_level = ((Player*)player)->GetAdventureLevel();
+
+				if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_CHANCE)*adventure_level))
+				{
+					ItemPrototype const* itemProto = pItem->GetProto();
+
+					uint32 itemLevel = itemProto->ItemLevel;
+					uint32 itemClass = itemProto->Class;
+					uint32 ItemSubClass = itemProto->SubClass;
+					uint32 ItemQuality = itemProto->Quality;
+					uint32 inventoryType = itemProto->InventoryType;
+															
+					uint32 reforgeLevel = 0;
+					uint32 reforgePropertyId = 0;
+
+					uint32 minQuality = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_QUALITY);
+					uint32 minLevel = sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_MIN_LEVEL);
+					bool canApply;
+
+					if (itemClass == 2 || itemClass == 4)
+						canApply = true;
+					else canApply = false;
+
+					//Change Class
+					// 1 : Two Handed Weapons - Shields 
+					// 2 : 1 Handed Weapons - Off Hands
+					// 3: Head - Chest
+					// 4: Other (including Ranged Weapons, Wands, Librams, Relics, Totems)
+
+					if (itemClass = 2)
+					{
+						switch (ItemSubClass)
+						{
+						case ITEM_SUBCLASS_WEAPON_AXE2:
+						case ITEM_SUBCLASS_WEAPON_MACE2:
+						case ITEM_SUBCLASS_WEAPON_POLEARM:
+						case ITEM_SUBCLASS_WEAPON_SWORD2:
+						case ITEM_SUBCLASS_WEAPON_STAFF:
+						case ITEM_SUBCLASS_WEAPON_SPEAR:
+							itemClass = 1;
+						case ITEM_SUBCLASS_WEAPON_BOW:
+						case ITEM_SUBCLASS_WEAPON_GUN:
+						case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+						case ITEM_SUBCLASS_WEAPON_WAND:
+							itemClass = 4;
+						case ITEM_SUBCLASS_WEAPON_MISC:
+						case ITEM_SUBCLASS_WEAPON_TORCH:
+						case ITEM_SUBCLASS_WEAPON_EXOTIC:
+						case ITEM_SUBCLASS_WEAPON_EXOTIC2:
+						case ITEM_SUBCLASS_WEAPON_FISHING_POLE:
+							canApply = false;
+						}
+					}
+
+					if (canApply)
+					{
+						switch (inventoryType)
+						{
+						case INVTYPE_HEAD:
+						case INVTYPE_CHEST:
+							itemClass = 3;
+						case INVTYPE_SHIELD:
+							itemClass = 1;
+						case INVTYPE_HOLDABLE:
+							itemClass = 2;
+						case INVTYPE_THROWN:
+						case INVTYPE_RELIC:
+						case INVTYPE_RANGEDRIGHT:
+							itemClass = 4;
+						case INVTYPE_BAG:
+						case INVTYPE_TABARD:
+						case INVTYPE_AMMO:
+						case INVTYPE_QUIVER:
+							canApply = false;
+						}
+					}
+
+					if (itemProto && canApply && (ItemQuality > minQuality) && (itemLevel>minLevel))
+					{
+						if (!randomPropertyId)
+							randomPropertyId = GetItemEnchantMod(itemProto->RandomProperty); 
+
+						if (randomPropertyId)
+						{
+							QueryResult* result;
+							//result = WorldDatabase.PQuery("SELECT itemlevel FROM item_random_enhancement WHERE randomproperty = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass, ItemSubClass);
+							result = WorldDatabase.PQuery("SELECT minlevel FROM item_random_enhancements WHERE ench = '%u' and class = '%u' order by rand() LIMIT 1", randomPropertyId, itemClass);
+							if (result)
+							{
+								Field* fields = result->Fetch();
+								reforgeLevel = fields[0].GetUInt32();
+
+								delete result;
+							}
+						}
+
+						if (!reforgeLevel)
+						{
+							uint32 base = floor(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_SCALING)*itemProto->ItemLevel*ItemQuality);
+							reforgeLevel = urand(base, base + adventure_level*ItemQuality);
+						}
+
+							//reforgeLevel = urand(10 + ItemQuality + adventure_level, floor(itemProto->ItemLevel / (6 - ItemQuality)) + sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level);
+						else
+						{
+							//reforgeLevel = urand(reforgeLevel + ItemQuality, reforgeLevel + ItemQuality + floor(sWorld.getConfig(CONFIG_UINT32_CUSTOM_RANDOMIZE_ITEM_DIFF)*adventure_level / 2));
+							uint32 base = floor((sWorld.getConfig(CONFIG_FLOAT_CUSTOM_RANDOMIZE_ITEM_SCALING)*itemProto->ItemLevel*ItemQuality) + reforgeLevel/5);
+							reforgeLevel = urand(base, base + adventure_level*ItemQuality);
+						}
+
+						if (reforgeLevel > 75)
+							reforgeLevel = 75;
+						else if (reforgeLevel < 10)
+							return pItem;
+
+						int i = 0;
+						QueryResult* result;
+
+						do
+						{
+							//result = WorldDatabase.PQuery("SELECT randomproperty FROM item_random_enhancement WHERE itemlevel = '%u' and class = '%u'and subclass = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass, ItemSubClass);
+							result = WorldDatabase.PQuery("SELECT ench FROM item_random_enhancements WHERE minlevel <= '%u' and maxlevel >= '%u' and class = '%u' order by rand() LIMIT 1", reforgeLevel, itemClass);
+							--reforgeLevel;
+
+							if (reforgeLevel < minLevel)
+								break;
+
+							++i;
+						} while (!result || i < 10);
+
+						if (result)
+						{
+							Field* fields = result->Fetch();
+							reforgePropertyId = fields[0].GetUInt32();
+
+							delete result;
+						}
+
+						sLog.outString("Adding enchantment %u to item %u", randomPropertyId, item);
+					}
+					
+					if (sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP))
+					{
+						if (reforgePropertyId && ((Player*)player)->SubstractAdventureXP(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ITEMXP)*itemLevel*ItemQuality*ItemQuality))
+						{
+							randomPropertyId = reforgePropertyId;
+						}
+						else 
+							sLog.outString("Not enough adventure xp to apply random property to item %u", item);
+					}
+					else if (reforgePropertyId) 
+						randomPropertyId = reforgePropertyId;
+						
+				}
+			}
+			
+
             if (uint32 randId = randomPropertyId ? randomPropertyId : Item::GenerateItemRandomPropertyId(item))
                 pItem->SetItemRandomProperties(randId);
 

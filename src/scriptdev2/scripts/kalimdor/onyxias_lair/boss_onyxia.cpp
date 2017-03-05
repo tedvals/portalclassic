@@ -143,18 +143,18 @@ struct boss_onyxiaAI : public ScriptedAI
 
         m_uiPhase = PHASE_START;
 
-        m_uiFlameBreathTimer = urand(10000, 20000);
-        m_uiTailSweepTimer = urand(15000, 20000);
-        m_uiCleaveTimer = urand(2000, 5000);
-        m_uiWingBuffetTimer = urand(10000, 20000);
+        m_uiFlameBreathTimer = Randomize(urand(10000, 20000));
+        m_uiTailSweepTimer = Randomize(urand(15000, 20000));
+        m_uiCleaveTimer = Randomize(urand(2000, 5000));
+        m_uiWingBuffetTimer = Randomize(urand(10000, 20000));
         m_uiCheckInLairTimer = 3000;
 
         m_uiMovePoint = POINT_ID_NORTH;                     // First point reached by the flying Onyxia
         m_uiMovementTimer = 25000;
 
         m_uiFireballTimer = 1000;
-        m_uiSummonWhelpsTimer = 60000;
-        m_uiBellowingRoarTimer = 30000;
+        m_uiSummonWhelpsTimer = Randomize(60000);
+        m_uiBellowingRoarTimer = Randomize(30000);
         m_uiWhelpTimer = 1000;
 
         m_uiSummonCount = 0;
@@ -312,7 +312,7 @@ struct boss_onyxiaAI : public ScriptedAI
                 if (m_uiFlameBreathTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FLAMEBREATH) == CAST_OK)
-                        m_uiFlameBreathTimer = urand(10000, 20000);
+                        m_uiFlameBreathTimer = Randomize(urand(10000, 20000));
                 }
                 else
                     m_uiFlameBreathTimer -= uiDiff;
@@ -320,7 +320,7 @@ struct boss_onyxiaAI : public ScriptedAI
                 if (m_uiTailSweepTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_TAILSWEEP) == CAST_OK)
-                        m_uiTailSweepTimer = urand(15000, 20000);
+                        m_uiTailSweepTimer = Randomize(urand(15000, 20000));
                 }
                 else
                     m_uiTailSweepTimer -= uiDiff;
@@ -328,7 +328,7 @@ struct boss_onyxiaAI : public ScriptedAI
                 if (m_uiCleaveTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                        m_uiCleaveTimer = urand(2000, 5000);
+                        m_uiCleaveTimer = Randomize(urand(2000, 5000));
                 }
                 else
                     m_uiCleaveTimer -= uiDiff;
@@ -336,7 +336,7 @@ struct boss_onyxiaAI : public ScriptedAI
                 if (m_uiWingBuffetTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_WINGBUFFET) == CAST_OK)
-                        m_uiWingBuffetTimer = urand(15000, 30000);
+                        m_uiWingBuffetTimer = Randomize(urand(15000, 30000));
                 }
                 else
                     m_uiWingBuffetTimer -= uiDiff;
@@ -429,7 +429,7 @@ struct boss_onyxiaAI : public ScriptedAI
                     {
                         m_bIsSummoningWhelps = false;
                         m_uiSummonCount = 0;
-                        m_uiSummonWhelpsTimer = 80000;      // 90s - 10s for summoning
+                        m_uiSummonWhelpsTimer = Randomize(80000);      // 90s - 10s for summoning
                     }
                 }
                 else

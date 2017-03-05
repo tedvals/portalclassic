@@ -157,11 +157,11 @@ struct boss_maexxnaAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiWebWrapTimer            = 15000;
-        m_uiWebSprayTimer           = 40000;
-        m_uiPoisonShockTimer        = urand(10000, 20000);
-        m_uiNecroticPoisonTimer     = urand(20000, 30000);
-        m_uiSummonSpiderlingTimer   = 30000;
+        m_uiWebWrapTimer            = Randomize(15000);
+        m_uiWebSprayTimer           = Randomize(40000);
+        m_uiPoisonShockTimer        = Randomize(urand(10000, 20000));
+        m_uiNecroticPoisonTimer     = Randomize(urand(20000, 30000));
+        m_uiSummonSpiderlingTimer   = Randomize(30000);
         m_bEnraged                  = false;
     }
 
@@ -235,7 +235,7 @@ struct boss_maexxnaAI : public ScriptedAI
             if (DoCastWebWrap())
                 DoScriptText(EMOTE_SPIN_WEB, m_creature);
 
-            m_uiWebWrapTimer = 40000;
+            m_uiWebWrapTimer = Randomize(40000);
         }
         else
             m_uiWebWrapTimer -= uiDiff;
@@ -246,7 +246,7 @@ struct boss_maexxnaAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_WEBSPRAY) == CAST_OK)
             {
                 DoScriptText(EMOTE_SPRAY, m_creature);
-                m_uiWebSprayTimer = 40000;
+                m_uiWebSprayTimer = Randomize(40000);
             }
         }
         else
@@ -256,7 +256,7 @@ struct boss_maexxnaAI : public ScriptedAI
         if (m_uiPoisonShockTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_POISONSHOCK) == CAST_OK)
-                m_uiPoisonShockTimer = urand(10000, 20000);
+                m_uiPoisonShockTimer = Randomize(urand(10000, 20000));
         }
         else
             m_uiPoisonShockTimer -= uiDiff;
@@ -265,7 +265,7 @@ struct boss_maexxnaAI : public ScriptedAI
         if (m_uiNecroticPoisonTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_NECROTICPOISON) == CAST_OK)
-                m_uiNecroticPoisonTimer = urand(20000, 30000);
+                m_uiNecroticPoisonTimer = Randomize(urand(20000, 30000));
         }
         else
             m_uiNecroticPoisonTimer -= uiDiff;
@@ -275,7 +275,7 @@ struct boss_maexxnaAI : public ScriptedAI
         {
             SummonSpiderlings();
             DoScriptText(EMOTE_SPIDERLING, m_creature);
-            m_uiSummonSpiderlingTimer = 30000;
+            m_uiSummonSpiderlingTimer = Randomize(30000);
         }
         else
             m_uiSummonSpiderlingTimer -= uiDiff;

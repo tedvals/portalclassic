@@ -92,13 +92,13 @@ struct boss_sapphironAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiCleaveTimer = 5000;
-        m_uiTailSweepTimer = 12000;
-        m_uiFrostBreathTimer = 7000;
-        m_uiLifeDrainTimer = 11000;
-        m_uiBlizzardTimer = 15000;                          // "Once the encounter starts,based on your version of Naxx, this will be used x2 for normal and x6 on HC"
+        m_uiCleaveTimer = Randomize(5000);
+        m_uiTailSweepTimer = Randomize(12000);
+        m_uiFrostBreathTimer = Randomize(7000);
+        m_uiLifeDrainTimer = Randomize(11000);
+        m_uiBlizzardTimer = Randomize(15000);                          // "Once the encounter starts,based on your version of Naxx, this will be used x2 for normal and x6 on HC"
         m_uiFlyTimer = 46000;
-        m_uiIceboltTimer = 5000;
+        m_uiIceboltTimer = Randomize(5000);
         m_uiLandTimer = 0;
         m_uiBerserkTimer = 15 * MINUTE * IN_MILLISECONDS;
         m_Phase = PHASE_GROUND;
@@ -147,8 +147,8 @@ struct boss_sapphironAI : public ScriptedAI
             m_creature->SetLevitate(true);
             m_Phase = PHASE_AIR_BOLTS;
 
-            m_uiFrostBreathTimer = 5000;
-            m_uiIceboltTimer = 5000;
+            m_uiFrostBreathTimer = Randomize(5000);
+            m_uiIceboltTimer = Randomize(5000);
             m_uiIceboltCount = 0;
         }
     }
@@ -164,7 +164,7 @@ struct boss_sapphironAI : public ScriptedAI
                 if (m_uiCleaveTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                        m_uiCleaveTimer = urand(5000, 10000);
+                        m_uiCleaveTimer = Randomize(urand(5000, 10000));
                 }
                 else
                     m_uiCleaveTimer -= uiDiff;
@@ -172,7 +172,7 @@ struct boss_sapphironAI : public ScriptedAI
                 if (m_uiTailSweepTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_TAIL_SWEEP) == CAST_OK)
-                        m_uiTailSweepTimer = urand(7000, 10000);
+                        m_uiTailSweepTimer = Randomize(urand(7000, 10000));
                 }
                 else
                     m_uiTailSweepTimer -= uiDiff;
@@ -180,7 +180,7 @@ struct boss_sapphironAI : public ScriptedAI
                 if (m_uiLifeDrainTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_LIFE_DRAIN) == CAST_OK)
-                        m_uiLifeDrainTimer = 23000;
+                        m_uiLifeDrainTimer = Randomize(23000);
                 }
                 else
                     m_uiLifeDrainTimer -= uiDiff;
@@ -188,7 +188,7 @@ struct boss_sapphironAI : public ScriptedAI
                 if (m_uiBlizzardTimer < uiDiff)
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_BLIZZARD) == CAST_OK)
-                        m_uiBlizzardTimer = 20000;
+                        m_uiBlizzardTimer = Randomize(20000);
                 }
                 else
                     m_uiBlizzardTimer -= uiDiff;
@@ -225,7 +225,7 @@ struct boss_sapphironAI : public ScriptedAI
                             DoCastSpellIfCan(m_creature, SPELL_FROST_BREATH_DUMMY, CAST_TRIGGERED);
                             DoScriptText(EMOTE_BREATH, m_creature);
                             m_Phase = PHASE_AIR_BREATH;
-                            m_uiFrostBreathTimer = 5000;
+                            m_uiFrostBreathTimer = Randomize(5000);
                             m_uiLandTimer = 11000;
                         }
                     }
@@ -239,7 +239,7 @@ struct boss_sapphironAI : public ScriptedAI
                         DoCastSpellIfCan(m_creature, SPELL_ICEBOLT);
 
                         ++m_uiIceboltCount;
-                        m_uiIceboltTimer = 4000;
+                        m_uiIceboltTimer = Randomize(4000);
                     }
                     else
                         m_uiIceboltTimer -= uiDiff;

@@ -234,7 +234,7 @@ bool ChatHandler::HandleGMVisibleCommand(char* args)
     }
 
     Player* player = m_session->GetPlayer();
-    SpellEntry const* invisibleAuraInfo = sSpellTemplate.LookupEntry<SpellEntry>(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
+    SpellEntry const* invisibleAuraInfo = GetSpellTemplate(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
     if (!invisibleAuraInfo || !IsSpellAppliesAura(invisibleAuraInfo))
         invisibleAuraInfo = nullptr;
 
@@ -400,7 +400,7 @@ bool ChatHandler::HandleNamegoCommand(char* args)
 
         if (pMap->IsBattleGround())
         {
-            // only allow if gm mode is on
+            /*// only allow if gm mode is on
             if (!target->isGameMaster())
             {
                 PSendSysMessage(LANG_CANNOT_GO_TO_BG_GM, nameLink.c_str());
@@ -408,7 +408,7 @@ bool ChatHandler::HandleNamegoCommand(char* args)
                 return false;
             }
             // if both players are in different bgs
-            else if (target->GetBattleGroundId() && player->GetBattleGroundId() != target->GetBattleGroundId())
+            else */if (target->GetBattleGroundId() && player->GetBattleGroundId() != target->GetBattleGroundId())
             {
                 PSendSysMessage(LANG_CANNOT_GO_TO_BG_FROM_BG, nameLink.c_str());
                 SetSentErrorMessage(true);

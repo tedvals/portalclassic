@@ -320,9 +320,12 @@ bool Creature::InitEntry(uint32 Entry, Team team, CreatureData const* data /*=nu
     }
 
     // Load creature equipment
-    if (eventData && eventData->equipment_id)
-    {
-        LoadEquipment(eventData->equipment_id);             // use event equipment if any for active event
+	if (eventData)
+	{
+		if (eventData->equipment_id)
+			LoadEquipment(eventData->equipment_id);             // use event equipment if any for active event
+		else if (eventData->entry_id)
+			LoadEquipment(cinfo->EquipmentTemplateId, true);     // use changed entry default template
     }
     else if (!data || data->equipmentId == 0)
     {
@@ -884,6 +887,8 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
                         case RACE_TAUREN:       pPlayer->PlayerTalkClass->SendGossipMenu(5864, GetObjectGuid()); break;
                         case RACE_TROLL:        pPlayer->PlayerTalkClass->SendGossipMenu(5816, GetObjectGuid()); break;
                         case RACE_UNDEAD:       pPlayer->PlayerTalkClass->SendGossipMenu(624, GetObjectGuid()); break;
+						case RACE_BLOODELF:     pPlayer->PlayerTalkClass->SendGossipMenu(5862, GetObjectGuid()); break;
+						case RACE_DRAENEI:      pPlayer->PlayerTalkClass->SendGossipMenu(5864, GetObjectGuid()); break;
                     }
                 }
                 return false;
@@ -1660,7 +1665,7 @@ SpellEntry const* Creature::ReachWithSpellAttack(Unit* pVictim)
     {
         if (!m_spells[i])
             continue;
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_spells[i]);
+        SpellEntry const* spellInfo = GetSpellTemplate(m_spells[i]);
         if (!spellInfo)
         {
             sLog.outError("WORLD: unknown spell id %i", m_spells[i]);
@@ -1712,7 +1717,7 @@ SpellEntry const* Creature::ReachWithSpellCure(Unit* pVictim)
     {
         if (!m_spells[i])
             continue;
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_spells[i]);
+        SpellEntry const* spellInfo = GetSpellTemplate(m_spells[i]);
         if (!spellInfo)
         {
             sLog.outError("WORLD: unknown spell id %i", m_spells[i]);
@@ -2095,7 +2100,7 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
 
 Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, uint32 uiSpellEntry, uint32 selectFlags) const
 {
-    return SelectAttackingTarget(target, position, sSpellTemplate.LookupEntry<SpellEntry>(uiSpellEntry), selectFlags);
+    return SelectAttackingTarget(target, position, GetSpellTemplate(uiSpellEntry), selectFlags);
 }
 
 Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, SpellEntry const* pSpellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/) const
@@ -2213,7 +2218,7 @@ void Creature::_AddCreatureCategoryCooldown(uint32 category, time_t apply_time)
 
 void Creature::AddCreatureSpellCooldown(uint32 spellid)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+    SpellEntry const* spellInfo = GetSpellTemplate(spellid);
     if (!spellInfo)
         return;
 
@@ -2227,7 +2232,7 @@ void Creature::AddCreatureSpellCooldown(uint32 spellid)
 
 bool Creature::HasCategoryCooldown(uint32 spell_id) const
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell_id);
     if (!spellInfo)
         return false;
 
@@ -2494,7 +2499,7 @@ void Creature::ApplyGameEventSpells(GameEventCreatureData const* eventData, bool
     uint32 remove_spell = activated ? eventData->spell_id_end : eventData->spell_id_start;
 
     if (remove_spell)
-        if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(remove_spell))
+        if (SpellEntry const* spellEntry = GetSpellTemplate(remove_spell))
             if (IsSpellAppliesAura(spellEntry))
                 RemoveAurasDueToSpell(remove_spell);
 
@@ -2783,4 +2788,17 @@ bool Creature::IsTappedBy(Player* plr) const
         return false;
     }
     return false;
+}
+
+uint32 Creature::RandomizeCooldown(uint32 cooldown)
+{
+	if (!sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_ENEMY_COOLDOWN))
+		return cooldown;
+
+	Player* player = sObjectMgr.GetPlayer(GetTargetGuid());
+
+	if (player)
+		return (uint32)((1.f - (player->GetAdventureLevel()*0.1f))*cooldown);
+	else
+		return cooldown;
 }

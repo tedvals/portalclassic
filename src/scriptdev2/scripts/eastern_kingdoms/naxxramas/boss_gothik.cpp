@@ -104,14 +104,14 @@ struct boss_gothikAI : public ScriptedAI
         m_uiPhase = PHASE_SPEECH;
         m_uiSpeech = 1;
 
-        m_uiTraineeTimer = 24 * IN_MILLISECONDS;
-        m_uiDeathKnightTimer = 74 * IN_MILLISECONDS;
-        m_uiRiderTimer = 134 * IN_MILLISECONDS;
-        m_uiTeleportTimer = urand(30000, 45000); // Teleport every 30-45 seconds.
+        m_uiTraineeTimer = Randomize(24 * IN_MILLISECONDS);
+        m_uiDeathKnightTimer = Randomize(74 * IN_MILLISECONDS);
+        m_uiRiderTimer = Randomize(134 * IN_MILLISECONDS);
+        m_uiTeleportTimer = Randomize(urand(30000, 45000)); // Teleport every 30-45 seconds.
         m_uiShadowboltTimer = 2 * IN_MILLISECONDS;
         m_uiHarvestSoulTimer = 2500;
-        m_uiPhaseTimer = 3 * MINUTE * IN_MILLISECONDS + 44 * IN_MILLISECONDS; // last summon at 3:44 - Teleport down at 4:34
-        m_uiControlZoneTimer = urand(120 * IN_MILLISECONDS, 150 * IN_MILLISECONDS);
+        m_uiPhaseTimer = Randomize(3 * MINUTE * IN_MILLISECONDS + 44 * IN_MILLISECONDS); // last summon at 3:44 - Teleport down at 4:34
+        m_uiControlZoneTimer = Randomize(urand(120 * IN_MILLISECONDS, 150 * IN_MILLISECONDS));
         m_uiSpeechTimer = 1 * IN_MILLISECONDS;
 
         // Despawn Adds
@@ -315,21 +315,21 @@ struct boss_gothikAI : public ScriptedAI
                 if (m_uiTraineeTimer < uiDiff)
                 {
                     SummonAdds(true, NPC_UNREL_TRAINEE);
-                    m_uiTraineeTimer = 20 * IN_MILLISECONDS;
+                    m_uiTraineeTimer = Randomize(20 * IN_MILLISECONDS);
                 }
                 else
                     m_uiTraineeTimer -= uiDiff;
                 if (m_uiDeathKnightTimer < uiDiff)
                 {
                     SummonAdds(true, NPC_UNREL_DEATH_KNIGHT);
-                    m_uiDeathKnightTimer = 25 * IN_MILLISECONDS;
+                    m_uiDeathKnightTimer = Randomize(25 * IN_MILLISECONDS);
                 }
                 else
                     m_uiDeathKnightTimer -= uiDiff;
                 if (m_uiRiderTimer < uiDiff)
                 {
                     SummonAdds(true, NPC_UNREL_RIDER);
-                    m_uiRiderTimer = 30 * IN_MILLISECONDS;
+                    m_uiRiderTimer = Randomize(30 * IN_MILLISECONDS);
                 }
                 else
                     m_uiRiderTimer -= uiDiff;
@@ -337,7 +337,7 @@ struct boss_gothikAI : public ScriptedAI
                 if (m_uiPhaseTimer < uiDiff)
                 {
                     m_uiPhase = PHASE_STOP_SUMMONING;
-                    m_uiPhaseTimer = 50 * IN_MILLISECONDS;
+                    m_uiPhaseTimer = Randomize(50 * IN_MILLISECONDS);
                 }
                 else
                     m_uiPhaseTimer -= uiDiff;
@@ -372,7 +372,7 @@ struct boss_gothikAI : public ScriptedAI
                     uint32 uiTeleportSpell = m_pInstance->IsInRightSideGothArea(m_creature) ? SPELL_TELEPORT_LEFT : SPELL_TELEPORT_RIGHT;
                     if (DoCastSpellIfCan(m_creature, uiTeleportSpell) == CAST_OK)
                     {
-                        m_uiTeleportTimer = urand(30000, 45000); // Teleports between 30 seconds and 45 seconds.
+                        m_uiTeleportTimer = Randomize(urand(30000, 45000)); // Teleports between 30 seconds and 45 seconds.
                         m_uiShadowboltTimer = 2 * IN_MILLISECONDS;
                     }
                 }

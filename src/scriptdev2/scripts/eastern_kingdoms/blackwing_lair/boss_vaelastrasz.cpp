@@ -254,7 +254,7 @@ struct boss_vaelastraszAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = 15000;
+                m_uiCleaveTimer = Randomize(15000);
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -263,7 +263,7 @@ struct boss_vaelastraszAI : public ScriptedAI
         if (m_uiFlameBreathTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FLAME_BREATH) == CAST_OK)
-                m_uiFlameBreathTimer = urand(4000, 8000);
+                m_uiFlameBreathTimer = Randomize(urand(4000, 8000));
         }
         else
             m_uiFlameBreathTimer -= uiDiff;
@@ -274,7 +274,7 @@ struct boss_vaelastraszAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_BURNING_ADRENALINE, SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA))
             {
                 pTarget->CastSpell(pTarget, SPELL_BURNING_ADRENALINE, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
-                m_uiBurningAdrenalineCasterTimer = 15000;
+                m_uiBurningAdrenalineCasterTimer = Randomize(15000);
             }
         }
         else
@@ -287,7 +287,7 @@ struct boss_vaelastraszAI : public ScriptedAI
             // to Vael instead of the player
             m_creature->getVictim()->CastSpell(m_creature->getVictim(), SPELL_BURNING_ADRENALINE, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
 
-            m_uiBurningAdrenalineTankTimer = 45000;
+            m_uiBurningAdrenalineTankTimer = Randomize(45000);
         }
         else
             m_uiBurningAdrenalineTankTimer -= uiDiff;
@@ -296,7 +296,7 @@ struct boss_vaelastraszAI : public ScriptedAI
         if (m_uiFireNovaTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FIRE_NOVA) == CAST_OK)
-                m_uiFireNovaTimer = 5000;
+                m_uiFireNovaTimer = Randomize(5000);
         }
         else
             m_uiFireNovaTimer -= uiDiff;
@@ -305,7 +305,7 @@ struct boss_vaelastraszAI : public ScriptedAI
         if (m_uiTailSweepTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_TAIL_SWEEP) == CAST_OK)
-                m_uiTailSweepTimer = 20000;
+                m_uiTailSweepTimer = Randomize(20000);
         }
         else
             m_uiTailSweepTimer -= uiDiff;

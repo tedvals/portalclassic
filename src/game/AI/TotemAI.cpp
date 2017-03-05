@@ -55,7 +55,7 @@ void TotemAI::UpdateAI(const uint32 /*diff*/)
         return;
 
     // Search spell
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(getTotem().GetSpell());
+    SpellEntry const* spellInfo = GetSpellTemplate(getTotem().GetSpell());
     if (!spellInfo)
         return;
 

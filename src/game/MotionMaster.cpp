@@ -232,6 +232,7 @@ void MotionMaster::MoveRandomAroundPoint(float x, float y, float z, float radius
     if (m_owner->GetTypeId() == TYPEID_PLAYER)
     {
         sLog.outError("%s attempt to move random.", m_owner->GetGuidStr().c_str());
+		
     }
     else
     {
@@ -240,7 +241,7 @@ void MotionMaster::MoveRandomAroundPoint(float x, float y, float z, float radius
     }
 }
 
-void MotionMaster::MoveTargetedHome()
+void MotionMaster::MoveTargetedHome(bool runHome)
 {
     if (m_owner->hasUnitState(UNIT_STAT_LOST_CONTROL))
         return;
@@ -255,7 +256,7 @@ void MotionMaster::MoveTargetedHome()
         else
         {
             DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s targeted home", m_owner->GetGuidStr().c_str());
-            Mutate(new HomeMovementGenerator<Creature>());
+			Mutate(new HomeMovementGenerator<Creature>(runHome));
         }
     }
     else if (m_owner->GetTypeId() == TYPEID_UNIT && ((Creature*)m_owner)->GetCharmerOrOwnerGuid())
@@ -289,7 +290,8 @@ void MotionMaster::MoveChase(Unit* target, float dist, float angle)
     // ignore movement request if target not exist
     if (!target)
         return;
-
+	if (m_owner->HasAuraType(SPELL_AURA_MOD_CONFUSE) || m_owner->HasAuraType(SPELL_AURA_MOD_FEAR))
+		 return;
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s chase to %s", m_owner->GetGuidStr().c_str(), target->GetGuidStr().c_str());
 
     if (m_owner->GetTypeId() == TYPEID_PLAYER)
@@ -371,6 +373,24 @@ void MotionMaster::MoveFleeing(Unit* enemy, uint32 time)
         else
             Mutate(new FleeingMovementGenerator<Creature>(enemy->GetObjectGuid()));
     }
+}
+
+void MotionMaster::MoveFleeing1(GameObject* enemy, uint32 time)
+{
+	if (!enemy)
+		return;
+
+	DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s flee from %s", m_owner->GetGuidStr().c_str(), enemy->GetGuidStr().c_str());
+
+	if (m_owner->GetTypeId() == TYPEID_PLAYER)
+		Mutate(new FleeingMovementGenerator<Player>(enemy->GetObjectGuid()));
+	else
+	{
+		if (time)
+			Mutate(new TimedFleeingMovementGenerator(enemy->GetObjectGuid(), time));
+		else
+			Mutate(new FleeingMovementGenerator<Creature>(enemy->GetObjectGuid()));
+	}
 }
 
 void MotionMaster::MoveWaypoint(int32 id /*=0*/, uint32 source /*=0==PATH_NO_PATH*/, uint32 initialDelay /*=0*/, uint32 overwriteEntry /*=0*/)
@@ -517,6 +537,16 @@ bool MotionMaster::GetDestination(float& x, float& y, float& z) const
     y = dest.y;
     z = dest.z;
     return true;
+}
+
+void MotionMaster::MoveJump(float x, float y, float z, float horizontalSpeed, float max_height, uint32 id)
+{
+	Movement::MoveSplineInit init(*m_owner);
+	init.MoveTo(x, y, z);
+	//init.SetParabolic(max_height, 0);
+	init.SetVelocity(horizontalSpeed);
+	init.Launch();
+	Mutate(new EffectMovementGenerator(id));
 }
 
 void MotionMaster::MoveFall()

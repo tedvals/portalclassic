@@ -42,10 +42,10 @@ struct boss_renatakiAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiVanishTimer         = urand(25000, 30000);
+        m_uiVanishTimer         = Randomize(urand(25000, 30000));
         m_uiAmbushTimer         = 0;
-        m_uiGougeTimer          = urand(15000, 25000);
-        m_uiThousandBladesTimer = urand(4000, 8000);
+        m_uiGougeTimer          = Randomize(urand(15000, 25000));
+        m_uiThousandBladesTimer = Randomize(urand(4000, 8000));
     }
 
     void EnterEvadeMode() override
@@ -82,7 +82,7 @@ struct boss_renatakiAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, SPELL_VANISH) == CAST_OK)
             {
-                m_uiVanishTimer = urand(25000, 40000);
+                m_uiVanishTimer = Randomize(urand(25000, 40000));
                 m_uiAmbushTimer = 2000;
             }
         }
@@ -94,10 +94,13 @@ struct boss_renatakiAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, SPELL_GOUGE) == CAST_OK)
             {
-                if (m_creature->getThreatManager().getThreat(m_creature->getVictim()))
-                    m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -50);
+				if (Unit* pTarget = m_creature->getVictim())
+					{
+					if (m_creature->getThreatManager().getThreat(pTarget))
+						 m_creature->getThreatManager().modifyThreatPercent(pTarget, -50);
+					}
 
-                m_uiGougeTimer = urand(7000, 20000);
+                m_uiGougeTimer = Randomize(urand(7000, 20000));
             }
         }
         else
@@ -107,7 +110,7 @@ struct boss_renatakiAI : public ScriptedAI
         if (m_uiThousandBladesTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_THOUSAND_BLADES) == CAST_OK)
-                m_uiThousandBladesTimer = urand(7000, 12000);
+                m_uiThousandBladesTimer = Randomize(urand(7000, 12000));
         }
         else
             m_uiThousandBladesTimer -= uiDiff;

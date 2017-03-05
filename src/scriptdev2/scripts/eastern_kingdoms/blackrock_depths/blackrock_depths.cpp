@@ -1521,7 +1521,7 @@ struct npc_hurley_blackbreathAI : public npc_escortAI
             if (uiFlameBreathTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FLAME_BREATH) == CAST_OK)
-                    uiFlameBreathTimer = 10000;
+                    uiFlameBreathTimer = Randomize(10000);
             }
             else
                 uiFlameBreathTimer -= uiDiff;
@@ -1717,7 +1717,7 @@ struct boss_plugger_spazzringAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_BANISH) == CAST_OK)
-                        m_uiBanishTimer = urand(26, 28) * 1000;
+                        m_uiBanishTimer = Randomize(urand(26, 28) * 1000);
                 }
             }
             else
@@ -1726,7 +1726,7 @@ struct boss_plugger_spazzringAI : public ScriptedAI
             if (m_uiImmolateTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_IMMOLATE) == CAST_OK)
-                    m_uiImmolateTimer = 25000;
+                    m_uiImmolateTimer = Randomize(25000);
             }
             else
                 m_uiImmolateTimer -= uiDiff;
@@ -1734,7 +1734,7 @@ struct boss_plugger_spazzringAI : public ScriptedAI
             if (m_uiShadowBoltTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
-                    m_uiShadowBoltTimer = urand(36, 63) * 100;
+                    m_uiShadowBoltTimer = Randomize(urand(36, 63) * 100);
             }
             else
                 m_uiShadowBoltTimer -= uiDiff;
@@ -1744,7 +1744,7 @@ struct boss_plugger_spazzringAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CURSE_OF_TONGUES, SELECT_FLAG_POWER_MANA))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_CURSE_OF_TONGUES) == CAST_OK)
-                        m_uiCurseOfTonguesTimer = urand(19, 31) * 1000;
+                        m_uiCurseOfTonguesTimer = Randomize(urand(19, 31) * 1000);
                 }
             }
             else

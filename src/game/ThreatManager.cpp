@@ -427,6 +427,18 @@ void ThreatManager::addThreat(Unit* pVictim, float pThreat, bool crit, SpellScho
 
     float threat = ThreatCalcHelper::CalcThreat(pVictim, iOwner, pThreat, crit, schoolMask, pThreatSpell);
 
+	if (threat > 0.0f)
+	{
+		if (Unit* redirectedTarget = pVictim->getHostileRefManager().GetThreatRedirectionTarget())
+		{
+			if (redirectedTarget != getOwner() && redirectedTarget->isAlive())
+			{
+				addThreatDirectly(redirectedTarget, threat);
+				threat = 0;                                 // but still need add to threat list
+			}
+		}
+	}
+
     addThreatDirectly(pVictim, threat);
 }
 

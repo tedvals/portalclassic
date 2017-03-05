@@ -97,10 +97,10 @@ struct boss_chromaggusAI : public ScriptedAI
         m_uiCurrentVulnerabilitySpell = 0;                  // We use this to store our last vulnerability spell so we can remove it later
 
         m_uiShimmerTimer    = 0;                            // Time till we change vurlnerabilites
-        m_uiBreathOneTimer  = 30000;                        // First breath is 30 seconds
-        m_uiBreathTwoTimer  = 60000;                        // Second is 1 minute so that we can alternate
-        m_uiAfflictionTimer = 10000;                        // This is special - 5 seconds means that we cast this on 1 pPlayer every 5 sconds
-        m_uiFrenzyTimer     = 15000;
+        m_uiBreathOneTimer  = Randomize(30000);                        // First breath is 30 seconds
+        m_uiBreathTwoTimer  = Randomize(60000);                        // Second is 1 minute so that we can alternate
+        m_uiAfflictionTimer = Randomize(10000);                        // This is special - 5 seconds means that we cast this on 1 pPlayer every 5 sconds
+        m_uiFrenzyTimer     = Randomize(15000);
 
         m_bEnraged          = false;
     }
@@ -144,7 +144,7 @@ struct boss_chromaggusAI : public ScriptedAI
                 m_uiCurrentVulnerabilitySpell = uiSpell;
 
                 DoScriptText(EMOTE_SHIMMER, m_creature);
-                m_uiShimmerTimer = 45000;
+                m_uiShimmerTimer = Randomize(45000);
             }
         }
         else
@@ -154,7 +154,7 @@ struct boss_chromaggusAI : public ScriptedAI
         if (m_uiBreathOneTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, m_uiBreathOneSpell) == CAST_OK)
-                m_uiBreathOneTimer = 60000;
+                m_uiBreathOneTimer = Randomize(60000);
         }
         else
             m_uiBreathOneTimer -= uiDiff;
@@ -163,7 +163,7 @@ struct boss_chromaggusAI : public ScriptedAI
         if (m_uiBreathTwoTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, m_uiBreathTwoSpell) == CAST_OK)
-                m_uiBreathTwoTimer = 60000;
+                m_uiBreathTwoTimer = Randomize(60000);
         }
         else
             m_uiBreathTwoTimer -= uiDiff;
@@ -225,7 +225,7 @@ struct boss_chromaggusAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_FRENZY) == CAST_OK)
             {
                 DoScriptText(EMOTE_GENERIC_FRENZY_KILL, m_creature);
-                m_uiFrenzyTimer = urand(10000, 15000);
+                m_uiFrenzyTimer = Randomize(urand(10000, 15000));
             }
         }
         else

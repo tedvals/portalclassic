@@ -22,6 +22,7 @@
 #include "Common.h"
 #include <stack>
 #include <vector>
+#include "GameObject.h"
 
 class MovementGenerator;
 class Unit;
@@ -101,17 +102,19 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator*>
 
         void MoveIdle();
         void MoveRandomAroundPoint(float x, float y, float z, float radius, float verticalZ = 0.0f);
-        void MoveTargetedHome();
+		void MoveTargetedHome(bool runHome = true);
         void MoveFollow(Unit* target, float dist, float angle);
         void MoveChase(Unit* target, float dist = 0.0f, float angle = 0.0f);
         void MoveConfused();
         void MoveFleeing(Unit* enemy, uint32 timeLimit = 0);
+		void MoveFleeing1(GameObject* enemy, uint32 timeLimit = 0);
         void MovePoint(uint32 id, float x, float y, float z, bool generatePath = true);
         void MoveSeekAssistance(float x, float y, float z);
         void MoveSeekAssistanceDistract(uint32 timer);
         void MoveWaypoint(int32 id = 0, uint32 source = 0, uint32 initialDelay = 0, uint32 overwriteEntry = 0);
         void MoveTaxiFlight(uint32 path, uint32 pathnode);
         void MoveDistract(uint32 timeLimit);
+		void MoveJump(float x, float y, float z, float horizontalSpeed, float max_height, uint32 id = 0);
         void MoveFall();
         void MoveFlyOrLand(uint32 id, float x, float y, float z, bool liftOff);
 

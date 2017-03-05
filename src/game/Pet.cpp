@@ -134,7 +134,7 @@ SpellCastResult Pet::TryLoadFromDB(Unit* owner, uint32 petentry /*= 0*/, uint32 
         return SPELL_FAILED_NO_PET;
     }
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(summon_spell_id);
+    SpellEntry const* spellInfo = GetSpellTemplate(summon_spell_id);
 
     bool isTemporarySummoned = spellInfo && GetSpellDuration(spellInfo) > 0;
 
@@ -154,7 +154,7 @@ SpellCastResult Pet::TryLoadFromDB(Unit* owner, uint32 petentry /*= 0*/, uint32 
     return SPELL_CAST_OK; // If errors occur down the line, one must think about data consistency
 }
 
-bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber /*= 0*/, bool current /*= false*/, uint32 healthPercentage /*= 0*/, bool permanentOnly /*= false*/)
+bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber /*= 0*/, bool current /*= false*/, uint32 healthPercentage /*= 0*/, bool permanentOnly /*= false*/, bool forced /*= false*/)
 {
     m_loading = true;
 
@@ -207,7 +207,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     }
 
     uint32 summon_spell_id = fields[21].GetUInt32();
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(summon_spell_id);
+    SpellEntry const* spellInfo = GetSpellTemplate(summon_spell_id);
 
     if (permanentOnly && spellInfo && GetSpellDuration(spellInfo) > 0)
     {
@@ -229,7 +229,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
 
     uint32 pet_number = fields[0].GetUInt32();
 
-    if (owner->IsPetNeedBeTemporaryUnsummoned())
+	if (!forced && owner->IsPetNeedBeTemporaryUnsummoned())
     {
         // set temporary summon that way its possible if the player unmount to resummon it automaticaly
         owner->SetTemporaryUnsummonedPetNumber(pet_number);
@@ -405,7 +405,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     return true;
 }
 
-void Pet::SavePetToDB(PetSaveMode mode)
+void Pet::SavePetToDB(PetSaveMode mode, Unit* owner /*= nullptr*/)
 {
     if (!GetEntry())
         return;
@@ -417,10 +417,26 @@ void Pet::SavePetToDB(PetSaveMode mode)
     // not save not player pets
     if (!GetOwnerGuid().IsPlayer())
         return;
-
-    Player* pOwner = (Player*)GetOwner();
-    if (!pOwner)
-        return;
+	
+	//add due to crash
+	
+	Player* pOwner;
+	if (owner)
+	{
+		pOwner = (Player*)owner;
+	}
+	else
+	{
+		pOwner = (Player*)GetOwner();
+		if (!owner)
+			return;
+	}
+//		Player* pOwner = (Player*)GetOwner();
+//		if (!pOwner)
+//			return;
+// dont save shadowfiend
+	if (pOwner->getClass() == CLASS_PRIEST)
+		return;
 
     // current/stable/not_in_slot
     if (mode >= PET_SAVE_AS_CURRENT)
@@ -976,7 +992,7 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
             {
                 // returning of reagents only for players, so best done here
                 uint32 spellId = GetUInt32Value(UNIT_CREATED_BY_SPELL);
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                SpellEntry const* spellInfo = GetSpellTemplate(spellId);
 
                 if (spellInfo)
                 {
@@ -1023,7 +1039,7 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
         }
     }
 
-    SavePetToDB(mode);
+	SavePetToDB(mode, owner);
     AddObjectToRemoveList();
     m_removed = true;
 }
@@ -1419,15 +1435,16 @@ bool Pet::HaveInDiet(ItemPrototype const* item) const
 
 uint32 Pet::GetCurrentFoodBenefitLevel(uint32 itemlevel) const
 {
+	float rate = sWorld.getConfig(CONFIG_FLOAT_RATE_PET_HAPPINESS_GAIN);
     // -5 or greater food level
     if (getLevel() <= itemlevel + 5)                        // possible to feed level 60 pet with level 55 level food for full effect
-        return 35000;
+        return 35000*rate;
     // -10..-6
     else if (getLevel() <= itemlevel + 10)                  // pure guess, but sounds good
-        return 17000;
+        return 17000*rate;
     // -14..-11
     else if (getLevel() <= itemlevel + 14)                  // level 55 food gets green on 70, makes sense to me
-        return 8000;
+        return 8000*rate;
     // -15 or less
     else
         return 0;                                           // food too low level
@@ -1455,7 +1472,7 @@ void Pet::_LoadSpellCooldowns()
             uint32 spell_id = fields[0].GetUInt32();
             time_t db_time  = (time_t)fields[1].GetUInt64();
 
-            if (!sSpellTemplate.LookupEntry<SpellEntry>(spell_id))
+            if (!GetSpellTemplate(spell_id))
             {
                 sLog.outError("Pet %u have unknown spell %u in `pet_spell_cooldown`, skipping.", m_charmInfo->GetPetNumber(), spell_id);
                 continue;
@@ -1603,7 +1620,7 @@ void Pet::_LoadAuras(uint32 timediff)
             int32 remaintime = fields[12].GetInt32();
             uint32 effIndexMask = fields[13].GetUInt32();
 
-            SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+            SpellEntry const* spellproto = GetSpellTemplate(spellid);
             if (!spellproto)
             {
                 sLog.outError("Unknown spell (spellid %u), ignore.", spellid);
@@ -1643,7 +1660,7 @@ void Pet::_LoadAuras(uint32 timediff)
 
                 Aura* aura = CreateAura(spellproto, SpellEffectIndex(i), nullptr, holder, this);
                 if (!damage[i])
-                    damage[i] = aura->GetModifier()->m_amount;
+                    damage[i] = aura->GetModifierAmount(getLevel());
 
                 aura->SetLoadedState(damage[i], periodicTime[i]);
                 holder->AddAura(aura, SpellEffectIndex(i));
@@ -1744,7 +1761,7 @@ void Pet::_SaveAuras()
 
 bool Pet::addSpell(uint32 spell_id, ActiveStates active /*= ACT_DECIDE*/, PetSpellState state /*= PETSPELL_NEW*/, PetSpellType type /*= PETSPELL_NORMAL*/)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+    SpellEntry const* spellInfo = GetSpellTemplate(spell_id);
     if (!spellInfo)
     {
         // do pet spell book cleanup
@@ -1928,7 +1945,7 @@ void Pet::InitPetCreateSpells()
             if (!CreateSpells->spellid[i])
                 break;
 
-            SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(CreateSpells->spellid[i]);
+            SpellEntry const* learn_spellproto = GetSpellTemplate(CreateSpells->spellid[i]);
             if (!learn_spellproto)
                 continue;
 
@@ -2147,6 +2164,26 @@ void Pet::CastOwnerTalentAuras()
 
     Player* pOwner = static_cast<Player*>(GetOwner());
 
+	// Handle Ferocious Inspiration Talent
+	if (pOwner && pOwner->getClass() == CLASS_HUNTER)
+	{
+		// clear any existing Ferocious Inspiration auras
+		RemoveAurasDueToSpell(34455);
+		RemoveAurasDueToSpell(34459);
+		RemoveAurasDueToSpell(34460);
+
+		if (isAlive())
+		{
+			if (pOwner->HasSpell(34455)) // Ferocious Inspiration Rank 1
+				CastSpell(this, 34457, TRIGGERED_OLD_TRIGGERED); // Ferocious Inspiration 1%
+
+			if (pOwner->HasSpell(34459)) // Ferocious Inspiration Rank 2
+				CastSpell(this, 34457, TRIGGERED_OLD_TRIGGERED); // Ferocious Inspiration 2%
+
+			if (pOwner->HasSpell(34460)) // Ferocious Inspiration Rank 3
+				CastSpell(this, 34457, TRIGGERED_OLD_TRIGGERED); // Ferocious Inspiration 3%
+		}
+	} // End Ferocious Inspiration Talent
     // Add below code handling spells cast by pet when owner/player has aura from talent
 }
 
@@ -2156,7 +2193,13 @@ void Pet::CastPetAura(PetAura const* aura)
     if (!auraId)
         return;
 
-    CastSpell(this, auraId, TRIGGERED_OLD_TRIGGERED);
+	if (auraId == 35696)                                    // Demonic Knowledge
+	{
+		int32 basePoints = int32(aura->GetDamage() * (GetStat(STAT_STAMINA) + GetStat(STAT_INTELLECT)) / 100);
+		CastCustomSpell(this, auraId, &basePoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+	}
+	else
+		CastSpell(this, auraId, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Pet::SynchronizeLevelWithOwner()
@@ -2221,6 +2264,9 @@ void Pet::InitTamedPetPassives(Unit* player)
                 case 712: // succubus
                     player->CastSpell(this, 18729, TRIGGERED_OLD_TRIGGERED);
                     break;
+				case 30146: // felguard
+					player->CastSpell(this, 30147, TRIGGERED_OLD_TRIGGERED);
+					break;
                 default:
                     break;
             }

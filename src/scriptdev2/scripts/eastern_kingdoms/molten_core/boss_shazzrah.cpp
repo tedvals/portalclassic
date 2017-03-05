@@ -51,11 +51,11 @@ struct boss_shazzrahAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiArcaneExplosionTimer = 6000;
-        m_uiShazzrahCurseTimer = 10000;
-        m_uiMagicGroundingTimer = 24000;
-        m_uiCounterspellTimer = 15000;
-        m_uiBlinkTimer = 30000;
+        m_uiArcaneExplosionTimer = Randomize(6000);
+        m_uiShazzrahCurseTimer = Randomize(10000);
+        m_uiMagicGroundingTimer = Randomize(24000);
+        m_uiCounterspellTimer = Randomize(15000);
+        m_uiBlinkTimer = Randomize(30000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -85,7 +85,7 @@ struct boss_shazzrahAI : public ScriptedAI
         if (m_uiArcaneExplosionTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_ARCANE_EXPLOSION) == CAST_OK)
-                m_uiArcaneExplosionTimer = urand(5000, 9000);
+                m_uiArcaneExplosionTimer = Randomize(urand(5000, 9000));
         }
         else
             m_uiArcaneExplosionTimer -= uiDiff;
@@ -94,7 +94,7 @@ struct boss_shazzrahAI : public ScriptedAI
         if (m_uiShazzrahCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHAZZRAH_CURSE) == CAST_OK)
-                m_uiShazzrahCurseTimer = 20000;
+                m_uiShazzrahCurseTimer = Randomize(20000);
         }
         else
             m_uiShazzrahCurseTimer -= uiDiff;
@@ -103,7 +103,7 @@ struct boss_shazzrahAI : public ScriptedAI
         if (m_uiMagicGroundingTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_MAGIC_GROUNDING) == CAST_OK)
-                m_uiMagicGroundingTimer = 35000;
+                m_uiMagicGroundingTimer = Randomize(35000);
         }
         else
             m_uiMagicGroundingTimer -= uiDiff;
@@ -112,7 +112,7 @@ struct boss_shazzrahAI : public ScriptedAI
         if (m_uiCounterspellTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_COUNTERSPELL) == CAST_OK)
-                m_uiCounterspellTimer = urand(16000, 20000);
+                m_uiCounterspellTimer = Randomize(urand(16000, 20000));
         }
         else
             m_uiCounterspellTimer -= uiDiff;
@@ -130,7 +130,7 @@ struct boss_shazzrahAI : public ScriptedAI
 
                 DoCastSpellIfCan(m_creature, SPELL_ARCANE_EXPLOSION, CAST_TRIGGERED);
 
-                m_uiBlinkTimer = 45000;
+                m_uiBlinkTimer = Randomize(45000);
             }
         }
         else

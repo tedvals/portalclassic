@@ -58,8 +58,8 @@ struct boss_kriAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiCleaveTimer      = urand(4000, 8000);
-        m_uiToxicVolleyTimer = urand(6000, 12000);
+        m_uiCleaveTimer      = Randomize(urand(4000, 8000));
+        m_uiToxicVolleyTimer = Randomize(urand(6000, 12000));
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -94,7 +94,7 @@ struct boss_kriAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = urand(5000, 12000);
+                m_uiCleaveTimer = Randomize(urand(5000, 12000));
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -103,7 +103,7 @@ struct boss_kriAI : public ScriptedAI
         if (m_uiToxicVolleyTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_TOXIC_VOLLEY) == CAST_OK)
-                m_uiToxicVolleyTimer = urand(10000, 15000);
+                m_uiToxicVolleyTimer = Randomize(urand(10000, 15000));
         }
         else
             m_uiToxicVolleyTimer -= uiDiff;
@@ -127,8 +127,8 @@ struct boss_vemAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiChargeTimer     = urand(15000, 27000);
-        m_uiKnockBackTimer  = urand(8000, 20000);
+        m_uiChargeTimer     = Randomize(urand(15000, 27000));
+        m_uiKnockBackTimer  = Randomize(urand(8000, 20000));
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -165,7 +165,7 @@ struct boss_vemAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_CHARGE) == CAST_OK)
-                    m_uiChargeTimer = urand(8000, 16000);
+                    m_uiChargeTimer = Randomize(urand(8000, 16000));
             }
         }
         else
@@ -176,10 +176,13 @@ struct boss_vemAI : public ScriptedAI
         {
             if (DoCastSpellIfCan(m_creature, SPELL_KNOCKBACK) == CAST_OK)
             {
-                if (m_creature->getThreatManager().getThreat(m_creature->getVictim()))
-                    m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -80);
+				if (Unit* pTarget = m_creature->getVictim())
+					{
+					if (m_creature->getThreatManager().getThreat(pTarget))
+						 m_creature->getThreatManager().modifyThreatPercent(pTarget, -80);
+					}
 
-                m_uiKnockBackTimer = urand(15000, 25000);
+                m_uiKnockBackTimer = Randomize(urand(15000, 25000));
             }
         }
         else
@@ -204,8 +207,8 @@ struct boss_yaujAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiHealTimer = urand(25000, 40000);
-        m_uiFearTimer = urand(12000, 24000);
+        m_uiHealTimer = Randomize(urand(25000, 40000));
+        m_uiFearTimer = Randomize(urand(12000, 24000));
     }
 
     void JustDied(Unit* /*Killer*/) override
@@ -247,7 +250,7 @@ struct boss_yaujAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_FEAR) == CAST_OK)
             {
                 DoResetThreat();
-                m_uiFearTimer = 20000;
+                m_uiFearTimer = Randomize(20000);
             }
         }
         else
@@ -259,7 +262,7 @@ struct boss_yaujAI : public ScriptedAI
             if (Unit* pTarget = DoSelectLowestHpFriendly(100.0f))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_HEAL) == CAST_OK)
-                    m_uiHealTimer = urand(15000, 30000);
+                    m_uiHealTimer = Randomize(urand(15000, 30000));
             }
         }
         else

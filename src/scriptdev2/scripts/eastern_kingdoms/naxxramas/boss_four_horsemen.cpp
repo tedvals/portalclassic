@@ -101,8 +101,8 @@ struct boss_lady_blaumeuxAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMarkTimer       = 20000;
-        m_uiVoidZoneTimer   = 15000;
+        m_uiMarkTimer       = Randomize(20000);
+        m_uiVoidZoneTimer   = Randomize(15000);
         m_uiMarkCounter     = 0;
         
         m_fHealthCheck      = 50.0f;
@@ -152,7 +152,7 @@ struct boss_lady_blaumeuxAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_BLAUMEUX) == CAST_OK)
             {
                 m_uiMarkCounter++;
-                m_uiMarkTimer = 12000;
+                m_uiMarkTimer = Randomize(12000);
             }
         }
         else
@@ -163,7 +163,7 @@ struct boss_lady_blaumeuxAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_VOID_ZONE) == CAST_OK)
             {
                 if (m_uiMarkCounter < 100)
-                    m_uiVoidZoneTimer = 15000;
+                    m_uiVoidZoneTimer = Randomize(15000);
                 else
                     m_uiVoidZoneTimer = 1000;
             }
@@ -198,8 +198,8 @@ struct boss_alexandros_mograineAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMarkTimer          = 20000;
-        m_uiRighteousFireTimer = 15000;
+        m_uiMarkTimer          = Randomize(20000);
+        m_uiRighteousFireTimer = Randomize(15000);
         m_uiMarkCounter        = 0;
         
         m_fHealthCheck         = 50.0f;
@@ -254,7 +254,7 @@ struct boss_alexandros_mograineAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_MOGRAINE) == CAST_OK)
             {
                 m_uiMarkCounter++;
-                m_uiMarkTimer = 12000;
+                m_uiMarkTimer = Randomize(12000);
             }
         }
         else
@@ -265,7 +265,7 @@ struct boss_alexandros_mograineAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_RIGHTEOUS_FIRE) == CAST_OK)
             {
                 if (m_uiMarkCounter < 100)
-                    m_uiRighteousFireTimer = 15000;
+                    m_uiRighteousFireTimer = Randomize(15000);
                 else
                     m_uiRighteousFireTimer = 1000;
             }
@@ -300,8 +300,8 @@ struct boss_thane_korthazzAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMarkTimer       = 20000;
-        m_uiMeteorTimer     = 30000;
+        m_uiMarkTimer       = Randomize(20000);
+        m_uiMeteorTimer     = Randomize(30000);
         m_uiMarkCounter     = 0;
         
         m_fHealthCheck      = 50.0f;
@@ -351,7 +351,7 @@ struct boss_thane_korthazzAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_KORTHAZZ) == CAST_OK)
             {
                 m_uiMarkCounter++;
-                m_uiMarkTimer = 12000;
+                m_uiMarkTimer = Randomize(12000);
             }
         }
         else
@@ -362,7 +362,7 @@ struct boss_thane_korthazzAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_METEOR) == CAST_OK)
             {
                 if (m_uiMarkCounter < 100)
-                    m_uiMeteorTimer = 20000;
+                    m_uiMeteorTimer = Randomize(20000);
                 else
                     m_uiMeteorTimer = 1000;
             }
@@ -397,8 +397,8 @@ struct boss_sir_zeliekAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMarkTimer       = 20000;
-        m_uiHolyWrathTimer  = 12000;
+        m_uiMarkTimer       = Randomize(20000);
+        m_uiHolyWrathTimer  = Randomize(12000);
         m_uiMarkCounter     = 0;
         
         m_fHealthCheck      = 50.0f;
@@ -448,7 +448,7 @@ struct boss_sir_zeliekAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_MARK_OF_ZELIEK) == CAST_OK)
             {
                 m_uiMarkCounter++;
-                m_uiMarkTimer = 12000;
+                m_uiMarkTimer = Randomize(12000);
             }
         }
         else
@@ -459,7 +459,7 @@ struct boss_sir_zeliekAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_WRATH) == CAST_OK)
             {
                 if (m_uiMarkCounter < 100)
-                    m_uiHolyWrathTimer = 15000;
+                    m_uiHolyWrathTimer = Randomize(15000);
                 else
                     m_uiHolyWrathTimer = 1000;
              }

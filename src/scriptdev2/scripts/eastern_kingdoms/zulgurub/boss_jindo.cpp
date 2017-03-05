@@ -68,10 +68,10 @@ struct boss_jindoAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiBrainWashTotemTimer     = 20000;
-        m_uiHealingWardTimer        = 16000;
-        m_uiHexTimer                = 8000;
-        m_uiDelusionsTimer          = 10000;
+        m_uiBrainWashTotemTimer     = Randomize(20000);
+        m_uiHealingWardTimer        = Randomize(16000);
+        m_uiHexTimer                = Randomize(8000);
+        m_uiDelusionsTimer          = Randomize(10000);
         m_uiTeleportTimer           = 5000;
     }
 
@@ -95,7 +95,7 @@ struct boss_jindoAI : public ScriptedAI
         if (m_uiBrainWashTotemTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BRAINWASH_TOTEM) == CAST_OK)
-                m_uiBrainWashTotemTimer = urand(18000, 26000);
+                m_uiBrainWashTotemTimer = Randomize(urand(18000, 26000));
         }
         else
             m_uiBrainWashTotemTimer -= uiDiff;
@@ -116,7 +116,7 @@ struct boss_jindoAI : public ScriptedAI
         if (m_uiHexTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEX) == CAST_OK)
-                m_uiHexTimer = urand(12000, 20000);
+                m_uiHexTimer = Randomize(urand(12000, 20000));
         }
         else
             m_uiHexTimer -= uiDiff;
@@ -136,7 +136,7 @@ struct boss_jindoAI : public ScriptedAI
                 if (Creature* pSummoned = m_creature->SummonCreature(NPC_SHADE_OF_JINDO, fX, fY, fZ, 0, TEMPSUMMON_TIMED_OOC_DESPAWN, 15000))
                     pSummoned->CastSpell(pSummoned, SPELL_SHADE_OF_JINDO_PASSIVE, TRIGGERED_OLD_TRIGGERED);
 
-                m_uiDelusionsTimer = urand(4000, 12000);
+                m_uiDelusionsTimer = Randomize(urand(4000, 12000));
             }
         }
         else
@@ -158,7 +158,7 @@ struct boss_jindoAI : public ScriptedAI
                         pSummoned->AI()->AttackStart(pTarget);
                 }
 
-                m_uiTeleportTimer = urand(15000, 23000);
+                m_uiTeleportTimer = Randomize(urand(15000, 23000));
             }
         }
         else

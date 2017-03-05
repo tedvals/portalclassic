@@ -150,8 +150,8 @@ struct npc_kineloryAI : public npc_escortAI
 
     void Reset() override
     {
-        m_uiBearFormTimer = urand(5000, 7000);
-        m_uiHealTimer     = urand(2000, 5000);
+        m_uiBearFormTimer = Randomize(urand(5000, 7000));
+        m_uiHealTimer     = Randomize(urand(2000, 5000));
     }
 
     void WaypointReached(uint32 uiPointId) override
@@ -214,7 +214,7 @@ struct npc_kineloryAI : public npc_escortAI
         if (m_uiBearFormTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BEAR_FORM) == CAST_OK)
-                m_uiBearFormTimer = urand(25000, 30000);
+                m_uiBearFormTimer = Randomize(urand(25000, 30000));
         }
         else
             m_uiBearFormTimer -= uiDiff;
@@ -224,7 +224,7 @@ struct npc_kineloryAI : public npc_escortAI
             if (Unit* pTarget = DoSelectLowestHpFriendly(40.0f))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_REJUVENATION) == CAST_OK)
-                    m_uiHealTimer = urand(15000, 25000);
+                    m_uiHealTimer = Randomize(urand(15000, 25000));
             }
         }
         else

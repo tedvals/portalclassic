@@ -52,9 +52,9 @@ struct boss_baron_geddonAI : public ScriptedAI
     void Reset() override
     {
         m_bIsArmageddon = false;
-        m_uiInfernoTimer = 45000;
-        m_uiIgniteManaTimer = 30000;
-        m_uiLivingBombTimer = 35000;
+        m_uiInfernoTimer = Randomize(45000);
+        m_uiIgniteManaTimer = Randomize(30000);
+        m_uiLivingBombTimer = Randomize(35000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -98,7 +98,7 @@ struct boss_baron_geddonAI : public ScriptedAI
         if (m_uiInfernoTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_INFERNO) == CAST_OK)
-                m_uiInfernoTimer = 45000;
+                m_uiInfernoTimer = Randomize(45000);
         }
         else
             m_uiInfernoTimer -= uiDiff;
@@ -106,8 +106,10 @@ struct boss_baron_geddonAI : public ScriptedAI
         // Ignite Mana Timer
         if (m_uiIgniteManaTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_IGNITE_MANA) == CAST_OK)
-                m_uiIgniteManaTimer = 30000;
+			
+			if (DoCastSpellIfCan(m_creature, SPELL_IGNITE_MANA) == CAST_OK)
+                m_uiIgniteManaTimer = Randomize(30000);
+			
         }
         else
             m_uiIgniteManaTimer -= uiDiff;
@@ -118,7 +120,7 @@ struct boss_baron_geddonAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_LIVING_BOMB) == CAST_OK)
-                    m_uiLivingBombTimer = 35000;
+                    m_uiLivingBombTimer = Randomize(35000);
             }
         }
         else

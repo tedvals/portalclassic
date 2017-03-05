@@ -62,8 +62,8 @@ struct boss_archaedasAI : public ScriptedAI
     {
         m_uiAwakeningTimer  = 1000;
         m_uiSubevent        = 0;
-        m_uiAwakeDwarfTimer = 10000;
-        m_uiTremorTimer     = urand(7000, 14000);
+        m_uiAwakeDwarfTimer = Randomize(10000);
+        m_uiTremorTimer     = Randomize(urand(7000, 14000));
         m_bDwarvesAwaken    = false;
         m_uiHpPhaseCheck    = 1;
 
@@ -159,7 +159,7 @@ struct boss_archaedasAI : public ScriptedAI
                 if (Creature* pEarthen = m_pInstance->GetClosestDwarfNotInCombat(m_creature))
                 {
                     if (DoCastSpellIfCan(pEarthen, SPELL_AWAKEN_EARTHEN_DWARF) == CAST_OK)
-                        m_uiAwakeDwarfTimer = urand(9000, 12000);
+                        m_uiAwakeDwarfTimer = Randomize(urand(9000, 12000));
                 }
                 else
                     m_bDwarvesAwaken = true;
@@ -171,7 +171,7 @@ struct boss_archaedasAI : public ScriptedAI
         if (m_uiTremorTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_GROUND_TREMOR) == CAST_OK)
-                m_uiTremorTimer = urand(8000, 17000);
+                m_uiTremorTimer = Randomize(urand(8000, 17000));
         }
         else
             m_uiTremorTimer -= uiDiff;

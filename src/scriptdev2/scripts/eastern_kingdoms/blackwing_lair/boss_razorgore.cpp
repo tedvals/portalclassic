@@ -64,10 +64,10 @@ struct boss_razorgoreAI : public ScriptedAI
         m_uiIntroVisualTimer    = 5000;
         m_bEggsExploded         = false;
 
-        m_uiCleaveTimer         = urand(4000, 8000);
-        m_uiWarStompTimer       = 30000;
-        m_uiConflagrationTimer  = urand(10000, 15000);
-        m_uiFireballVolleyTimer = urand(15000, 20000);
+        m_uiCleaveTimer         = Randomize(urand(4000, 8000));
+        m_uiWarStompTimer       = Randomize(30000);
+        m_uiConflagrationTimer  = Randomize(urand(10000, 15000));
+        m_uiFireballVolleyTimer = Randomize(urand(15000, 20000));
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -153,7 +153,7 @@ struct boss_razorgoreAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = urand(4000, 8000);
+                m_uiCleaveTimer = Randomize(urand(4000, 8000));
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -162,7 +162,7 @@ struct boss_razorgoreAI : public ScriptedAI
         if (m_uiWarStompTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_WARSTOMP) == CAST_OK)
-                m_uiWarStompTimer = 30000;
+                m_uiWarStompTimer = Randomize(30000);
         }
         else
             m_uiWarStompTimer -= uiDiff;
@@ -171,7 +171,7 @@ struct boss_razorgoreAI : public ScriptedAI
         if (m_uiFireballVolleyTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FIREBALL_VOLLEY) == CAST_OK)
-                m_uiFireballVolleyTimer = urand(15000, 20000);
+                m_uiFireballVolleyTimer = Randomize(urand(15000, 20000));
         }
         else
             m_uiFireballVolleyTimer -= uiDiff;
@@ -180,7 +180,7 @@ struct boss_razorgoreAI : public ScriptedAI
         if (m_uiConflagrationTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_CONFLAGRATION) == CAST_OK)
-                m_uiConflagrationTimer = urand(15000, 25000);
+                m_uiConflagrationTimer = Randomize(urand(15000, 25000));
         }
         else
             m_uiConflagrationTimer -= uiDiff;

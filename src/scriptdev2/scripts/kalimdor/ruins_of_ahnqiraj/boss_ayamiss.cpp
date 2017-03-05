@@ -80,10 +80,10 @@ struct boss_ayamissAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiStingerSprayTimer   = urand(20000, 30000);
+        m_uiStingerSprayTimer   = Randomize(urand(20000, 30000));
         m_uiPoisonStingerTimer  = 5000;
         m_uiSummonSwarmerTimer  = 5000;
-        m_uiSwarmerAttackTimer  = 60000;
+        m_uiSwarmerAttackTimer  = Randomize(60000);
         m_uiParalyzeTimer       = 15000;
         m_uiLashTimer           = urand(5000, 8000);
         m_uiTrashTimer          = urand(3000, 6000);
@@ -146,7 +146,7 @@ struct boss_ayamissAI : public ScriptedAI
         if (m_uiStingerSprayTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_STINGER_SPRAY) == CAST_OK)
-                m_uiStingerSprayTimer = urand(15000, 20000);
+                m_uiStingerSprayTimer = Randomize(urand(15000, 20000));
         }
         else
             m_uiStingerSprayTimer -= uiDiff;
@@ -161,7 +161,7 @@ struct boss_ayamissAI : public ScriptedAI
             if (DoCastSpellIfCan(pTarget, SPELL_PARALYZE) == CAST_OK)
             {
                 m_paralyzeTarget = pTarget->GetObjectGuid();
-                m_uiParalyzeTimer = 15000;
+                m_uiParalyzeTimer = Randomize(15000);
 
                 // Summon a larva
                 uint8 uiLoc = urand(0, 1);
@@ -200,7 +200,7 @@ struct boss_ayamissAI : public ScriptedAI
                 }
             }
             m_lSwarmersGuidList.clear();
-            m_uiSwarmerAttackTimer = 60000;
+            m_uiSwarmerAttackTimer = Randomize(60000);
         }
         else
             m_uiSwarmerAttackTimer -= uiDiff;
@@ -233,7 +233,7 @@ struct boss_ayamissAI : public ScriptedAI
             if (m_uiLashTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_LASH) == CAST_OK)
-                    m_uiLashTimer = urand(8000, 15000);
+                    m_uiLashTimer = Randomize(urand(8000, 15000));
             }
             else
                 m_uiLashTimer -= uiDiff;
@@ -241,7 +241,7 @@ struct boss_ayamissAI : public ScriptedAI
             if (m_uiTrashTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_TRASH) == CAST_OK)
-                    m_uiTrashTimer = urand(5000, 7000);
+                    m_uiTrashTimer = Randomize(urand(5000, 7000));
             }
             else
                 m_uiTrashTimer -= uiDiff;

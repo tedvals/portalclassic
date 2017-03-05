@@ -43,9 +43,9 @@ struct boss_cannon_master_willeyAI : public ScriptedAI
     void Reset() override
     {
         m_uiShootTimer          = 1000;
-        m_uiPummelTimer         = 7000;
-        m_uiKnockAwayTimer      = 11000;
-        m_uiSummonRiflemanTimer = 15000;
+        m_uiPummelTimer         = Randomize(7000);
+        m_uiKnockAwayTimer      = Randomize(11000);
+        m_uiSummonRiflemanTimer = Randomize(15000);
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -64,7 +64,7 @@ struct boss_cannon_master_willeyAI : public ScriptedAI
         if (m_uiPummelTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PUMMEL) == CAST_OK)
-                m_uiPummelTimer = 12000;
+                m_uiPummelTimer = Randomize(12000);
         }
         else
             m_uiPummelTimer -= uiDiff;
@@ -73,7 +73,7 @@ struct boss_cannon_master_willeyAI : public ScriptedAI
         if (m_uiKnockAwayTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
-                m_uiKnockAwayTimer = 14000;
+                m_uiKnockAwayTimer = Randomize(14000);
         }
         else
             m_uiKnockAwayTimer -= uiDiff;
@@ -94,7 +94,7 @@ struct boss_cannon_master_willeyAI : public ScriptedAI
         if (m_uiSummonRiflemanTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_RIFLEMAN) == CAST_OK)
-                m_uiSummonRiflemanTimer = 30000;
+                m_uiSummonRiflemanTimer = Randomize(30000);
         }
         else
             m_uiSummonRiflemanTimer -= uiDiff;

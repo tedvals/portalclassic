@@ -56,11 +56,11 @@ struct boss_sulfuronAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiDarkstrikeTimer = 10000;
-        m_uiDemoralizingShoutTimer = 15000;
-        m_uiInspireTimer = 3000;
-        m_uiKnockdownTimer = 6000;
-        m_uiFlamespearTimer = 2000;
+        m_uiDarkstrikeTimer = Randomize(10000);
+        m_uiDemoralizingShoutTimer = Randomize(15000);
+        m_uiInspireTimer = Randomize(3000);
+        m_uiKnockdownTimer = Randomize(6000);
+        m_uiFlamespearTimer = Randomize(2000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -90,7 +90,7 @@ struct boss_sulfuronAI : public ScriptedAI
         if (m_uiDemoralizingShoutTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_DEMORALIZING_SHOUT) == CAST_OK)
-                m_uiDemoralizingShoutTimer = urand(15000, 20000);
+                m_uiDemoralizingShoutTimer = Randomize((15000, 20000));
         }
         else
             m_uiDemoralizingShoutTimer -= uiDiff;
@@ -111,7 +111,7 @@ struct boss_sulfuronAI : public ScriptedAI
                 pTarget = m_creature;
 
             if (DoCastSpellIfCan(pTarget, SPELL_INSPIRE) == CAST_OK)
-                m_uiInspireTimer = 10000;
+                m_uiInspireTimer = Randomize(10000);
         }
         else
             m_uiInspireTimer -= uiDiff;
@@ -120,7 +120,7 @@ struct boss_sulfuronAI : public ScriptedAI
         if (m_uiKnockdownTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_HAND_OF_RAGNAROS) == CAST_OK)
-                m_uiKnockdownTimer = urand(12000, 15000);
+                m_uiKnockdownTimer = Randomize(urand(12000, 15000));
         }
         else
             m_uiKnockdownTimer -= uiDiff;
@@ -131,7 +131,7 @@ struct boss_sulfuronAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_FLAMESPEAR) == CAST_OK)
-                    m_uiFlamespearTimer = urand(12000, 16000);
+                    m_uiFlamespearTimer = Randomize(urand(12000, 16000));
             }
         }
         else
@@ -141,7 +141,7 @@ struct boss_sulfuronAI : public ScriptedAI
         if (m_uiDarkstrikeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DARK_STRIKE) == CAST_OK)
-                m_uiDarkstrikeTimer = urand(15000, 18000);
+                m_uiDarkstrikeTimer = Randomize(urand(15000, 18000));
         }
         else
             m_uiDarkstrikeTimer -= uiDiff;
@@ -166,9 +166,9 @@ struct mob_flamewaker_priestAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiHealTimer = urand(15000, 30000);
-        m_uiShadowWordPainTimer = 2000;
-        m_uiImmolateTimer = 8000;
+        m_uiHealTimer = Randomize(urand(15000, 30000));
+        m_uiShadowWordPainTimer = Randomize(2000);
+        m_uiImmolateTimer = Randomize(8000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -182,7 +182,7 @@ struct mob_flamewaker_priestAI : public ScriptedAI
             if (Unit* pUnit = DoSelectLowestHpFriendly(60.0f, 1))
             {
                 if (DoCastSpellIfCan(pUnit, SPELL_HEAL) == CAST_OK)
-                    m_uiHealTimer = urand(15000, 20000);
+                    m_uiHealTimer = Randomize(urand(15000, 20000));
             }
         }
         else
@@ -194,7 +194,7 @@ struct mob_flamewaker_priestAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SHADOWWORD_PAIN) == CAST_OK)
-                    m_uiShadowWordPainTimer = urand(18000, 26000);
+                    m_uiShadowWordPainTimer = Randomize(urand(18000, 26000));
             }
         }
         else
@@ -206,7 +206,7 @@ struct mob_flamewaker_priestAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_IMMOLATE) == CAST_OK)
-                    m_uiImmolateTimer = urand(15000, 25000);
+                    m_uiImmolateTimer = Randomize(urand(15000, 25000));
             }
         }
         else

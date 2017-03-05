@@ -152,7 +152,7 @@ struct boss_nefarianAI : public ScriptedAI
         if (m_uiShadowFlameTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_SHADOWFLAME) == CAST_OK)
-                m_uiShadowFlameTimer = 12000;
+                m_uiShadowFlameTimer = Randomize(12000);
         }
         else
             m_uiShadowFlameTimer -= uiDiff;
@@ -161,7 +161,7 @@ struct boss_nefarianAI : public ScriptedAI
         if (m_uiBellowingRoarTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BELLOWING_ROAR) == CAST_OK)
-                m_uiBellowingRoarTimer = 30000;
+                m_uiBellowingRoarTimer = Randomize(30000);
         }
         else
             m_uiBellowingRoarTimer -= uiDiff;
@@ -170,7 +170,7 @@ struct boss_nefarianAI : public ScriptedAI
         if (m_uiVeilOfShadowTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_VEIL_OF_SHADOW) == CAST_OK)
-                m_uiVeilOfShadowTimer = 15000;
+                m_uiVeilOfShadowTimer = Randomize(15000);
         }
         else
             m_uiVeilOfShadowTimer -= uiDiff;
@@ -179,7 +179,7 @@ struct boss_nefarianAI : public ScriptedAI
         if (m_uiCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = 7000;
+                m_uiCleaveTimer = Randomize(7000);
         }
         else
             m_uiCleaveTimer -= uiDiff;
@@ -188,7 +188,7 @@ struct boss_nefarianAI : public ScriptedAI
         if (m_uiTailLashTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_TAIL_LASH) == CAST_OK)
-                m_uiTailLashTimer = 10000;
+                m_uiTailLashTimer = Randomize(10000);
         }
         else
             m_uiTailLashTimer -= uiDiff;
@@ -240,7 +240,7 @@ struct boss_nefarianAI : public ScriptedAI
                     break;
             }
 
-            m_uiClassCallTimer = urand(35000, 40000);
+            m_uiClassCallTimer = Randomize(urand(35000, 40000));
         }
         else
             m_uiClassCallTimer -= uiDiff;

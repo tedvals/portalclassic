@@ -77,11 +77,11 @@ struct boss_gluthAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiMortalWoundTimer  = 10000;
-        m_uiDecimateTimer     = 110000;
-        m_uiEnrageTimer       = 10000;
-        m_uiSummonTimer       = 6000;
-        m_uiRoarTimer         = 20000;
+        m_uiMortalWoundTimer  = Randomize(10000);
+        m_uiDecimateTimer     = Randomize(110000);
+        m_uiEnrageTimer       = Randomize(10000);
+        m_uiSummonTimer       = Randomize(6000);
+        m_uiRoarTimer         = Randomize(20000);
         m_uiZombieSearchTimer = 3000;
 
         m_uiBerserkTimer      = MINUTE * 6.5 * IN_MILLISECONDS; // ~15 seconds after the third Decimate
@@ -175,7 +175,7 @@ struct boss_gluthAI : public ScriptedAI
         if (m_uiMortalWoundTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTALWOUND) == CAST_OK)
-                m_uiMortalWoundTimer = 10000;
+                m_uiMortalWoundTimer = Randomize(10000);
         }
         else
             m_uiMortalWoundTimer -= uiDiff;
@@ -187,7 +187,7 @@ struct boss_gluthAI : public ScriptedAI
             {
                 DoScriptText(EMOTE_DECIMATE, m_creature);
                 DoCallAllZombieChow();
-                m_uiDecimateTimer = urand(100000,110000);
+                m_uiDecimateTimer = Randomize(urand(100000,110000));
             }
         }
         else
@@ -199,7 +199,7 @@ struct boss_gluthAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
             {
                 DoScriptText(EMOTE_BOSS_GENERIC_ENRAGED, m_creature);
-                m_uiEnrageTimer = urand(10000, 12000);
+                m_uiEnrageTimer = Randomize(urand(10000, 12000));
             }
         }
         else
@@ -209,7 +209,7 @@ struct boss_gluthAI : public ScriptedAI
         if (m_uiRoarTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_TERRIFYING_ROAR) == CAST_OK)
-                m_uiRoarTimer = 20000;
+                m_uiRoarTimer = Randomize(20000);
         }
         else
             m_uiRoarTimer -= uiDiff;
@@ -223,7 +223,7 @@ struct boss_gluthAI : public ScriptedAI
             uint8 uiPos2 = (uiPos1 + urand(1, MAX_ZOMBIE_LOCATIONS - 1)) % MAX_ZOMBIE_LOCATIONS;
             m_creature->SummonCreature(NPC_ZOMBIE_CHOW, aZombieSummonLoc[uiPos2][0], aZombieSummonLoc[uiPos2][1], aZombieSummonLoc[uiPos2][2], 0.0f, TEMPSUMMON_DEAD_DESPAWN, 0);
 
-            m_uiSummonTimer = 6000;
+            m_uiSummonTimer = Randomize(6000);
         }
         else
             m_uiSummonTimer -= uiDiff;

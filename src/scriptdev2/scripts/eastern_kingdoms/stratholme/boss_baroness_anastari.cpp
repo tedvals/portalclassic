@@ -48,9 +48,9 @@ struct boss_baroness_anastariAI : public ScriptedAI
     void Reset() override
     {
         m_uiBansheeWailTimer    = 0;
-        m_uiBansheeCurseTimer   = 10000;
-        m_uiSilenceTimer        = 25000;
-        m_uiPossessTimer        = 15000;
+        m_uiBansheeCurseTimer   = Randomize(10000);
+        m_uiSilenceTimer        = Randomize(25000);
+        m_uiPossessTimer        = Randomize(15000);
         m_uiPossessEndTimer     = 0;
     }
 
@@ -121,7 +121,7 @@ struct boss_baroness_anastariAI : public ScriptedAI
         if (m_uiBansheeCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BANSHEE_CURSE) == CAST_OK)
-                m_uiBansheeCurseTimer = 20000;
+                m_uiBansheeCurseTimer = Randomize(20000);
         }
         else
             m_uiBansheeCurseTimer -= uiDiff;
@@ -132,7 +132,7 @@ struct boss_baroness_anastariAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SILENCE) == CAST_OK)
-                    m_uiSilenceTimer = 25000;
+                    m_uiSilenceTimer = Randomize(25000);
             }
         }
         else
@@ -150,7 +150,7 @@ struct boss_baroness_anastariAI : public ScriptedAI
 
                     m_possessedPlayer = pTarget->GetObjectGuid();
                     m_uiPossessEndTimer = 1000;
-                    m_uiPossessTimer = 30000;
+                    m_uiPossessTimer = Randomize(30000);
                 }
             }
         }

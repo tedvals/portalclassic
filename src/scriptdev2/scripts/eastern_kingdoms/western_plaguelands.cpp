@@ -683,11 +683,11 @@ struct npc_isillienAI: public npc_escortAI
 
     void Reset() override
     {
-        m_uiManaBurnTimer   = urand(7000, 12000);
-        m_uFlashHealTimer   = urand(10000, 15000);
-        m_uiDominateTimer   = urand(10000, 14000);
-        m_uiMindBlastTimer  = urand(0, 1000);
-        m_uiMindFlayTimer   = urand(3000, 7000);
+        m_uiManaBurnTimer   = Randomize(urand(7000, 12000));
+        m_uFlashHealTimer   = Randomize(urand(10000, 15000));
+        m_uiDominateTimer   = Randomize(urand(10000, 14000));
+        m_uiMindBlastTimer  = Randomize(urand(0, 1000));
+        m_uiMindFlayTimer   = Randomize(urand(3000, 7000));
         m_uiGreaterHealTimer = 0;
     }
 
@@ -762,7 +762,7 @@ struct npc_isillienAI: public npc_escortAI
         if (m_uiMindBlastTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_BLAST) == CAST_OK)
-                m_uiMindBlastTimer = urand(3000, 5000);
+                m_uiMindBlastTimer = Randomize(urand(3000, 5000));
         }
         else
             m_uiMindBlastTimer -= uiDiff;
@@ -770,7 +770,7 @@ struct npc_isillienAI: public npc_escortAI
         if (m_uiMindFlayTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MIND_FLAY) == CAST_OK)
-                m_uiMindFlayTimer = urand(9000, 15000);
+                m_uiMindFlayTimer = Randomize(urand(9000, 15000));
         }
         else
             m_uiMindFlayTimer -= uiDiff;
@@ -778,7 +778,7 @@ struct npc_isillienAI: public npc_escortAI
         if (m_uiManaBurnTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MANA_BURN) == CAST_OK)
-                m_uiManaBurnTimer = urand(8000, 12000);
+                m_uiManaBurnTimer = Randomize(urand(8000, 12000));
         }
         else
             m_uiManaBurnTimer -= uiDiff;
@@ -788,7 +788,7 @@ struct npc_isillienAI: public npc_escortAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_DOMINATE_MIND, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_DOMINATE_MIND) == CAST_OK)
-                    m_uiDominateTimer = urand(25000, 30000);
+                    m_uiDominateTimer = Randomize(urand(25000, 30000));
             }
         }
         else
@@ -799,7 +799,7 @@ struct npc_isillienAI: public npc_escortAI
             if (Unit* pTarget = DoSelectLowestHpFriendly(50.0f))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_FLASH_HEAL) == CAST_OK)
-                    m_uFlashHealTimer = urand(10000, 15000);
+                    m_uFlashHealTimer = Randomize(urand(10000, 15000));
             }
         }
         else
@@ -810,7 +810,7 @@ struct npc_isillienAI: public npc_escortAI
             if (m_uiGreaterHealTimer < uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_GREATER_HEAL) == CAST_OK)
-                    m_uiGreaterHealTimer = urand(15000, 20000);
+                    m_uiGreaterHealTimer = Randomize(urand(15000, 20000));
             }
             else
                 m_uiGreaterHealTimer -= uiDiff;
@@ -841,8 +841,8 @@ struct npc_tirion_fordringAI: public npc_escortAI
 
     void Reset() override
     {
-        m_uiHolyCleaveTimer = urand(11000, 15000);
-        m_uiHolyStrikeTimer = urand(6000, 8000);
+        m_uiHolyCleaveTimer = Randomize(urand(11000, 15000));
+        m_uiHolyStrikeTimer = Randomize(urand(6000, 8000));
         m_uiCrusaderStrike  = urand(1000, 5000);
     }
 
@@ -923,7 +923,7 @@ struct npc_tirion_fordringAI: public npc_escortAI
         if (m_uiHolyCleaveTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_CLEAVE) == CAST_OK)
-                m_uiHolyCleaveTimer = urand(12000, 15000);
+                m_uiHolyCleaveTimer = Randomize(urand(12000, 15000));
         }
         else
             m_uiHolyCleaveTimer -= uiDiff;
@@ -931,7 +931,7 @@ struct npc_tirion_fordringAI: public npc_escortAI
         if (m_uiHolyStrikeTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_STRIKE) == CAST_OK)
-                m_uiHolyStrikeTimer = urand(8000, 11000);
+                m_uiHolyStrikeTimer = Randomize(urand(8000, 11000));
         }
         else
             m_uiHolyStrikeTimer -= uiDiff;

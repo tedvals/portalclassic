@@ -29,10 +29,16 @@
 #include "BattleGround/BattleGround.h"
 #include "MapManager.h"
 #include "MapPersistentStateMgr.h"
+<<<<<<< HEAD
 #include "Util.h"
 #include "playerbot/PlayerbotMgr.h"
 #include "LootMgr.h"
 #include "LuaEngine.h"
+=======
+#include "LuaEngine.h"
+
+#include "playerbot/PlayerbotMgr.h"
+>>>>>>> 7c22cb07fddf84c194da27a59be6e2eb3fdd5c27
 
 GroupMemberStatus GetGroupMemberStatus(const Player *member = nullptr)
 {
@@ -1248,11 +1254,12 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
     if (pGroupGuy->isAlive())
         pGroupGuy->RewardHonor(pVictim, count);
 
+	float rate = group_rate * float(pGroupGuy->getLevel()) / sum_level;
+
     // xp and reputation only in !PvP case
     if (!PvP)
     {
-        float rate = group_rate * float(pGroupGuy->getLevel()) / sum_level;
-
+        
         // if is in dungeon then all receive full reputation at kill
         // rewarded any alive/dead/near_corpse group member
         pGroupGuy->RewardReputation(pVictim, is_dungeon ? 1.0f : rate);
@@ -1269,6 +1276,32 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
                 // the whole RewardGroupAtKill needs a rewrite to match up with this anyways:
                 // http://wowwiki.wikia.com/wiki/Formulas:Mob_XP?oldid=228414
                 pet->GivePetXP(itr_xp / 2);
+
+			if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP))
+			{
+				uint32 victim_level = pVictim->getLevel();
+				float multiplier = 1;
+				uint32 attacker_level = pGroupGuy->getLevel();
+				Creature * pCreature = (Creature*)(pVictim);
+
+				if (pCreature->IsElite())
+					multiplier = 5;
+
+				if (pCreature->IsWorldBoss())
+					multiplier = 40;
+
+				if (sWorld.getConfig(CONFIG_UINT32_CUSTOM_ADVENTURE_BOSSONLYXP) < pGroupGuy->GetAdventureLevel() && !pCreature->IsWorldBoss())
+					multiplier = 0;
+
+				if ((victim_level + 3 - attacker_level) > 0)
+					multiplier = victim_level * multiplier;
+				else
+					multiplier = (-0.5f)*victim_level * multiplier;
+
+
+				int newxp = (int)(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_KILLXP)*multiplier);
+				pGroupGuy->AddAdventureXP(newxp);				
+			}
         }
 
         // quest objectives updated only for alive group member or dead but with not released body
@@ -1279,6 +1312,12 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
                 pGroupGuy->KilledMonster(((Creature*)pVictim)->GetCreatureInfo(), pVictim->GetObjectGuid());
         }
     }
+	else if (sWorld.getConfig(CONFIG_BOOL_CUSTOM_ADVENTURE_MODE) && sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP))
+	{
+		uint32 victim_level = pVictim->getLevel();
+
+		pGroupGuy->AddAdventureXP(ceil(sWorld.getConfig(CONFIG_FLOAT_CUSTOM_ADVENTURE_PVPXP)*victim_level*(victim_level + 2 - pGroupGuy->getLevel()))*rate);
+	}
 }
 
 /** Provide rewards to group members at unit kill

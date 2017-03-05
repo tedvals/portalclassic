@@ -36,33 +36,40 @@ enum Gender
 // Race value is index in ChrRaces.dbc
 enum Races
 {
-    RACE_HUMAN              = 1,
-    RACE_ORC                = 2,
-    RACE_DWARF              = 3,
-    RACE_NIGHTELF           = 4,
-    RACE_UNDEAD             = 5,
-    RACE_TAUREN             = 6,
-    RACE_GNOME              = 7,
-    RACE_TROLL              = 8,
-    RACE_GOBLIN             = 9,
+	RACE_HUMAN = 1,
+	RACE_ORC = 2,
+	RACE_DWARF = 3,
+	RACE_NIGHTELF = 4,
+	RACE_UNDEAD = 5,
+	RACE_TAUREN = 6,
+	RACE_GNOME = 7,
+	RACE_TROLL = 8,
+	RACE_GOBLIN = 9,
+	RACE_BLOODELF = 10,
+	RACE_DRAENEI = 11,
+	RACE_FEL_ORC = 12,
+	RACE_NAGA = 13,
+	RACE_BROKEN = 14,
+	RACE_SKELETON = 15,
 };
 
 // max+1 for player race
-#define MAX_RACES         9
+#define MAX_RACES         12
 
 #define RACEMASK_ALL_PLAYABLE \
     ((1<<(RACE_HUMAN-1))    |(1<<(RACE_ORC-1))      |(1<<(RACE_DWARF-1))   | \
     (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
-    (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1)))
+    (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
+    (1<<(RACE_DRAENEI-1)))
 
 // for most cases batter use ChrRace data for team check as more safe, but when need full mask of team can be use this defines.
 #define RACEMASK_ALLIANCE \
     ((1<<(RACE_HUMAN-1))    |(1<<(RACE_DWARF-1))    |(1<<(RACE_NIGHTELF-1))| \
-    (1<<(RACE_GNOME-1)))
+    (1<<(RACE_GNOME-1))     |(1<<(RACE_DRAENEI-1)))
 
 #define RACEMASK_HORDE \
     ((1<<(RACE_ORC-1))      |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
-    (1<<(RACE_TROLL-1)))
+    (1<<(RACE_TROLL-1))     |(1<<(RACE_BLOODELF-1)))
 
 // Class value is index in ChrClasses.dbc
 enum Classes
@@ -191,7 +198,11 @@ enum SpellSchoolMask
     SPELL_SCHOOL_MASK_SPELL   = (SPELL_SCHOOL_MASK_FIRE   |
                                  SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_FROST  |
                                  SPELL_SCHOOL_MASK_SHADOW | SPELL_SCHOOL_MASK_ARCANE),
-    // 126
+    //Schools for Friendly Fire
+	SPELL_SCHOOL_MASK_FF_SPELL = (SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_FROST |
+		SPELL_SCHOOL_MASK_SHADOW | SPELL_SCHOOL_MASK_ARCANE),
+
+	// 126
     SPELL_SCHOOL_MASK_MAGIC   = (SPELL_SCHOOL_MASK_HOLY | SPELL_SCHOOL_MASK_SPELL),
 
     // 127
@@ -267,7 +278,7 @@ enum SpellAttributes
     SPELL_ATTR_NOT_SHAPESHIFT                  = 0x00010000,// 16 Not while shapeshifted
     SPELL_ATTR_ONLY_STEALTHED                  = 0x00020000,// 17 Must be in stealth
     SPELL_ATTR_DONT_AFFECT_SHEATH_STATE        = 0x00040000,// 18 client won't hide unit weapons in sheath on cast/channel TODO: Implement
-    SPELL_ATTR_LEVEL_DAMAGE_CALCULATION        = 0x00080000,// 19 spelldamage depends on caster level
+    SPELL_ATTR_LEVEL_CALCULATION               = 0x00080000,// 19 spelldamage depends on caster level  //custom also used to implement scalable spells
     SPELL_ATTR_STOP_ATTACK_TARGET              = 0x00100000,// 20 Stop attack after use this spell (and not begin attack if use)
     SPELL_ATTR_IMPOSSIBLE_DODGE_PARRY_BLOCK    = 0x00200000,// 21 Cannot be dodged/parried/blocked
     SPELL_ATTR_SET_TRACKING_TARGET             = 0x00400000,// 22 SetTrackingTarget
@@ -350,7 +361,7 @@ enum SpellAttributesEx2
     SPELL_ATTR_EX2_UNK27                       = 0x08000000,// 27
     SPELL_ATTR_EX2_UNK28                       = 0x10000000,// 28 no breaks stealth if it fails??
     SPELL_ATTR_EX2_CANT_CRIT                   = 0x20000000,// 29 Spell can't crit
-    SPELL_ATTR_EX2_UNK30                       = 0x40000000,// 30
+	SPELL_ATTR_EX2_TRIGGERED_CAN_TRIGGER_PROC  = 0x40000000,// 30
     SPELL_ATTR_EX2_FOOD_BUFF                   = 0x80000000,// 31 Food or Drink Buff (like Well Fed)
 };
 
@@ -365,14 +376,14 @@ enum SpellAttributesEx3
     SPELL_ATTR_EX3_UNK6                        = 0x00000040,// 6
     SPELL_ATTR_EX3_STACK_FOR_DIFF_CASTERS      = 0x00000080,// 7 create a separate (de)buff stack for each caster
     SPELL_ATTR_EX3_TARGET_ONLY_PLAYER          = 0x00000100,// 8 Can target only player
-    SPELL_ATTR_EX3_UNK9                        = 0x00000200,// 9
+	SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL= 0x00000200,// 9 Can only proc auras with SPELL_ATTR_EX3_CAN_PROC_FROM_TRIGGERED_SPECIAL
     SPELL_ATTR_EX3_MAIN_HAND                   = 0x00000400,// 10 Main hand weapon required
     SPELL_ATTR_EX3_BATTLEGROUND                = 0x00000800,// 11 Can casted only on battleground
     SPELL_ATTR_EX3_CAST_ON_DEAD                = 0x00001000,// 12 target is a dead player (not every spell has this flag)
     SPELL_ATTR_EX3_DONT_DISPLAY_CHANNEL_BAR    = 0x00002000,// 13
     SPELL_ATTR_EX3_IS_HONORLESS_TARGET         = 0x00004000,// 14 "Honorless Target" only this spells have this flag
     SPELL_ATTR_EX3_UNK15                       = 0x00008000,// 15 Auto Shoot, Shoot, Throw,  - this is autoshot flag
-    SPELL_ATTR_EX3_UNK16                       = 0x00010000,// 16 no triggers effects that trigger on casting a spell??
+	SPELL_ATTR_EX3_CANT_TRIGGER_PROC           = 0x00010000,// 16 confirmed by patchnotes
     SPELL_ATTR_EX3_NO_INITIAL_AGGRO            = 0x00020000,// 17 Causes no aggro if not missed
     SPELL_ATTR_EX3_CANT_MISS                   = 0x00040000,// 18 Spell should always hit its target 
     SPELL_ATTR_EX3_UNK19                       = 0x00080000,// 19
@@ -382,10 +393,10 @@ enum SpellAttributesEx3
     SPELL_ATTR_EX3_UNK23                       = 0x00800000,// 23
     SPELL_ATTR_EX3_REQ_OFFHAND                 = 0x01000000,// 24 Req offhand weapon
     SPELL_ATTR_EX3_UNK25                       = 0x02000000,// 25 no cause spell pushback ?
-    SPELL_ATTR_EX3_UNK26                       = 0x04000000,// 26
+	SPELL_ATTR_EX3_CAN_PROC_FROM_TRIGGERED_SPECIAL=0x04000000,// 26 Auras with this attribute can proc off SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL
     SPELL_ATTR_EX3_DRAIN_SOUL                  = 0x08000000,// 27
     SPELL_ATTR_EX3_UNK28                       = 0x10000000,// 28 always cast ok ? (requires more research)
-    SPELL_ATTR_EX3_UNK29                       = 0x20000000,// 29 can only target ground targets (non fly non jump)
+	SPELL_ATTR_EX3_NO_DONE_BONUS               = 0x20000000,// 
     SPELL_ATTR_EX3_DONT_DISPLAY_RANGE          = 0x40000000,// 30
     SPELL_ATTR_EX3_UNK31                       = 0x80000000,// 31
 };
@@ -467,24 +478,28 @@ enum CharacterSlot
 // from Languages.dbc (checked for 1.12.1)
 enum Language
 {
-    LANG_UNIVERSAL      = 0,
-    LANG_ORCISH         = 1,
-    LANG_DARNASSIAN     = 2,
-    LANG_TAURAHE        = 3,
-    LANG_DWARVISH       = 6,
-    LANG_COMMON         = 7,
-    LANG_DEMONIC        = 8,
-    LANG_TITAN          = 9,
-    LANG_THALASSIAN     = 10,
-    LANG_DRACONIC       = 11,
-    LANG_KALIMAG        = 12,
-    LANG_GNOMISH        = 13,
-    LANG_TROLL          = 14,
-    LANG_GUTTERSPEAK    = 33,
+	LANG_UNIVERSAL = 0,
+	LANG_ORCISH = 1,
+	LANG_DARNASSIAN = 2,
+	LANG_TAURAHE = 3,
+	LANG_DWARVISH = 6,
+	LANG_COMMON = 7,
+	LANG_DEMONIC = 8,
+	LANG_TITAN = 9,
+	LANG_THALASSIAN = 10,
+	LANG_DRACONIC = 11,
+	LANG_KALIMAG = 12,
+	LANG_GNOMISH = 13,
+	LANG_TROLL = 14,
+	LANG_GUTTERSPEAK = 33,
+	LANG_DRAENEI = 35,
+	LANG_ZOMBIE = 36,
+	LANG_GNOMISH_BINARY = 37,
+	LANG_GOBLIN_BINARY = 38,
     LANG_ADDON          = 0xFFFFFFFF                        // used by addons, in 2.4.0 not exit, replaced by messagetype?
 };
 
-#define LANGUAGES_COUNT   15
+#define LANGUAGES_COUNT   19
 
 // In fact !=0 values is alliance/horde root faction ids
 enum Team
@@ -629,15 +644,39 @@ enum SpellEffects
     SPELL_EFFECT_APPLY_AREA_AURA_PET       = 119,
     SPELL_EFFECT_TELEPORT_GRAVEYARD        = 120,
     SPELL_EFFECT_NORMALIZED_WEAPON_DMG     = 121,
-    SPELL_EFFECT_122                       = 122,
+    SPELL_EFFECT_REFORGE_ITEM              = 122,  //custom
     SPELL_EFFECT_SEND_TAXI                 = 123,
     SPELL_EFFECT_PLAYER_PULL               = 124,
     SPELL_EFFECT_MODIFY_THREAT_PERCENT     = 125,
-    SPELL_EFFECT_126                       = 126,
-    SPELL_EFFECT_127                       = 127,
+	SPELL_EFFECT_STEAL_BENEFICIAL_BUFF     = 126,
+	SPELL_EFFECT_PROSPECTING               = 127,
     SPELL_EFFECT_APPLY_AREA_AURA_FRIEND    = 128,
-    SPELL_EFFECT_APPLY_AREA_AURA_ENEMY     = 129,
-    TOTAL_SPELL_EFFECTS                    = 130
+    SPELL_EFFECT_APPLY_AREA_AURA_ENEMY     = 129,  
+	SPELL_EFFECT_REDIRECT_THREAT = 130,  //added patch13
+	SPELL_EFFECT_PLAY_SOUND = 131,
+	SPELL_EFFECT_PLAY_MUSIC = 132,
+	SPELL_EFFECT_UNLEARN_SPECIALIZATION = 133,
+	SPELL_EFFECT_KILL_CREDIT_GROUP = 134,
+	SPELL_EFFECT_CALL_PET = 135,
+	SPELL_EFFECT_HEAL_PCT = 136,
+	SPELL_EFFECT_ENERGIZE_PCT = 137,
+	SPELL_EFFECT_LEAP_BACK = 138,
+	SPELL_EFFECT_CLEAR_QUEST = 139,
+	SPELL_EFFECT_FORCE_CAST = 140,
+	SPELL_EFFECT_FORCE_CAST_WITH_VALUE = 141,
+	SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE = 142,
+	SPELL_EFFECT_APPLY_AREA_AURA_OWNER = 143,
+	SPELL_EFFECT_KNOCKBACK_FROM_POSITION = 144,
+	SPELL_EFFECT_145 = 145,
+	SPELL_EFFECT_146 = 146,
+	SPELL_EFFECT_QUEST_FAIL = 147,
+	SPELL_EFFECT_148 = 148,
+	SPELL_EFFECT_CHARGE2 = 149,
+	SPELL_EFFECT_150 = 150,
+	SPELL_EFFECT_TRIGGER_SPELL_2 = 151,
+	SPELL_EFFECT_152 = 152,
+	SPELL_EFFECT_153 = 153,
+	TOTAL_SPELL_EFFECTS = 154
 };
 
 enum SpellCastResult
@@ -805,6 +844,17 @@ enum AuraState
     // AURA_STATE_UNKNOWN6                   = 6,           //     | not used
     AURA_STATE_HUNTER_PARRY                 = 7,            // C   |
     AURA_STATE_ROGUE_ATTACK_FROM_STEALTH    = 7,            // C   | FIX ME: not implemented yet!
+	AURA_STATE_WARRIOR_VICTORY_RUSH = 10,           // C   | warrior victory rush
+	AURA_STATE_HUNTER_CRIT_STRIKE = 10,           // C   | hunter crit strike
+	AURA_STATE_CRIT = 11,           // C   |
+	AURA_STATE_FAERIE_FIRE = 12,           //  c t|
+	AURA_STATE_HEALTHLESS_35_PERCENT = 13,           // C T |
+	AURA_STATE_CONFLAGRATE = 14,           //   T | per-caster
+	AURA_STATE_SWIFTMEND = 15,           //   T |
+	AURA_STATE_DEADLY_POISON = 16,           //   T |
+	AURA_STATE_FORBEARANCE = 17,           //  c t|
+	AURA_STATE_WEAKENED_SOUL = 18,           //    t|
+	AURA_STATE_HYPOTHERMIA = 19            //  c  |
 };
 
 // Spell mechanics
@@ -851,6 +901,9 @@ enum Mechanics
 
 #define IMMUNE_TO_ROOT_AND_STUN_MASK ( \
     (1<<(MECHANIC_ROOT-1))|(1<<(MECHANIC_STUN-1)))
+
+#define IMMUNE_TO_BLEED_AND_SNARE_MASK ( \
+    (1<<(MECHANIC_SNARE-1))|(1<<(MECHANIC_BLEED-1)))
 
 // Daze and all croud control spells except polymorph are not removed
 #define MECHANIC_NOT_REMOVED_BY_SHAPESHIFT ( \
@@ -915,6 +968,7 @@ enum Targets
     TARGET_AREAEFFECT_CUSTOM           = 8,
     TARGET_INNKEEPER_COORDINATES       = 9,                 // uses in teleport to innkeeper spells
     TARGET_11                          = 11,                // used by spell 4 'Word of Recall Other'
+	TARGET_ALL_FRIEND_IN_AREA_CHANNELED = 14,
     TARGET_ALL_ENEMY_IN_AREA           = 15,
     TARGET_ALL_ENEMY_IN_AREA_INSTANT   = 16,
     TARGET_TABLE_X_Y_Z_COORDINATES     = 17,                // uses in teleport spells and some other
@@ -962,6 +1016,32 @@ enum Targets
     TARGET_NARROW_FRONTAL_CONE         = 60,
     TARGET_AREAEFFECT_PARTY_AND_CLASS  = 61,
     TARGET_DUELVSPLAYER_COORDINATES    = 63,
+	TARGET_INFRONT_OF_VICTIM = 64,
+	TARGET_BEHIND_VICTIM = 65,                // used in teleport behind spells, caster/target dependent from spell effect
+	TARGET_RIGHT_FROM_VICTIM = 66,
+	TARGET_LEFT_FROM_VICTIM = 67,
+	TARGET_70 = 70,
+	TARGET_RANDOM_NEARBY_LOC = 72,                // used in teleport onto nearby locations
+	TARGET_RANDOM_CIRCUMFERENCE_POINT = 73,
+	TARGET_74 = 74,
+	TARGET_75 = 75,
+	TARGET_DYNAMIC_OBJECT_COORDINATES = 76,
+	TARGET_SINGLE_ENEMY = 77,
+	TARGET_POINT_AT_NORTH = 78,                // 78-85 possible _COORDINATES at radius with pi/4 step around target in unknown order, N?
+	TARGET_POINT_AT_SOUTH = 79,                // S?
+	TARGET_POINT_AT_EAST = 80,                // 80/81 must be symmetric from line caster->target, E (base at 82/83, 84/85 order) ?
+	TARGET_POINT_AT_WEST = 81,                // 80/81 must be symmetric from line caster->target, W (base at 82/83, 84/85 order) ?
+	TARGET_POINT_AT_NE = 82,                // from spell desc: "(NE)"
+	TARGET_POINT_AT_NW = 83,                // from spell desc: "(NW)"
+	TARGET_POINT_AT_SE = 84,                // from spell desc: "(SE)"
+	TARGET_POINT_AT_SW = 85,                // from spell desc: "(SW)"
+	TARGET_RANDOM_NEARBY_DEST = 86,                // "Test Nearby Dest Random" - random around selected destination
+	TARGET_SELF2 = 87,
+	TARGET_88 = 88,                // Smoke Flare(s)
+	TARGET_NONCOMBAT_PET = 90,
+	TARGET_PARTY_IN_FRONT_OF_CASTER = 91,
+	TARGET_ALL_FRIEND_IN_AREA_INSTANT = 92,
+	TARGET_LOWEST_HEALTH_FRIEND = 93,
 };
 
 enum SpellMissInfo
@@ -1692,6 +1772,14 @@ enum CreatureFamily
     CREATURE_FAMILY_OWL            = 26,
     CREATURE_FAMILY_WIND_SERPENT   = 27,
     CREATURE_FAMILY_REMOTE_CONTROL = 28,
+    CREATURE_FAMILY_FELGUARD       = 29,
+    CREATURE_FAMILY_DRAGONHAWK     = 30,
+    CREATURE_FAMILY_RAVAGER        = 31,
+    CREATURE_FAMILY_WARP_STALKER   = 32,
+    CREATURE_FAMILY_SPOREBAT       = 33,
+    CREATURE_FAMILY_NETHER_RAY     = 34,
+    CREATURE_FAMILY_SERPENT        = 35,
+    CREATURE_FAMILY_SEA_LION       = 36
 };
 
 enum CreatureTypeFlags
@@ -1826,6 +1914,7 @@ enum SkillType
     SKILL_HOLY                     = 56,
     SKILL_SHADOW                   = 78,
     SKILL_DEFENSE                  = 95,
+	SKILL_TORCH					   = 96,
     SKILL_LANG_COMMON              = 98,
     SKILL_RACIAL_DWARVEN           = 101,
     SKILL_LANG_ORCISH              = 109,
@@ -1930,11 +2019,23 @@ enum SkillType
     SKILL_RACIAL_TROLL             = 733,
     SKILL_RACIAL_GNOME             = 753,
     SKILL_RACIAL_HUMAN             = 754,
+    SKILL_JEWELCRAFTING            = 755,
+    SKILL_RACIAL_BLOODELF          = 756,
     SKILL_PET_EVENT_RC             = 758,
+    SKILL_LANG_DRAENEI             = 759,
+    SKILL_RACIAL_DRAENEI           = 760,
+    SKILL_PET_FELGUARD             = 761,
     SKILL_RIDING                   = 762,
+    SKILL_PET_DRAGONHAWK           = 763,
+    SKILL_PET_NETHER_RAY           = 764,
+    SKILL_PET_SPOREBAT             = 765,
+    SKILL_PET_WARP_STALKER         = 766,
+    SKILL_PET_RAVAGER              = 767,
+    SKILL_PET_SERPENT              = 768,
+    SKILL_INTERNAL                 = 769
 };
 
-#define MAX_SKILL_TYPE               763
+#define MAX_SKILL_TYPE               770
 
 inline SkillType SkillByLockType(LockType locktype)
 {
@@ -2517,7 +2618,7 @@ enum TrackedAuraType
 // others will not and opposite
 // will only support 1.12.1 client (build 5875) and 1.12.2 client (build 6005) and 1.12.3 client (build 6141) ..
 
-#define EXPECTED_MANGOSD_CLIENT_BUILD        {5875, 6005, 6141, 0}
+#define EXPECTED_MANGOSD_CLIENT_BUILD        {5610, 5875, 6005, 6141, 0}
 
 // Max creature level (included some bosses and elite)
 #define DEFAULT_MAX_CREATURE_LEVEL 65

@@ -180,6 +180,8 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         bool IsContinent() const { return i_mapEntry && i_mapEntry->IsContinent(); }
         bool IsMountAllowed() const;
 
+		bool IsRegularDifficulty() const { return true; }
+
         // can't be nullptr for loaded map
         MapPersistentState* GetPersistentState() const { return m_persistentState; }
 
@@ -408,7 +410,7 @@ class MANGOS_DLL_SPEC DungeonMap : public Map
         void UnloadAll(bool pForce) override;
         void SendResetWarnings(uint32 timeLeft) const;
         void SetResetSchedule(bool on);
-        uint32 GetMaxPlayers() const;
+        uint32 GetMaxPlayers() const;		
 
         // can't be nullptr for loaded map
         DungeonPersistentState* GetPersistanceState() const;

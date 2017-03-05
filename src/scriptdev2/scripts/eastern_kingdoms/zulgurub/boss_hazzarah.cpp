@@ -44,10 +44,10 @@ struct boss_hazzarahAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiManaBurnTimer   = urand(4000, 10000);
-        m_uiSleepTimer      = urand(10000, 18000);
-        m_uiEarthShockTimer = urand(7000, 14000);
-        m_uiIllusionsTimer  = urand(10000, 18000);
+        m_uiManaBurnTimer   = Randomize(urand(4000, 10000));
+        m_uiSleepTimer      = Randomize(urand(10000, 18000));
+        m_uiEarthShockTimer = Randomize(urand(7000, 14000));
+        m_uiIllusionsTimer  = Randomize(urand(10000, 18000));
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -67,7 +67,7 @@ struct boss_hazzarahAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CHAIN_BURN, SELECT_FLAG_POWER_MANA))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_CHAIN_BURN) == CAST_OK)
-                    m_uiManaBurnTimer = urand(8000, 16000);
+                    m_uiManaBurnTimer = Randomize(urand(8000, 16000));
             }
         }
         else
@@ -79,7 +79,7 @@ struct boss_hazzarahAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SLEEP) == CAST_OK)
-                    m_uiSleepTimer = urand(12000, 20000);
+                    m_uiSleepTimer = Randomize(urand(12000, 20000));
             }
         }
         else
@@ -88,23 +88,32 @@ struct boss_hazzarahAI : public ScriptedAI
         // Earthshock
         if (m_uiEarthShockTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_EARTH_SHOCK) == CAST_OK)
-                m_uiEarthShockTimer = urand(9000, 16000);
+			if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTH_SHOCK) == CAST_OK)
+                m_uiEarthShockTimer = Randomize(urand(9000, 16000));
         }
         else
             m_uiEarthShockTimer -= uiDiff;
 
         // Illusions_Timer
-        if (m_uiIllusionsTimer < uiDiff)
-        {
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSION_1, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSION_2, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_ILLUSION_3, CAST_TRIGGERED);
+		if (m_uiIllusionsTimer < uiDiff)
+		{
+			Unit* pTarget = NULL;
+			for (uint8 i = 0; i < 3; ++i)
+			{
+				Creature* Illusion = m_creature->SummonCreature(15163, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN, 30000);
+				if (Illusion)
+				{
+					pTarget = Illusion->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+					if (!pTarget)
+						return;
+					Illusion->AI()->AttackStart(pTarget);
+				}
+			}
 
-            m_uiIllusionsTimer = urand(15000, 25000);
-        }
-        else
-            m_uiIllusionsTimer -= uiDiff;
+			m_uiIllusionsTimer = Randomize(urand(15000, 25000));
+		}
+		else
+			m_uiIllusionsTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }

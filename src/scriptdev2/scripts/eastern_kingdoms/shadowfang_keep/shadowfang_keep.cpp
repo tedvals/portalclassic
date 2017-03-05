@@ -458,7 +458,7 @@ struct boss_arugalAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiTeleportTimer = urand(22000, 26000);
+        m_uiTeleportTimer = Randomize(urand(22000, 26000));
         m_uiCurseTimer = urand(20000, 30000);
         m_uiVoidboltTimer = m_uiThundershockTimer = m_uiSpeechTimer = 0;
         m_uiYellTimer = urand(32000, 46000);
@@ -568,7 +568,7 @@ struct boss_arugalAI : public ScriptedAI
         if (m_uiYellTimer < uiDiff)
         {
             DoScriptText(YELL_COMBAT, m_creature);
-            m_uiYellTimer = urand(34000, 68000);
+            m_uiYellTimer = Randomize(urand(34000, 68000));
         }
         else
             m_uiYellTimer -= uiDiff;
@@ -578,7 +578,7 @@ struct boss_arugalAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
                 DoCastSpellIfCan(pTarget, SPELL_ARUGALS_CURSE);
 
-            m_uiCurseTimer = urand(20000, 35000);
+            m_uiCurseTimer = Randomize(urand(20000, 35000));
         }
         else
             m_uiCurseTimer -= uiDiff;
@@ -588,7 +588,7 @@ struct boss_arugalAI : public ScriptedAI
             if (GetVictimDistance() < 5.0f)
             {
                 DoCastSpellIfCan(m_creature->getVictim(), SPELL_THUNDERSHOCK);
-                m_uiThundershockTimer = urand(30200, 38500);
+                m_uiThundershockTimer = Randomize(urand(30200, 38500));
             }
         }
         else

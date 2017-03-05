@@ -47,9 +47,9 @@ struct boss_lucifronAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiImpendingDoomTimer = 10000;
-        m_uiLucifronCurseTimer = 20000;
-        m_uiShadowShockTimer   = 6000;
+        m_uiImpendingDoomTimer = Randomize(10000);
+        m_uiLucifronCurseTimer = Randomize(20000);
+        m_uiShadowShockTimer   = Randomize(6000);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -79,7 +79,7 @@ struct boss_lucifronAI : public ScriptedAI
         if (m_uiImpendingDoomTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_IMPENDINGDOOM) == CAST_OK)
-                m_uiImpendingDoomTimer = 20000;
+                m_uiImpendingDoomTimer = Randomize(20000);
         }
         else
             m_uiImpendingDoomTimer -= uiDiff;
@@ -88,7 +88,7 @@ struct boss_lucifronAI : public ScriptedAI
         if (m_uiLucifronCurseTimer < uiDiff)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_LUCIFRONCURSE) == CAST_OK)
-                m_uiLucifronCurseTimer = 20000;
+                m_uiLucifronCurseTimer = Randomize(20000);
         }
         else
             m_uiLucifronCurseTimer -= uiDiff;
@@ -99,7 +99,7 @@ struct boss_lucifronAI : public ScriptedAI
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_SHADOWSHOCK) == CAST_OK)
-                    m_uiShadowShockTimer = 6000;
+                    m_uiShadowShockTimer = Randomize(6000);
             }
         }
         else
