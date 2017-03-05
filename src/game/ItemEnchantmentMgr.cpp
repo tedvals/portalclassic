@@ -16,16 +16,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <stdlib.h>
-#include <functional>
 #include "ItemEnchantmentMgr.h"
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
 #include "ObjectMgr.h"
 #include "ProgressBar.h"
+#include "Util.h"
+
 #include <list>
 #include <vector>
-#include "Util.h"
 
 struct EnchStoreItem
 {
@@ -40,7 +39,7 @@ struct EnchStoreItem
 };
 
 typedef std::vector<EnchStoreItem> EnchStoreList;
-typedef UNORDERED_MAP<uint32, EnchStoreList> EnchantmentStore;
+typedef std::unordered_map<uint32, EnchStoreList> EnchantmentStore;
 
 static EnchantmentStore RandomItemEnch;
 

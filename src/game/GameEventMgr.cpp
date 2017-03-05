@@ -27,7 +27,7 @@
 #include "MapManager.h"
 #include "BattleGround/BattleGroundMgr.h"
 #include "MassMailMgr.h"
-#include "SpellMgr.h"
+#include "SQLStorages.h"
 #include "Policies/Singleton.h"
 
 INSTANTIATE_SINGLETON_1(GameEventMgr);
@@ -44,7 +44,7 @@ bool GameEventMgr::CheckOneGameEvent(uint16 entry, time_t currenttime) const
 
 uint32 GameEventMgr::NextCheck(uint16 entry) const
 {
-    time_t currenttime = time(NULL);
+    time_t currenttime = time(nullptr);
 
     // outdated event: we return max
     if (currenttime > mGameEvent[entry].end)
@@ -73,7 +73,7 @@ void GameEventMgr::StartEvent(uint16 event_id, bool overwrite /*=false*/, bool r
     ApplyNewEvent(event_id, resume);
     if (overwrite)
     {
-        mGameEvent[event_id].start = time(NULL);
+        mGameEvent[event_id].start = time(nullptr);
         if (mGameEvent[event_id].end <= mGameEvent[event_id].start)
             mGameEvent[event_id].end = mGameEvent[event_id].start + mGameEvent[event_id].length;
     }
@@ -84,7 +84,7 @@ void GameEventMgr::StopEvent(uint16 event_id, bool overwrite)
     UnApplyEvent(event_id);
     if (overwrite)
     {
-        mGameEvent[event_id].start = time(NULL) - mGameEvent[event_id].length * MINUTE;
+        mGameEvent[event_id].start = time(nullptr) - mGameEvent[event_id].length * MINUTE;
         if (mGameEvent[event_id].end <= mGameEvent[event_id].start)
             mGameEvent[event_id].end = mGameEvent[event_id].start + mGameEvent[event_id].length;
     }
@@ -109,7 +109,7 @@ void GameEventMgr::LoadFromDB()
         mGameEvent.resize(max_event_id + 1);
     }
 
-    QueryResult* result = WorldDatabase.Query("SELECT entry,UNIX_TIMESTAMP(start_time),UNIX_TIMESTAMP(end_time),occurence,length,holiday,description FROM game_event");
+    QueryResult* result = WorldDatabase.Query("SELECT entry,UNIX_TIMESTAMP(start_time),UNIX_TIMESTAMP(end_time),occurence,length,holiday,linkedTo,description FROM game_event");
     if (!result)
     {
         mGameEvent.clear();
@@ -124,7 +124,6 @@ void GameEventMgr::LoadFromDB()
         BarGoLink bar(result->GetRowCount());
         do
         {
-            ++count;
             Field* fields = result->Fetch();
 
             bar.step();
@@ -144,24 +143,40 @@ void GameEventMgr::LoadFromDB()
             pGameEvent.occurence    = fields[3].GetUInt32();
             pGameEvent.length       = fields[4].GetUInt32();
             pGameEvent.holiday_id   = HolidayIds(fields[5].GetUInt32());
+            pGameEvent.linkedTo     = fields[6].GetUInt32();
+            pGameEvent.description  = fields[7].GetCppString();
 
+            if (pGameEvent.occurence == 0)
+            {
+                sLog.outBasic("Event %u (%s) disabled", event_id, pGameEvent.description.c_str());
+                pGameEvent.start = time_t(FAR_FUTURE);
+                pGameEvent.occurence = pGameEvent.length;
+            }
             if (pGameEvent.length == 0)                     // length>0 is validity check
             {
                 sLog.outErrorDb("`game_event` game event id (%i) have length 0 and can't be used.", event_id);
-                continue;
+                pGameEvent.start = time_t(FAR_FUTURE);
             }
 
             if (pGameEvent.occurence < pGameEvent.length)   // occurence < length is useless. This also asserts that occurence > 0!
             {
                 sLog.outErrorDb("`game_event` game event id (%i) has occurence %u  < length %u and can't be used.", event_id, pGameEvent.occurence, pGameEvent.length);
-                continue;
+                pGameEvent.start = time_t(FAR_FUTURE);
             }
 
-            pGameEvent.description  = fields[6].GetCppString();
+            ++count;
         }
         while (result->NextRow());
         delete result;
 
+        for (uint16 itr = 1; itr < mGameEvent.size(); ++itr)
+        {
+            if (mGameEvent[itr].isValid() && mGameEvent[itr].linkedTo != 0 && (mGameEvent[itr].linkedTo >= mGameEvent.size() || mGameEvent[itr].linkedTo < 0 || !mGameEvent[mGameEvent[itr].linkedTo].isValid()))
+            {
+                sLog.outErrorDb("`game_event` game event id (%i) is Linked to invalid event %u", itr, mGameEvent[itr].linkedTo);
+                mGameEvent[itr].linkedTo = 0;
+            }
+        }
         sLog.outString();
         sLog.outString(">> Loaded %u game events", count);
     }
@@ -386,9 +401,9 @@ void GameEventMgr::LoadFromDB()
             newData.spell_id_start = fields[5].GetUInt32();
             newData.spell_id_end = fields[6].GetUInt32();
 
-            if (newData.equipment_id && !sObjectMgr.GetEquipmentInfo(newData.equipment_id) && !sObjectMgr.GetEquipmentInfoRaw(newData.equipment_id))
+            if (newData.equipment_id && !sObjectMgr.GetEquipmentInfo(newData.equipment_id))
             {
-                sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with equipment_id %u not found in table `creature_equip_template` or `creature_equip_template_raw`, set to no equipment.", guid, newData.equipment_id);
+                sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with equipment_id %u not found in table `creature_equip_template`, set to no equipment.", guid, newData.equipment_id);
                 newData.equipment_id = 0;
             }
 
@@ -398,13 +413,13 @@ void GameEventMgr::LoadFromDB()
                 newData.entry_id = 0;
             }
 
-            if (newData.spell_id_start && !sSpellStore.LookupEntry(newData.spell_id_start))
+            if (newData.spell_id_start && !sSpellTemplate.LookupEntry<SpellEntry>(newData.spell_id_start))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with nonexistent spell_start %u, set to no start spell.", guid, newData.spell_id_start);
                 newData.spell_id_start = 0;
             }
 
-            if (newData.spell_id_end && !sSpellStore.LookupEntry(newData.spell_id_end))
+            if (newData.spell_id_end && !sSpellTemplate.LookupEntry<SpellEntry>(newData.spell_id_end))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with nonexistent spell_end %u, set to no end spell.", guid, newData.spell_id_end);
                 newData.spell_id_end = 0;
@@ -595,29 +610,38 @@ void GameEventMgr::Initialize(MapPersistentState* state)
 }
 
 // return the next event delay in ms
-uint32 GameEventMgr::Update(ActiveEvents const* activeAtShutdown /*= NULL*/)
+uint32 GameEventMgr::Update(ActiveEvents const* activeAtShutdown /*= nullptr*/)
 {
-    time_t currenttime = time(NULL);
+    time_t currenttime = time(nullptr);
 
     uint32 nextEventDelay = max_ge_check_delay;             // 1 day
     uint32 calcDelay;
     for (uint16 itr = 1; itr < mGameEvent.size(); ++itr)
     {
+        if (mGameEvent[itr].occurence == 0)
+            continue;
         // sLog.outErrorDb("Checking event %u",itr);
         if (CheckOneGameEvent(itr, currenttime))
         {
             // DEBUG_LOG("GameEvent %u is active",itr->first);
             if (!IsActiveEvent(itr))
             {
-                bool resume = activeAtShutdown && (activeAtShutdown->find(itr) != activeAtShutdown->end());
-                StartEvent(itr, false, resume);
+                if (mGameEvent[itr].linkedTo == 0 || IsActiveEvent(mGameEvent[itr].linkedTo))
+                {
+                    bool resume = activeAtShutdown && (activeAtShutdown->find(itr) != activeAtShutdown->end());
+                    StartEvent(itr, false, resume);
+                }
             }
         }
         else
         {
             // DEBUG_LOG("GameEvent %u is not active",itr->first);
             if (IsActiveEvent(itr))
+            {
                 StopEvent(itr);
+                if (mGameEvent[itr].linkedTo != 0)
+                    StopEvent(mGameEvent[itr].linkedTo);
+            }
             else
             {
                 if (!m_IsGameEventsInit)
@@ -657,12 +681,17 @@ void GameEventMgr::UnApplyEvent(uint16 event_id)
 void GameEventMgr::ApplyNewEvent(uint16 event_id, bool resume)
 {
     m_ActiveEvents.insert(event_id);
+    sLog.outString("GameEvent %u \"%s\" started.", event_id, mGameEvent[event_id].description.c_str());
+    if (event_id == 987) // daily restart event
+    {
+        sWorld.ShutdownServ(mGameEvent[event_id].length*60, SHUTDOWN_MASK_RESTART, 0);
+        return;
+    }
     CharacterDatabase.PExecute("INSERT INTO game_event_status (event) VALUES (%u)", event_id);
 
     if (sWorld.getConfig(CONFIG_BOOL_EVENT_ANNOUNCE))
         sWorld.SendWorldText(LANG_EVENTMESSAGE, mGameEvent[event_id].description.c_str());
 
-    sLog.outString("GameEvent %u \"%s\" started.", event_id, mGameEvent[event_id].description.c_str());
     // spawn positive event tagget objects
     GameEventSpawn(event_id);
     // un-spawn negative event tagged objects
@@ -849,13 +878,13 @@ GameEventCreatureData const* GameEventMgr::GetCreatureUpdateDataForActiveEvent(u
     }
 
     if (!event_id)
-        return NULL;
+        return nullptr;
 
     for (GameEventCreatureDataList::const_iterator itr = mGameEventCreatureData[event_id].begin(); itr != mGameEventCreatureData[event_id].end(); ++itr)
         if (itr->first == lowguid)
             return &itr->second;
 
-    return NULL;
+    return nullptr;
 }
 
 struct GameEventUpdateCreatureDataInMapsWorker
@@ -867,9 +896,9 @@ struct GameEventUpdateCreatureDataInMapsWorker
     {
         if (Creature* pCreature = map->GetCreature(i_guid))
         {
-            pCreature->UpdateEntry(i_data->id, TEAM_NONE, i_data, i_activate ? i_event_data : NULL);
+            pCreature->UpdateEntry(i_data->id, TEAM_NONE, i_data, i_activate ? i_event_data : nullptr);
 
-            // spells not casted for event remove case (sent NULL into update), do it
+            // spells not casted for event remove case (sent nullptr into update), do it
             if (!i_activate)
                 pCreature->ApplyGameEventSpells(i_event_data, false);
         }

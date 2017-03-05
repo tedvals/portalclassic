@@ -16,9 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "MapManager.h"
 #include "Log.h"
-#include "GridStates.h"
 #include "CellImpl.h"
 #include "Map.h"
 #include "DBCEnums.h"
@@ -30,6 +28,8 @@
 #include "Policies/Singleton.h"
 #include "Util.h"
 
+#include <mutex>
+
 char const* MAP_MAGIC         = "MAPS";
 char const* MAP_VERSION_MAGIC = "z1.3";
 char const* MAP_AREA_MAGIC    = "AREA";
@@ -39,19 +39,19 @@ char const* MAP_LIQUID_MAGIC  = "MLIQ";
 static uint16 holetab_h[4] = { 0x1111, 0x2222, 0x4444, 0x8888 };
 static uint16 holetab_v[4] = { 0x000F, 0x00F0, 0x0F00, 0xF000 };
 
-GridMap::GridMap()
+GridMap::GridMap(): m_gridIntHeightMultiplier(0)
 {
     m_flags = 0;
 
     // Area data
     m_gridArea = 0;
-    m_area_map = NULL;
+    m_area_map = nullptr;
 
     // Height level data
     m_gridHeight = INVALID_HEIGHT_VALUE;
     m_gridGetHeight = &GridMap::getHeightFromFlat;
-    m_V9 = NULL;
-    m_V8 = NULL;
+    m_V9 = nullptr;
+    m_V8 = nullptr;
     memset(m_holes, 0, sizeof(m_holes));
 
     // Liquid data
@@ -61,9 +61,9 @@ GridMap::GridMap()
     m_liquid_width  = 0;
     m_liquid_height = 0;
     m_liquidLevel = INVALID_HEIGHT_VALUE;
-    m_liquidFlags = NULL;
-    m_liquidEntry = NULL;
-    m_liquid_map  = NULL;
+    m_liquidFlags = nullptr;
+    m_liquidEntry = nullptr;
+    m_liquid_map  = nullptr;
 }
 
 GridMap::~GridMap()
@@ -136,12 +136,12 @@ void GridMap::unloadData()
     delete[] m_liquidFlags;
     delete[] m_liquid_map;
 
-    m_area_map = NULL;
-    m_V9 = NULL;
-    m_V8 = NULL;
-    m_liquidEntry = NULL;
-    m_liquidFlags = NULL;
-    m_liquid_map  = NULL;
+    m_area_map = nullptr;
+    m_V9 = nullptr;
+    m_V8 = nullptr;
+    m_liquidEntry = nullptr;
+    m_liquidFlags = nullptr;
+    m_liquid_map  = nullptr;
     m_gridGetHeight = &GridMap::getHeightFromFlat;
 }
 
@@ -250,7 +250,7 @@ bool GridMap::loadGridMapLiquidData(FILE* in, uint32 offset, uint32 /*size*/)
     return true;
 }
 
-uint16 GridMap::getArea(float x, float y)
+uint16 GridMap::getArea(float x, float y) const
 {
     if (!m_area_map)
         return m_gridArea;
@@ -500,7 +500,7 @@ float GridMap::getHeightFromUint16(float x, float y) const
     return (float)((a * x) + (b * y) + c) * m_gridIntHeightMultiplier + m_gridHeight;
 }
 
-float GridMap::getLiquidLevel(float x, float y)
+float GridMap::getLiquidLevel(float x, float y) const
 {
     if (!m_liquid_map)
         return m_liquidLevel;
@@ -520,7 +520,7 @@ float GridMap::getLiquidLevel(float x, float y)
     return m_liquid_map[cx_int * m_liquid_width + cy_int];
 }
 
-uint8 GridMap::getTerrainType(float x, float y)
+uint8 GridMap::getTerrainType(float x, float y) const
 {
     if (!m_liquidFlags)
         return (uint8)m_liquidType;
@@ -695,7 +695,7 @@ TerrainInfo::TerrainInfo(uint32 mapid) : m_mapId(mapid)
     {
         for (int i = 0; i < MAX_NUMBER_OF_GRIDS; ++i)
         {
-            m_GridMaps[i][k] = NULL;
+            m_GridMaps[i][k] = nullptr;
             m_GridRef[i][k] = 0;
         }
     }
@@ -768,7 +768,7 @@ void TerrainInfo::CleanUpGrids(const uint32 diff)
             // delete those GridMap objects which have refcount = 0
             if (pMap && iRef == 0)
             {
-                m_GridMaps[x][y] = NULL;
+                m_GridMaps[x][y] = nullptr;
                 // delete grid data if reference count == 0
                 pMap->unloadData();
                 delete pMap;
@@ -866,7 +866,7 @@ float TerrainInfo::GetHeightStatic(float x, float y, float z, bool useVmaps/*=tr
 
 inline bool IsOutdoorWMO(uint32 mogpFlags)
 {
-    return mogpFlags & 0x8000;
+    return !!(mogpFlags & 0x8000);
 }
 
 bool TerrainInfo::IsOutdoors(float x, float y, float z) const
@@ -904,8 +904,8 @@ uint16 TerrainInfo::GetAreaFlag(float x, float y, float z, bool* isOutdoors) con
 {
     uint32 mogpFlags;
     int32 adtId, rootId, groupId;
-    WMOAreaTableEntry const* wmoEntry = 0;
-    AreaTableEntry const* atEntry = 0;
+    WMOAreaTableEntry const* wmoEntry = nullptr;
+    AreaTableEntry const* atEntry = nullptr;
     bool haveAreaInfo = false;
 
     if (GetAreaInfo(x, y, z, mogpFlags, adtId, rootId, groupId))
@@ -1034,6 +1034,23 @@ bool TerrainInfo::IsInWater(float x, float y, float pZ, GridMapLiquidData* data)
     return false;
 }
 
+// check if creature is in water and have enough space to swim
+bool TerrainInfo::IsSwimmable(float x, float y, float pZ, float radius /*= 1.5f*/, GridMapLiquidData* data /*= 0*/) const
+{
+    // Check surface in x, y point for liquid
+    if (const_cast<TerrainInfo*>(this)->GetGrid(x, y))
+    {
+        GridMapLiquidData liquid_status;
+        GridMapLiquidData* liquid_ptr = data ? data : &liquid_status;
+        if (getLiquidStatus(x, y, pZ, MAP_ALL_LIQUIDS, liquid_ptr))
+        {
+            if (liquid_ptr->level - liquid_ptr->depth_level > radius) // is unit have enough space to swim
+            return true;
+        }
+    }
+    return false;
+}
+
 bool TerrainInfo::IsUnderWater(float x, float y, float z) const
 {
     if (const_cast<TerrainInfo*>(this)->GetGrid(x, y))
@@ -1056,7 +1073,7 @@ bool TerrainInfo::IsUnderWater(float x, float y, float z) const
  *
  * @return           calculated z coordinate
  */
-float TerrainInfo::GetWaterOrGroundLevel(float x, float y, float z, float* pGround /*= NULL*/, bool swim /*= false*/) const
+float TerrainInfo::GetWaterOrGroundLevel(float x, float y, float z, float* pGround /*= nullptr*/, bool swim /*= false*/) const
 {
     if (const_cast<TerrainInfo*>(this)->GetGrid(x, y))
     {
@@ -1140,7 +1157,7 @@ GridMap* TerrainInfo::LoadMapAndVMap(const uint32 x, const uint32 y)
     return  m_GridMaps[x][y];
 }
 
-float TerrainInfo::GetWaterLevel(float x, float y, float z, float* pGround /*= NULL*/) const
+float TerrainInfo::GetWaterLevel(float x, float y, float z, float* pGround /*= nullptr*/) const
 {
     if (const_cast<TerrainInfo*>(this)->GetGrid(x, y))
     {
@@ -1163,9 +1180,9 @@ float TerrainInfo::GetWaterLevel(float x, float y, float z, float* pGround /*= N
 
 //////////////////////////////////////////////////////////////////////////
 
-#define CLASS_LOCK MaNGOS::ClassLevelLockable<TerrainManager, ACE_Thread_Mutex>
+#define CLASS_LOCK MaNGOS::ClassLevelLockable<TerrainManager, std::mutex>
 INSTANTIATE_SINGLETON_2(TerrainManager, CLASS_LOCK);
-INSTANTIATE_CLASS_MUTEX(TerrainManager, ACE_Thread_Mutex);
+INSTANTIATE_CLASS_MUTEX(TerrainManager, std::mutex);
 
 TerrainManager::TerrainManager()
 {
@@ -1181,17 +1198,14 @@ TerrainInfo* TerrainManager::LoadTerrain(const uint32 mapId)
 {
     Guard _guard(*this);
 
-    TerrainInfo* ptr = NULL;
     TerrainDataMap::const_iterator iter = i_TerrainMap.find(mapId);
     if (iter == i_TerrainMap.end())
     {
-        ptr = new TerrainInfo(mapId);
-        i_TerrainMap[mapId] = ptr;
+        TerrainInfo* info = new TerrainInfo(mapId);
+        i_TerrainMap[mapId] = info;
+        return info;
     }
-    else
-        ptr = (*iter).second;
-
-    return ptr;
+    return (*iter).second;
 }
 
 void TerrainManager::UnloadTerrain(const uint32 mapId)

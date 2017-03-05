@@ -16,10 +16,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "GridMap.h"
 #include "Log.h"
 #include "World.h"
-
+#include "Creature.h"
 #include "MoveMap.h"
 #include "MoveMapSharedDefines.h"
 
@@ -27,14 +26,14 @@ namespace MMAP
 {
     // ######################## MMapFactory ########################
     // our global singelton copy
-    MMapManager* g_MMapManager = NULL;
+    MMapManager* g_MMapManager = nullptr;
 
     // stores list of mapids which do not use pathfinding
-    std::set<uint32>* g_mmapDisabledIds = NULL;
+    std::set<uint32>* g_mmapDisabledIds = nullptr;
 
     MMapManager* MMapFactory::createOrGetMMapManager()
     {
-        if (g_MMapManager == NULL)
+        if (g_MMapManager == nullptr)
             g_MMapManager = new MMapManager();
 
         return g_MMapManager;
@@ -53,16 +52,36 @@ namespace MMAP
         while (idstr)
         {
             g_mmapDisabledIds->insert(uint32(atoi(idstr)));
-            idstr = strtok(NULL, ",");
+            idstr = strtok(nullptr, ",");
         }
 
         delete[] mapList;
     }
 
-    bool MMapFactory::IsPathfindingEnabled(uint32 mapId)
+    bool MMapFactory::IsPathfindingEnabled(uint32 mapId, const Unit* unit = nullptr)
     {
-        return sWorld.getConfig(CONFIG_BOOL_MMAP_ENABLED)
-               && g_mmapDisabledIds->find(mapId) == g_mmapDisabledIds->end();
+        if (!sWorld.getConfig(CONFIG_BOOL_MMAP_ENABLED))
+            return false;
+
+        if (unit)
+        {
+            // always use mmaps for players
+            if (unit->GetTypeId() == TYPEID_PLAYER)
+                return true;
+
+            if (IsPathfindingForceDisabled(unit))
+                return false;
+
+            if (IsPathfindingForceEnabled(unit))
+                return true;
+
+            // always use mmaps for pets of players (can still be disabled by extra-flag for pet creature)
+            if (unit->GetTypeId() == TYPEID_UNIT && ((Creature*)unit)->IsPet() && unit->GetOwner() &&
+                unit->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+                return true;
+        }
+
+        return g_mmapDisabledIds->find(mapId) == g_mmapDisabledIds->end();
     }
 
     void MMapFactory::clear()
@@ -70,8 +89,36 @@ namespace MMAP
         delete g_mmapDisabledIds;
         delete g_MMapManager;
 
-        g_mmapDisabledIds = NULL;
-        g_MMapManager = NULL;
+        g_mmapDisabledIds = nullptr;
+        g_MMapManager = nullptr;
+    }
+
+    bool MMapFactory::IsPathfindingForceEnabled(const Unit* unit)
+    {
+        if (const Creature* pCreature = dynamic_cast<const Creature*>(unit))
+        {
+            if (const CreatureInfo* pInfo = pCreature->GetCreatureInfo())
+            {
+                if (pInfo->ExtraFlags & CREATURE_EXTRA_FLAG_MMAP_FORCE_ENABLE)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool MMapFactory::IsPathfindingForceDisabled(const Unit* unit)
+    {
+        if (const Creature* pCreature = dynamic_cast<const Creature*>(unit))
+        {
+            if (const CreatureInfo* pInfo = pCreature->GetCreatureInfo())
+            {
+                if (pInfo->ExtraFlags & CREATURE_EXTRA_FLAG_MMAP_FORCE_DISABLE)
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     // ######################## MMapManager ########################
@@ -131,7 +178,7 @@ namespace MMAP
         return true;
     }
 
-    uint32 MMapManager::packTileID(int32 x, int32 y)
+    uint32 MMapManager::packTileID(int32 x, int32 y) const
     {
         return uint32(x << 16 | y);
     }
@@ -242,7 +289,7 @@ namespace MMAP
         dtTileRef tileRef = mmap->mmapLoadedTiles[packedGridPos];
 
         // unload, and mark as non loaded
-        dtStatus dtResult = mmap->navMesh->removeTile(tileRef, NULL, NULL);
+        dtStatus dtResult = mmap->navMesh->removeTile(tileRef, nullptr, nullptr);
         if (dtStatusFailed(dtResult))
         {
             // this is technically a memory leak
@@ -277,7 +324,7 @@ namespace MMAP
         {
             uint32 x = (i->first >> 16);
             uint32 y = (i->first & 0x0000FFFF);
-            dtStatus dtResult = mmap->navMesh->removeTile(i->second, NULL, NULL);
+            dtStatus dtResult = mmap->navMesh->removeTile(i->second, nullptr, nullptr);
             if (dtStatusFailed(dtResult))
                 sLog.outError("MMAP:unloadMap: Could not unload %03u%02i%02i.mmtile from navmesh", mapId, x, y);
             else
@@ -323,7 +370,7 @@ namespace MMAP
     dtNavMesh const* MMapManager::GetNavMesh(uint32 mapId)
     {
         if (loadedMMaps.find(mapId) == loadedMMaps.end())
-            return NULL;
+            return nullptr;
 
         return loadedMMaps[mapId]->navMesh;
     }
@@ -331,7 +378,7 @@ namespace MMAP
     dtNavMeshQuery const* MMapManager::GetNavMeshQuery(uint32 mapId, uint32 instanceId)
     {
         if (loadedMMaps.find(mapId) == loadedMMaps.end())
-            return NULL;
+            return nullptr;
 
         MMapData* mmap = loadedMMaps[mapId];
         if (mmap->navMeshQueries.find(instanceId) == mmap->navMeshQueries.end())
@@ -344,7 +391,7 @@ namespace MMAP
             {
                 dtFreeNavMeshQuery(query);
                 sLog.outError("MMAP:GetNavMeshQuery: Failed to initialize dtNavMeshQuery for mapId %03u instanceId %u", mapId, instanceId);
-                return NULL;
+                return nullptr;
             }
 
             DEBUG_FILTER_LOG(LOG_FILTER_MAP_LOADING, "MMAP:GetNavMeshQuery: created dtNavMeshQuery for mapId %03u instanceId %u", mapId, instanceId);

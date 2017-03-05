@@ -42,7 +42,7 @@ SqlStatement& SqlStatement::operator=(const SqlStatement& index)
         m_pDB = index.m_pDB;
 
         delete m_pParams;
-        m_pParams = NULL;
+        m_pParams = nullptr;
 
         if (index.m_pParams)
             m_pParams = new SqlStmtParameters(*(index.m_pParams));
@@ -131,7 +131,7 @@ bool SqlPlainPreparedStatement::execute()
     return m_pConn.Execute(m_szPlainRequest.c_str());
 }
 
-void SqlPlainPreparedStatement::DataToString(const SqlStmtFieldData& data, std::ostringstream& fmt)
+void SqlPlainPreparedStatement::DataToString(const SqlStmtFieldData& data, std::ostringstream& fmt) const
 {
     switch (data.type())
     {
@@ -154,5 +154,6 @@ void SqlPlainPreparedStatement::DataToString(const SqlStmtFieldData& data, std::
             break;
         }
         case FIELD_NONE:                                                    break;
+        default: throw std::domain_error("Unrecognized sql data type");
     }
 }

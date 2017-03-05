@@ -19,14 +19,14 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
+#include "Common.h"
 #include "Threading.h"
-#include "Utilities/UnorderedMapSet.h"
 #include "Database/SqlDelayThread.h"
-#include <ace/Recursive_Thread_Mutex.h>
 #include "Policies/ThreadingModel.h"
-#include <ace/TSS_T.h>
-#include <ace/Atomic_Op.h>
 #include "SqlPreparedStatement.h"
+
+#include <boost/thread/tss.hpp>
+#include <atomic>
 
 class SqlTransaction;
 class SqlResultQueue;
@@ -68,8 +68,8 @@ class MANGOS_DLL_SPEC SqlConnection
         class Lock
         {
             public:
-                Lock(SqlConnection* conn) : m_pConn(conn) { m_pConn->m_mutex.acquire(); }
-                ~Lock() { m_pConn->m_mutex.release(); }
+                Lock(SqlConnection* conn) : m_pConn(conn) { m_pConn->m_mutex.lock(); }
+                ~Lock() { m_pConn->m_mutex.unlock(); }
 
                 SqlConnection* operator->() const { return m_pConn; }
 
@@ -93,8 +93,7 @@ class MANGOS_DLL_SPEC SqlConnection
         void FreePreparedStatements();
 
     private:
-        typedef ACE_Recursive_Thread_Mutex LOCK_TYPE;
-        LOCK_TYPE m_mutex;
+        std::recursive_mutex m_mutex;
 
         typedef std::vector<SqlPreparedStatement* > StmtHolder;
         StmtHolder m_holder;
@@ -127,7 +126,7 @@ class MANGOS_DLL_SPEC Database
         QueryResult* PQuery(const char* format, ...) ATTR_PRINTF(2, 3);
         QueryNamedResult* PQueryNamed(const char* format, ...) ATTR_PRINTF(2, 3);
 
-        inline bool DirectExecute(const char* sql)
+        bool DirectExecute(const char* sql) const
         {
             if (!m_pAsyncConn)
                 return false;
@@ -197,7 +196,7 @@ class MANGOS_DLL_SPEC Database
         // get prepared statement format string
         std::string GetStmtString(const int stmtId) const;
 
-        operator bool () const { return m_pQueryConnections.size() && m_pAsyncConn != 0; }
+        operator bool () const { return m_pQueryConnections.size() && m_pAsyncConn; }
 
         // escape string generation
         void escape_string(std::string& str);
@@ -211,7 +210,7 @@ class MANGOS_DLL_SPEC Database
         void ProcessResultQueue();
 
         bool CheckRequiredField(char const* table_name, char const* required_name);
-        uint32 GetPingIntervall() { return m_pingIntervallms; }
+        uint32 GetPingIntervall() const { return m_pingIntervallms; }
 
         // function to ping database connections
         void Ping();
@@ -223,8 +222,8 @@ class MANGOS_DLL_SPEC Database
 
     protected:
         Database() :
-            m_nQueryConnPoolSize(1), m_pAsyncConn(NULL), m_pResultQueue(NULL),
-            m_threadBody(NULL), m_delayThread(NULL), m_bAllowAsyncTransactions(false),
+            m_nQueryConnPoolSize(1), m_pAsyncConn(nullptr), m_pResultQueue(nullptr),
+            m_threadBody(nullptr), m_delayThread(nullptr), m_bAllowAsyncTransactions(false),
             m_iStmtIndex(-1), m_logSQL(false), m_pingIntervallms(0)
         {
             m_nQueryCounter = -1;
@@ -237,30 +236,8 @@ class MANGOS_DLL_SPEC Database
         // factory method to create SqlDelayThread objects
         virtual SqlDelayThread* CreateDelayThread();
 
-        class MANGOS_DLL_SPEC TransHelper
-        {
-            public:
-                TransHelper() : m_pTrans(NULL) {}
-                ~TransHelper();
-
-                // initializes new SqlTransaction object
-                SqlTransaction* init();
-                // gets pointer on current transaction object. Returns NULL if transaction was not initiated
-                SqlTransaction* get() const { return m_pTrans; }
-                // detaches SqlTransaction object allocated by init() function
-                // next call to get() function will return NULL!
-                // do not forget to destroy obtained SqlTransaction object!
-                SqlTransaction* detach();
-                // destroyes SqlTransaction allocated by init() function
-                void reset();
-
-            private:
-                SqlTransaction* m_pTrans;
-        };
-
         // per-thread based storage for SqlTransaction object initialization - no locking is required
-        typedef ACE_TSS<Database::TransHelper> DBTransHelperTSS;
-        Database::DBTransHelperTSS m_TransStorage;
+        boost::thread_specific_ptr<SqlTransaction> m_currentTransaction;
 
         ///< DB connections
 
@@ -277,7 +254,7 @@ class MANGOS_DLL_SPEC Database
 
         // connection helper counters
         int m_nQueryConnPoolSize;                           // current size of query connection pool
-        ACE_Atomic_Op<ACE_Thread_Mutex, long> m_nQueryCounter;  // counter for connection selection
+        std::atomic_long m_nQueryCounter;  // counter for connection selection
 
         // lets use pool of connections for sync queries
         typedef std::vector< SqlConnection* > SqlConnectionContainer;
@@ -288,17 +265,17 @@ class MANGOS_DLL_SPEC Database
 
         SqlResultQueue*     m_pResultQueue;                 ///< Transaction queues from diff. threads
         SqlDelayThread*     m_threadBody;                   ///< Pointer to delay sql executer (owned by m_delayThread)
-        ACE_Based::Thread* m_delayThread;                   ///< Pointer to executer thread
+        MaNGOS::Thread*     m_delayThread;                  ///< Pointer to executer thread
 
         bool m_bAllowAsyncTransactions;                     ///< flag which specifies if async transactions are enabled
 
         // PREPARED STATEMENT REGISTRY
-        typedef ACE_Thread_Mutex LOCK_TYPE;
-        typedef ACE_Guard<LOCK_TYPE> LOCK_GUARD;
+        typedef std::mutex LOCK_TYPE;
+        typedef std::lock_guard<LOCK_TYPE> LOCK_GUARD;
 
         mutable LOCK_TYPE m_stmtGuard;
 
-        typedef UNORDERED_MAP<std::string, int> PreparedStmtRegistry;
+        typedef std::unordered_map<std::string, int> PreparedStmtRegistry;
         PreparedStmtRegistry m_stmtRegistry;                ///<
 
         int m_iStmtIndex;

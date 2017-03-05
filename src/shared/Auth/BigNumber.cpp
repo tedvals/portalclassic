@@ -23,20 +23,20 @@
 BigNumber::BigNumber()
 {
     _bn = BN_new();
-    _array = NULL;
+    _array = nullptr;
 }
 
 BigNumber::BigNumber(const BigNumber& bn)
 {
     _bn = BN_dup(bn._bn);
-    _array = NULL;
+    _array = nullptr;
 }
 
 BigNumber::BigNumber(uint32 val)
 {
     _bn = BN_new();
     BN_set_word(_bn, val);
-    _array = NULL;
+    _array = nullptr;
 }
 
 BigNumber::~BigNumber()
@@ -109,7 +109,7 @@ BigNumber BigNumber::operator/=(const BigNumber& bn)
     BN_CTX* bnctx;
 
     bnctx = BN_CTX_new();
-    BN_div(_bn, NULL, _bn, bn._bn, bnctx);
+    BN_div(_bn, nullptr, _bn, bn._bn, bnctx);
     BN_CTX_free(bnctx);
 
     return *this;
@@ -150,12 +150,12 @@ BigNumber BigNumber::ModExp(const BigNumber& bn1, const BigNumber& bn2)
     return ret;
 }
 
-int BigNumber::GetNumBytes(void)
+int BigNumber::GetNumBytes(void) const
 {
     return BN_num_bytes(_bn);
 }
 
-uint32 BigNumber::AsDword()
+uint32 BigNumber::AsDword() const
 {
     return (uint32)BN_get_word(_bn);
 }
@@ -183,12 +183,12 @@ uint8* BigNumber::AsByteArray(int minSize)
     return _array;
 }
 
-const char* BigNumber::AsHexStr()
+const char* BigNumber::AsHexStr() const
 {
     return BN_bn2hex(_bn);
 }
 
-const char* BigNumber::AsDecStr()
+const char* BigNumber::AsDecStr() const
 {
     return BN_bn2dec(_bn);
 }

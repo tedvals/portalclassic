@@ -17,7 +17,6 @@
  */
 
 #include "Common.h"
-#include "Database/DatabaseEnv.h"
 #include "DBCStores.h"
 #include "WorldPacket.h"
 #include "Player.h"
@@ -59,7 +58,7 @@ bool ChatHandler::HandleDebugSendSpellFailCommand(char* args)
     if (failarg2)
         data << uint32(failarg2);
 
-    m_session->SendPacket(&data);
+    m_session->SendPacket(data);
 
     return true;
 }
@@ -93,7 +92,7 @@ bool ChatHandler::HandleDebugSendEquipErrorCommand(char* args)
         return false;
 
     uint8 msg = atoi(args);
-    m_session->GetPlayer()->SendEquipError(InventoryResult(msg), NULL, NULL);
+    m_session->GetPlayer()->SendEquipError(InventoryResult(msg), nullptr, nullptr);
     return true;
 }
 
@@ -103,7 +102,7 @@ bool ChatHandler::HandleDebugSendSellErrorCommand(char* args)
         return false;
 
     uint8 msg = atoi(args);
-    m_session->GetPlayer()->SendSellError(SellResult(msg), 0, ObjectGuid(), 0);
+    m_session->GetPlayer()->SendSellError(SellResult(msg), nullptr, ObjectGuid(), 0);
     return true;
 }
 
@@ -113,7 +112,7 @@ bool ChatHandler::HandleDebugSendBuyErrorCommand(char* args)
         return false;
 
     uint8 msg = atoi(args);
-    m_session->GetPlayer()->SendBuyError(BuyResult(msg), 0, 0, 0);
+    m_session->GetPlayer()->SendBuyError(BuyResult(msg), nullptr, 0, 0);
     return true;
 }
 
@@ -193,7 +192,7 @@ bool ChatHandler::HandleDebugSendOpcodeCommand(char* /*args*/)
     DEBUG_LOG("Sending opcode %u, %s", data.GetOpcode(), data.GetOpcodeName());
 
     data.hexlike();
-    ((Player*)unit)->GetSession()->SendPacket(&data);
+    ((Player*)unit)->GetSession()->SendPacket(data);
 
     PSendSysMessage(LANG_COMMAND_OPCODESENT, data.GetOpcode(), unit->GetName());
 
@@ -280,7 +279,7 @@ bool ChatHandler::HandleDebugSendChannelNotifyCommand(char* args)
     data << name;                                           // channel name
     data << uint32(0);
     data << uint32(0);
-    m_session->SendPacket(&data);
+    m_session->SendPacket(data);
     return true;
 }
 
@@ -295,7 +294,7 @@ bool ChatHandler::HandleDebugSendChatMsgCommand(char* args)
 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, ChatMsg(type), msg, LANG_UNIVERSAL, CHAT_TAG_NONE, m_session->GetPlayer()->GetObjectGuid(), m_session->GetPlayerName());
-    m_session->SendPacket(&data);
+    m_session->SendPacket(data);
     return true;
 }
 
@@ -330,7 +329,7 @@ bool ChatHandler::HandleDebugGetLootRecipientCommand(char* /*args*/)
 
 bool ChatHandler::HandleDebugSendQuestInvalidMsgCommand(char* args)
 {
-    uint32 msg = atol(args);
+    uint32 msg = std::stoul(args);
     m_session->GetPlayer()->SendCanTakeQuestResponse(msg);
     return true;
 }
@@ -479,9 +478,9 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
                     error = true; continue;
                 }
 
-                if (updateQueue[qp] == NULL)
+                if (updateQueue[qp] == nullptr)
                 {
-                    PSendSysMessage("%s at slot %u has a queuepos (%d) that points to NULL in the queue!",
+                    PSendSysMessage("%s at slot %u has a queuepos (%d) that points to nullptr in the queue!",
                                     item->GetGuidStr().c_str(), item->GetSlot(), qp);
                     error = true; continue;
                 }
@@ -550,9 +549,9 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
                             error = true; continue;
                         }
 
-                        if (updateQueue[qp] == NULL)
+                        if (updateQueue[qp] == nullptr)
                         {
-                            PSendSysMessage("%s in bag %u at slot %u has a queuepos (%d) that points to NULL in the queue!",
+                            PSendSysMessage("%s in bag %u at slot %u has a queuepos (%d) that points to nullptr in the queue!",
                                             item2->GetGuidStr().c_str(), bag->GetSlot(), item2->GetSlot(), qp);
                             error = true; continue;
                         }
@@ -598,7 +597,7 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
             if (item->GetState() == ITEM_REMOVED) continue;
             Item* test = player->GetItemByPos(item->GetBagSlot(), item->GetSlot());
 
-            if (test == NULL)
+            if (test == nullptr)
             {
                 PSendSysMessage("queue(" SIZEFMTD "): %s has incorrect (bag %u slot %u) values, the player doesn't have an item at that position!",
                                 i, item->GetGuidStr().c_str(), item->GetBagSlot(), item->GetSlot());
@@ -1009,7 +1008,7 @@ bool ChatHandler::HandleDebugSpellCoefsCommand(char* args)
     if (!spellid)
         return false;
 
-    SpellEntry const* spellEntry = sSpellStore.LookupEntry(spellid);
+    SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
     if (!spellEntry)
         return false;
 
@@ -1081,7 +1080,7 @@ bool ChatHandler::HandleDebugSpellModsCommand(char* args)
         return false;
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -1102,7 +1101,7 @@ bool ChatHandler::HandleDebugSpellModsCommand(char* args)
     data << uint8(effidx);
     data << uint8(spellmodop);
     data << int32(value);
-    chr->GetSession()->SendPacket(&data);
+    chr->GetSession()->SendPacket(data);
 
     return true;
 }

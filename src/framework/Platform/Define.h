@@ -19,14 +19,11 @@
 #ifndef MANGOS_DEFINE_H
 #define MANGOS_DEFINE_H
 
-#include <sys/types.h>
-
-#include <ace/Basic_Types.h>
-#include <ace/Default_Constants.h>
-#include <ace/OS_NS_dlfcn.h>
-#include <ace/ACE_export.h>
-
 #include "Platform/CompilerDefs.h"
+
+#include <cstdint>
+
+#include <sys/types.h>
 
 #define MANGOS_LITTLEENDIAN 0
 #define MANGOS_BIGENDIAN    1
@@ -39,24 +36,42 @@
 #  endif // ACE_BYTE_ORDER
 #endif // MANGOS_ENDIAN
 
-typedef ACE_SHLIB_HANDLE MANGOS_LIBRARY_HANDLE;
-
 #define MANGOS_SCRIPT_NAME "mangosscript"
-#define MANGOS_SCRIPT_SUFFIX ACE_DLL_SUFFIX
-#define MANGOS_SCRIPT_PREFIX ACE_DLL_PREFIX
-#define MANGOS_LOAD_LIBRARY(libname)    ACE_OS::dlopen(libname)
-#define MANGOS_CLOSE_LIBRARY(hlib)      ACE_OS::dlclose(hlib)
-#define MANGOS_GET_PROC_ADDR(hlib,name) ACE_OS::dlsym(hlib,name)
-
-#define MANGOS_PATH_MAX PATH_MAX                            // ace/os_include/os_limits.h -> ace/Basic_Types.h
+#define MANGOS_PATH_MAX 1024
 
 #if PLATFORM == PLATFORM_WINDOWS
+#  define WIN32_LEAN_AND_MEAN
+#  include <Windows.h>
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x0603
+#  endif
+typedef HMODULE MANGOS_LIBRARY_HANDLE;
+#  define MANGOS_SCRIPT_SUFFIX ".dll"
+#  define MANGOS_SCRIPT_PREFIX ""
+#  define MANGOS_LOAD_LIBRARY(libname)     LoadLibraryA(libname)
+#  define MANGOS_CLOSE_LIBRARY(hlib)       FreeLibrary(hlib)
+#  define MANGOS_GET_PROC_ADDR(hlib, name) GetProcAddress(hlib, name)
 #  define MANGOS_EXPORT __declspec(dllexport)
 #  define MANGOS_IMPORT __cdecl
 #else // PLATFORM != PLATFORM_WINDOWS
+#  include <dlfcn.h>
+typedef void* MANGOS_LIBRARY_HANDLE;
+#  define MANGOS_LOAD_LIBRARY(libname)     dlopen(libname, RTLD_LAZY)
+#  define MANGOS_CLOSE_LIBRARY(hlib)       dlclose(hlib)
+#  define MANGOS_GET_PROC_ADDR(hlib, name) dlsym(hlib, name)
 #  define MANGOS_EXPORT export
-#  if defined(__APPLE_CC__) && defined(BIG_ENDIAN)
-#    define MANGOS_IMPORT __attribute__ ((longcall))
+#  if PLATFORM == PLATFORM_APPLE
+#    define MANGOS_SCRIPT_SUFFIX ".dylib"
+#  else
+#    define MANGOS_SCRIPT_SUFFIX ".so"
+#  endif
+#  define MANGOS_SCRIPT_PREFIX "lib"
+#  if defined(__APPLE_CC__) && defined(BIG_ENDIAN) // TODO:: more work to do with byte order. Have to be rechecked after boost integration.
+#    if (defined (__ppc__) || defined (__powerpc__))
+#      define MANGOS_IMPORT __attribute__ ((longcall))
+#    else
+#      define MANGOS_IMPORT
+#    endif
 #  elif defined(__x86_64__)
 #    define MANGOS_IMPORT
 #  else
@@ -91,32 +106,18 @@ typedef ACE_SHLIB_HANDLE MANGOS_LIBRARY_HANDLE;
 #  define ATTR_PRINTF(F,V)
 #endif // COMPILER == COMPILER_GNU
 
-typedef ACE_INT64 int64;
-typedef ACE_INT32 int32;
-typedef ACE_INT16 int16;
-typedef ACE_INT8 int8;
-typedef ACE_UINT64 uint64;
-typedef ACE_UINT32 uint32;
-typedef ACE_UINT16 uint16;
-typedef ACE_UINT8 uint8;
-
-#if COMPILER != COMPILER_MICROSOFT
-typedef uint16      WORD;
-typedef uint32      DWORD;
-#endif // COMPILER
-
-#define CONCAT(x, y) CONCAT1(x, y)
-#define CONCAT1(x, y) x##y
-#define STATIC_ASSERT_WORKAROUND(expr, msg) typedef char CONCAT(static_assert_failed_at_line_, __LINE__) [(expr) ? 1 : -1]
+typedef std::int64_t int64;
+typedef std::int32_t int32;
+typedef std::int16_t int16;
+typedef std::int8_t int8;
+typedef std::uint64_t uint64;
+typedef std::uint32_t uint32;
+typedef std::uint16_t uint16;
+typedef std::uint8_t uint8;
 
 #if COMPILER == COMPILER_GNU
 #  if !defined(__GXX_EXPERIMENTAL_CXX0X__) || (__GNUC__ < 4) || (__GNUC__ == 4) && (__GNUC_MINOR__ < 7)
 #    define override
-#    define static_assert(a, b) STATIC_ASSERT_WORKAROUND(a, b)
-#  endif
-#elif COMPILER == COMPILER_MICROSOFT
-#  if _MSC_VER < 1600
-#    define static_assert(a, b) STATIC_ASSERT_WORKAROUND(a, b)
 #  endif
 #endif
 

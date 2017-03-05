@@ -22,6 +22,8 @@
 #include "Common.h"
 #include "Policies/Singleton.h"
 
+#include <mutex>
+
 class Config;
 class ByteBuffer;
 
@@ -89,44 +91,44 @@ enum Color
 
 const int Color_count = int(WHITE) + 1;
 
-class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Thread_Mutex> >
+class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, std::mutex> >
 {
         friend class MaNGOS::OperatorNew<Log>;
         Log();
 
         ~Log()
         {
-            if (logfile != NULL)
+            if (logfile != nullptr)
                 fclose(logfile);
-            logfile = NULL;
+            logfile = nullptr;
 
-            if (gmLogfile != NULL)
+            if (gmLogfile != nullptr)
                 fclose(gmLogfile);
-            gmLogfile = NULL;
+            gmLogfile = nullptr;
 
-            if (charLogfile != NULL)
+            if (charLogfile != nullptr)
                 fclose(charLogfile);
-            charLogfile = NULL;
+            charLogfile = nullptr;
 
-            if (dberLogfile != NULL)
+            if (dberLogfile != nullptr)
                 fclose(dberLogfile);
-            dberLogfile = NULL;
+            dberLogfile = nullptr;
 
-            if (eventAiErLogfile != NULL)
+            if (eventAiErLogfile != nullptr)
                 fclose(eventAiErLogfile);
-            eventAiErLogfile = NULL;
+            eventAiErLogfile = nullptr;
 
-            if (scriptErrLogFile != NULL)
+            if (scriptErrLogFile != nullptr)
                 fclose(scriptErrLogFile);
-            scriptErrLogFile = NULL;
+            scriptErrLogFile = nullptr;
 
-            if (raLogfile != NULL)
+            if (raLogfile != nullptr)
                 fclose(raLogfile);
-            raLogfile = NULL;
+            raLogfile = nullptr;
 
-            if (worldLogfile != NULL)
+            if (worldLogfile != nullptr)
                 fclose(worldLogfile);
-            worldLogfile = NULL;
+            worldLogfile = nullptr;
         }
     public:
         void Initialize();
@@ -159,7 +161,7 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         // any log level
         void outErrorScriptLib(const char* str, ...)     ATTR_PRINTF(2, 3);
 
-        void outWorldPacketDump(uint32 socket, uint32 opcode, char const* opcodeName, ByteBuffer const* packet, bool incoming);
+        void outWorldPacketDump(const char* socket, uint32 opcode, char const* opcodeName, ByteBuffer const& packet, bool incoming);
         // any log level
         void outCharDump(const char* str, uint32 account_id, uint32 guid, const char* name);
         void outRALog(const char* str, ...)       ATTR_PRINTF(2, 3);
@@ -168,10 +170,10 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         void SetLogFileLevel(char* Level);
         void SetColor(bool stdout_stream, Color color);
         void ResetColor(bool stdout_stream);
-        void outTime();
+        void outTime() const;
         static void outTimestamp(FILE* file);
         static std::string GetTimestampStr();
-        bool HasLogFilter(uint32 filter) const { return m_logFilter & filter; }
+        bool HasLogFilter(uint32 filter) const { return !!(m_logFilter & filter); }
         void SetLogFilter(LogFilters filter, bool on) { if (on) m_logFilter |= filter; else m_logFilter &= ~filter; }
         bool HasLogLevelOrHigher(LogLevel loglvl) const { return m_logLevel >= loglvl || (m_logFileLevel >= loglvl && logfile); }
         bool IsOutCharDump() const { return m_charLog_Dump; }
@@ -194,7 +196,7 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         FILE* eventAiErLogfile;
         FILE* scriptErrLogFile;
         FILE* worldLogfile;
-        ACE_Thread_Mutex m_worldLogMtx;
+        std::mutex m_worldLogMtx;
 
         // log/console control
         LogLevel m_logLevel;

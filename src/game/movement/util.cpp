@@ -18,7 +18,6 @@
 
 #include "MoveSplineFlag.h"
 #include <math.h>
-#include <string>
 
 namespace Movement
 {
@@ -194,7 +193,7 @@ namespace Movement
     {
         for (int i = 0; i < N; ++i)
         {
-            if ((t & (Flags)(1 << i)) && names[i] != NULL)
+            if ((t & (Flags)(1 << i)) && names[i] != nullptr)
                 str.append(" ").append(names[i]);
         }
     }

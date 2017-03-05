@@ -22,8 +22,6 @@
 #include "Common.h"
 #include "ByteBuffer.h"
 
-#include <functional>
-
 enum TypeID
 {
     TYPEID_OBJECT        = 0,
@@ -104,12 +102,12 @@ class MANGOS_DLL_SPEC ObjectGuid
     public:                                                 // accessors
         uint64 const& GetRawValue() const { return m_guid; }
         HighGuid GetHigh() const { return HighGuid((m_guid >> 48) & 0x0000FFFF); }
-        uint32   GetEntry() const { return HasEntry() ? uint32((m_guid >> 24) & UI64LIT(0x0000000000FFFFFF)) : 0; }
+        uint32   GetEntry() const { return HasEntry() ? uint32((m_guid >> 24) & uint64(0x0000000000FFFFFF)) : 0; }
         uint32   GetCounter()  const
         {
             return HasEntry()
-                   ? uint32(m_guid & UI64LIT(0x0000000000FFFFFF))
-                   : uint32(m_guid & UI64LIT(0x00000000FFFFFFFF));
+                   ? uint32(m_guid & uint64(0x0000000000FFFFFF))
+                   : uint32(m_guid & uint64(0x00000000FFFFFFFF));
         }
 
         static uint32 GetMaxCounter(HighGuid high)
@@ -244,19 +242,17 @@ ByteBuffer& operator>> (ByteBuffer& buf, PackedGuidReader const& guid);
 
 inline PackedGuid ObjectGuid::WriteAsPacked() const { return PackedGuid(*this); }
 
-HASH_NAMESPACE_START
-
-template<>
-class hash<ObjectGuid>
-{
+namespace std {
+    template<>
+    class hash<ObjectGuid>
+    {
     public:
 
         size_t operator()(ObjectGuid const& key) const
         {
             return hash<uint64>()(key.GetRawValue());
         }
-};
-
-HASH_NAMESPACE_END
+    };
+}
 
 #endif

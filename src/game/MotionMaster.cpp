@@ -28,11 +28,12 @@
 #include "movement/MoveSpline.h"
 #include "movement/MoveSplineInit.h"
 #include "Map.h"
-#include "CreatureAISelector.h"
+#include "AI/CreatureAISelector.h"
 #include "Creature.h"
 #include "CreatureLinkingMgr.h"
 #include "Pet.h"
 #include "DBCStores.h"
+#include "Log.h"
 
 #include <cassert>
 
@@ -53,7 +54,7 @@ void MotionMaster::Initialize()
     if (m_owner->GetTypeId() == TYPEID_UNIT && !m_owner->hasUnitState(UNIT_STAT_CONTROLLED))
     {
         MovementGenerator* movement = FactorySelector::selectMovementGenerator((Creature*)m_owner);
-        push(movement == NULL ? &si_idleMovement : movement);
+        push(movement == nullptr ? &si_idleMovement : movement);
         top()->Initialize(*m_owner);
         if (top()->GetMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
             (static_cast<WaypointMovementGenerator<Creature>*>(top()))->InitializeWaypointPath(*((Creature*)(m_owner)), 0, PATH_NO_PATH, 0, 0);
@@ -100,7 +101,7 @@ void MotionMaster::UpdateMotion(uint32 diff)
         }
 
         delete m_expList;
-        m_expList = NULL;
+        m_expList = nullptr;
 
         if (empty())
             Initialize();
@@ -174,7 +175,7 @@ void MotionMaster::DirectExpire(bool reset)
     }
 
     // Store current top MMGen, as Finalize might push a new MMGen
-    MovementGenerator* nowTop = empty() ? NULL : top();
+    MovementGenerator* nowTop = empty() ? nullptr : top();
     // it can add another motions instead
     curr->Finalize(*m_owner);
 
@@ -378,7 +379,7 @@ void MotionMaster::MoveWaypoint(int32 id /*=0*/, uint32 source /*=0==PATH_NO_PAT
     {
         if (GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
         {
-            sLog.outError("Creature %s (Entry %u) attempt to MoveWaypoint() but creature is already using waypoint", m_owner->GetGuidStr().c_str(), m_owner->GetEntry());
+            sLog.outError("%s attempt to MoveWaypoint() but is already using waypoint", m_owner->GetGuidStr().c_str());
             return;
         }
 
@@ -506,7 +507,7 @@ void MotionMaster::GetWaypointPathInformation(std::ostringstream& oss) const
     }
 }
 
-bool MotionMaster::GetDestination(float& x, float& y, float& z)
+bool MotionMaster::GetDestination(float& x, float& y, float& z) const
 {
     if (m_owner->movespline->Finalized())
         return false;

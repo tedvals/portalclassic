@@ -81,6 +81,7 @@ enum BattleGroundMarksCount
 
 enum BattleGroundTimeIntervals
 {
+    CHECK_PLAYER_POSITION_INVERVAL  = 1000,                 // ms
     RESURRECTION_INTERVAL           = 30000,                // ms
     INVITATION_REMIND_TIME          = 60000,                // ms
     INVITE_ACCEPT_WAIT_TIME         = 80000,                // ms
@@ -125,7 +126,7 @@ struct BattleGroundPlayer
 
 struct BattleGroundObjectInfo
 {
-    BattleGroundObjectInfo() : object(NULL), timer(0), spellid(0) {}
+    BattleGroundObjectInfo() : object(nullptr), timer(0), spellid(0) {}
 
     GameObject*  object;
     int32       timer;
@@ -259,7 +260,7 @@ class BattleGround
         BattleGroundBracketId GetBracketId() const { return m_BracketId; }
         // the instanceId check is also used to determine a bg-template
         // that's why the m_map hack is here..
-        uint32 GetInstanceID()              { return m_Map ? GetBgMap()->GetInstanceId() : 0; }
+        uint32 GetInstanceID() const        { return m_Map ? GetBgMap()->GetInstanceId() : 0; }
         BattleGroundStatus GetStatus() const { return m_Status; }
         uint32 GetClientInstanceID() const  { return m_ClientInstanceID; }
         uint32 GetStartTime() const         { return m_StartTime; }
@@ -329,7 +330,7 @@ class BattleGround
 
         /* Map pointers */
         void SetBgMap(BattleGroundMap* map) { m_Map = map; }
-        BattleGroundMap* GetBgMap()
+        BattleGroundMap* GetBgMap() const
         {
             MANGOS_ASSERT(m_Map);
             return m_Map;
@@ -345,11 +346,14 @@ class BattleGround
             O = m_TeamStartLocO[idx];
         }
 
+        void SetStartMaxDist(float startMaxDist) { m_startMaxDist = startMaxDist; }
+        float GetStartMaxDist() const { return m_startMaxDist; }
+
         /* Packet Transfer */
         // method that should fill worldpacket with actual world states (not yet implemented for all battlegrounds!)
         virtual void FillInitialWorldStates(WorldPacket& /*data*/, uint32& /*count*/) {}
-        void SendPacketToTeam(Team team, WorldPacket* packet, Player* sender = NULL, bool self = true);
-        void SendPacketToAll(WorldPacket* packet);
+        void SendPacketToTeam(Team team, WorldPacket const& packet, Player* sender = nullptr, bool self = true) const;
+        void SendPacketToAll(WorldPacket const& packet) const;
 
         template<class Do>
         void BroadcastWorker(Do& _do);
@@ -360,16 +364,16 @@ class BattleGround
         void RewardHonorToTeam(uint32 Honor, Team team);
         void RewardReputationToTeam(uint32 faction_id, uint32 Reputation, Team team);
         void RewardMark(Player* plr, uint32 count);
-        void SendRewardMarkByMail(Player* plr, uint32 mark, uint32 count);
+        void SendRewardMarkByMail(Player* plr, uint32 mark, uint32 count) const;
         void RewardItem(Player* plr, uint32 item_id, uint32 count);
         void RewardQuestComplete(Player* plr);
-        void RewardSpellCast(Player* plr, uint32 spell_id);
+        void RewardSpellCast(Player* plr, uint32 spell_id) const;
         void UpdateWorldState(uint32 Field, uint32 Value);
-        void UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player* Source);
+        void UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player* Source) const;
         virtual void EndBattleGround(Team winner);
-        void BlockMovement(Player* plr);
+        static void BlockMovement(Player* plr);
 
-        void SendMessageToAll(int32 entry, ChatMsg type, Player const* source = NULL);
+        void SendMessageToAll(int32 entry, ChatMsg type, Player const* source = nullptr);
         void SendYellToAll(int32 entry, uint32 language, ObjectGuid guid);
         void PSendMessageToAll(int32 entry, ChatMsg type, Player const* source, ...);
 
@@ -396,7 +400,7 @@ class BattleGround
 
         /* Triggers handle */
         // must be implemented in BG subclass
-        virtual void HandleAreaTrigger(Player* /*Source*/, uint32 /*Trigger*/) {}
+        virtual bool HandleAreaTrigger(Player* /*Source*/, uint32 /*Trigger*/) { return false;  }
         // must be implemented in BG subclass if need AND call base class generic code
         virtual void HandleKillPlayer(Player* player, Player* killer);
         virtual void HandleKillUnit(Creature* /*unit*/, Player* /*killer*/) {}
@@ -411,7 +415,7 @@ class BattleGround
         virtual void EventPlayerDroppedFlag(Player* /*player*/) {}
         virtual void EventPlayerClickedOnFlag(Player* /*player*/, GameObject* /*target_obj*/) {}
         virtual void EventPlayerCapturedFlag(Player* /*player*/) {}
-        void EventPlayerLoggedIn(Player* player, ObjectGuid plr_guid);
+        void EventPlayerLoggedIn(Player* player);
         void EventPlayerLoggedOut(Player* player);
 
         /* Death related */
@@ -440,7 +444,7 @@ class BattleGround
         ObjectGuid GetSingleCreatureGuid(uint8 event1, uint8 event2);
 
         void OpenDoorEvent(uint8 event1, uint8 event2 = 0);
-        bool IsDoor(uint8 event1, uint8 event2);
+        bool IsDoor(uint8 event1, uint8 event2) const;
 
         void HandleTriggerBuff(ObjectGuid go_guid);
 
@@ -449,6 +453,8 @@ class BattleGround
 
         void DoorOpen(ObjectGuid guid);
         void DoorClose(ObjectGuid guid);
+
+        virtual Team GetPrematureWinner();
 
         virtual bool HandlePlayerUnderMap(Player* /*plr*/) { return false; }
 
@@ -507,6 +513,7 @@ class BattleGround
         BattleGroundStatus m_Status;
         uint32 m_ClientInstanceID;                          // the instance-id which is sent to the client and without any other internal use
         uint32 m_StartTime;
+        uint32 m_validStartPositionTimer;
         int32 m_EndTime;                                    // it is set to 120000 when bg is ending and it decreases itself
         BattleGroundBracketId m_BracketId;
         bool   m_InBGFreeSlotQueue;                         // used to make sure that BG is only once inserted into the BattleGroundMgr.BGFreeSlotQueue[bgTypeId] deque
@@ -547,6 +554,7 @@ class BattleGround
         float m_TeamStartLocY[PVP_TEAM_COUNT];
         float m_TeamStartLocZ[PVP_TEAM_COUNT];
         float m_TeamStartLocO[PVP_TEAM_COUNT];
+        float m_startMaxDist;
 };
 
 // helper functions for world state list fill

@@ -28,7 +28,7 @@
 
 INSTANTIATE_SINGLETON_1(SocialMgr);
 
-PlayerSocial::PlayerSocial()
+PlayerSocial::PlayerSocial(): m_playerLowGuid(0)
 {
 }
 
@@ -133,7 +133,7 @@ void PlayerSocial::SendFriendList()
         }
     }
 
-    plr->GetSession()->SendPacket(&data);
+    plr->GetSession()->SendPacket(data);
     DEBUG_LOG("WORLD: Sent SMSG_FRIEND_LIST");
 }
 
@@ -156,7 +156,7 @@ void PlayerSocial::SendIgnoreList()
         }
     }
 
-    plr->GetSession()->SendPacket(&data);
+    plr->GetSession()->SendPacket(data);
     DEBUG_LOG("WORLD: Sent SMSG_IGNORE_LIST");
 }
 
@@ -172,7 +172,7 @@ bool PlayerSocial::HasIgnore(ObjectGuid ignore_guid)
 {
     PlayerSocialMap::const_iterator itr = m_playerSocialMap.find(ignore_guid.GetCounter());
     if (itr != m_playerSocialMap.end())
-        return itr->second.Flags & SOCIAL_FLAG_IGNORED;
+        return !!(itr->second.Flags & SOCIAL_FLAG_IGNORED);
     return false;
 }
 
@@ -184,7 +184,7 @@ SocialMgr::~SocialMgr()
 {
 }
 
-void SocialMgr::GetFriendInfo(Player* player, uint32 friend_lowguid, FriendInfo& friendInfo)
+void SocialMgr::GetFriendInfo(Player* player, uint32 friend_lowguid, FriendInfo& friendInfo) const
 {
     if (!player)
         return;
@@ -198,7 +198,7 @@ void SocialMgr::GetFriendInfo(Player* player, uint32 friend_lowguid, FriendInfo&
 
     PlayerSocialMap::iterator itr = player->GetSocial()->m_playerSocialMap.find(friend_lowguid);
     if (itr != player->GetSocial()->m_playerSocialMap.end())
-
+    {
         // PLAYER see his team only and PLAYER can't see MODERATOR, GAME MASTER, ADMINISTRATOR characters
         // MODERATOR, GAME MASTER, ADMINISTRATOR can see all
         if (pFriend && pFriend->GetName() &&
@@ -222,13 +222,14 @@ void SocialMgr::GetFriendInfo(Player* player, uint32 friend_lowguid, FriendInfo&
             friendInfo.Level = 0;
             friendInfo.Class = 0;
         }
+    }
 }
 
-void SocialMgr::MakeFriendStatusPacket(FriendsResult result, uint32 guid, WorldPacket* data)
+void SocialMgr::MakeFriendStatusPacket(FriendsResult result, uint32 guid, WorldPacket& data)
 {
-    data->Initialize(SMSG_FRIEND_STATUS, 5);
-    *data << uint8(result);
-    *data << ObjectGuid(HIGHGUID_PLAYER, guid);
+    data.Initialize(SMSG_FRIEND_STATUS, 5);
+    data << uint8(result);
+    data << ObjectGuid(HIGHGUID_PLAYER, guid);
 }
 
 void SocialMgr::SendFriendStatus(Player* player, FriendsResult result, ObjectGuid friend_guid, bool broadcast)
@@ -238,7 +239,7 @@ void SocialMgr::SendFriendStatus(Player* player, FriendsResult result, ObjectGui
     FriendInfo fi;
 
     WorldPacket data;
-    MakeFriendStatusPacket(result, friend_lowguid, &data);
+    MakeFriendStatusPacket(result, friend_lowguid, data);
     GetFriendInfo(player, friend_lowguid, fi);
 
     switch (result)
@@ -255,12 +256,12 @@ void SocialMgr::SendFriendStatus(Player* player, FriendsResult result, ObjectGui
     }
 
     if (broadcast)
-        BroadcastToFriendListers(player, &data);
+        BroadcastToFriendListers(player, data);
     else
-        player->GetSession()->SendPacket(&data);
+        player->GetSession()->SendPacket(data);
 }
 
-void SocialMgr::BroadcastToFriendListers(Player* player, WorldPacket* packet)
+void SocialMgr::BroadcastToFriendListers(Player* player, WorldPacket const& packet) const
 {
     if (!player)
         return;
@@ -299,9 +300,6 @@ PlayerSocial* SocialMgr::LoadFromDB(QueryResult* result, ObjectGuid guid)
     if (!result)
         return social;
 
-    uint32 friend_guid = 0;
-    uint32 flags = 0;
-
     // used to speed up check below. Using GetNumberOfSocialsWithFlag will cause unneeded iteration
     uint32 friendCounter = 0, ignoreCounter = 0;
 
@@ -309,8 +307,8 @@ PlayerSocial* SocialMgr::LoadFromDB(QueryResult* result, ObjectGuid guid)
     {
         Field* fields  = result->Fetch();
 
-        friend_guid = fields[0].GetUInt32();
-        flags = fields[1].GetUInt32();
+        uint32 friend_guid = fields[0].GetUInt32();
+        uint32 flags = fields[1].GetUInt32();
 
         if ((flags & SOCIAL_FLAG_IGNORED) && ignoreCounter >= SOCIALMGR_IGNORE_LIMIT)
             continue;

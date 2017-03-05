@@ -35,7 +35,7 @@ extern DatabaseType LoginDatabase;
 // if you need more from old build then add it in cases in realmd sources code
 // list sorted from high to low build and first build used as low bound for accepted by default range (any > it will accepted by realmd at least)
 
-static RealmBuildInfo ExpectedRealmdClientBuilds[] =
+static const RealmBuildInfo ExpectedRealmdClientBuilds[] =
 {
     {12340, 3, 3, 5, 'a'},                                  // highest supported build, also auto accept all above for simplify future supported builds testing
     {11723, 3, 3, 3, 'a'},
@@ -61,10 +61,10 @@ RealmBuildInfo const* FindBuildInfo(uint16 _build)
             return &ExpectedRealmdClientBuilds[i];
 
     // none appropriate build
-    return NULL;
+    return nullptr;
 }
 
-RealmList::RealmList() : m_UpdateInterval(0), m_NextUpdateTime(time(NULL))
+RealmList::RealmList() : m_UpdateInterval(0), m_NextUpdateTime(time(nullptr))
 {
 }
 
@@ -126,10 +126,10 @@ void RealmList::UpdateRealm(uint32 ID, const std::string& name, const std::strin
 void RealmList::UpdateIfNeed()
 {
     // maybe disabled or updated recently
-    if (!m_UpdateInterval || m_NextUpdateTime > time(NULL))
+    if (!m_UpdateInterval || m_NextUpdateTime > time(nullptr))
         return;
 
-    m_NextUpdateTime = time(NULL) + m_UpdateInterval;
+    m_NextUpdateTime = time(nullptr) + m_UpdateInterval;
 
     // Clears Realm list
     m_realms.clear();

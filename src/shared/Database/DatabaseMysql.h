@@ -24,11 +24,8 @@
 //#include "Common.h"
 #include "Database.h"
 #include "Policies/Singleton.h"
-#include "ace/Thread_Mutex.h"
-#include "ace/Guard_T.h"
 
 #ifdef WIN32
-#include <winsock2.h>
 #include <mysql/mysql.h>
 #else
 #include <mysql.h>
@@ -69,7 +66,7 @@ class MANGOS_DLL_SPEC MySqlPreparedStatement : public SqlPreparedStatement
 class MANGOS_DLL_SPEC MySQLConnection : public SqlConnection
 {
     public:
-        MySQLConnection(Database& db) : SqlConnection(db), mMysql(NULL) {}
+        MySQLConnection(Database& db) : SqlConnection(db), mMysql(nullptr) {}
         ~MySQLConnection();
 
         //! Initializes Mysql and connects to a server.

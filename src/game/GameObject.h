@@ -22,8 +22,6 @@
 #include "Common.h"
 #include "SharedDefines.h"
 #include "Object.h"
-#include "LootMgr.h"
-#include "Database/DatabaseEnv.h"
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
 #if defined( __GNUC__ )
@@ -41,6 +39,7 @@ struct GameObjectInfo
     char*   name;
     uint32  faction;
     uint32  flags;
+    uint32  ExtraFlags;
     float   size;
     union                                                   // different GO types have different data field
     {
@@ -341,6 +340,20 @@ struct GameObjectInfo
         } raw;
     };
 
+    union
+    {
+        //6 GAMEOBJECT_TYPE_TRAP
+        struct
+        {
+            uint32 triggerOn;
+        } trapCustom;
+
+        struct
+        {
+            uint32 data[1];
+        } rawCustom;
+    };
+
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
     uint32 ScriptId;
@@ -350,8 +363,8 @@ struct GameObjectInfo
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_CHEST:  return chest.consumable;
-            case GAMEOBJECT_TYPE_GOOBER: return goober.consumable;
+            case GAMEOBJECT_TYPE_CHEST:  return !!chest.consumable;
+            case GAMEOBJECT_TYPE_GOOBER: return !!goober.consumable;
             default: return false;
         }
     }
@@ -379,12 +392,12 @@ struct GameObjectInfo
     {
         switch (type)
         {
-            case GAMEOBJECT_TYPE_DOOR:       return door.noDamageImmune;
-            case GAMEOBJECT_TYPE_BUTTON:     return button.noDamageImmune;
-            case GAMEOBJECT_TYPE_QUESTGIVER: return questgiver.noDamageImmune;
-            case GAMEOBJECT_TYPE_GOOBER:     return goober.noDamageImmune;
-            case GAMEOBJECT_TYPE_FLAGSTAND:  return flagstand.noDamageImmune;
-            case GAMEOBJECT_TYPE_FLAGDROP:   return flagdrop.noDamageImmune;
+            case GAMEOBJECT_TYPE_DOOR:       return !!door.noDamageImmune;
+            case GAMEOBJECT_TYPE_BUTTON:     return !!button.noDamageImmune;
+            case GAMEOBJECT_TYPE_QUESTGIVER: return !!questgiver.noDamageImmune;
+            case GAMEOBJECT_TYPE_GOOBER:     return !!goober.noDamageImmune;
+            case GAMEOBJECT_TYPE_FLAGSTAND:  return !!flagstand.noDamageImmune;
+            case GAMEOBJECT_TYPE_FLAGDROP:   return !!flagdrop.noDamageImmune;
             default: return true;
         }
     }
@@ -529,6 +542,11 @@ enum CapturePointSliderValue
     CAPTURE_SLIDER_MIDDLE           = 50                    // middle
 };
 
+enum GameobjectExtraFlags
+{
+    GAMEOBJECT_EXTRA_FLAG_CUSTOM_ANIM_ON_USE = 0x00000001,    // GO that plays custom animation on usage
+};
+
 class Unit;
 class GameObjectModel;
 struct GameObjectDisplayInfoEntry;
@@ -561,10 +579,10 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         // overwrite WorldObject function for proper name localization
         const char* GetNameForLocaleIdx(int32 locale_idx) const override;
 
-        void SaveToDB();
-        void SaveToDB(uint32 mapid);
+        void SaveToDB() const;
+        void SaveToDB(uint32 mapid) const;
         bool LoadFromDB(uint32 guid, Map* map);
-        void DeleteFromDB();
+        void DeleteFromDB() const;
 
         void SetOwnerGuid(ObjectGuid ownerGuid)
         {
@@ -584,7 +602,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         time_t GetRespawnTime() const { return m_respawnTime; }
         time_t GetRespawnTimeEx() const
         {
-            time_t now = time(NULL);
+            time_t now = time(nullptr);
             if (m_respawnTime > now)
                 return m_respawnTime;
             else
@@ -593,7 +611,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
 
         void SetRespawnTime(time_t respawn)
         {
-            m_respawnTime = respawn > 0 ? time(NULL) + respawn : 0;
+            m_respawnTime = respawn > 0 ? time(nullptr) + respawn : 0;
             m_respawnDelayTime = respawn > 0 ? uint32(respawn) : 0;
         }
         void Respawn();
@@ -643,6 +661,8 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
 
         void AddUniqueUse(Player* player);
         void AddUse() { ++m_useTimes; }
+        bool IsInUse() const { return m_isInUse; }
+        void SetInUse(bool use);
 
         uint32 GetUseCount() const { return m_useTimes; }
         uint32 GetUniqueUseCount() const { return m_UniqueUsers.size(); }
@@ -650,15 +670,12 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void SaveRespawnTime() override;
 
         // Loot System
-        Loot loot;
-        void StartGroupLoot(Group* group, uint32 timer) override;
-
         ObjectGuid GetLootRecipientGuid() const { return m_lootRecipientGuid; }
         uint32 GetLootGroupRecipientId() const { return m_lootGroupRecipientId; }
         Player* GetLootRecipient() const;                   // use group cases as prefered
         Group* GetGroupLootRecipient() const;
         bool HasLootRecipient() const { return m_lootGroupRecipientId || !m_lootRecipientGuid.IsEmpty(); }
-        bool IsGroupLootRecipient() const { return m_lootGroupRecipientId; }
+        bool IsGroupLootRecipient() const { return !!m_lootGroupRecipientId; }
         void SetLootRecipient(Unit* pUnit);
         Player* GetOriginalLootRecipient() const;           // ignore group changes/etc, not for looting
 
@@ -672,17 +689,19 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         bool IsHostileTo(Unit const* unit) const override;
         bool IsFriendlyTo(Unit const* unit) const override;
 
-        void SummonLinkedTrapIfAny();
-        void TriggerLinkedGameObject(Unit* target);
+        void SummonLinkedTrapIfAny() const;
+        void TriggerLinkedGameObject(Unit* target) const;
 
         bool isVisibleForInState(Player const* u, WorldObject const* viewPoint, bool inVisibleList) const override;
 
         bool IsCollisionEnabled() const;                    // Check if a go should collide. Like if a door is closed
 
-        GameObject* LookupFishingHoleAround(float range);
+        GameObject* LookupFishingHoleAround(float range) const;
 
         void SetCapturePointSlider(float value, bool isLocked);
         float GetCapturePointSliderValue() const { return m_captureSlider; }
+
+        float GetInteractionDistance() const;
 
         GridReference<GameObject>& GetGridRef() { return m_gridRef; }
 
@@ -712,11 +731,13 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         GameObjectInfo const* m_goInfo;
 
         // Loot System
-        uint32 m_groupLootTimer;                            // (msecs)timer used for group loot
-        uint32 m_groupLootId;                               // used to find group which is looting
-        void StopGroupLoot() override;
         ObjectGuid m_lootRecipientGuid;                     // player who will have rights for looting if m_lootGroupRecipient==0 or group disbanded
         uint32 m_lootGroupRecipientId;                      // group who will have rights for looting if set and exist
+
+        // Used for chest type
+        bool m_isInUse;                                     // only one player at time are allowed to open chest
+        time_t m_reStockTimer;                              // timer to refill the chest
+        time_t m_despawnTimer;                              // timer to despawn the chest if something changed in it
 
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);

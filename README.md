@@ -1,4 +1,5 @@
-# C(ontinued)-MaNGOS -- README [![Build Status](https://travis-ci.org/cmangos/mangos-classic.svg?branch=master)](https://travis-ci.org/cmangos/mangos-classic)
+# C(ontinued)-MaNGOS -- README
+[![Linux Build Status](https://travis-ci.org/cmangos/mangos-classic.svg?branch=master)](https://travis-ci.org/cmangos/mangos-classic) [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/cmangos/mangos-classic?branch=master&svg=true)](https://ci.appveyor.com/project/cmangos/mangos-classic/branch/master)
 
 This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) file for Copyright information
 
@@ -46,6 +47,29 @@ To be able to accomplish these goals, we support and promote:
   * We follow the [Netiquette](http://tools.ietf.org/html/rfc1855).
 
 -- The C(ontinued)-MaNGOS Team!
+
+## ScriptDev2
+  ScriptDev2 is a script library, an extention of the scripting capabilities
+  that comes with cMaNGOS ( http://cmangos.net/ ), written in C++ and is
+  compatible with Windows and Linux. SQL needed for database support both
+  MySQL and PostgreSQL.
+
+  This script library provides unique scripts for NPCs, gameobjects, events
+  and other that need unique implementation.
+
+  Once ScriptDev2 is compiled it is automatically run by MaNGOS on server
+  startup.
+
+  For further information on ScriptDev2, please visit our project subforum
+  at http://cmangos.net/forum-32.html
+
+  Documentation on various development related topics can be found in the
+  ../doc/scripts docs/ sub directory as well as on the subforum.
+
+  The required SQL files for creating the database backend are included in
+  the ../sql/ sub directory. If you are updating from an older ScriptDev2
+  version, make sure to take a look at the SQL files provided in the
+  ../sql/updates/
 
 ## Further information
 

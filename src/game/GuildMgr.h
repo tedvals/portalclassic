@@ -20,14 +20,13 @@
 #define _GUILDMGR_H
 
 #include "Common.h"
-#include "Policies/Singleton.h"
 
 class Guild;
 class ObjectGuid;
 
 class GuildMgr
 {
-        typedef UNORDERED_MAP<uint32, Guild*> GuildMap;
+        typedef std::unordered_map<uint32, Guild*> GuildMap;
 
         GuildMap m_GuildMap;
     public:

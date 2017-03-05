@@ -17,13 +17,11 @@
  */
 
 #include "Common.h"
-#include "Database/DatabaseEnv.h"
 #include "Opcodes.h"
 #include "Log.h"
 #include "Player.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
-#include "UpdateMask.h"
 
 void WorldSession::HandleLearnTalentOpcode(WorldPacket& recv_data)
 {
@@ -50,20 +48,19 @@ void WorldSession::HandleTalentWipeConfirmOpcode(WorldPacket& recv_data)
         return;
     }
 
-    // remove fake death
-    if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))
-        GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
+    if (!unit->CanTrainAndResetTalentsOf(_player))
+        return;
 
     if (!(_player->resetTalents()))
     {
         WorldPacket data(MSG_TALENT_WIPE_CONFIRM, 8 + 4);   // you have not any talent
         data << uint64(0);
         data << uint32(0);
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
 
-    unit->CastSpell(_player, 14867, true);                  // spell: "Untalent Visual Effect"
+    unit->CastSpell(_player, 14867, TRIGGERED_OLD_TRIGGERED);                  // spell: "Untalent Visual Effect"
 
     if (_player->GetPet())
         _player->GetPet()->CastOwnerTalentAuras();

@@ -36,9 +36,7 @@
 #define CREATURE_LINKING_MGR_H
 
 #include "Common.h"
-#include "Policies/Singleton.h"
 #include "ObjectGuid.h"
-#include <functional>
 
 class Unit;
 class Creature;
@@ -130,8 +128,8 @@ class CreatureLinkingMgr
         CreatureLinkingMap m_creatureLinkingGuidMap;
 
         // Lookup Storage for fast access:
-        UNORDERED_SET<uint32> m_eventTriggers;              // master by entry
-        UNORDERED_SET<uint32> m_eventGuidTriggers;          // master by guid
+        std::unordered_set<uint32> m_eventTriggers;              // master by entry
+        std::unordered_set<uint32> m_eventGuidTriggers;          // master by guid
 
         // Check-routine
         static bool IsLinkingEntryValid(uint32 slaveEntry, CreatureLinkingInfo* pInfo, bool byEntry);
@@ -156,7 +154,7 @@ class CreatureLinkingHolder
         void AddMasterToHolder(Creature* pCreature);
 
         // Function to process actions for linked NPCs
-        void DoCreatureLinkingEvent(CreatureLinkingEvent eventType, Creature* pSource, Unit* pEnemy = NULL);
+        void DoCreatureLinkingEvent(CreatureLinkingEvent eventType, Creature* pSource, Unit* pEnemy = nullptr);
 
         // Function to check if a passive spawning condition is met
         bool CanSpawn(Creature* pCreature) const;
@@ -189,7 +187,7 @@ class CreatureLinkingHolder
         // Helper function, to process a single slave
         void ProcessSlave(CreatureLinkingEvent eventType, Creature* pSource, uint32 flag, Creature* pSlave, Unit* pEnemy);
         // Helper function to set following
-        void SetFollowing(Creature* pWho, Creature* pWhom);
+        void SetFollowing(Creature* pWho, Creature* pWhom) const;
         // Helper function to return if a slave is in range of a boss
         bool IsSlaveInRangeOfBoss(Creature const* pSlave, Creature const* pBoss, uint16 searchRange) const;
         bool IsSlaveInRangeOfBoss(Creature const* pBoss, float slaveX, float slaveY, uint16 searchRange) const;

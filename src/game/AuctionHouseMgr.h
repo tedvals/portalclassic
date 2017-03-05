@@ -20,8 +20,6 @@
 #define _AUCTION_HOUSE_MGR_H
 
 #include "Common.h"
-#include "SharedDefines.h"
-#include "Policies/Singleton.h"
 #include "DBCStructure.h"
 
 class Item;
@@ -75,8 +73,8 @@ struct AuctionEntry
     bool BuildAuctionInfo(WorldPacket& data) const;
     void DeleteFromDB() const;
     void SaveToDB() const;
-    void AuctionBidWinning(Player* bidder = NULL);
-    bool UpdateBid(uint32 newbid, Player* newbidder = NULL);// true if normal bid, false if buyout, bidder==NULL for generated bid
+    void AuctionBidWinning(Player* bidder = nullptr);
+    bool UpdateBid(uint32 newbid, Player* newbidder = nullptr);// true if normal bid, false if buyout, bidder==nullptr for generated bid
 };
 
 // this class is used as auctionhouse instance
@@ -93,7 +91,7 @@ class AuctionHouseObject
         typedef std::map<uint32, AuctionEntry*> AuctionEntryMap;
         typedef std::pair<AuctionEntryMap::const_iterator, AuctionEntryMap::const_iterator> AuctionEntryMapBounds;
 
-        uint32 GetCount() { return AuctionsMap.size(); }
+        uint32 GetCount() const { return AuctionsMap.size(); }
 
         AuctionEntryMap const& GetAuctions() const { return AuctionsMap; }
         AuctionEntryMapBounds GetAuctionsBounds() const {return AuctionEntryMapBounds(AuctionsMap.begin(), AuctionsMap.end()); }
@@ -107,13 +105,10 @@ class AuctionHouseObject
         AuctionEntry* GetAuction(uint32 id) const
         {
             AuctionEntryMap::const_iterator itr = AuctionsMap.find(id);
-            return itr != AuctionsMap.end() ? itr->second : NULL;
+            return itr != AuctionsMap.end() ? itr->second : nullptr;
         }
 
-        bool RemoveAuction(uint32 id)
-        {
-            return AuctionsMap.erase(id);
-        }
+        bool RemoveAuction(uint32 id) { return !!AuctionsMap.erase(id); }
 
         void Update();
 
@@ -123,7 +118,7 @@ class AuctionHouseObject
                                    std::wstring const& searchedname, uint32 listfrom, uint32 levelmin, uint32 levelmax, uint32 usable,
                                    uint32 inventoryType, uint32 itemClass, uint32 itemSubClass, uint32 quality,
                                    uint32& count, uint32& totalcount);
-        AuctionEntry* AddAuction(AuctionHouseEntry const* auctionHouseEntry, Item* newItem, uint32 etime, uint32 bid, uint32 buyout = 0, uint32 deposit = 0, Player* pl = NULL);
+        AuctionEntry* AddAuction(AuctionHouseEntry const* auctionHouseEntry, Item* newItem, uint32 etime, uint32 bid, uint32 buyout = 0, uint32 deposit = 0, Player* pl = nullptr);
     private:
         AuctionEntryMap AuctionsMap;
 };
@@ -143,7 +138,7 @@ class AuctionHouseMgr
         AuctionHouseMgr();
         ~AuctionHouseMgr();
 
-        typedef UNORDERED_MAP<uint32, Item*> ItemMap;
+        typedef std::unordered_map<uint32, Item*> ItemMap;
 
         AuctionHouseObject* GetAuctionsMap(AuctionHouseType houseType) { return &mAuctions[houseType]; }
         AuctionHouseObject* GetAuctionsMap(AuctionHouseEntry const* house);
@@ -155,12 +150,12 @@ class AuctionHouseMgr
             {
                 return itr->second;
             }
-            return NULL;
+            return nullptr;
         }
 
         // auction messages
         void SendAuctionWonMail(AuctionEntry* auction);
-        void SendAuctionSuccessfulMail(AuctionEntry* auction);
+        static void SendAuctionSuccessfulMail(AuctionEntry* auction);
         void SendAuctionExpiredMail(AuctionEntry* auction);
         static uint32 GetAuctionDeposit(AuctionHouseEntry const* entry, uint32 time, Item* pItem);
 

@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <cstdarg>
 
 #define MIN_CONNECTION_POOL_SIZE 1
 #define MAX_CONNECTION_POOL_SIZE 16
@@ -49,12 +50,12 @@ SqlPreparedStatement* SqlConnection::GetStmt(uint32 nIndex)
 {
     // resize stmt container
     if (m_holder.size() <= nIndex)
-        m_holder.resize(nIndex + 1, NULL);
+        m_holder.resize(nIndex + 1, nullptr);
 
-    SqlPreparedStatement* pStmt = NULL;
+    SqlPreparedStatement* pStmt = nullptr;
 
     // create stmt if needed
-    if (m_holder[nIndex] == NULL)
+    if (m_holder[nIndex] == nullptr)
     {
         // obtain SQL request string
         std::string fmt = m_db.GetStmtString(nIndex);
@@ -65,7 +66,7 @@ SqlPreparedStatement* SqlConnection::GetStmt(uint32 nIndex)
         if (!pStmt->prepare())
         {
             MANGOS_ASSERT(false && "Unable to prepare SQL statement");
-            return NULL;
+            return nullptr;
         }
 
         // save statement in internal registry
@@ -101,7 +102,7 @@ bool Database::Initialize(const char* infoString, int nConns /*= 1*/)
     // Enable logging of SQL commands (usually only GM commands)
     // (See method: PExecuteLog)
     m_logSQL = sConfig.GetBoolDefault("LogSQL", false);
-    m_logsDir = sConfig.GetStringDefault("LogsDir", "");
+    m_logsDir = sConfig.GetStringDefault("LogsDir");
     if (!m_logsDir.empty())
     {
         if ((m_logsDir.at(m_logsDir.length() - 1) != '/') && (m_logsDir.at(m_logsDir.length() - 1) != '\\'))
@@ -151,8 +152,8 @@ void Database::StopServer()
     delete m_pResultQueue;
     delete m_pAsyncConn;
 
-    m_pResultQueue = NULL;
-    m_pAsyncConn = NULL;
+    m_pResultQueue = nullptr;
+    m_pAsyncConn = nullptr;
 
     for (size_t i = 0; i < m_pQueryConnections.size(); ++i)
         delete m_pQueryConnections[i];
@@ -172,7 +173,7 @@ void Database::InitDelayThread()
 
     // New delay thread for delay execute
     m_threadBody = CreateDelayThread();              // will deleted at m_delayThread delete
-    m_delayThread = new ACE_Based::Thread(m_threadBody);
+    m_delayThread = new MaNGOS::Thread(m_threadBody);
 }
 
 void Database::HaltDelayThread()
@@ -182,8 +183,8 @@ void Database::HaltDelayThread()
     m_threadBody->Stop();                                   // Stop event
     m_delayThread->wait();                                  // Wait for flush to DB
     delete m_delayThread;                                   // This also deletes m_threadBody
-    m_delayThread = NULL;
-    m_threadBody = NULL;
+    m_delayThread = nullptr;
+    m_threadBody = nullptr;
 }
 
 void Database::ThreadStart()
@@ -286,7 +287,7 @@ bool Database::PExecuteLog(const char* format, ...)
 
 QueryResult* Database::PQuery(const char* format, ...)
 {
-    if (!format) return NULL;
+    if (!format) return nullptr;
 
     va_list ap;
     char szQuery [MAX_QUERY_LEN];
@@ -297,7 +298,7 @@ QueryResult* Database::PQuery(const char* format, ...)
     if (res == -1)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s", format);
-        return NULL;
+        return nullptr;
     }
 
     return Query(szQuery);
@@ -305,7 +306,7 @@ QueryResult* Database::PQuery(const char* format, ...)
 
 QueryNamedResult* Database::PQueryNamed(const char* format, ...)
 {
-    if (!format) return NULL;
+    if (!format) return nullptr;
 
     va_list ap;
     char szQuery [MAX_QUERY_LEN];
@@ -316,7 +317,7 @@ QueryNamedResult* Database::PQueryNamed(const char* format, ...)
     if (res == -1)
     {
         sLog.outError("SQL Query truncated (and not execute) for format: %s", format);
-        return NULL;
+        return nullptr;
     }
 
     return QueryNamed(szQuery);
@@ -327,7 +328,7 @@ bool Database::Execute(const char* sql)
     if (!m_pAsyncConn)
         return false;
 
-    SqlTransaction* pTrans = m_TransStorage->get();
+    auto const pTrans = m_currentTransaction.get();
     if (pTrans)
     {
         // add SQL request to trans queue
@@ -391,19 +392,17 @@ bool Database::BeginTransaction()
     if (!m_pAsyncConn)
         return false;
 
-    // initiate transaction on current thread
-    // currently we do not support queued transactions
-    m_TransStorage->init();
-    return true;
+    MANGOS_ASSERT(!m_currentTransaction.get());   // if we will get a nested transaction request - we MUST fix code!!!
+
+    if (!m_currentTransaction.get())
+        m_currentTransaction.reset(new SqlTransaction);
+
+    return !!m_currentTransaction.get();
 }
 
 bool Database::CommitTransaction()
 {
-    if (!m_pAsyncConn)
-        return false;
-
-    // check if we have pending transaction
-    if (!m_TransStorage->get())
+    if (!m_pAsyncConn || !m_currentTransaction.get())
         return false;
 
     // if async execution is not available
@@ -411,7 +410,7 @@ bool Database::CommitTransaction()
         return CommitTransactionDirect();
 
     // add SqlTransaction to the async queue
-    m_threadBody->Delay(m_TransStorage->detach());
+    m_threadBody->Delay(m_currentTransaction.release());
     return true;
 }
 
@@ -421,11 +420,11 @@ bool Database::CommitTransactionDirect()
         return false;
 
     // check if we have pending transaction
-    if (!m_TransStorage->get())
+    if (!m_currentTransaction.get())
         return false;
 
     // directly execute SqlTransaction
-    SqlTransaction* pTrans = m_TransStorage->detach();
+    auto const pTrans = m_currentTransaction.release();
     pTrans->Execute(m_pAsyncConn);
     delete pTrans;
 
@@ -437,11 +436,11 @@ bool Database::RollbackTransaction()
     if (!m_pAsyncConn)
         return false;
 
-    if (!m_TransStorage->get())
+    if (!m_currentTransaction.get())
         return false;
 
     // remove scheduled transaction
-    m_TransStorage->reset();
+    m_currentTransaction.reset();
 
     return true;
 }
@@ -539,7 +538,7 @@ bool Database::ExecuteStmt(const SqlStatementID& id, SqlStmtParameters* params)
     if (!m_pAsyncConn)
         return false;
 
-    SqlTransaction* pTrans = m_TransStorage->get();
+    auto const pTrans = m_currentTransaction.get();
     if (pTrans)
     {
         // add SQL request to trans queue
@@ -610,30 +609,4 @@ std::string Database::GetStmtString(const int stmtId) const
     }
 
     return std::string();
-}
-
-// HELPER CLASSES AND FUNCTIONS
-Database::TransHelper::~TransHelper()
-{
-    reset();
-}
-
-SqlTransaction* Database::TransHelper::init()
-{
-    MANGOS_ASSERT(!m_pTrans);   // if we will get a nested transaction request - we MUST fix code!!!
-    m_pTrans = new SqlTransaction;
-    return m_pTrans;
-}
-
-SqlTransaction* Database::TransHelper::detach()
-{
-    SqlTransaction* pRes = m_pTrans;
-    m_pTrans = NULL;
-    return pRes;
-}
-
-void Database::TransHelper::reset()
-{
-    delete m_pTrans;
-    m_pTrans = NULL;
 }

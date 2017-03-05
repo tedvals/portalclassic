@@ -19,7 +19,6 @@
 #include "Bag.h"
 #include "ObjectMgr.h"
 #include "Database/DatabaseEnv.h"
-#include "Log.h"
 #include "UpdateData.h"
 
 Bag::Bag(): Item()
@@ -82,7 +81,7 @@ bool Bag::Create(uint32 guidlow, uint32 itemid, Player const* owner)
     for (uint8 i = 0; i < MAX_BAG_SIZE; ++i)
     {
         SetGuidValue(CONTAINER_FIELD_SLOT_1 + (i * 2), ObjectGuid());
-        m_bagslot[i] = NULL;
+        m_bagslot[i] = nullptr;
     }
 
     return true;
@@ -104,7 +103,7 @@ bool Bag::LoadFromDB(uint32 guidLow, Field* fields, ObjectGuid ownerGuid)
         SetGuidValue(CONTAINER_FIELD_SLOT_1 + (i * 2), ObjectGuid());
 
         delete m_bagslot[i];
-        m_bagslot[i] = NULL;
+        m_bagslot[i] = nullptr;
     }
 
     return true;
@@ -134,9 +133,9 @@ void Bag::RemoveItem(uint8 slot)
     MANGOS_ASSERT(slot < MAX_BAG_SIZE);
 
     if (m_bagslot[slot])
-        m_bagslot[slot]->SetContainer(NULL);
+        m_bagslot[slot]->SetContainer(nullptr);
 
-    m_bagslot[slot] = NULL;
+    m_bagslot[slot] = nullptr;
     SetGuidValue(CONTAINER_FIELD_SLOT_1 + (slot * 2), ObjectGuid());
 }
 
@@ -180,7 +179,7 @@ Item* Bag::GetItemByEntry(uint32 item) const
         if (m_bagslot[i] && m_bagslot[i]->GetEntry() == item)
             return m_bagslot[i];
 
-    return NULL;
+    return nullptr;
 }
 
 uint32 Bag::GetItemCount(uint32 item, Item* eItem) const
@@ -198,7 +197,7 @@ uint32 Bag::GetItemCount(uint32 item, Item* eItem) const
 uint8 Bag::GetSlotByItemGUID(ObjectGuid guid) const
 {
     for (uint32 i = 0; i < GetBagSize(); ++i)
-        if (m_bagslot[i] != 0)
+        if (m_bagslot[i])
             if (m_bagslot[i]->GetObjectGuid() == guid)
                 return i;
 
@@ -210,5 +209,5 @@ Item* Bag::GetItemByPos(uint8 slot) const
     if (slot < GetBagSize())
         return m_bagslot[slot];
 
-    return NULL;
+    return nullptr;
 }

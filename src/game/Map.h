@@ -22,25 +22,20 @@
 #include "Common.h"
 #include "Platform/Define.h"
 #include "Policies/ThreadingModel.h"
-#include "ace/RW_Thread_Mutex.h"
-#include "ace/Thread_Mutex.h"
 
 #include "DBCStructure.h"
 #include "GridDefines.h"
 #include "Cell.h"
 #include "Object.h"
-#include "Timer.h"
 #include "SharedDefines.h"
 #include "GridMap.h"
 #include "GameSystem/GridRefManager.h"
 #include "MapRefManager.h"
-#include "Utilities/TypeList.h"
 #include "ScriptMgr.h"
 #include "CreatureLinkingMgr.h"
 #include "vmap/DynamicTree.h"
 
 #include <bitset>
-#include <list>
 
 struct CreatureInfo;
 class Creature;
@@ -69,7 +64,7 @@ struct InstanceTemplate
 {
     uint32 map;                                             // instance map
     uint32 parent;                                          // non-continent parent instance (for instance with entrance in another instances)
-    // or 0 (not related to continent 0 map id)
+                                                            // or 0 (not related to continent 0 map id)
     uint32 levelMin;
     uint32 levelMax;
     uint32 maxPlayers;
@@ -78,6 +73,7 @@ struct InstanceTemplate
     float ghostEntranceX;
     float ghostEntranceY;
     uint32 script_id;
+    bool   mountAllowed;
 };
 
 struct WorldTemplate
@@ -124,10 +120,10 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
 
         virtual void Update(const uint32&);
 
-        void MessageBroadcast(Player const*, WorldPacket*, bool to_self);
-        void MessageBroadcast(WorldObject const*, WorldPacket*);
-        void MessageDistBroadcast(Player const*, WorldPacket*, float dist, bool to_self, bool own_team_only = false);
-        void MessageDistBroadcast(WorldObject const*, WorldPacket*, float dist);
+        void MessageBroadcast(Player const*, WorldPacket const&, bool to_self);
+        void MessageBroadcast(WorldObject const*, WorldPacket const&);
+        void MessageDistBroadcast(Player const*, WorldPacket const&, float dist, bool to_self, bool own_team_only = false);
+        void MessageDistBroadcast(WorldObject const*, WorldPacket const&, float dist);
 
         float GetVisibilityDistance() const { return m_VisibleDistance; }
         // function for setting up visibility distance for maps on per-type/per-Id basis
@@ -182,8 +178,9 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         bool IsRaid() const { return i_mapEntry && i_mapEntry->IsRaid(); }
         bool IsBattleGround() const { return i_mapEntry && i_mapEntry->IsBattleGround(); }
         bool IsContinent() const { return i_mapEntry && i_mapEntry->IsContinent(); }
+        bool IsMountAllowed() const;
 
-        // can't be NULL for loaded map
+        // can't be nullptr for loaded map
         MapPersistentState* GetPersistentState() const { return m_persistentState; }
 
         void AddObjectToRemoveList(WorldObject* obj);
@@ -191,7 +188,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         void UpdateObjectVisibility(WorldObject* obj, Cell cell, CellPair cellpair);
 
         void resetMarkedCells() { marked_cells.reset(); }
-        bool isCellMarked(uint32 pCellId) { return marked_cells.test(pCellId); }
+        bool isCellMarked(uint32 pCellId) const { return marked_cells.test(pCellId); }
         void markCell(uint32 pCellId) { marked_cells.set(pCellId); }
 
         bool HavePlayers() const { return !m_mapRefManager.isEmpty(); }
@@ -199,9 +196,9 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         bool ActiveObjectsNearGrid(uint32 x, uint32 y) const;
 
         /// Send a Packet to all players on a map
-        void SendToPlayers(WorldPacket const* data) const;
+        void SendToPlayers(WorldPacket const& data) const;
         /// Send a Packet to all players in a zone. Return false if no player found
-        bool SendToPlayersInZone(WorldPacket const* data, uint32 zoneId) const;
+        bool SendToPlayersInZone(WorldPacket const& data, uint32 zoneId) const;
 
         typedef MapRefManager PlayerList;
         PlayerList const& GetPlayers() const { return m_mapRefManager; }
@@ -228,7 +225,7 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         Creature* GetAnyTypeCreature(ObjectGuid guid);      // normal creature or pet
         GameObject* GetGameObject(ObjectGuid guid);
         DynamicObject* GetDynamicObject(ObjectGuid guid);
-        Corpse* GetCorpse(ObjectGuid guid);                 // !!! find corpse can be not in world
+        Corpse* GetCorpse(ObjectGuid guid) const;                 // !!! find corpse can be not in world
         Unit* GetUnit(ObjectGuid guid);                     // only use if sure that need objects at current map, specially for player case
         WorldObject* GetWorldObject(ObjectGuid guid);       // only use if sure that need objects at current map, specially for player case
 
@@ -287,32 +284,29 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         void SetWeather(uint32 zoneId, WeatherType type, float grade, bool permanently);
 
         // Random on map generation
-        bool GetReachableRandomPosition(Unit* unit, float& x, float& y, float& z, float radius);
-        bool GetReachableRandomPointOnGround(float& x, float& y, float& z, float radius);
-        bool GetRandomPointInTheAir(float& x, float& y, float& z, float radius);
-        bool GetRandomPointUnderWater(float& x, float& y, float& z, float radius, GridMapLiquidData& liquid_status);
+        bool GetReachableRandomPosition(Unit* unit, float& x, float& y, float& z, float radius) const;
+        bool GetReachableRandomPointOnGround(float& x, float& y, float& z, float radius) const;
+        bool GetRandomPointInTheAir(float& x, float& y, float& z, float radius) const;
+        bool GetRandomPointUnderWater(float& x, float& y, float& z, float radius, GridMapLiquidData& liquid_status) const;
 
     private:
         void LoadMapAndVMap(int gx, int gy);
 
         void SetTimer(uint32 t) { i_gridExpiry = t < MIN_GRID_DELAY ? MIN_GRID_DELAY : t; }
 
-        void SendInitSelf(Player* player);
+        void SendInitSelf(Player* player) const;
 
-        void SendInitTransports(Player* player);
-        void SendRemoveTransports(Player* player);
+        void SendInitTransports(Player* player) const;
+        void SendRemoveTransports(Player* player) const;
 
         bool CreatureCellRelocation(Creature* creature, const Cell& new_cell);
 
         bool loaded(const GridPair&) const;
         void EnsureGridCreated(const GridPair&);
         bool EnsureGridLoaded(Cell const&);
-        void EnsureGridLoadedAtEnter(Cell const&, Player* player = NULL);
+        void EnsureGridLoadedAtEnter(Cell const&, Player* player = nullptr);
 
         void buildNGridLinkage(NGridType* pNGridType) { pNGridType->link(this); }
-
-        template<class T> void AddType(T* obj);
-        template<class T> void RemoveType(T* obj, bool);
 
         NGridType* getNGrid(uint32 x, uint32 y) const
         {
@@ -395,7 +389,7 @@ class MANGOS_DLL_SPEC WorldMap : public Map
         WorldMap(uint32 id, time_t expiry) : Map(id, expiry, 0) {}
         ~WorldMap() {}
 
-        // can't be NULL for loaded map
+        // can't be nullptr for loaded map
         WorldPersistentState* GetPersistanceState() const;
 };
 
@@ -416,7 +410,7 @@ class MANGOS_DLL_SPEC DungeonMap : public Map
         void SetResetSchedule(bool on);
         uint32 GetMaxPlayers() const;
 
-        // can't be NULL for loaded map
+        // can't be nullptr for loaded map
         DungeonPersistentState* GetPersistanceState() const;
 
         virtual void InitVisibilityDistance() override;
@@ -441,10 +435,10 @@ class MANGOS_DLL_SPEC BattleGroundMap : public Map
         void UnloadAll(bool pForce) override;
 
         virtual void InitVisibilityDistance() override;
-        BattleGround* GetBG() { return m_bg; }
+        BattleGround* GetBG() const { return m_bg; }
         void SetBG(BattleGround* bg) { m_bg = bg; }
 
-        // can't be NULL for loaded map
+        // can't be nullptr for loaded map
         BattleGroundPersistentState* GetPersistanceState() const;
 
     private:

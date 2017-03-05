@@ -20,17 +20,16 @@
 #define __InstanceSaveMgr_H
 
 #include "Common.h"
-#include "Platform/Define.h"
 #include "Policies/Singleton.h"
-#include "ace/Thread_Mutex.h"
-#include <list>
-#include <map>
-#include "Utilities/UnorderedMapSet.h"
 #include "Database/DatabaseEnv.h"
 #include "DBCEnums.h"
 #include "DBCStores.h"
 #include "ObjectGuid.h"
 #include "PoolManager.h"
+
+#include <list>
+#include <map>
+#include <mutex>
 
 struct InstanceTemplate;
 struct MapEntry;
@@ -49,7 +48,7 @@ struct MapCellObjectGuids
     CellGuidSet gameobjects;
 };
 
-typedef UNORDERED_MAP < uint32/*cell_id*/, MapCellObjectGuids > MapCellObjectGuidsMap;
+typedef std::unordered_map < uint32/*cell_id*/, MapCellObjectGuids > MapCellObjectGuidsMap;
 
 class MapPersistentStateManager;
 
@@ -73,8 +72,8 @@ class MapPersistentState
 
         MapEntry const* GetMapEntry() const;
 
-        bool IsUsedByMap() const { return m_usedByMap; }
-        Map* GetMap() const { return m_usedByMap; }         // Can be NULL if map not loaded for persistent state
+        bool IsUsedByMap() const { return !!m_usedByMap; }
+        Map* GetMap() const { return m_usedByMap; }         // Can be nullptr if map not loaded for persistent state
         void SetUsedByMapState(Map* map)
         {
             m_usedByMap = map;
@@ -120,11 +119,11 @@ class MapPersistentState
         void SetGORespawnTime(uint32 loguid, time_t t);
 
     private:
-        typedef UNORDERED_MAP<uint32, time_t> RespawnTimes;
+        typedef std::unordered_map<uint32, time_t> RespawnTimes;
 
         uint32 m_instanceid;
         uint32 m_mapid;
-        Map* m_usedByMap;                                   // NULL if map not loaded, non-NULL lock MapPersistentState from unload
+        Map* m_usedByMap;                                   // nullptr if map not loaded, non-nullptr lock MapPersistentState from unload
 
         // persistent data
         RespawnTimes m_creatureRespawnTimes;                // lock MapPersistentState from unload, for example for temporary bound dungeon unload delay
@@ -173,8 +172,7 @@ class DungeonPersistentState : public MapPersistentState
            - any new instance is being generated
            - the first time a player bound to InstanceId logs in
            - when a group bound to the instance is loaded */
-        DungeonPersistentState(uint16 MapId, uint32 InstanceId, time_t resetTime, bool canReset);
-
+        DungeonPersistentState(uint16 MapId, uint32 InstanceId, time_t resetTime, bool canReset, uint32 completedEncountersMask);
         ~DungeonPersistentState();
 
         SpawnedPoolData& GetSpawnedPoolData() override { return m_spawnedPoolData; }
@@ -203,11 +201,17 @@ class DungeonPersistentState : public MapPersistentState
            this is cached for the case when those players are offline */
         bool CanReset() const { return m_canReset; }
         void SetCanReset(bool canReset) { m_canReset = canReset; }
+        
+        // DBC encounter state update at kill/spell cast
+        void UpdateEncounterState(EncounterCreditType type, uint32 creditEntry);
+
+        // mask of completed encounters
+        uint32 GetCompletedEncountersMask() const { return m_completedEncountersMask; }
 
         /* Saved when the instance is generated for the first time */
         void SaveToDB();
         /* When the instance is being reset (permanently deleted) */
-        void DeleteFromDB();
+        void DeleteFromDB() const;
         /* Delete respawn data at dungeon reset */
         void DeleteRespawnTimes();
         /* Remove players bind to this state */
@@ -231,6 +235,8 @@ class DungeonPersistentState : public MapPersistentState
         GroupListType m_groupList;                          // lock MapPersistentState from unload
 
         SpawnedPoolData m_spawnedPoolData;                  // Pools spawns state for map copy
+
+        uint32 m_completedEncountersMask;                   // completed encounter mask, bit indexes are DungeonEncounter.dbc boss numbers, used for packets
 };
 
 class BattleGroundPersistentState : public MapPersistentState
@@ -315,7 +321,7 @@ class DungeonResetScheduler
         ResetTimeQueue m_resetTimeQueue;
 };
 
-class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateManager, MaNGOS::ClassLevelLockable<MapPersistentStateManager, ACE_Thread_Mutex> >
+class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateManager, MaNGOS::ClassLevelLockable<MapPersistentStateManager, std::mutex> >
 {
         friend class DungeonResetScheduler;
     public:                                                 // constructors
@@ -330,10 +336,10 @@ class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateMan
         void LoadGameobjectRespawnTimes();
 
         // auto select appropriate MapPersistentState (sub)class by MapEntry, and autoselect appropriate way store (by instance/map id)
-        // always return != NULL
-        MapPersistentState* AddPersistentState(MapEntry const* mapEntry, uint32 instanceId, time_t resetTime, bool canReset, bool load = false, bool initPools = true);
+        // always return != nullptr
+        MapPersistentState* AddPersistentState(MapEntry const* mapEntry, uint32 instanceId, time_t resetTime, bool canReset, bool load = false, bool initPools = true, uint32 completedEncountersMask = 0);
 
-        // search stored state, can be NULL in result
+        // search stored state, can be nullptr in result
         MapPersistentState* GetPersistentState(uint32 mapId, uint32 InstanceId);
 
         void RemovePersistentState(uint32 mapId, uint32 instanceId);
@@ -343,7 +349,7 @@ class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateMan
 
     public:                                                 // DungeonPersistentState specific
         void CleanupInstances();
-        void PackInstances();
+        void PackInstances() const;
 
         DungeonResetScheduler& GetScheduler() { return m_Scheduler; }
 
@@ -353,7 +359,7 @@ class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateMan
 
         void Update() { m_Scheduler.Update(); }
     private:
-        typedef UNORDERED_MAP < uint32 /*InstanceId or MapId*/, MapPersistentState* > PersistentStateMap;
+        typedef std::unordered_map < uint32 /*InstanceId or MapId*/, MapPersistentState* > PersistentStateMap;
 
         //  called by scheduler for DungeonPersistentStates
         void _ResetOrWarnAll(uint32 mapid, bool warn, uint32 timeleft);
@@ -361,7 +367,7 @@ class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateMan
         void _CleanupExpiredInstancesAtTime(time_t t);
 
         void _ResetSave(PersistentStateMap& holder, PersistentStateMap::iterator& itr);
-        void _DelHelper(DatabaseType& db, const char* fields, const char* table, const char* queryTail, ...);
+        void _DelHelper(DatabaseType& db, const char* fields, const char* table, const char* queryTail, ...) const;
 
         // used during global instance resets
         bool lock_instLists;

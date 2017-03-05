@@ -34,7 +34,7 @@
 #include "Player.h"
 #include "Chat.h"
 
-void utf8print(void* /*arg*/, const char* str)
+void utf8print(const char* str)
 {
 #if PLATFORM == PLATFORM_WINDOWS
     wchar_t wtemp_buf[6000];
@@ -50,7 +50,7 @@ void utf8print(void* /*arg*/, const char* str)
 #endif
 }
 
-void commandFinished(void*, bool /*sucess*/)
+void commandFinished(bool /*sucess*/)
 {
     printf("mangos>");
     fflush(stdout);
@@ -71,7 +71,7 @@ bool ChatHandler::HandleAccountDeleteCommand(char* args)
     /// Commands not recommended call from chat, but support anyway
     /// can delete only for account with less security
     /// This is also reject self apply in fact
-    if (HasLowerSecurityAccount(NULL, account_id, true))
+    if (HasLowerSecurityAccount(nullptr, account_id, true))
         return false;
 
     AccountOpResult result = sAccountMgr.DeleteAccount(account_id);
@@ -490,7 +490,7 @@ bool ChatHandler::HandleAccountCreateCommand(char* args)
             SendSysMessage(LANG_ACCOUNT_TOO_LONG);
             SetSentErrorMessage(true);
             return false;
-        case AOR_NAME_ALREDY_EXIST:
+        case AOR_NAME_ALREADY_EXIST:
             SendSysMessage(LANG_ACCOUNT_ALREADY_EXIST);
             SetSentErrorMessage(true);
             return false;
@@ -579,7 +579,7 @@ int kb_hit_return()
     tv.tv_usec = 0;
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
-    select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+    select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
     return FD_ISSET(STDIN_FILENO, &fds);
 }
 #endif
@@ -614,7 +614,7 @@ void CliRunnable::run()
             break;
 #endif
         char* command_str = fgets(commandbuf, sizeof(commandbuf), stdin);
-        if (command_str != NULL)
+        if (command_str != nullptr)
         {
             for (int x = 0; command_str[x]; ++x)
                 if (command_str[x] == '\r' || command_str[x] == '\n')
@@ -637,7 +637,7 @@ void CliRunnable::run()
                 continue;
             }
 
-            sWorld.QueueCliCommand(new CliCommandHolder(0, SEC_CONSOLE, NULL, command.c_str(), &utf8print, &commandFinished));
+            sWorld.QueueCliCommand(new CliCommandHolder(0, SEC_CONSOLE, command.c_str(), &utf8print, &commandFinished));
         }
         else if (feof(stdin))
         {

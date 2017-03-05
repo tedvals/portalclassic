@@ -27,11 +27,12 @@
 #include "Camera.h"
 
 #include <set>
-#include <string>
 
 #define CONTACT_DISTANCE            0.5f
 #define INTERACTION_DISTANCE        5.0f
 #define ATTACK_DISTANCE             5.0f
+#define INSPECT_DISTANCE            11.11f
+#define TRADE_DISTANCE              11.11f
 #define MAX_VISIBILITY_DISTANCE     333.0f      // max distance for visible object show, limited in 333 yards
 #define DEFAULT_VISIBILITY_DISTANCE 90.0f       // default visible distance, 90 yards on continents
 #define DEFAULT_VISIBILITY_INSTANCE 120.0f      // default visible distance in instances, 120 yards
@@ -58,6 +59,12 @@ enum TempSummonType
     TEMPSUMMON_TIMED_OOC_OR_CORPSE_DESPAWN = 9,             // despawns after a specified time (OOC) OR when the creature dies
 };
 
+enum TempSummonLinkedAura
+{
+    TEMPSUMMON_LINKED_AURA_OWNER_CHECK = 0x00000001,
+    TEMPSUMMON_LINKED_AURA_REMOVE_OWNER = 0x00000002
+};
+
 class WorldPacket;
 class UpdateData;
 class WorldSession;
@@ -70,8 +77,9 @@ class UpdateMask;
 class InstanceData;
 class TerrainInfo;
 struct MangosStringLocale;
+class Loot;
 
-typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
+typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
 struct Position
 {
@@ -154,10 +162,10 @@ class MANGOS_DLL_SPEC Object
         void SetObjectScale(float newScale);
 
         uint8 GetTypeId() const { return m_objectTypeId; }
-        bool isType(TypeMask mask) const { return (mask & m_objectType); }
+        bool isType(TypeMask mask) const { return !!(mask & m_objectType); }
 
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
-        void SendCreateUpdateToPlayer(Player* player);
+        void SendCreateUpdateToPlayer(Player* player) const;
 
         // must be overwrite in appropriate subclasses (WorldObject, Item currently), or will crash
         virtual void AddToClientUpdateList();
@@ -222,10 +230,10 @@ class MANGOS_DLL_SPEC Object
         void SetGuidValue(uint16 index, ObjectGuid const& value) { SetUInt64Value(index, value.GetRawValue()); }
         void SetStatFloatValue(uint16 index, float value);
         void SetStatInt32Value(uint16 index, int32 value);
+        void ForceValuesUpdateAtIndex(uint32 index);
 
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
-        void ApplyModUInt64Value(uint16 index, int32 val, bool apply);
         void ApplyModPositiveFloatValue(uint16 index, float val, bool apply);
         void ApplyModSignedFloatValue(uint16 index, float val, bool apply);
 
@@ -355,6 +363,9 @@ class MANGOS_DLL_SPEC Object
 
         virtual bool HasQuest(uint32 /* quest_id */) const { return false; }
         virtual bool HasInvolvedQuest(uint32 /* quest_id */) const { return false; }
+        void SetItsNewObject(bool enable) { m_itsNewObject = enable; }
+
+        Loot* loot;
 
     protected:
         Object();
@@ -368,7 +379,7 @@ class MANGOS_DLL_SPEC Object
 
         void BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const;
         void BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* updateMask, Player* target) const;
-        void BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_players);
+        void BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_players) const;
 
         uint16 m_objectType;
 
@@ -390,6 +401,7 @@ class MANGOS_DLL_SPEC Object
 
     private:
         bool m_inWorld;
+        bool m_itsNewObject;
 
         PackedGuid m_PackGUID;
 
@@ -466,9 +478,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
          * @param bounding_radius   -           radius for the searcher
          * @param distance2d        -           range in which to find a free spot. Default = 0.0f (which usually means the units will have contact)
          * @param angle             -           direction in which to look for a free spot. Default = 0.0f (direction in which 'this' is looking
-         * @param obj               -           for whom to look for a spot. Default = NULL
+         * @param obj               -           for whom to look for a spot. Default = nullptr
          */
-        void GetClosePoint(float& x, float& y, float& z, float bounding_radius, float distance2d = 0.0f, float angle = 0.0f, const WorldObject* obj = NULL) const
+        void GetClosePoint(float& x, float& y, float& z, float bounding_radius, float distance2d = 0.0f, float angle = 0.0f, const WorldObject* obj = nullptr) const
         {
             // angle calculated from current orientation
             GetNearPoint(obj, x, y, z, bounding_radius, distance2d + GetObjectBoundingRadius() + bounding_radius, GetOrientation() + angle);
@@ -488,9 +500,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float& z) const;
-        void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = NULL) const;
+        void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = nullptr) const;
 
-        void GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist = 0.0f, float const* ori = NULL) const;
+        void GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist = 0.0f, float const* ori = nullptr) const;
 
         uint32 GetMapId() const { return m_mapId; }
         uint32 GetInstanceId() const { return m_InstanceId; }
@@ -513,7 +525,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         float GetDistanceZ(const WorldObject* obj) const;
         bool IsInMap(const WorldObject* obj) const
         {
-            return IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap());
+            return obj && IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap());
         }
         bool IsWithinDist3d(float x, float y, float z, float dist2compare) const;
         bool IsWithinDist2d(float x, float y, float dist2compare) const;
@@ -543,24 +555,26 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI) const;
         bool isInFront(WorldObject const* target, float distance, float arc = M_PI) const;
         bool isInBack(WorldObject const* target, float distance, float arc = M_PI) const;
+        bool IsFacingTargetsBack(const WorldObject* target, float arc = M_PI_F) const;
+        bool IsFacingTargetsFront(const WorldObject* target, float arc = M_PI_F) const;
 
         virtual void CleanupsBeforeDelete();                // used in destructor or explicitly before mass creature delete to remove cross-references to already deleted units
 
-        virtual void SendMessageToSet(WorldPacket* data, bool self) const;
-        virtual void SendMessageToSetInRange(WorldPacket* data, float dist, bool self) const;
-        void SendMessageToSetExcept(WorldPacket* data, Player const* skipped_receiver) const;
+        virtual void SendMessageToSet(WorldPacket const& data, bool self) const;
+        virtual void SendMessageToSetInRange(WorldPacket const& data, float dist, bool self) const;
+        void SendMessageToSetExcept(WorldPacket& data, Player const* skipped_receiver) const;
 
-        void MonsterSay(const char* text, uint32 language, Unit const* target = NULL) const;
-        void MonsterYell(const char* text, uint32 language, Unit const* target = NULL) const;
+        void MonsterSay(const char* text, uint32 language, Unit const* target = nullptr) const;
+        void MonsterYell(const char* text, uint32 language, Unit const* target = nullptr) const;
         void MonsterTextEmote(const char* text, Unit const* target, bool IsBossEmote = false) const;
         void MonsterWhisper(const char* text, Unit const* target, bool IsBossWhisper = false) const;
         void MonsterText(MangosStringLocale const* textData, Unit const* target) const;
 
-        void PlayDistanceSound(uint32 sound_id, Player const* target = NULL) const;
-        void PlayDirectSound(uint32 sound_id, Player const* target = NULL) const;
+        void PlayDistanceSound(uint32 sound_id, Player const* target = nullptr) const;
+        void PlayDirectSound(uint32 sound_id, Player const* target = nullptr) const;
 
-        void SendObjectDeSpawnAnim(ObjectGuid guid);
-        void SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId = 0);
+        void SendObjectDeSpawnAnim(ObjectGuid guid) const;
+        void SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId = 0) const;
 
         virtual bool IsHostileTo(Unit const* unit) const = 0;
         virtual bool IsFriendlyTo(Unit const* unit) const = 0;
@@ -581,7 +595,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void SetMap(Map* map);
         Map* GetMap() const { MANGOS_ASSERT(m_currMap); return m_currMap; }
         // used to check all object's GetMap() calls when object is not in world!
-        void ResetMap() { m_currMap = NULL; }
+        void ResetMap() { m_currMap = nullptr; }
 
         // obtain terrain data for map where this object belong...
         TerrainInfo const* GetTerrain() const;
@@ -590,7 +604,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void RemoveFromClientUpdateList() override;
         void BuildUpdateData(UpdateDataMapType&) override;
 
-        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false);
+        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false, bool setRun = false);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);
@@ -600,8 +614,6 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         // ASSERT print helper
         bool PrintCoordinatesError(float x, float y, float z, char const* descr) const;
 
-        virtual void StartGroupLoot(Group* /*group*/, uint32 /*timer*/) {}
-
     protected:
         explicit WorldObject();
 
@@ -610,8 +622,6 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         // mapId/instanceId should be set in SetMap() function!
         void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
         void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
-
-        virtual void StopGroupLoot() {}
 
         std::string m_name;
 

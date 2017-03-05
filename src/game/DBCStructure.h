@@ -19,7 +19,6 @@
 #ifndef MANGOS_DBCSTRUCTURE_H
 #define MANGOS_DBCSTRUCTURE_H
 
-#include "Common.h"
 #include "DBCEnums.h"
 #include "Path.h"
 #include "Platform/Define.h"
@@ -243,6 +242,18 @@ struct CreatureTypeEntry
     // uint32    no_expirience;                             // 10       m_flags
 };
 
+struct DungeonEncounterEntry
+{
+    uint32 Id;                                              // 0        m_ID
+    uint32 mapId;                                           // 1        m_mapID
+    uint32 Difficulty;                                      // 2        m_difficulty
+    uint32 encounterData;                                   // 3        m_orderIndex
+    uint32 encounterIndex;                                  // 4        m_Bit
+    char*  encounterName[16];                               // 5-20     m_name_lang
+    uint32 nameLangFlags;                                   // 21       m_name_lang_flags
+    uint32 spellIconID;                                     // 22       m_spellIconID
+};
+
 struct DurabilityCostsEntry
 {
     uint32    Itemlvl;                                      // 0        m_ID
@@ -460,12 +471,6 @@ struct MapEntry
     bool IsRaid() const { return map_type == MAP_RAID; }
     bool IsBattleGround() const { return map_type == MAP_BATTLEGROUND; }
 
-    bool IsMountAllowed() const
-    {
-        return !IsDungeon() ||
-               MapID == 309 || MapID == 209 || MapID == 509 || MapID == 269;
-    }
-
     bool IsContinent() const
     {
         return MapID == 0 || MapID == 1;
@@ -559,17 +564,11 @@ struct ClassFamilyMask
 
     bool Empty() const { return Flags == 0; }
     bool operator!() const { return Empty(); }
-    operator void const* () const { return Empty() ? NULL : this; } // for allow normal use in if(mask)
+    operator void const* () const { return Empty() ? nullptr : this; } // for allow normal use in if(mask)
+    bool operator== (const ClassFamilyMask &another) const { return (Flags == another.Flags); }
 
-    bool IsFitToFamilyMask(uint64 familyFlags) const
-    {
-        return Flags & familyFlags;
-    }
-
-    bool IsFitToFamilyMask(ClassFamilyMask const& mask) const
-    {
-        return Flags & mask.Flags;
-    }
+    bool IsFitToFamilyMask(uint64 familyFlags) const { return !!(Flags & familyFlags); }
+    bool IsFitToFamilyMask(ClassFamilyMask const& mask) const { return !!(Flags & mask.Flags); }
 
     uint64 operator& (uint64 mask) const                    // possible will removed at finish convertion code use IsFitToFamilyMask
     {
@@ -626,7 +625,7 @@ struct SpellEntry
         uint32    manaPerSecondPerLevel;                    // 35
         uint32    rangeIndex;                               // 36
         float     speed;                                    // 37
-        uint32    modalNextSpell;                           // 38 not used
+        //uint32    modalNextSpell;                           // 38 not used
         uint32    StackAmount;                              // 39
         uint32    Totem[MAX_SPELL_TOTEMS];                  // 40-41
         int32     Reagent[MAX_SPELL_REAGENTS];              // 42-49
@@ -656,7 +655,7 @@ struct SpellEntry
         // uint32    SpellVisual2                           // 116 not used
         uint32    SpellIconID;                              // 117
         uint32    activeIconID;                             // 118
-        // uint32    spellPriority;                         // 119
+        uint32    spellPriority;                            // 119
         char*     SpellName[8];                             // 120-127
         // uint32    SpellNameFlag;                         // 128
         char*     Rank[8];                                  // 129-136
@@ -679,6 +678,7 @@ struct SpellEntry
         // uint32    MinFactionId;                          // 170 not used, and 0 in 2.4.2
         // uint32    MinReputation;                         // 171 not used, and 0 in 2.4.2
         // uint32    RequiredAuraVision;                    // 172 not used
+        uint32    IsServerSide;
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }
@@ -703,11 +703,11 @@ struct SpellEntry
             return SpellFamily(SpellFamilyName) == family && IsFitToFamilyMask(mask);
         }
 
-        inline bool HasAttribute(SpellAttributes attribute) const { return Attributes & attribute; }
-        inline bool HasAttribute(SpellAttributesEx attribute) const { return AttributesEx & attribute; }
-        inline bool HasAttribute(SpellAttributesEx2 attribute) const { return AttributesEx2 & attribute; }
-        inline bool HasAttribute(SpellAttributesEx3 attribute) const { return AttributesEx3 & attribute; }
-        inline bool HasAttribute(SpellAttributesEx4 attribute) const { return AttributesEx4 & attribute; }
+        bool HasAttribute(SpellAttributes attribute) const { return !!(Attributes & attribute); }
+        bool HasAttribute(SpellAttributesEx attribute) const { return !!(AttributesEx & attribute); }
+        bool HasAttribute(SpellAttributesEx2 attribute) const { return !!(AttributesEx2 & attribute); }
+        bool HasAttribute(SpellAttributesEx3 attribute) const { return !!(AttributesEx3 & attribute); }
+        bool HasAttribute(SpellAttributesEx4 attribute) const { return !!(AttributesEx4 & attribute); }
 
     private:
         // prevent creating custom entries (copy data from original in fact)
@@ -916,8 +916,18 @@ struct WorldSafeLocsEntry
 #pragma pack(pop)
 #endif
 
+struct ItemCategorySpellPair
+{
+    uint32 spellId;
+    uint32 itemId;
+    ItemCategorySpellPair(uint32 _spellId, uint32 _itemId) : spellId(_spellId), itemId(_itemId) {}
+    bool operator <(ItemCategorySpellPair const &pair) const { return spellId == pair.spellId ? itemId < pair.itemId : spellId < pair.spellId; }
+};
+
+typedef std::set<ItemCategorySpellPair> ItemSpellCategorySet;
+typedef std::map<uint32, ItemSpellCategorySet > ItemSpellCategoryStore;
 typedef std::set<uint32> SpellCategorySet;
-typedef std::map<uint32, SpellCategorySet > SpellCategoryStore;
+typedef std::map<uint32, SpellCategorySet> SpellCategoryStore;
 typedef std::set<uint32> PetFamilySpellsSet;
 typedef std::map<uint32, PetFamilySpellsSet > PetFamilySpellsStore;
 
@@ -946,7 +956,7 @@ typedef std::map<uint32, TaxiPathSetForSource> TaxiPathSetBySource;
 
 struct TaxiPathNodePtr
 {
-    TaxiPathNodePtr() : i_ptr(NULL) {}
+    TaxiPathNodePtr() : i_ptr(nullptr) {}
     TaxiPathNodePtr(TaxiPathNodeEntry const* ptr) : i_ptr(ptr) {}
 
     TaxiPathNodeEntry const* i_ptr;

@@ -20,9 +20,10 @@
 #define _VMAPMANAGER2_H
 
 #include "IVMapManager.h"
-#include "Utilities/UnorderedMapSet.h"
-#include "Platform/Define.h"
+
 #include <G3D/Vector3.h>
+
+#include <unordered_map>
 
 //===========================================================
 
@@ -48,7 +49,7 @@ namespace VMAP
     class ManagedModel
     {
         public:
-            ManagedModel(): iModel(0), iRefCount(0) {}
+            ManagedModel() : iModel(nullptr), iRefCount(0) {}
             void setModel(WorldModel* model) { iModel = model; }
             WorldModel* getModel() { return iModel; }
             void incRefCount() { ++iRefCount; }
@@ -58,8 +59,8 @@ namespace VMAP
             int iRefCount;
     };
 
-    typedef UNORDERED_MAP<uint32 , StaticMapTree*> InstanceTreeMap;
-    typedef UNORDERED_MAP<std::string, ManagedModel> ModelFileMap;
+    typedef std::unordered_map<uint32 , StaticMapTree*> InstanceTreeMap;
+    typedef std::unordered_map<std::string, ManagedModel> ModelFileMap;
 
     class VMapManager2 : public IVMapManager
     {

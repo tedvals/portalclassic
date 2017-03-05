@@ -91,7 +91,7 @@ bool ChatHandler::HandleNpcTextEmoteCommand(char* args)
         return false;
     }
 
-    pCreature->MonsterTextEmote(args, NULL);
+    pCreature->MonsterTextEmote(args, nullptr);
 
     return true;
 }
@@ -143,7 +143,7 @@ bool ChatHandler::HandleNotifyCommand(char* args)
 
     WorldPacket data(SMSG_NOTIFICATION, (str.size() + 1));
     data << str;
-    sWorld.SendGlobalMessage(&data);
+    sWorld.SendGlobalMessage(data);
 
     return true;
 }
@@ -234,9 +234,9 @@ bool ChatHandler::HandleGMVisibleCommand(char* args)
     }
 
     Player* player = m_session->GetPlayer();
-    SpellEntry const* invisibleAuraInfo = sSpellStore.LookupEntry(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
+    SpellEntry const* invisibleAuraInfo = sSpellTemplate.LookupEntry<SpellEntry>(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
     if (!invisibleAuraInfo || !IsSpellAppliesAura(invisibleAuraInfo))
-        invisibleAuraInfo = NULL;
+        invisibleAuraInfo = nullptr;
 
     if (value)
     {
@@ -250,7 +250,7 @@ bool ChatHandler::HandleGMVisibleCommand(char* args)
         m_session->SendNotification(LANG_INVISIBLE_INVISIBLE);
         player->SetGMVisible(false);
         if (invisibleAuraInfo)
-            player->CastSpell(player, invisibleAuraInfo, true);
+            player->CastSpell(player, invisibleAuraInfo, TRIGGERED_OLD_TRIGGERED);
     }
 
     return true;
@@ -258,7 +258,7 @@ bool ChatHandler::HandleGMVisibleCommand(char* args)
 
 bool ChatHandler::HandleGPSCommand(char* args)
 {
-    WorldObject* obj = NULL;
+    WorldObject* obj = nullptr;
     if (*args)
     {
         if (ObjectGuid guid = ExtractGuidFromLink(&args))
@@ -466,7 +466,7 @@ bool ChatHandler::HandleNamegoCommand(char* args)
     else
     {
         // check offline security
-        if (HasLowerSecurity(NULL, target_guid))
+        if (HasLowerSecurity(nullptr, target_guid))
             return false;
 
         std::string nameLink = playerLink(target_name);
@@ -568,7 +568,7 @@ bool ChatHandler::HandleGonameCommand(char* args)
             {
                 Group* group = _player->GetGroup();
                 // if no bind exists, create a solo bind
-                InstanceGroupBind* gBind = group ? group->GetBoundInstance(target->GetMapId()) : NULL;
+                InstanceGroupBind* gBind = group ? group->GetBoundInstance(target->GetMapId()) : nullptr;
                 // if no bind exists, create a solo bind
                 if (!gBind)
                 {
@@ -606,7 +606,7 @@ bool ChatHandler::HandleGonameCommand(char* args)
     else
     {
         // check offline security
-        if (HasLowerSecurity(NULL, target_guid))
+        if (HasLowerSecurity(nullptr, target_guid))
             return false;
 
         std::string nameLink = playerLink(target_name);
@@ -664,7 +664,7 @@ bool ChatHandler::HandleModifyHPCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -702,7 +702,7 @@ bool ChatHandler::HandleModifyManaCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -780,7 +780,7 @@ bool ChatHandler::HandleModifyRageCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -943,7 +943,7 @@ bool ChatHandler::HandleModifyASpeedCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -990,7 +990,7 @@ bool ChatHandler::HandleModifySpeedCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -1035,7 +1035,7 @@ bool ChatHandler::HandleModifySwimCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -1080,7 +1080,7 @@ bool ChatHandler::HandleModifyBWalkCommand(char* args)
     }
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -1124,7 +1124,7 @@ bool ChatHandler::HandleModifyScaleCommand(char* args)
     }
 
     Unit* target = getSelectedUnit();
-    if (target == NULL)
+    if (target == nullptr)
     {
         SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
         SetSentErrorMessage(true);
@@ -1154,7 +1154,7 @@ bool ChatHandler::HandleModifyMountCommand(char* args)
     if (!*args)
         return false;
 
-    uint16 mId = 1147;
+    uint16 mId;
     float speed = (float)15;
     uint32 num = atoi(args);
     switch (num)
@@ -1395,13 +1395,13 @@ bool ChatHandler::HandleModifyMountCommand(char* args)
     data << chr->GetPackGUID();
     data << (uint32)0;
     data << float(speed);
-    chr->SendMessageToSet(&data, true);
+    chr->SendMessageToSet(data, true);
 
     data.Initialize(SMSG_FORCE_SWIM_SPEED_CHANGE, (8 + 4 + 4));
     data << chr->GetPackGUID();
     data << (uint32)0;
     data << float(speed);
-    chr->SendMessageToSet(&data, true);
+    chr->SendMessageToSet(data, true);
 
     return true;
 }
@@ -1413,7 +1413,7 @@ bool ChatHandler::HandleModifyMoneyCommand(char* args)
         return false;
 
     Player* chr = getSelectedPlayer();
-    if (chr == NULL)
+    if (chr == nullptr)
     {
         SendSysMessage(LANG_NO_CHAR_SELECTED);
         SetSentErrorMessage(true);
@@ -1709,7 +1709,7 @@ bool ChatHandler::HandleTeleNameCommand(char* args)
     else
     {
         // check offline security
-        if (HasLowerSecurity(NULL, target_guid))
+        if (HasLowerSecurity(nullptr, target_guid))
             return false;
 
         std::string nameLink = playerLink(target_name);
@@ -1760,7 +1760,7 @@ bool ChatHandler::HandleTeleGroupCommand(char* args)
         return false;
     }
 
-    for (GroupReference* itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
+    for (GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
     {
         Player* pl = itr->getSource();
 
@@ -1836,7 +1836,7 @@ bool ChatHandler::HandleGroupgoCommand(char* args)
         return false;
     }
 
-    for (GroupReference* itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
+    for (GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
     {
         Player* pl = itr->getSource();
 

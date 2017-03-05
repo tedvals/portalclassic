@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
 
 set(LIBRARY_NAME framework)
 
@@ -40,7 +41,6 @@ set(SRC_GRP_PLATFORM
 
 set(SRC_GRP_POLICIES
     Policies/CreationPolicy.h
-    Policies/MemoryManagement.cpp
     Policies/ObjectLifeTime.cpp
     Policies/ObjectLifeTime.h
     Policies/Singleton.h
@@ -54,7 +54,6 @@ set(SRC_GRP_UTIL
     Utilities/EventProcessor.h
     Utilities/LinkedList.h
     Utilities/TypeList.h
-    Utilities/UnorderedMapSet.h
 )
 
 set(SRC_GRP_LINKED_REFERENCE
@@ -103,20 +102,8 @@ source_group("Utilities\\LinkedReference"
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${ACE_INCLUDE_DIR}
 )
 
 add_library(${LIBRARY_NAME} STATIC
   ${LIBRARY_SRCS}
-)
-
-if(NOT TBB_USE_EXTERNAL)
-  add_dependencies(${LIBRARY_NAME} TBB_Project)
-endif()
-if(NOT ACE_USE_EXTERNAL)
-  add_dependencies(${LIBRARY_NAME} ACE_Project)
-endif()
-
-target_link_libraries(${LIBRARY_NAME}
-  ${TBB_LIBRARIES}
 )

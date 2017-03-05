@@ -30,11 +30,6 @@
 #include "UpdateMask.h"
 #include "Util.h"
 #include "MapManager.h"
-#include "Log.h"
-#include "Transports.h"
-#include "TargetedMovementGenerator.h"
-#include "WaypointMovementGenerator.h"
-#include "VMapFactory.h"
 #include "CellImpl.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
@@ -43,17 +38,19 @@
 #include "movement/packet_builder.h"
 #include "CreatureLinkingMgr.h"
 #include "Chat.h"
+#include "LootMgr.h"
 
-Object::Object()
+Object::Object(): m_updateFlag(0)
 {
     m_objectTypeId      = TYPEID_OBJECT;
     m_objectType        = TYPEMASK_OBJECT;
 
-    m_uint32Values      = NULL;
+    m_uint32Values      = nullptr;
     m_valuesCount       = 0;
 
     m_inWorld           = false;
     m_objectUpdated     = false;
+    loot              = nullptr;
 }
 
 Object::~Object()
@@ -72,6 +69,8 @@ Object::~Object()
     }
 
     delete[] m_uint32Values;
+
+    delete loot;
 }
 
 void Object::_InitValues()
@@ -113,8 +112,8 @@ void Object::SendForcedObjectUpdate()
     WorldPacket packet;                                     // here we allocate a std::vector with a size of 0x10000
     for (UpdateDataMapType::iterator iter = update_players.begin(); iter != update_players.end(); ++iter)
     {
-        iter->second.BuildPacket(&packet);
-        iter->first->GetSession()->SendPacket(&packet);
+        iter->second.BuildPacket(packet);
+        iter->first->GetSession()->SendPacket(packet);
         packet.clear();                                     // clean the string
     }
 }
@@ -143,33 +142,20 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
     if (target == this)                                     // building packet for yourself
         updateFlags |= UPDATEFLAG_SELF;
 
-    if (updateFlags & UPDATEFLAG_HAS_POSITION)
+    if (m_itsNewObject)
     {
-        // UPDATETYPE_CREATE_OBJECT2 dynamic objects, corpses...
-        if (isType(TYPEMASK_DYNAMICOBJECT) || isType(TYPEMASK_CORPSE) || isType(TYPEMASK_PLAYER))
-            updatetype = UPDATETYPE_CREATE_OBJECT2;
-
-        // UPDATETYPE_CREATE_OBJECT2 for pets...
-        if (target->GetPetGuid() == GetObjectGuid())
-            updatetype = UPDATETYPE_CREATE_OBJECT2;
-
-        // UPDATETYPE_CREATE_OBJECT2 for some gameobject types...
-        if (isType(TYPEMASK_GAMEOBJECT))
+        switch (GetObjectGuid().GetHigh())
         {
-            switch (((GameObject*)this)->GetGoType())
-            {
-                case GAMEOBJECT_TYPE_TRAP:
-                case GAMEOBJECT_TYPE_DUEL_ARBITER:
-                case GAMEOBJECT_TYPE_FLAGSTAND:
-                case GAMEOBJECT_TYPE_FLAGDROP:
-                    updatetype = UPDATETYPE_CREATE_OBJECT2;
-                    break;
-                case GAMEOBJECT_TYPE_TRANSPORT:
-                    updateFlags |= UPDATEFLAG_TRANSPORT;
-                    break;
-                default:
-                    break;
-            }
+            case HighGuid::HIGHGUID_DYNAMICOBJECT:
+            case HighGuid::HIGHGUID_CORPSE:
+            case HighGuid::HIGHGUID_PLAYER:
+            case HighGuid::HIGHGUID_UNIT:
+            case HighGuid::HIGHGUID_GAMEOBJECT:
+                updatetype = UPDATETYPE_CREATE_OBJECT2;
+                break;
+
+            default:
+                break;
         }
     }
 
@@ -181,7 +167,6 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
     buf << uint8(m_objectTypeId);
 
     BuildMovementUpdate(&buf, updateFlags);
-
     UpdateMask updateMask;
     updateMask.SetCount(m_valuesCount);
     _SetCreateBits(&updateMask, target);
@@ -189,15 +174,15 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
     data->AddUpdateBlock(buf);
 }
 
-void Object::SendCreateUpdateToPlayer(Player* player)
+void Object::SendCreateUpdateToPlayer(Player* player) const
 {
     // send create update to player
     UpdateData upd;
     WorldPacket packet;
 
     BuildCreateUpdateBlockForPlayer(&upd, player);
-    upd.BuildPacket(&packet);
-    player->GetSession()->SendPacket(&packet);
+    upd.BuildPacket(packet);
+    player->GetSession()->SendPacket(packet);
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
@@ -227,71 +212,54 @@ void Object::DestroyForPlayer(Player* target) const
 
     WorldPacket data(SMSG_DESTROY_OBJECT, 8);
     data << GetObjectGuid();
-    target->GetSession()->SendPacket(&data);
+    target->GetSession()->SendPacket(data);
 }
 
 void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
 {
-    uint32 moveFlags = MOVEFLAG_NONE;
+    Unit const* unit = nullptr;
+    uint32 highGuid = 0;
+    MovementFlags moveflags = MOVEFLAG_NONE;
 
-    *data << uint8(updateFlags);                            // update flags
+    switch (m_objectTypeId)
+    {
+        case TYPEID_OBJECT:
+        case TYPEID_ITEM:
+        case TYPEID_CONTAINER:
+        case TYPEID_GAMEOBJECT:
+        case TYPEID_DYNAMICOBJECT:
+        case TYPEID_CORPSE:
+            highGuid = uint32(GetObjectGuid().GetHigh());
+            break;
+
+        case TYPEID_PLAYER:
+            // TODO: this code must not be here
+            if (static_cast<Player const*>(this)->GetTransport())
+                ((Unit*)this)->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+            else
+                ((Unit*)this)->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
+
+        case TYPEID_UNIT:
+            unit = static_cast<Unit const*>(this);
+            moveflags = unit->m_movementInfo.GetMovementFlags();
+            break;
+
+        default:
+            break;
+    }
+
+    *data << uint8(updateFlags);
 
     if (updateFlags & UPDATEFLAG_LIVING)
     {
-        if (m_objectTypeId == TYPEID_PLAYER && ((Player*)this)->GetTransport())
+        MANGOS_ASSERT(unit);
+        if (unit->IsStopped() && unit->m_movementInfo.HasMovementFlag(MOVEFLAG_SPLINE_ENABLED))
         {
-            moveFlags |= MOVEFLAG_ONTRANSPORT;
+            sLog.outError("%s is not moving but have spline movement enabled!", GetGuidStr().c_str());
+            ((Unit*)this)->m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
         }
 
-        *data << uint32(moveFlags);                         // movement flags
-        *data << uint32(WorldTimer::getMSTime());           // time (in milliseconds)
-    }
-
-    if (updateFlags & UPDATEFLAG_HAS_POSITION)              // 0x40
-    {
-        if (m_objectTypeId == TYPEID_PLAYER && ((Player*)this)->GetTransport())
-        {
-            *data << float(((Player*)this)->GetTransport()->GetPositionX());
-            *data << float(((Player*)this)->GetTransport()->GetPositionY());
-            *data << float(((Player*)this)->GetTransport()->GetPositionZ());
-            *data << float(((Player*)this)->GetTransport()->GetOrientation());
-
-            *data << ObjectGuid(((Player*)this)->GetTransport()->GetObjectGuid());
-            *data << float(((Player*)this)->GetTransOffsetX());
-            *data << float(((Player*)this)->GetTransOffsetY());
-            *data << float(((Player*)this)->GetTransOffsetZ());
-            *data << float(((Player*)this)->GetTransOffsetO());
-        }
-        else if (GetObjectGuid().GetHigh() == HIGHGUID_TRANSPORT)
-        {
-            *data << float(0);
-            *data << float(0);
-            *data << float(0);
-            *data << float(((WorldObject*)this)->GetOrientation());
-        }
-        else
-        {
-            *data << float(((WorldObject*)this)->GetPositionX());
-            *data << float(((WorldObject*)this)->GetPositionY());
-            *data << float(((WorldObject*)this)->GetPositionZ());
-            *data << float(((WorldObject*)this)->GetOrientation());
-        }
-    }
-
-    if (updateFlags & UPDATEFLAG_LIVING)                    // 0x20
-    {
-        Unit* unit = ((Unit*)this);
-
-        *data << (float)0;
-
-        if (moveFlags & 0x2000)                             // update self
-        {
-            *data << (float)0;
-            *data << (float)1.0;
-            *data << (float)0;
-            *data << (float)0;
-        }
-
+        *data << unit->m_movementInfo;
         // Unit speeds
         *data << float(unit->GetSpeed(MOVE_WALK));
         *data << float(unit->GetSpeed(MOVE_RUN));
@@ -300,36 +268,33 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
         *data << float(unit->GetSpeed(MOVE_SWIM_BACK));
         *data << float(unit->GetSpeed(MOVE_TURN_RATE));
 
-        if (m_objectTypeId == TYPEID_UNIT)
-        {
-            uint8 PosCount = 0;
-            if (moveFlags & 0x400000)
-            {
-                *data << (uint32)0x0;
-                *data << (uint32)0x659;
-                *data << (uint32)0xB7B;
-                *data << (uint32)0xFDA0B4;
-                *data << (uint32)PosCount;
-                for (int i = 0; i < PosCount + 1; i++)
-                {
-                    *data << (float)0;                      // x
-                    *data << (float)0;                      // y
-                    *data << (float)0;                      // z
-                }
-            }
-        }
+        if (unit->m_movementInfo.HasMovementFlag(MOVEFLAG_SPLINE_ENABLED))
+            Movement::PacketBuilder::WriteCreate(*unit->movespline, *data);
+    }
+    else if (updateFlags & UPDATEFLAG_HAS_POSITION)
+    {
+        *data << ((WorldObject*)this)->GetPositionX();
+        *data << ((WorldObject*)this)->GetPositionY();
+        *data << ((WorldObject*)this)->GetPositionZ();
+        *data << ((WorldObject*)this)->GetOrientation();
     }
 
-    if (updateFlags & UPDATEFLAG_ALL)                       // 0x10
-    {
+    if (updateFlags & UPDATEFLAG_HIGHGUID)
+        *data << highGuid;
+
+    if (updateFlags & UPDATEFLAG_ALL)
         *data << (uint32)0x1;
+
+    if (updateFlags & UPDATEFLAG_FULLGUID)
+    {
+        if (unit && unit->getVictim())
+            *data << unit->getVictim()->GetPackGUID();
+        else
+            data->appendPackGUID(0);
     }
 
-    // 0x2
     if (updateFlags & UPDATEFLAG_TRANSPORT)
-    {
-        *data << uint32(WorldTimer::getMSTime());           // ms time
-    }
+        *data << uint32(WorldTimer::getMSTime());
 }
 
 void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* updateMask, Player* target) const
@@ -339,6 +304,31 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
 
     bool IsActivateToQuest = false;
     bool IsPerCasterAuraState = false;
+    bool sendPercent = false;
+
+    if (isType(TYPEMASK_UNIT))
+    {
+        if (!static_cast<Unit const*>(this)->IsTargetUnderControl(*target))
+        {
+            if (m_objectTypeId == TYPEID_UNIT)
+            {
+                if (!static_cast<Creature const*>(this)->IsPet() && !target->IsFriendlyTo(static_cast<Unit const*>(this)))
+                    sendPercent = true;
+            }
+            else
+            {
+                if (target != this && m_objectTypeId == TYPEID_PLAYER)
+                {
+                    if (static_cast<Player const*>(this)->GetTeam() != static_cast<Player const*>(target)->GetTeam() ||
+                        !target->IsFriendlyTo(static_cast<Unit const*>(this)))
+                    {
+                        // not same faction or not friendly
+                        sendPercent = true;
+                    }
+                }
+            }
+        }
+    }
 
     if (updatetype == UPDATETYPE_CREATE_OBJECT || updatetype == UPDATETYPE_CREATE_OBJECT2)
     {
@@ -391,9 +381,46 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                             if (target->getClass() != CLASS_HUNTER)
                                 appendValue &= ~UNIT_NPC_FLAG_STABLEMASTER;
                         }
+                        
+                        if (appendValue & UNIT_NPC_FLAG_FLIGHTMASTER)
+                        {
+                            QuestRelationsMapBounds bounds = sObjectMgr.GetCreatureQuestRelationsMapBounds(((Creature*)this)->GetEntry());
+                            for (QuestRelationsMap::const_iterator itr = bounds.first; itr != bounds.second; ++itr)
+                            {
+                                Quest const* pQuest = sObjectMgr.GetQuestTemplate(itr->second);
+                                if (target->CanSeeStartQuest(pQuest))
+                                {
+                                    appendValue &= ~UNIT_NPC_FLAG_FLIGHTMASTER;
+                                    break;
+                                }
+                            }
+
+                            bounds = sObjectMgr.GetCreatureQuestInvolvedRelationsMapBounds(((Creature*)this)->GetEntry());
+                            for (QuestRelationsMap::const_iterator itr = bounds.first; itr != bounds.second; ++itr)
+                            {
+                                Quest const* pQuest = sObjectMgr.GetQuestTemplate(itr->second);
+                                if (target->CanRewardQuest(pQuest, false))
+                                {
+                                    appendValue &= ~UNIT_NPC_FLAG_FLIGHTMASTER;
+                                    break;
+                                }
+                            }
+                        }
                     }
 
                     *data << uint32(appendValue);
+                }
+                else if (sendPercent && index == UNIT_FIELD_HEALTH)
+                {
+                    // send health percentage instead of real value to enemy
+                    if (m_uint32Values[UNIT_FIELD_HEALTH] == 0)
+                        *data << uint32(0);
+                    else
+                        *data << uint32(ceil(m_uint32Values[UNIT_FIELD_HEALTH] * 100 / float(m_uint32Values[UNIT_FIELD_MAXHEALTH]))); // never less than 1 as health is not zero
+                }
+                else if (sendPercent && index == UNIT_FIELD_MAXHEALTH)
+                {
+                    *data << uint32(100);
                 }
                 // FIXME: Some values at server stored in float format but must be sent to client in uint32 format
                 else if (index >= UNIT_FIELD_BASEATTACKTIME && index <= UNIT_FIELD_RANGEDATTACKTIME)
@@ -416,35 +443,66 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                 {
                     *data << (m_uint32Values[index] & ~UNIT_FLAG_NOT_SELECTABLE);
                 }
-                // Hide special-info for non empathy-casters,
                 // Hide lootable animation for unallowed players
-                else if (index == UNIT_DYNAMIC_FLAGS)
+                // Handle tapped flag
+                else if (index == UNIT_DYNAMIC_FLAGS && GetTypeId() == TYPEID_UNIT)
                 {
+                    Creature* creature = (Creature*)this;
                     uint32 dynflagsValue = m_uint32Values[index];
+                    bool setTapFlags = false;
 
-                    // Checking SPELL_AURA_EMPATHY and caster
-                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*)this)->isAlive())
+                    if (creature->isAlive())
                     {
-                        bool bIsEmpathy = false;
-                        bool bIsCaster = false;
-                        Unit::AuraList const& mAuraEmpathy = ((Unit*)this)->GetAurasByType(SPELL_AURA_EMPATHY);
-                        for (Unit::AuraList::const_iterator itr = mAuraEmpathy.begin(); !bIsCaster && itr != mAuraEmpathy.end(); ++itr)
+                        // creature is alive so, not lootable
+                        dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
+
+                        if (creature->isInCombat())
                         {
-                            bIsEmpathy = true;              // Empathy by aura set
-                            if ((*itr)->GetCasterGuid() == target->GetObjectGuid())
-                                bIsCaster = true;           // target is the caster of an empathy aura
+                            // as creature is in combat we have to manage tap flags
+                            setTapFlags = true;
                         }
-                        if (bIsEmpathy && !bIsCaster)       // Empathy by aura, but target is not the caster
-                            dynflagsValue &= ~UNIT_DYNFLAG_SPECIALINFO;
+                        else
+                        {
+                            // creature is not in combat so its not tapped
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
+                            //sLog.outString(">> %s is not in combat so not tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
+                    }
+                    else
+                    {
+                        // check loot flag
+                        if (creature->loot && creature->loot->CanLoot(target))
+                        {
+                            // creature is dead and this player can loot it
+                            dynflagsValue = dynflagsValue | UNIT_DYNFLAG_LOOTABLE;
+                            //sLog.outString(">> %s is lootable for %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
+                        else
+                        {
+                            // creature is dead but this player cannot loot it
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
+                            //sLog.outString(">> %s is not lootable for %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
+
+                        // as creature is died we have to manage tap flags
+                        setTapFlags = true;
                     }
 
-                    // Checking lootable
-                    if (GetTypeId() == TYPEID_UNIT)
+                    // check tap flags
+                    if (setTapFlags)
                     {
-                        if (!target->isAllowedToLoot((Creature*)this))
-                            dynflagsValue &= ~UNIT_DYNFLAG_LOOTABLE;
+                        if (creature->IsTappedBy(target))
+                        {
+                            // creature is in combat or died and tapped by this player
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
+                            //sLog.outString(">> %s is tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
                         else
-                            dynflagsValue &= ~UNIT_DYNFLAG_TAPPED;
+                        {
+                            // creature is in combat or died but not tapped by this player
+                            dynflagsValue = dynflagsValue | UNIT_DYNFLAG_TAPPED;
+                            //sLog.outString(">> %s is not tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
                     }
 
                     *data << dynflagsValue;
@@ -468,10 +526,17 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                 {
                     if (IsActivateToQuest)
                     {
+                        GameObject const* gameObject = static_cast<GameObject const*>(this);
                         switch (((GameObject*)this)->GetGoType())
                         {
                             case GAMEOBJECT_TYPE_QUESTGIVER:
                             case GAMEOBJECT_TYPE_CHEST:
+                                if (gameObject->getLootState() == GO_READY || gameObject->getLootState() == GO_ACTIVATED)
+                                    *data << uint16(GO_DYNFLAG_LO_ACTIVATE | GO_DYNFLAG_LO_SPARKLE);
+                                else
+                                    *data << uint16(0);
+                                *data << uint16(0);
+                                break;
                             case GAMEOBJECT_TYPE_GENERIC:
                             case GAMEOBJECT_TYPE_SPELL_FOCUS:
                             case GAMEOBJECT_TYPE_GOOBER:
@@ -533,7 +598,7 @@ bool Object::LoadValues(const char* data)
     int index;
     for (iter = tokens.begin(), index = 0; index < m_valuesCount; ++iter, ++index)
     {
-        m_uint32Values[index] = atol((*iter).c_str());
+        m_uint32Values[index] = std::stoul((*iter).c_str());
     }
 
     return true;
@@ -793,7 +858,7 @@ bool Object::PrintEntryError(char const* descr) const
 }
 
 
-void Object::BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_players)
+void Object::BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_players) const
 {
     UpdateDataMapType::iterator iter = update_players.find(pl);
 
@@ -837,8 +902,18 @@ void Object::MarkForClientUpdate()
     }
 }
 
+void Object::ForceValuesUpdateAtIndex(uint32 index)
+{
+    m_changedValues[index] = true;
+    if (m_inWorld && !m_objectUpdated)
+    {
+        AddToClientUpdateList();
+        m_objectUpdated = true;
+    }
+}
+
 WorldObject::WorldObject() :
-    m_currMap(NULL),
+    m_currMap(nullptr),
     m_mapId(0), m_InstanceId(0),
     m_isActiveObject(false)
 {
@@ -1145,6 +1220,38 @@ bool WorldObject::HasInArc(const float arcangle, const WorldObject* obj) const
     return ((angle >= lborder) && (angle <= rborder));
 }
 
+bool WorldObject::IsFacingTargetsBack(const WorldObject* target, float arc /*= M_PI_F*/) const
+{
+    if (!target)
+        return false;
+
+    //if target is facing the current object then we know its not possible that the current object would be facing the targets back
+    if (target->HasInArc(arc, this))
+        return false;
+
+    //if current object is not facing the target then we know the current object is not facing the target at all
+    if (!this->HasInArc(arc, target))
+        return false;
+
+    return true;
+}
+
+bool WorldObject::IsFacingTargetsFront(const WorldObject* target, float arc /*= M_PI_F*/) const
+{
+    if (!target)
+        return false;
+
+    //if target is not facing the current object then we know its not possible that the current object would be facing the targets front
+    if (!target->HasInArc(arc, this))
+        return false;
+
+    //if current object is not facing the target then we know the current object is not facing the target at all
+    if (!this->HasInArc(arc, target))
+        return false;
+
+    return true;
+}
+
 bool WorldObject::isInFrontInMap(WorldObject const* target, float distance,  float arc) const
 {
     return IsWithinDistInMap(target, distance) && HasInArc(arc, target);
@@ -1165,7 +1272,7 @@ bool WorldObject::isInBack(WorldObject const* target, float distance, float arc)
     return IsWithinDist(target, distance) && !HasInArc(2 * M_PI_F - arc, target);
 }
 
-void WorldObject::GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist /*=0.0f*/, float const* ori /*=NULL*/) const
+void WorldObject::GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist /*=0.0f*/, float const* ori /*=nullptr*/) const
 {
     if (distance == 0)
     {
@@ -1204,7 +1311,7 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float& z) const
         z = new_z + 0.05f;                                  // just to be sure that we are not a few pixel under the surface
 }
 
-void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=NULL*/) const
+void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=nullptr*/) const
 {
     if (!atMap)
         atMap = GetMap();
@@ -1274,7 +1381,7 @@ void WorldObject::MonsterSay(const char* text, uint32 /*language*/, Unit const* 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_MONSTER_SAY, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(&data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY), true);
+    SendMessageToSetInRange(data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY), true);
 }
 
 void WorldObject::MonsterYell(const char* text, uint32 /*language*/, Unit const* target) const
@@ -1282,7 +1389,7 @@ void WorldObject::MonsterYell(const char* text, uint32 /*language*/, Unit const*
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_MONSTER_YELL, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(&data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL), true);
+    SendMessageToSetInRange(data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL), true);
 }
 
 void WorldObject::MonsterTextEmote(const char* text, Unit const* target, bool IsBossEmote) const
@@ -1290,7 +1397,7 @@ void WorldObject::MonsterTextEmote(const char* text, Unit const* target, bool Is
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, IsBossEmote ? CHAT_MSG_RAID_BOSS_EMOTE : CHAT_MSG_MONSTER_EMOTE, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(&data, sWorld.getConfig(IsBossEmote ? CONFIG_FLOAT_LISTEN_RANGE_YELL : CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE), true);
+    SendMessageToSetInRange(data, sWorld.getConfig(IsBossEmote ? CONFIG_FLOAT_LISTEN_RANGE_YELL : CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE), true);
 }
 
 void WorldObject::MonsterWhisper(const char* text, Unit const* target, bool IsBossWhisper) const
@@ -1301,7 +1408,7 @@ void WorldObject::MonsterWhisper(const char* text, Unit const* target, bool IsBo
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, IsBossWhisper ? CHAT_MSG_RAID_BOSS_WHISPER : CHAT_MSG_MONSTER_WHISPER, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target->GetObjectGuid(), target->GetName());
-    ((Player*)target)->GetSession()->SendPacket(&data);
+    ((Player*)target)->GetSession()->SendPacket(data);
 }
 
 namespace MaNGOS
@@ -1313,7 +1420,7 @@ namespace MaNGOS
                 : i_object(obj), i_msgtype(msgtype), i_textData(textData), i_language(language), i_target(target) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
-                char const* text = NULL;
+                char const* text;
                 if ((int32)i_textData->Content.size() > loc_idx + 1 && !i_textData->Content[loc_idx + 1].empty())
                     text = i_textData->Content[loc_idx + 1].c_str();
                 else
@@ -1392,21 +1499,21 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
     }
 }
 
-void WorldObject::SendMessageToSet(WorldPacket* data, bool /*bToSelf*/) const
+void WorldObject::SendMessageToSet(WorldPacket const& data, bool /*bToSelf*/) const
 {
     // if object is in world, map for it already created!
     if (IsInWorld())
         GetMap()->MessageBroadcast(this, data);
 }
 
-void WorldObject::SendMessageToSetInRange(WorldPacket* data, float dist, bool /*bToSelf*/) const
+void WorldObject::SendMessageToSetInRange(WorldPacket const& data, float dist, bool /*bToSelf*/) const
 {
     // if object is in world, map for it already created!
     if (IsInWorld())
         GetMap()->MessageDistBroadcast(this, data, dist);
 }
 
-void WorldObject::SendMessageToSetExcept(WorldPacket* data, Player const* skipped_receiver) const
+void WorldObject::SendMessageToSetExcept(WorldPacket& data, Player const* skipped_receiver) const
 {
     // if object is in world, map for it already created!
     if (IsInWorld())
@@ -1416,19 +1523,19 @@ void WorldObject::SendMessageToSetExcept(WorldPacket* data, Player const* skippe
     }
 }
 
-void WorldObject::SendObjectDeSpawnAnim(ObjectGuid guid)
+void WorldObject::SendObjectDeSpawnAnim(ObjectGuid guid) const
 {
     WorldPacket data(SMSG_GAMEOBJECT_DESPAWN_ANIM, 8);
     data << ObjectGuid(guid);
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
-void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId /*= 0*/)
+void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId /*= 0*/) const
 {
     WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM, 8 + 4);
     data << ObjectGuid(guid);
     data << uint32(animId);
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void WorldObject::SetMap(Map* map)
@@ -1451,13 +1558,13 @@ void WorldObject::AddObjectToRemoveList()
     GetMap()->AddObjectToRemoveList(this);
 }
 
-Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject)
+Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject, bool setRun)
 {
     CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(id);
     if (!cinfo)
     {
         sLog.outErrorDb("WorldObject::SummonCreature: Creature (Entry: %u) not existed for summoner: %s. ", id, GetGuidStr().c_str());
-        return NULL;
+        return nullptr;
     }
 
     TemporarySummon* pCreature = new TemporarySummon(GetObjectGuid());
@@ -1474,10 +1581,13 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     if (!pCreature->Create(GetMap()->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo, team))
     {
         delete pCreature;
-        return NULL;
+        return nullptr;
     }
 
     pCreature->SetRespawnCoord(pos);
+
+    // Set run or walk before any other movement starts
+    pCreature->SetWalk(!setRun);
 
     // Active state set before added to map
     pCreature->SetActiveObjectState(asActiveObject);
@@ -1697,25 +1807,25 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
         UpdateGroundPositionZ(x, y, z);
 }
 
-void WorldObject::PlayDistanceSound(uint32 sound_id, Player const* target /*= NULL*/) const
+void WorldObject::PlayDistanceSound(uint32 sound_id, Player const* target /*= nullptr*/) const
 {
     WorldPacket data(SMSG_PLAY_OBJECT_SOUND, 4 + 8);
     data << uint32(sound_id);
     data << GetObjectGuid();
     if (target)
-        target->SendDirectMessage(&data);
+        target->SendDirectMessage(data);
     else
-        SendMessageToSet(&data, true);
+        SendMessageToSet(data, true);
 }
 
-void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= NULL*/) const
+void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= nullptr*/) const
 {
     WorldPacket data(SMSG_PLAY_SOUND, 4);
     data << uint32(sound_id);
     if (target)
-        target->SendDirectMessage(&data);
+        target->SendDirectMessage(data);
     else
-        SendMessageToSet(&data, true);
+        SendMessageToSet(data, true);
 }
 
 void WorldObject::UpdateVisibilityAndView()

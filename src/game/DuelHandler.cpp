@@ -20,8 +20,6 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "Log.h"
-#include "Opcodes.h"
-#include "UpdateData.h"
 #include "Player.h"
 
 void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
@@ -42,7 +40,7 @@ void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "Player 1 is: %u (%s)", pl->GetGUIDLow(), pl->GetName());
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "Player 2 is: %u (%s)", plTarget->GetGUIDLow(), plTarget->GetName());
 
-    time_t now = time(NULL);
+    time_t now = time(nullptr);
     pl->duel->startTimer = now;
     plTarget->duel->startTimer = now;
 
@@ -65,7 +63,7 @@ void WorldSession::HandleDuelCancelledOpcode(WorldPacket& recvPacket)
         if (GetPlayer()->duel->opponent)
             GetPlayer()->duel->opponent->CombatStopWithPets(true);
 
-        GetPlayer()->CastSpell(GetPlayer(), 7267, true);    // beg
+        GetPlayer()->CastSpell(GetPlayer(), 7267, TRIGGERED_OLD_TRIGGERED);    // beg
         GetPlayer()->DuelComplete(DUEL_WON);
         return;
     }

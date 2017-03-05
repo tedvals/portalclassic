@@ -26,7 +26,7 @@
 #include "WorldPacket.h"
 #include "DBCStores.h"                                   // TODO REMOVE this when graveyard handling for pvp is updated
 
-BattleGroundAV::BattleGroundAV()
+BattleGroundAV::BattleGroundAV(): m_HonorMapComplete(0), m_RepTowerDestruction(0), m_RepCaptain(0), m_RepBoss(0), m_RepOwnedGrave(0), m_RepOwnedMine(0), m_RepSurviveCaptain(0), m_RepSurviveTower(0)
 {
     m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_AV_START_ONE_MINUTE;
@@ -199,7 +199,6 @@ void BattleGroundAV::HandleQuestComplete(uint32 questid, Player* player)
         default:
             DEBUG_LOG("BattleGroundAV: Quest %i completed but is not interesting for us", questid);
             return;
-            break;
     }
     if (reputation)
         RewardReputationToTeam((player->GetTeam() == ALLIANCE) ? BG_AV_FACTION_A : BG_AV_FACTION_H, reputation, player->GetTeam());
@@ -342,7 +341,7 @@ void BattleGroundAV::EndBattleGround(Team winner)
     BattleGround::EndBattleGround(winner);
 }
 
-void BattleGroundAV::HandleAreaTrigger(Player* source, uint32 trigger)
+bool BattleGroundAV::HandleAreaTrigger(Player* source, uint32 trigger)
 {
     // this is wrong way to implement these things. On official it done by gameobject spell cast.
     switch (trigger)
@@ -360,19 +359,10 @@ void BattleGroundAV::HandleAreaTrigger(Player* source, uint32 trigger)
             else
                 source->LeaveBattleground();
             break;
-        case 3326:
-        case 3327:
-        case 3328:
-        case 3329:
-        case 3330:
-        case 3331:
-            // source->Unmount();
-            break;
         default:
-            DEBUG_LOG("BattleGroundAV: WARNING: Unhandled AreaTrigger in Battleground: %u", trigger);
-//            source->GetSession()->SendAreaTriggerMessage("Warning: Unhandled AreaTrigger in Battleground: %u", trigger);
-            break;
+            return false;
     }
+    return true;
 }
 
 void BattleGroundAV::UpdatePlayerScore(Player* source, uint32 type, uint32 value)
@@ -661,7 +651,7 @@ WorldSafeLocsEntry const* BattleGroundAV::GetClosestGraveYard(Player* plr)
     float x = plr->GetPositionX();
     float y = plr->GetPositionY();
     BattleGroundAVTeamIndex teamIdx = GetAVTeamIndexByTeamId(plr->GetTeam());
-    WorldSafeLocsEntry const* good_entry = NULL;
+    WorldSafeLocsEntry const* good_entry = nullptr;
     if (GetStatus() == STATUS_IN_PROGRESS)
     {
         // Is there any occupied node for this team?
@@ -707,7 +697,7 @@ uint32 BattleGroundAV::GetNodeName(BG_AV_Nodes node) const
         case BG_AV_NODES_FROSTWOLF_ETOWER:  return LANG_BG_AV_NODE_TOWER_FROST_E;
         case BG_AV_NODES_FROSTWOLF_WTOWER:  return LANG_BG_AV_NODE_TOWER_FROST_W;
         case BG_AV_NODES_FROSTWOLF_HUT:     return LANG_BG_AV_NODE_GRAVE_FROST_HUT;
-        default: return 0; break;
+        default: return 0;
     }
 }
 
@@ -815,4 +805,18 @@ void BattleGroundAV::Reset()
         InitNode(i, BG_AV_TEAM_HORDE, true);
 
     InitNode(BG_AV_NODES_SNOWFALL_GRAVE, BG_AV_TEAM_NEUTRAL, false);                            // give snowfall neutral owner
+}
+
+Team BattleGroundAV::GetPrematureWinner()
+{
+    int32 hordeScore = m_TeamScores[TEAM_INDEX_HORDE];
+    int32 allianceScore = m_TeamScores[TEAM_INDEX_ALLIANCE];
+
+    if (hordeScore > allianceScore)
+        return HORDE;
+    if (allianceScore > hordeScore)
+        return ALLIANCE;
+
+    // If the values are equal, fall back to number of players on each team
+    return BattleGround::GetPrematureWinner();
 }

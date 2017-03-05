@@ -41,7 +41,7 @@ void MemberSlot::SetMemberStats(Player* player)
 
 void MemberSlot::UpdateLogoutTime()
 {
-    LogoutTime = time(NULL);
+    LogoutTime = time(nullptr);
 }
 
 void MemberSlot::SetPNOTE(std::string pnote)
@@ -116,7 +116,7 @@ bool Guild::Create(Player* leader, std::string gname)
     m_Id = sObjectMgr.GenerateGuildId();
 
     // creating data
-    time_t now = time(0);
+    time_t now = time(nullptr);
     tm local = *(localtime(&now));                          // dereference and assign
     m_CreatedDay   = local.tm_mday;
     m_CreatedMonth = local.tm_mon + 1;
@@ -215,7 +215,7 @@ bool Guild::AddMember(ObjectGuid plGuid, uint32 plRank)
     newmember.RankId  = plRank;
     newmember.OFFnote = (std::string)"";
     newmember.Pnote   = (std::string)"";
-    newmember.LogoutTime = time(NULL);
+    newmember.LogoutTime = time(nullptr);
     members[lowguid] = newmember;
 
     std::string dbPnote   = newmember.Pnote;
@@ -492,8 +492,8 @@ bool Guild::DelMember(ObjectGuid guid, bool isDisbanding)
     // or when he is removed from guild by gm command
     if (m_LeaderGuid == guid && !isDisbanding)
     {
-        MemberSlot* oldLeader = NULL;
-        MemberSlot* best = NULL;
+        MemberSlot* oldLeader = nullptr;
+        MemberSlot* best = nullptr;
         ObjectGuid newLeaderGUID;
         for (Guild::MemberList::iterator i = members.begin(); i != members.end(); ++i)
         {
@@ -562,7 +562,7 @@ void Guild::BroadcastToGuild(WorldSession* session, const std::string& msg, uint
         Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(player->GetObjectGuid()))
-            pl->GetSession()->SendPacket(&data);
+            pl->GetSession()->SendPacket(data);
     }
 }
 
@@ -583,11 +583,11 @@ void Guild::BroadcastToOfficers(WorldSession* session, const std::string& msg, u
         Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_OFFCHATLISTEN) && !pl->GetSocial()->HasIgnore(player->GetObjectGuid()))
-            pl->GetSession()->SendPacket(&data);
+            pl->GetSession()->SendPacket(data);
     }
 }
 
-void Guild::BroadcastPacket(WorldPacket* packet)
+void Guild::BroadcastPacket(WorldPacket& packet)
 {
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
@@ -597,7 +597,7 @@ void Guild::BroadcastPacket(WorldPacket* packet)
     }
 }
 
-void Guild::BroadcastPacketToRank(WorldPacket* packet, uint32 rankId)
+void Guild::BroadcastPacketToRank(WorldPacket& packet, uint32 rankId)
 {
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
@@ -704,7 +704,7 @@ void Guild::Disband()
     sGuildMgr.RemoveGuild(m_Id);
 }
 
-void Guild::Roster(WorldSession* session /*= NULL*/)
+void Guild::Roster(WorldSession* session /*= nullptr*/)
 {
     // we can only guess size
     WorldPacket data(SMSG_GUILD_ROSTER, (4 + MOTD.length() + 1 + GINFO.length() + 1 + 4 + m_Ranks.size() * 4 + members.size() * 50));
@@ -739,15 +739,15 @@ void Guild::Roster(WorldSession* session /*= NULL*/)
             data << uint8(itr->second.Level);
             data << uint8(itr->second.Class);
             data << uint32(itr->second.ZoneId);
-            data << float(float(time(NULL) - itr->second.LogoutTime) / DAY);
+            data << float(float(time(nullptr) - itr->second.LogoutTime) / DAY);
             data << itr->second.Pnote;
             data << itr->second.OFFnote;
         }
     }
     if (session)
-        session->SendPacket(&data);
+        session->SendPacket(data);
     else
-        BroadcastPacket(&data);
+        BroadcastPacket(data);
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_ROSTER)");
 }
 
@@ -772,7 +772,7 @@ void Guild::Query(WorldSession* session)
     data << uint32(m_BorderColor);
     data << uint32(m_BackgroundColor);
 
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_QUERY_RESPONSE)");
 }
 
@@ -830,9 +830,9 @@ void Guild::DisplayGuildEventLog(WorldSession* session)
         if (itr->EventType == GUILD_EVENT_LOG_PROMOTE_PLAYER || itr->EventType == GUILD_EVENT_LOG_DEMOTE_PLAYER)
             data << uint8(itr->NewRank);
         // Event timestamp
-        data << uint32(time(NULL) - itr->TimeStamp);
+        data << uint32(time(nullptr) - itr->TimeStamp);
     }
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent (MSG_GUILD_EVENT_LOG_QUERY)");
 }
 
@@ -882,7 +882,7 @@ void Guild::LogGuildEvent(uint8 EventType, ObjectGuid playerGuid1, ObjectGuid pl
     NewEvent.PlayerGuid1 = playerGuid1.GetCounter();
     NewEvent.PlayerGuid2 = playerGuid2.GetCounter();
     NewEvent.NewRank = newRank;
-    NewEvent.TimeStamp = uint32(time(NULL));
+    NewEvent.TimeStamp = uint32(time(nullptr));
     // Count new LogGuid
     m_GuildEventLogNextGuid = (m_GuildEventLogNextGuid + 1) % sWorld.getConfig(CONFIG_UINT32_GUILD_EVENT_LOG_COUNT);
     // Check max records limit
@@ -896,7 +896,7 @@ void Guild::LogGuildEvent(uint8 EventType, ObjectGuid playerGuid1, ObjectGuid pl
                                m_Id, m_GuildEventLogNextGuid, uint32(NewEvent.EventType), NewEvent.PlayerGuid1, NewEvent.PlayerGuid2, uint32(NewEvent.NewRank), NewEvent.TimeStamp);
 }
 
-void Guild::BroadcastEvent(GuildEvents event, ObjectGuid guid, char const* str1 /*=NULL*/, char const* str2 /*=NULL*/, char const* str3 /*=NULL*/)
+void Guild::BroadcastEvent(GuildEvents event, ObjectGuid guid, char const* str1 /*=nullptr*/, char const* str2 /*=nullptr*/, char const* str3 /*=nullptr*/)
 {
     uint8 strCount = !str1 ? 0 : (!str2 ? 1 : (!str3 ? 2 : 3));
 
@@ -921,7 +921,7 @@ void Guild::BroadcastEvent(GuildEvents event, ObjectGuid guid, char const* str1 
     if (!guid.IsEmpty())
         data << guid;
 
-    BroadcastPacket(&data);
+    BroadcastPacket(data);
 
     DEBUG_LOG("WORLD: Sent SMSG_GUILD_EVENT");
 }

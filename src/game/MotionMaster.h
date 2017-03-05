@@ -69,7 +69,7 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator*>
         typedef std::vector<MovementGenerator*> ExpireList;
 
     public:
-        explicit MotionMaster(Unit* unit) : m_owner(unit), m_expList(NULL), m_cleanFlag(MMCF_NONE) {}
+        explicit MotionMaster(Unit* unit) : m_owner(unit), m_expList(nullptr), m_cleanFlag(MMCF_NONE) {}
         ~MotionMaster();
 
         void Initialize();
@@ -122,7 +122,7 @@ class MANGOS_DLL_SPEC MotionMaster : private std::stack<MovementGenerator*>
 
         uint32 getLastReachedWaypoint() const;
         void GetWaypointPathInformation(std::ostringstream& oss) const;
-        bool GetDestination(float& x, float& y, float& z);
+        bool GetDestination(float& x, float& y, float& z) const;
 
     private:
         void Mutate(MovementGenerator* m);                  // use Move* functions instead

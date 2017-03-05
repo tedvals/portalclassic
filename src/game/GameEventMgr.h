@@ -22,9 +22,9 @@
 #include "Common.h"
 #include "SharedDefines.h"
 #include "Platform/Define.h"
-#include "Policies/Singleton.h"
 
 #define max_ge_check_delay 86400                            // 1 day in seconds
+#define FAR_FUTURE 1609459200                               // 2021, January 1st
 
 class Creature;
 class GameObject;
@@ -38,6 +38,7 @@ struct GameEventData
     uint32 occurence;                                       // Delay in minutes between occurences of the event
     uint32 length;                                          // Length in minutes of the event
     HolidayIds holiday_id;
+    uint32 linkedTo;
     std::string description;
 
     bool isValid() const { return length > 0; }
@@ -79,7 +80,7 @@ class GameEventMgr
         uint32 NextCheck(uint16 entry) const;
         void LoadFromDB();
         void Initialize(MapPersistentState* state);         // called at new MapPersistentState object create
-        uint32 Update(ActiveEvents const* activeAtShutdown = NULL);
+        uint32 Update(ActiveEvents const* activeAtShutdown = nullptr);
         bool IsValidEvent(uint16 event_id) const { return event_id < mGameEvent.size() && mGameEvent[event_id].isValid(); }
         bool IsActiveEvent(uint16 event_id) const { return (m_ActiveEvents.find(event_id) != m_ActiveEvents.end()); }
         bool IsActiveHoliday(HolidayIds id);

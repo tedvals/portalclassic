@@ -495,7 +495,7 @@ namespace MMAP
         else
             switch (triangle)
             {
-                    //           0-----1 .... 128
+                //           0-----1 .... 128
                 case TOP:                                               //           |\    |
                     indices[0] = square + rowOffset;                    //           | \ T |
                     indices[1] = square + 1 + rowOffset;                //           |  \  |
@@ -632,7 +632,7 @@ namespace MMAP
                         uint8 type = NAV_EMPTY;
 
                         // convert liquid type to NavTerrain
-                        switch (liquid->GetType())
+                        switch (liquid->GetType() & 3)
                         {
                             case 0:
                             case 1:

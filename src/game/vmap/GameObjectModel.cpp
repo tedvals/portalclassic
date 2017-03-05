@@ -25,7 +25,6 @@
 #include "../World.h"
 #include "GameObjectModel.h"
 #include "../DBCStores.h"
-#include "../Creature.h"
 
 struct GameobjectModelData
 {
@@ -36,7 +35,7 @@ struct GameobjectModelData
     G3D::AABox bound;
 };
 
-typedef UNORDERED_MAP<uint32, GameobjectModelData> ModelList;
+typedef std::unordered_map<uint32, GameobjectModelData> ModelList;
 ModelList model_list;
 
 void LoadGameObjectModelList()
@@ -129,13 +128,13 @@ GameObjectModel* GameObjectModel::construct(const GameObject* const pGo)
 {
     const GameObjectDisplayInfoEntry* info = sGameObjectDisplayInfoStore.LookupEntry(pGo->GetDisplayId());
     if (!info)
-        return NULL;
+        return nullptr;
 
     GameObjectModel* mdl = new GameObjectModel();
     if (!mdl->initialize(pGo, info))
     {
         delete mdl;
-        return NULL;
+        return nullptr;
     }
 
     return mdl;

@@ -17,18 +17,15 @@
  */
 
 #include "Common.h"
-#include "UpdateMask.h"
-#include "Opcodes.h"
 #include "World.h"
 #include "ObjectAccessor.h"
-#include "Database/DatabaseEnv.h"
 #include "GridNotifiers.h"
 #include "CellImpl.h"
 #include "GridNotifiersImpl.h"
 #include "SpellMgr.h"
 #include "DBCStores.h"
 
-DynamicObject::DynamicObject() : WorldObject()
+DynamicObject::DynamicObject() : WorldObject(), m_spellId(0), m_effIndex(), m_aliveDuration(0), m_radius(0), m_positive(false)
 {
     m_objectType |= TYPEMASK_DYNAMICOBJECT;
     m_objectTypeId = TYPEID_DYNAMICOBJECT;
@@ -51,7 +48,7 @@ void DynamicObject::RemoveFromWorld()
     ///- Remove the dynamicObject from the accessor
     if (IsInWorld())
     {
-        GetMap()->GetObjectsStore().erase<DynamicObject>(GetObjectGuid(), (DynamicObject*)NULL);
+        GetMap()->GetObjectsStore().erase<DynamicObject>(GetObjectGuid(), (DynamicObject*)nullptr);
         GetViewPoint().Event_RemovedFromWorld();
     }
 
@@ -94,7 +91,7 @@ bool DynamicObject::Create(uint32 guidlow, Unit* caster, uint32 spellId, SpellEf
     SetFloatValue(DYNAMICOBJECT_POS_Y, y);
     SetFloatValue(DYNAMICOBJECT_POS_Z, z);
 
-    SpellEntry const* spellProto = sSpellStore.LookupEntry(spellId);
+    SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellProto)
     {
         sLog.outError("DynamicObject (spell %u) not created. Spell not exist!", spellId);

@@ -18,18 +18,14 @@
 
 #include "Corpse.h"
 #include "Player.h"
-#include "UpdateMask.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "Database/DatabaseEnv.h"
-#include "Opcodes.h"
-#include "GossipDef.h"
 #include "World.h"
 #include "ObjectMgr.h"
 
 Corpse::Corpse(CorpseType type) : WorldObject(),
-    loot(this),
-    lootRecipient(NULL),
+    lootRecipient(nullptr),
     lootForBody(false)
 {
     m_objectType |= TYPEMASK_CORPSE;
@@ -40,7 +36,7 @@ Corpse::Corpse(CorpseType type) : WorldObject(),
 
     m_type = type;
 
-    m_time = time(NULL);
+    m_time = time(nullptr);
 }
 
 Corpse::~Corpse()
@@ -140,7 +136,7 @@ void Corpse::DeleteBonesFromWorld()
     AddObjectToRemoveList();
 }
 
-void Corpse::DeleteFromDB()
+void Corpse::DeleteFromDB() const
 {
     // bones should not be saved to DB (would be deleted on startup anyway)
     MANGOS_ASSERT(GetType() != CORPSE_BONES);

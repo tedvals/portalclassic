@@ -21,7 +21,7 @@
 #include "Log.h"
 #include "ProgressBar.h"
 #include "SharedDefines.h"
-#include "ObjectGuid.h"
+#include "SQLStorages.h"
 
 #include "DBCfmt.h"
 
@@ -102,8 +102,8 @@ DBCStorage <SkillRaceClassInfoEntry> sSkillRaceClassInfoStore(SkillRaceClassInfo
 DBCStorage <SoundEntriesEntry> sSoundEntriesStore(SoundEntriesfmt);
 
 DBCStorage <SpellItemEnchantmentEntry> sSpellItemEnchantmentStore(SpellItemEnchantmentfmt);
-DBCStorage <SpellEntry> sSpellStore(SpellEntryfmt);
 SpellCategoryStore sSpellCategoryStore;
+ItemSpellCategoryStore sItemSpellCategoryStore;
 PetFamilySpellsStore sPetFamilySpellsStore;
 
 DBCStorage <SpellCastTimesEntry> sSpellCastTimesStore(SpellCastTimefmt);
@@ -281,19 +281,6 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSkillLineAbilityStore,    dbcPath, "SkillLineAbility.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSkillRaceClassInfoStore,  dbcPath, "SkillRaceClassInfo.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSoundEntriesStore,        dbcPath, "SoundEntries.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSpellStore,               dbcPath, "Spell.dbc");
-    for (uint32 i = 1; i < sSpellStore.GetNumRows(); ++i)
-    {
-        SpellEntry const* spell = sSpellStore.LookupEntry(i);
-        if (spell && spell->Category)
-            sSpellCategoryStore[spell->Category].insert(i);
-
-        // DBC not support uint64 fields but SpellEntry have SpellFamilyFlags mapped at 2 uint32 fields
-        // uint32 field already converted to bigendian if need, but must be swapped for correct uint64 bigendian view
-#if MANGOS_ENDIAN == MANGOS_BIGENDIAN
-        std::swap(*((uint32*)(&spell->SpellFamilyFlags)), *(((uint32*)(&spell->SpellFamilyFlags)) + 1));
-#endif
-    }
 
     for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
     {
@@ -302,8 +289,8 @@ void LoadDBCStores(const std::string& dataPath)
         if (!skillLine)
             continue;
 
-        SpellEntry const* spellInfo = sSpellStore.LookupEntry(skillLine->spellId);
-        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_UNK4 | SPELL_ATTR_PASSIVE | SPELL_ATTR_UNK7 | SPELL_ATTR_UNK8)) == (SPELL_ATTR_UNK4 | SPELL_ATTR_PASSIVE | SPELL_ATTR_UNK7 | SPELL_ATTR_UNK8))
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
+        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
         {
             for (unsigned int i = 1; i < sCreatureFamilyStore.GetNumRows(); ++i)
             {
@@ -438,8 +425,8 @@ void LoadDBCStores(const std::string& dataPath)
     // include existing nodes that have at least single not spell base (scripted) path
     {
         std::set<uint32> spellPaths;
-        for (uint32 i = 1; i < sSpellStore.GetNumRows(); ++i)
-            if (SpellEntry const* sInfo = sSpellStore.LookupEntry(i))
+        for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
+            if (SpellEntry const* sInfo = sSpellTemplate.LookupEntry<SpellEntry>(i))
                 for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
                     if (sInfo->Effect[j] == 123 /*SPELL_EFFECT_SEND_TAXI*/)
                         spellPaths.insert(sInfo->EffectMiscValue[j]);
@@ -507,8 +494,7 @@ void LoadDBCStores(const std::string& dataPath)
     }
 
     // Check loaded DBC files proper version
-    if (!sSpellStore.LookupEntry(33392)            ||
-            !sSkillLineAbilityStore.LookupEntry(15030) ||
+    if (!sSkillLineAbilityStore.LookupEntry(15030) ||
             !sMapStore.LookupEntry(533)                ||
             !sAreaStore.LookupEntry(3486))
     {
@@ -525,25 +511,25 @@ SimpleFactionsList const* GetFactionTeamList(uint32 faction)
 {
     FactionTeamMap::const_iterator itr = sFactionTeamMap.find(faction);
     if (itr == sFactionTeamMap.end())
-        return NULL;
+        return nullptr;
     return &itr->second;
 }
 
 char const* GetPetName(uint32 petfamily, uint32 dbclang)
 {
     if (!petfamily)
-        return NULL;
+        return nullptr;
     CreatureFamilyEntry const* pet_family = sCreatureFamilyStore.LookupEntry(petfamily);
     if (!pet_family)
-        return NULL;
-    return pet_family->Name[dbclang] ? pet_family->Name[dbclang] : NULL;
+        return nullptr;
+    return pet_family->Name[dbclang] ? pet_family->Name[dbclang] : nullptr;
 }
 
 TalentSpellPos const* GetTalentSpellPos(uint32 spellId)
 {
     TalentSpellPosMap::const_iterator itr = sTalentSpellPosMap.find(spellId);
     if (itr == sTalentSpellPosMap.end())
-        return NULL;
+        return nullptr;
 
     return &itr->second;
 }
@@ -574,7 +560,7 @@ WMOAreaTableEntry const* GetWMOAreaTableEntryByTripple(int32 rootid, int32 adtid
 {
     WMOAreaInfoByTripple::iterator i = sWMOAreaInfoByTripple.find(WMOAreaTableTripple(rootid, adtid, groupid));
     if (i == sWMOAreaInfoByTripple.end())
-        return NULL;
+        return nullptr;
     return i->second;
 }
 
@@ -586,7 +572,7 @@ AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id)
 AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id)
 {
     // 1.12.1 areatable have duplicates for areaflag
-    AreaTableEntry const* aEntry = NULL;
+    AreaTableEntry const* aEntry = nullptr;
     for (uint32 i = 0; i <= sAreaStore.GetNumRows(); i++)
     {
         if (area_flag != 0)
@@ -611,7 +597,7 @@ AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_
     if (MapEntry const* mapEntry = sMapStore.LookupEntry(map_id))
         return GetAreaEntryByAreaID(mapEntry->linked_zone);
 
-    return NULL;
+    return nullptr;
 }
 
 uint32 GetAreaFlagByMapId(uint32 mapid)
@@ -633,7 +619,7 @@ ChatChannelsEntry const* GetChannelEntryFor(uint32 channel_id)
         if (ch && ch->ChannelID == channel_id)
             return ch;
     }
-    return NULL;
+    return nullptr;
 }
 
 ChatChannelsEntry const* GetChannelEntryFor(const std::string& name)
@@ -655,7 +641,7 @@ ChatChannelsEntry const* GetChannelEntryFor(const std::string& name)
                 return ch;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 /*[-ZERO]
@@ -788,7 +774,6 @@ uint32 GetCreatureModelRace(uint32 model_id)
 
 // script support functions
 MANGOS_DLL_SPEC DBCStorage <SoundEntriesEntry>  const* GetSoundEntriesStore()   { return &sSoundEntriesStore;   }
-MANGOS_DLL_SPEC DBCStorage <SpellEntry>         const* GetSpellStore()          { return &sSpellStore;          }
 MANGOS_DLL_SPEC DBCStorage <SpellRangeEntry>    const* GetSpellRangeStore()     { return &sSpellRangeStore;     }
 MANGOS_DLL_SPEC DBCStorage <FactionEntry>       const* GetFactionStore()        { return &sFactionStore;        }
 MANGOS_DLL_SPEC DBCStorage <CreatureDisplayInfoEntry> const* GetCreatureDisplayStore() { return &sCreatureDisplayInfoStore; }

@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
 
 set(EXECUTABLE_NAME mangosd)
 
@@ -47,7 +48,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/game
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/src/shared
-  ${ACE_INCLUDE_DIR}
   ${OPENSSL_INCLUDE_DIR}
 )
 
@@ -62,10 +62,6 @@ add_executable(${EXECUTABLE_NAME}
 )
 
 add_dependencies(${EXECUTABLE_NAME} revision.h)
-if(NOT ACE_USE_EXTERNAL)
-  add_dependencies(${EXECUTABLE_NAME} ACE_Project)
-# add_dependencies(${EXECUTABLE_NAME} ace)
-endif()
 
 target_link_libraries(${EXECUTABLE_NAME}
   game
@@ -73,7 +69,7 @@ target_link_libraries(${EXECUTABLE_NAME}
   framework
   g3dlite
   gsoap
-  ${ACE_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 if(WIN32)
@@ -101,11 +97,11 @@ endif()
 set(EXECUTABLE_LINK_FLAGS "")
 
 if(UNIX)
-  set(EXECUTABLE_LINK_FLAGS "-pthread ${EXECUTABLE_LINK_FLAGS} -rdynamic")
-endif()
-
-if(APPLE)
-  set(EXECUTABLE_LINK_FLAGS "-framework Carbon ${EXECUTABLE_LINK_FLAGS}")
+  if (APPLE)
+    set(EXECUTABLE_LINK_FLAGS "-pthread -framework Carbon")
+  else()
+    set(EXECUTABLE_LINK_FLAGS "-pthread -rdynamic")
+  endif()
 endif()
 
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS

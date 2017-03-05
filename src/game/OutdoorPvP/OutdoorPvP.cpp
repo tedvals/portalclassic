@@ -17,8 +17,6 @@
  */
 
 #include "OutdoorPvP.h"
-#include "Language.h"
-#include "World.h"
 #include "ObjectMgr.h"
 #include "Object.h"
 #include "GameObject.h"
@@ -106,7 +104,7 @@ void OutdoorPvP::HandlePlayerKill(Player* killer, Player* victim)
 {
     if (Group* group = killer->GetGroup())
     {
-        for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+        for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
         {
             Player* groupMember = itr->getSource();
 
@@ -142,12 +140,12 @@ void OutdoorPvP::BuffTeam(Team team, uint32 spellId, bool remove /*= false*/)
             if (remove)
                 player->RemoveAurasDueToSpell(spellId);
             else
-                player->CastSpell(player, spellId, true);
+                player->CastSpell(player, spellId, TRIGGERED_OLD_TRIGGERED);
         }
     }
 }
 
-uint32 OutdoorPvP::GetBannerArtKit(Team team, uint32 artKitAlliance /*= CAPTURE_ARTKIT_ALLIANCE*/, uint32 artKitHorde /*= CAPTURE_ARTKIT_HORDE*/, uint32 artKitNeutral /*= CAPTURE_ARTKIT_NEUTRAL*/)
+uint32 OutdoorPvP::GetBannerArtKit(Team team, uint32 artKitAlliance /*= CAPTURE_ARTKIT_ALLIANCE*/, uint32 artKitHorde /*= CAPTURE_ARTKIT_HORDE*/, uint32 artKitNeutral /*= CAPTURE_ARTKIT_NEUTRAL*/) const
 {
     switch (team)
     {

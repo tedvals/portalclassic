@@ -33,7 +33,7 @@ ChannelMgr* channelMgr(Team team)
     if (team == HORDE)
         return &MaNGOS::Singleton<HordeChannelMgr>::Instance();
 
-    return NULL;
+    return nullptr;
 }
 
 ChannelMgr::~ChannelMgr()
@@ -73,11 +73,11 @@ Channel* ChannelMgr::GetChannel(const std::string& name, Player* p, bool pkt)
         if (pkt)
         {
             WorldPacket data;
-            MakeNotOnPacket(&data, name);
-            p->GetSession()->SendPacket(&data);
+            MakeNotOnPacket(data, name);
+            p->GetSession()->SendPacket(data);
         }
 
-        return NULL;
+        return nullptr;
     }
     else
         return i->second;
@@ -103,8 +103,8 @@ void ChannelMgr::LeftChannel(const std::string& name)
     }
 }
 
-void ChannelMgr::MakeNotOnPacket(WorldPacket* data, const std::string& name)
+void ChannelMgr::MakeNotOnPacket(WorldPacket& data, const std::string& name) const
 {
-    data->Initialize(SMSG_CHANNEL_NOTIFY, (1 + 10)); // we guess size
-    (*data) << (uint8)CHAT_NOT_MEMBER_NOTICE << name;
+    data.Initialize(SMSG_CHANNEL_NOTIFY, (1 + 10)); // we guess size
+    data << (uint8)CHAT_NOT_MEMBER_NOTICE << name;
 }

@@ -32,7 +32,7 @@ namespace VMAP
         iInvScale = 1.f / iScale;
     }
 
-    bool ModelInstance::intersectRay(const G3D::Ray& pRay, float& pMaxDist, bool pStopAtFirstHit) const
+    bool ModelInstance::intersectRay(const G3D::Ray& pRay, float& pMaxDist, bool pStopAtFirstHit, bool pCheckLOS) const
     {
         if (!iModel)
         {
@@ -53,7 +53,7 @@ namespace VMAP
         Vector3 p = iInvRot * (pRay.origin() - iPos) * iInvScale;
         Ray modRay(p, iInvRot * pRay.direction());
         float distance = pMaxDist * iInvScale;
-        bool hit = iModel->IntersectRay(modRay, distance, pStopAtFirstHit);
+        bool hit = iModel->IntersectRay(modRay, distance, pStopAtFirstHit, pCheckLOS);
         if (hit)
         {
             distance *= iScale;
@@ -166,7 +166,7 @@ namespace VMAP
         check += fread(&spawn.iPos, sizeof(float), 3, rf);
         check += fread(&spawn.iRot, sizeof(float), 3, rf);
         check += fread(&spawn.iScale, sizeof(float), 1, rf);
-        bool has_bound = (spawn.flags & MOD_HAS_BOUND);
+        const bool has_bound = !!(spawn.flags & MOD_HAS_BOUND);
         if (has_bound) // only WMOs have bound in MPQ, only available after computation
         {
             Vector3 bLow, bHigh;
@@ -205,7 +205,7 @@ namespace VMAP
         check += fwrite(&spawn.iPos, sizeof(float), 3, wf);
         check += fwrite(&spawn.iRot, sizeof(float), 3, wf);
         check += fwrite(&spawn.iScale, sizeof(float), 1, wf);
-        bool has_bound = (spawn.flags & MOD_HAS_BOUND);
+        const bool has_bound = !!(spawn.flags & MOD_HAS_BOUND);
         if (has_bound) // only WMOs have bound in MPQ, only available after computation
         {
             check += fwrite(&spawn.iBound.low(), sizeof(float), 3, wf);

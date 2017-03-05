@@ -167,7 +167,7 @@ bool Weather::ReGenerate()
     uint32 chance2 = chance1 + m_weatherChances->data[season].snowChance;
     uint32 chance3 = chance2 + m_weatherChances->data[season].stormChance;
 
-    uint32 rnd = urand(0, 99);
+    uint32 rnd = urand(1, 100);
     if (rnd <= chance1)
         m_type = WEATHER_TYPE_RAIN;
     else if (rnd <= chance2)
@@ -217,7 +217,7 @@ void Weather::SendWeatherUpdateToPlayer(Player* player)
     data << uint32(GetSound()); // 1.12 soundid
     data << uint8(0);       // 1 = instant change, 0 = smooth change
 
-    player->GetSession()->SendPacket(&data);
+    player->GetSession()->SendPacket(data);
 }
 
 // Send the new weather to all players in the zone
@@ -232,7 +232,7 @@ bool Weather::SendWeatherForPlayersInZone(Map const* _map)
     data << uint8(0);       // 1 = instant change, 0 = smooth change
 
     ///- Send the weather packet to all players in this zone
-    if (!_map->SendToPlayersInZone(&data, m_zone))
+    if (!_map->SendToPlayersInZone(data, m_zone))
         return false;
 
     ///- Log the event

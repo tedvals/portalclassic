@@ -113,7 +113,7 @@ class SQLStorage : public SQLStorageBase
         T const* LookupEntry(uint32 id) const
         {
             if (id >= GetMaxEntry())
-                return NULL;
+                return nullptr;
             return reinterpret_cast<T const*>(m_Index[id]);
         }
 
@@ -151,7 +151,7 @@ class SQLHashStorage : public SQLStorageBase
             RecordMap::const_iterator find = m_indexMap.find(id);
             if (find != m_indexMap.end())
                 return reinterpret_cast<T const*>(find->second);
-            return NULL;
+            return nullptr;
         }
 
         void Load();
@@ -168,7 +168,7 @@ class SQLHashStorage : public SQLStorageBase
         void Free() override;
 
     private:
-        typedef UNORDERED_MAP<uint32 /*recordId*/, char* /*record*/> RecordMap;
+        typedef std::unordered_map<uint32 /*recordId*/, char* /*record*/> RecordMap;
         RecordMap m_indexMap;
 };
 
@@ -253,9 +253,12 @@ class SQLStorageLoaderBase
         template<class S, class D>
         void convert(uint32 field_pos, S src, D& dst);
         template<class S>
+        void convert_to_bool(uint32 field_pos, S src, bool& dst);
+        template<class S>
         void convert_to_str(uint32 field_pos, S src, char*& dst);
         template<class D>
         void convert_from_str(uint32 field_pos, char const* src, D& dst);
+        void convert_str_to_bool(uint32 field_pos, char const* src, bool& dst);
         void convert_str_to_str(uint32 field_pos, char const* src, char*& dst);
         template<class S, class D>
         void default_fill(uint32 field_pos, S src, D& dst);

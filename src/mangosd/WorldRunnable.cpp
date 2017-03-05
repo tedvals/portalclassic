@@ -20,7 +20,6 @@
     \ingroup mangosd
 */
 
-#include "WorldSocketMgr.h"
 #include "Common.h"
 #include "World.h"
 #include "WorldRunnable.h"
@@ -67,7 +66,7 @@ void WorldRunnable::run()
         if (diff <= WORLD_SLEEP_CONST + prevSleepTime)
         {
             prevSleepTime = WORLD_SLEEP_CONST + prevSleepTime - diff;
-            ACE_Based::Thread::Sleep(prevSleepTime);
+            MaNGOS::Thread::Sleep(prevSleepTime);
         }
         else
             prevSleepTime = 0;
@@ -79,10 +78,6 @@ void WorldRunnable::run()
     }
 
     sWorld.CleanupsBeforeStop();
-
-    sWorldSocketMgr->StopNetwork();
-
-    sMapMgr.UnloadAll();                                    // unload all grids (including locked in memory)
 
     ///- End the database thread
     WorldDatabase.ThreadEnd();                              // free mySQL thread resources
