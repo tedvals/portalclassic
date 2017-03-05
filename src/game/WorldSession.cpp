@@ -37,6 +37,7 @@
 #include "BattleGround/BattleGroundMgr.h"
 #include "SocialMgr.h"
 #include "LootMgr.h"
+#include "LuaEngine.h"
 
 #include <mutex>
 #include <deque>
@@ -122,7 +123,6 @@ char const* WorldSession::GetPlayerName() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const& packet) const
 {
-<<<<<<< HEAD
     // Playerbot mod: send packet to bot AI
     if (GetPlayer()) {
         if (GetPlayer()->GetPlayerbotAI())
@@ -132,9 +132,6 @@ void WorldSession::SendPacket(WorldPacket const& packet) const
     }
 
     if (!m_Socket)
-=======
-    if (m_Socket->IsClosed())
->>>>>>> 286b1c7ff192a9cc0e9ea8e78005861894fdaa4f
         return;
 
 #ifdef MANGOS_DEBUG
@@ -307,7 +304,6 @@ bool WorldSession::Update(PacketFilter& updater)
                 KickPlayer();
             }
         }
-<<<<<<< HEAD
 
         delete packet;
     }
@@ -342,8 +338,6 @@ bool WorldSession::Update(PacketFilter& updater)
     {
         m_Socket->RemoveReference();
         m_Socket = NULL;
-=======
->>>>>>> 286b1c7ff192a9cc0e9ea8e78005861894fdaa4f
     }
 
     // check if we are safe to proceed with logout
@@ -519,8 +513,13 @@ void WorldSession::LogoutPlayer(bool save)
         sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetObjectGuid(), true);
         sSocialMgr.RemovePlayerSocial(_player->GetGUIDLow());
 
+<<<<<<< HEAD
         // Playerbot - remember player GUID for update SQL below
         uint32 guid = _player->GetGUIDLow();
+=======
+        ///- used by eluna
+        sEluna->OnLogout(_player);
+>>>>>>> cd816aed92e9a68461dee8fc6a2319f46f9cf1a5
 
         ///- Remove the player from the world
         // the player may not be in the world when logging out
@@ -756,6 +755,8 @@ void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg) co
 
 void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket &packet)
 {
+    if (!sEluna->OnPacketReceive(this, packet))
+        return;
     // need prevent do internal far teleports in handlers because some handlers do lot steps
     // or call code that can do far teleports in some conditions unexpectedly for generic way work code
     if (_player)
