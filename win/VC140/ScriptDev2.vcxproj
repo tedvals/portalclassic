@@ -214,7 +214,6 @@
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\blasted_lands.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\boss_kazzak.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\burning_steppes.cpp" />
-    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\deeprun_tram.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\dun_morogh.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\eastern_plaguelands.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\elwynn_forest.cpp" />
