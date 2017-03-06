@@ -409,6 +409,7 @@
     <ClCompile Include="..\..\src\game\ConfusedMovementGenerator.cpp" />
     <ClCompile Include="..\..\src\game\Corpse.cpp" />
     <ClCompile Include="..\..\src\game\Creature.cpp" />
+    <ClCompile Include="..\..\src\game\CreatureGroups.cpp" />
     <ClCompile Include="..\..\src\game\CreatureLinkingMgr.cpp" />
     <ClCompile Include="..\..\src\game\DBCStores.cpp" />
     <ClCompile Include="..\..\src\game\debugcmds.cpp" />
@@ -554,6 +555,8 @@
     <ClCompile Include="..\..\src\game\vmap\VMapFactory.cpp" />
     <ClCompile Include="..\..\src\game\vmap\VMapManager2.cpp" />
     <ClCompile Include="..\..\src\game\vmap\WorldModel.cpp" />
+    <ClCompile Include="..\..\src\game\ZoneScript.cpp" />
+    <ClCompile Include="..\..\src\game\ZoneScriptMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h" />
@@ -565,6 +568,7 @@
     <ClInclude Include="..\..\src\game\AI\CreatureAISelector.h" />
     <ClInclude Include="..\..\src\game\AI\CreatureEventAI.h" />
     <ClInclude Include="..\..\src\game\AI\CreatureEventAIMgr.h" />
+    <ClInclude Include="..\..\src\game\AI\GameObjectAI.h" />
     <ClInclude Include="..\..\src\game\AI\GuardAI.h" />
     <ClInclude Include="..\..\src\game\AI\GuardianAI.h" />
     <ClInclude Include="..\..\src\game\AI\NullCreatureAI.h" />
@@ -590,6 +594,7 @@
     <ClInclude Include="..\..\src\game\ConfusedMovementGenerator.h" />
     <ClInclude Include="..\..\src\game\Corpse.h" />
     <ClInclude Include="..\..\src\game\Creature.h" />
+    <ClInclude Include="..\..\src\game\CreatureGroups.h" />
     <ClInclude Include="..\..\src\game\CreatureLinkingMgr.h" />
     <ClInclude Include="..\..\src\game\DBCEnums.h" />
     <ClInclude Include="..\..\src\game\DBCfmt.h" />
@@ -744,6 +749,8 @@
     <ClInclude Include="..\..\src\game\vmap\VMapManager2.h" />
     <ClInclude Include="..\..\src\game\vmap\VMapTools.h" />
     <ClInclude Include="..\..\src\game\vmap\WorldModel.h" />
+    <ClInclude Include="..\..\src\game\ZoneScript.h" />
+    <ClInclude Include="..\..\src\game\ZoneScriptMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\dep\recastnavigation\Detour\win\VC140\Detour.vcxproj">
