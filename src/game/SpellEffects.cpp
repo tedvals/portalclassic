@@ -7006,7 +7006,7 @@ void Spell::EffectReforgeItem(SpellEffectIndex eff_idx)
 				case ITEM_SUBCLASS_WEAPON_WAND:
 					itemClass = 4;
 				case ITEM_SUBCLASS_WEAPON_MISC:
-				case ITEM_SUBCLASS_WEAPON_obsolete:
+				case ITEM_SUBCLASS_WEAPON_TORCH:
 				case ITEM_SUBCLASS_WEAPON_EXOTIC:
 				case ITEM_SUBCLASS_WEAPON_EXOTIC2:
 				case ITEM_SUBCLASS_WEAPON_FISHING_POLE:
